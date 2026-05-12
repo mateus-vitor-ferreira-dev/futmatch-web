@@ -37,7 +37,17 @@ export const FormSubtitle = styled.p`
   margin: 0 0 20px;
 `
 
-/* ── Google button ─────────────────────────────────────────────────────────── */
+/* ── Google wrapper (botão oficial do Google centralizado) ──────────────────── */
+export const GoogleWrapper = styled.div`
+  display: flex;
+  justify-content: center;
+  margin-bottom: 4px;
+
+  /* força o botão do Google a ocupar a largura total */
+  & > div, & iframe { width: 100% !important; }
+`
+
+/* ── Google button (mantido para compatibilidade) ───────────────────────────── */
 export const GoogleButton = styled.button`
   width: 100%;
   height: 42px;
