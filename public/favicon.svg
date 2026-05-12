@@ -1,26 +1,24 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
   <defs>
-    <clipPath id="ball"><circle cx="32" cy="32" r="21.5"/></clipPath>
+    <clipPath id="c"><circle cx="32" cy="32" r="30.5"/></clipPath>
   </defs>
-  <!-- Fundo verde -->
-  <circle cx="32" cy="32" r="31" fill="#16a34a"/>
-  <!-- Bola branca -->
-  <circle cx="32" cy="32" r="22" fill="#f1f5f9"/>
-  <!-- Padrão de pentágonos (coordenadas matematicamente corretas) -->
-  <g clip-path="url(#ball)" fill="#1e293b">
-    <!-- Pentágono central (vértice apontando para cima) -->
-    <polygon points="32,25 25.3,29.8 27.9,37.7 36.1,37.7 38.7,29.8"/>
-    <!-- Superior (θ=90°) -->
-    <polygon points="32,22.5 37.7,18.4 35.5,11.6 28.5,11.6 26.3,18.4"/>
-    <!-- Superior-esquerdo (θ=162°) -->
-    <polygon points="23,29.1 20.8,22.4 13.7,22.4 11.6,29.1 17.3,33.2"/>
-    <!-- Inferior-esquerdo (θ=234°) -->
-    <polygon points="26.4,39.7 19.4,39.7 17.2,46.4 22.9,50.5 28.6,46.4"/>
-    <!-- Inferior-direito (θ=306°) -->
-    <polygon points="37.6,39.7 35.4,46.4 41.1,50.5 46.8,46.4 44.6,39.7"/>
-    <!-- Superior-direito (θ=18°) -->
-    <polygon points="41,29.1 46.7,33.2 52.4,29.1 50.3,22.4 43.2,22.4"/>
+  <!-- Bola branca preenchendo o ícone -->
+  <circle cx="32" cy="32" r="31" fill="#f1f5f9"/>
+  <!-- Pentágonos pretos (geometria correta, escalada para r=31) -->
+  <g clip-path="url(#c)" fill="#1e293b">
+    <!-- Central -->
+    <polygon points="32,22.1 22.6,28.9 26.2,40 37.8,40 41.4,28.9"/>
+    <!-- Superior -->
+    <polygon points="32,18.7 40.1,12.8 37,3.3 27,3.3 23.9,12.8"/>
+    <!-- Superior-esquerdo -->
+    <polygon points="19.3,27.9 16.2,18.4 6.2,18.4 3.1,27.9 11.2,33.7"/>
+    <!-- Inferior-esquerdo -->
+    <polygon points="24.1,42.8 14.2,42.8 11.1,52.3 19.1,58.2 27.2,52.3"/>
+    <!-- Inferior-direito -->
+    <polygon points="39.9,42.8 36.8,52.3 44.9,58.2 52.9,52.3 49.8,42.8"/>
+    <!-- Superior-direito -->
+    <polygon points="44.7,27.9 52.8,33.7 60.9,27.9 57.8,18.4 47.8,18.4"/>
   </g>
-  <!-- Borda da bola -->
-  <circle cx="32" cy="32" r="22" fill="none" stroke="#94a3b8" stroke-width="0.5"/>
+  <!-- Borda sutil -->
+  <circle cx="32" cy="32" r="30.5" fill="none" stroke="#cbd5e1" stroke-width="1"/>
 </svg>
