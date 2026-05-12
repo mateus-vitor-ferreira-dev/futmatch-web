@@ -63,10 +63,9 @@ npm install
 Crie um arquivo chamado .env na raiz do projeto com o seguinte conteúdo:
 
 VITE_API_URL=http://localhost:3000
-VITE_GOOGLE_CLIENT_ID=COLE_AQUI_O_VALOR_ENVIADO_NO_WHATSAPP
+VITE_GOOGLE_CLIENT_ID=446784228326-i78g3nfnmdvpgoqt6bmdgr43hc756p13.apps.googleusercontent.com
 
-⚠️ O valor do VITE_GOOGLE_CLIENT_ID será enviado pelo Mateus via WhatsApp.
-Nunca compartilhe esse arquivo nem o commite no repositório — ele já está no .gitignore.
+⚠️ Nunca commite o arquivo .env — ele já está no .gitignore.
 
 ▶️ Rodando o projeto
 
