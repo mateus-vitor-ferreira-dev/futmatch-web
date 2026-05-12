@@ -9,8 +9,7 @@ import {
   LeftQuote, RightPanel, Card,
 } from './styles'
 
-// Imagens locais — coloque os arquivos em src/assets/sports/
-// e ajuste os nomes de import abaixo conforme seus arquivos
+// Imagens de fundo por modalidade — adicione os arquivos em src/assets/sports/
 import imgSociety     from '../../assets/sports/society.jpg'
 import imgCampo       from '../../assets/sports/campo.jpg'
 import imgFutsal      from '../../assets/sports/futsal.jpg'
@@ -23,6 +22,7 @@ import imgBeachTennis from '../../assets/sports/beach_tennis.webp'
 import imgBasquete    from '../../assets/sports/basquete.jpg'
 import imgTenis       from '../../assets/sports/tenis.jpg'
 
+/** Mapa de id do esporte → imagem de fundo correspondente */
 const SPORT_IMAGES = {
   SOCIETY:      imgSociety,
   CAMPO:        imgCampo,
@@ -37,15 +37,22 @@ const SPORT_IMAGES = {
   TENIS:        imgTenis,
 }
 
+/** Altura de cada item na roda de modalidades (px) */
 const ITEM_HEIGHT = 56
+/** Intervalo de rotação automática da roda (ms) */
 const INTERVAL    = 3000
 
+/** Estatísticas exibidas no painel esquerdo */
 const STATS = [
   { value: '847', label: 'jogadores online' },
   { value: '32',  label: 'jogos hoje'       },
   { value: '12',  label: 'cidades'          },
 ]
 
+/**
+ * Configuração visual dos 5 slots visíveis da roda de modalidades.
+ * offset 0 = item ativo (centro), ±1 e ±2 ficam menores e mais transparentes.
+ */
 const SLOTS = [
   { offset: -2, scale: 0.72, opacity: 0.30 },
   { offset: -1, scale: 0.86, opacity: 0.60 },
@@ -54,36 +61,58 @@ const SLOTS = [
   { offset:  2, scale: 0.72, opacity: 0.30 },
 ]
 
+/**
+ * Layout split-screen para as telas de autenticação.
+ *
+ * Painel esquerdo:
+ *  - Carrossel de imagens de fundo com crossfade suave (2 camadas alternadas).
+ *  - "Ferris wheel" de modalidades esportivas com rotação automática a cada 3s.
+ *  - Estatísticas da plataforma e frase de impacto.
+ *
+ * Painel direito:
+ *  - Card branco com o conteúdo passado via `children` (formulário de login/registro).
+ *
+ * @param {{ children: React.ReactNode }} props
+ */
 export default function AuthLayout({ children }) {
   const { sports } = useSports()
-  const [activeIdx, setActiveIdx]   = useState(0)
-  // Duas camadas para crossfade: slot A e slot B se alternam
-  const [layers, setLayers]         = useState({ a: null, b: null, front: 'a' })
-  const prevIdxRef                  = useRef(-1)
 
-  // Auto-avança
+  /** Índice do esporte ativo na roda */
+  const [activeIdx, setActiveIdx] = useState(0)
+
+  /**
+   * Duas camadas de imagem de fundo (A e B) que se alternam para criar
+   * o efeito de crossfade: enquanto uma aparece (front), a outra carrega
+   * a próxima imagem por baixo.
+   */
+  const [layers, setLayers] = useState({ a: null, b: null, front: 'a' })
+
+  /** Controla se o crossfade já foi aplicado para o índice atual */
+  const prevIdxRef = useRef(-1)
+
+  // Avança automaticamente para o próximo esporte a cada INTERVAL ms
   useEffect(() => {
     if (!sports.length) return
     const t = setInterval(() => setActiveIdx((i) => (i + 1) % sports.length), INTERVAL)
     return () => clearInterval(t)
   }, [sports.length])
 
-  // Atualiza o crossfade quando muda a imagem
+  // Atualiza as camadas de crossfade quando o esporte ativo muda
   useEffect(() => {
     if (!sports.length) return
-    const sport   = sports[activeIdx]
-    const imgUrl  = sport ? (SPORT_IMAGES[sport.id] ?? null) : null
+    const sport  = sports[activeIdx]
+    const imgUrl = sport ? (SPORT_IMAGES[sport.id] ?? null) : null
     if (prevIdxRef.current === activeIdx) return
     prevIdxRef.current = activeIdx
 
     setLayers((prev) => {
-      // Alterna qual camada fica na frente
+      // Carrega a nova imagem na camada que está atrás e traz ela para frente
       if (prev.front === 'a') return { a: prev.a, b: imgUrl, front: 'b' }
       return { a: imgUrl, b: prev.b, front: 'a' }
     })
   }, [activeIdx, sports])
 
-  // Inicializa com a primeira imagem
+  // Inicializa o fundo com a primeira imagem ao carregar os esportes
   useEffect(() => {
     if (!sports.length) return
     const first = sports[0]
@@ -92,6 +121,12 @@ export default function AuthLayout({ children }) {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sports.length])
 
+  /**
+   * Calcula a distância cíclica entre o item i e o item ativo,
+   * garantindo que a distância máxima seja sempre ≤ n/2 (caminho mais curto na roda).
+   * @param {number} i
+   * @returns {number} distância de -n/2 a n/2
+   */
   function cyclicDist(i) {
     const n = sports.length
     if (!n) return 0
@@ -104,14 +139,13 @@ export default function AuthLayout({ children }) {
   return (
     <Wrapper>
       <LeftPanel>
-        {/* Crossfade: camada A */}
+        {/* Crossfade — camada A (fica na frente quando front === 'a') */}
         <BgImage $url={layers.a} $visible={layers.front === 'a'} />
-        {/* Crossfade: camada B */}
+        {/* Crossfade — camada B */}
         <BgImage $url={layers.b} $visible={layers.front === 'b'} />
-        {/* Overlay escuro para legibilidade */}
+        {/* Overlay escuro para garantir legibilidade do texto */}
         <BgOverlay />
 
-        {/* ── Conteúdo (z-index > 1 para ficar acima do overlay) ── */}
         <Logo style={{ zIndex: 2 }}>
           <LogoIcon>⚽</LogoIcon>
           <LogoText>
@@ -129,10 +163,11 @@ export default function AuthLayout({ children }) {
             </HeadlineDesc>
           </div>
 
+          {/* Roda de modalidades — exibe 5 itens (offset -2 a +2) */}
           <WheelTrack>
             {sports.map((sport, i) => {
               const d = cyclicDist(i)
-              if (Math.abs(d) > 2) return null
+              if (Math.abs(d) > 2) return null // fora da janela visível
               const slot     = SLOTS.find((s) => s.offset === d)
               const isActive = d === 0
               const top      = trackCenter + d * ITEM_HEIGHT - ITEM_HEIGHT / 2

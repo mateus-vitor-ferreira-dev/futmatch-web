@@ -4,11 +4,24 @@ import {
   Dropdown, Option, Checkbox, OptionIcon,
 } from './styles'
 
+/**
+ * Multiselect customizado para modalidades esportivas.
+ *
+ * Exibe as modalidades selecionadas como tags removíveis e abre um dropdown
+ * com todas as opções disponíveis ao clicar. Fecha ao clicar fora.
+ *
+ * @param {{
+ *   sports:   Array<{ id: string, label: string, icon: string }>,
+ *   value:    string[],
+ *   onChange: (ids: string[]) => void,
+ *   loading:  boolean,
+ * }} props
+ */
 export default function SportSelect({ sports = [], value = [], onChange, loading }) {
   const [open, setOpen] = useState(false)
   const wrapperRef = useRef()
 
-  // Fecha ao clicar fora
+  // Fecha o dropdown ao clicar fora do componente
   useEffect(() => {
     function onClickOutside(e) {
       if (wrapperRef.current && !wrapperRef.current.contains(e.target)) {
@@ -19,10 +32,12 @@ export default function SportSelect({ sports = [], value = [], onChange, loading
     return () => document.removeEventListener('mousedown', onClickOutside)
   }, [])
 
+  /** Adiciona ou remove um esporte da seleção */
   function toggle(id) {
     onChange(value.includes(id) ? value.filter((v) => v !== id) : [...value, id])
   }
 
+  /** Remove uma tag sem propagar o clique para o Trigger (que abriria o dropdown) */
   function remove(e, id) {
     e.stopPropagation()
     onChange(value.filter((v) => v !== id))
@@ -50,7 +65,7 @@ export default function SportSelect({ sports = [], value = [], onChange, loading
 
       {open && (
         <Dropdown
-          onWheel={(e) => e.stopPropagation()} // garante que scroll do dropdown não sobe para a página
+          onWheel={(e) => e.stopPropagation()} // impede que o scroll do dropdown suba para a página
         >
           {sports.map((s) => {
             const checked = value.includes(s.id)

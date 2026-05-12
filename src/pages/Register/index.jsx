@@ -16,6 +16,7 @@ import {
   SubmitButton, SwitchText, ForgotLink, LegalText,
 } from './styles'
 
+/** Schema de validação para cadastro (inclui nome, confirmação de senha) */
 const registerSchema = yup.object({
   name:            yup.string().min(2, 'Mínimo 2 caracteres').required('Obrigatório'),
   email:           yup.string().email('E-mail inválido').required('Obrigatório'),
@@ -25,16 +26,32 @@ const registerSchema = yup.object({
     .required('Obrigatório'),
 })
 
+/** Schema de validação para login (apenas e-mail e senha) */
 const loginSchema = yup.object({
   email:    yup.string().email('E-mail inválido').required('Obrigatório'),
   password: yup.string().required('Obrigatório'),
 })
 
+/**
+ * Página unificada de login e cadastro.
+ *
+ * Exibe tabs para alternar entre os dois modos. A URL reflete o modo atual
+ * (/login ou /register), permitindo navegação direta e uso do botão voltar.
+ *
+ * Funcionalidades:
+ *  - Formulário com validação via React Hook Form + Yup
+ *  - Login/cadastro via Google OAuth
+ *  - Seleção de modalidades esportivas no cadastro (SportSelect)
+ *  - Exibição de erros da API via `errors.root`
+ *
+ * @param {{ initialMode: 'login' | 'register' }} props
+ */
 export default function Register({ initialMode = 'register' }) {
   const navigate = useNavigate()
   const { register: registerUser, login, googleLogin } = useAuth()
 
-  const mode                        = initialMode
+  const mode = initialMode
+  /** Modalidades selecionadas no cadastro */
   const [modalities, setModalities] = useState([])
 
   const { sports, loading: loadingSports } = useSports()
@@ -49,11 +66,13 @@ export default function Register({ initialMode = 'register' }) {
     formState: { errors, isSubmitting },
   } = useForm({ resolver: yupResolver(isRegister ? registerSchema : loginSchema) })
 
+  /** Troca de modo (login ↔ register) limpando o formulário */
   function switchMode(next) {
     reset()
     navigate(next === 'login' ? '/login' : '/register')
   }
 
+  /** Submete o formulário para a API e redireciona para /home em caso de sucesso */
   async function onSubmit(data) {
     try {
       if (isRegister) {
@@ -68,6 +87,7 @@ export default function Register({ initialMode = 'register' }) {
     }
   }
 
+  /** Google OAuth só é habilitado se VITE_GOOGLE_CLIENT_ID estiver configurado */
   const googleEnabled = !!env.googleClientId
 
   async function handleGoogleSuccess({ credential }) {
@@ -81,19 +101,18 @@ export default function Register({ initialMode = 'register' }) {
 
   return (
     <AuthLayout>
-      {/* ── Tabs ── */}
+      {/* Tabs de alternância entre login e cadastro */}
       <Tabs>
         <Tab $active={!isRegister} onClick={() => switchMode('login')}>Entrar</Tab>
         <Tab $active={isRegister}  onClick={() => switchMode('register')}>Cadastrar</Tab>
       </Tabs>
 
-      {/* ── Header ── */}
       <FormTitle>{isRegister ? 'Crie sua conta 🧡' : 'Entre na sua conta 👋'}</FormTitle>
       <FormSubtitle>
         {isRegister ? 'É rápido, grátis e sem enrolação.' : 'Bem-vindo de volta!'}
       </FormSubtitle>
 
-      {/* ── Google ── */}
+      {/* Botão do Google OAuth */}
       <GoogleWrapper>
         <GoogleLogin
           onSuccess={handleGoogleSuccess}
@@ -108,7 +127,6 @@ export default function Register({ initialMode = 'register' }) {
 
       <Divider>ou use seu e-mail</Divider>
 
-      {/* ── Form ── */}
       <Form onSubmit={handleSubmit(onSubmit)} noValidate>
         {isRegister && (
           <Field>
@@ -125,6 +143,7 @@ export default function Register({ initialMode = 'register' }) {
         </Field>
 
         {isRegister ? (
+          // Cadastro: senha e confirmação lado a lado
           <Row>
             <Field>
               <Label>Senha</Label>
@@ -148,6 +167,7 @@ export default function Register({ initialMode = 'register' }) {
             </Field>
           </Row>
         ) : (
+          // Login: senha em campo único com link "Esqueci a senha"
           <Field>
             <Label>Senha</Label>
             <Input
@@ -163,6 +183,7 @@ export default function Register({ initialMode = 'register' }) {
           </Field>
         )}
 
+        {/* Seleção de modalidades — apenas no cadastro */}
         {isRegister && (
           <Field>
             <Label>Modalidades que você joga</Label>
@@ -175,6 +196,7 @@ export default function Register({ initialMode = 'register' }) {
           </Field>
         )}
 
+        {/* Erros globais da API */}
         {errors.root && <ErrorMsg>{errors.root.message}</ErrorMsg>}
 
         <SubmitButton type="submit" disabled={isSubmitting}>
@@ -199,4 +221,3 @@ export default function Register({ initialMode = 'register' }) {
     </AuthLayout>
   )
 }
-

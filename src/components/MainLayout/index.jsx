@@ -4,14 +4,21 @@ import {
   Nav, NavItem, UserCard, Avatar, UserInfo, UserName, UserBadge, Content,
 } from './styles'
 
+/** Itens de navegação da sidebar */
 const NAV_ITEMS = [
-  { to: '/home',         label: 'Início',         icon: Home          },
-  { to: '/quero-jogar',  label: 'Quero Jogar',    icon: Search        },
-  { to: '/minhas-peladas', label: 'Minhas Peladas', icon: ClipboardList },
-  { to: '/historico',    label: 'Histórico',      icon: History       },
-  { to: '/perfil',       label: 'Perfil',         icon: User          },
+  { to: '/home',           label: 'Início',          icon: Home          },
+  { to: '/quero-jogar',    label: 'Quero Jogar',     icon: Search        },
+  { to: '/minhas-peladas', label: 'Minhas Peladas',  icon: ClipboardList },
+  { to: '/historico',      label: 'Histórico',       icon: History       },
+  { to: '/perfil',         label: 'Perfil',          icon: User          },
 ]
 
+/**
+ * Gera as iniciais do nome para exibir no avatar.
+ * Ex: "João Silva" → "JS"
+ * @param {string} name
+ * @returns {string}
+ */
 function getInitials(name = '') {
   return name
     .split(' ')
@@ -20,13 +27,23 @@ function getInitials(name = '') {
     .join('')
 }
 
+/**
+ * Layout principal pós-autenticação.
+ *
+ * Estrutura: sidebar fixa à esquerda + área de conteúdo à direita.
+ * A sidebar exibe logo, navegação e card do usuário logado.
+ *
+ * @param {{
+ *   children: React.ReactNode,
+ *   user: { name: string, rating?: number, badge?: string } | null,
+ * }} props
+ */
 export default function MainLayout({ children, user }) {
   const initials = getInitials(user?.name)
 
   return (
     <AppShell>
       <Sidebar>
-        {/* Logo */}
         <Logo>
           <LogoIcon>⚽</LogoIcon>
           <LogoText>
@@ -35,7 +52,6 @@ export default function MainLayout({ children, user }) {
           </LogoText>
         </Logo>
 
-        {/* Navigation */}
         <Nav>
           {NAV_ITEMS.map(({ to, label, icon: Icon }) => (
             <NavItem key={to} to={to}>
@@ -45,7 +61,6 @@ export default function MainLayout({ children, user }) {
           ))}
         </Nav>
 
-        {/* User card */}
         {user && (
           <UserCard>
             <Avatar>{initials}</Avatar>
