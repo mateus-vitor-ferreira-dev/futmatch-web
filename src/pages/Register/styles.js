@@ -188,6 +188,19 @@ export const SwitchText = styled.p`
   }
 `
 
+export const ForgotLink = styled.button`
+  background: none;
+  border: none;
+  padding: 0;
+  font-size: ${({ theme }) => theme.fontSizes.xs};
+  color: ${({ theme }) => theme.colors.textSecondary};
+  cursor: pointer;
+  text-align: right;
+  display: block;
+  margin-top: -4px;
+  &:hover { color: ${({ theme }) => theme.colors.primary}; text-decoration: underline; }
+`
+
 export const LegalText = styled.p`
   text-align: center;
   font-size: 11px;
