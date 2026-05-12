@@ -89,7 +89,8 @@ export default function AuthLayout({ children }) {
     const first = sports[0]
     const url   = first ? (SPORT_IMAGES[first.id] ?? null) : null
     setLayers({ a: url, b: null, front: 'a' })
-  }, [sports.length > 0])
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [sports.length])
 
   function cyclicDist(i) {
     const n = sports.length
