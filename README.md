@@ -60,20 +60,13 @@ npm install
 
 2. Criar arquivo .env
 
-Copie o arquivo .env.example:
-
-cp .env.example .env
-
-OU crie manualmente um arquivo chamado .env com:
+Crie um arquivo chamado .env na raiz do projeto com o seguinte conteúdo:
 
 VITE_API_URL=http://localhost:3000
-VITE_GOOGLE_CLIENT_ID=seu-client-id.apps.googleusercontent.com
+VITE_GOOGLE_CLIENT_ID=COLE_AQUI_O_VALOR_ENVIADO_NO_WHATSAPP
 
-Para obter o VITE_GOOGLE_CLIENT_ID:
-- Acesse https://console.cloud.google.com
-- Crie um projeto e vá em APIs e serviços → Credenciais
-- Crie um ID do cliente OAuth 2.0 (Aplicativo da Web)
-- Adicione http://localhost:5173 nas Origens JavaScript autorizadas
+⚠️ O valor do VITE_GOOGLE_CLIENT_ID será enviado pelo Mateus via WhatsApp.
+Nunca compartilhe esse arquivo nem o commite no repositório — ele já está no .gitignore.
 
 ▶️ Rodando o projeto
 
