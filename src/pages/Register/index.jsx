@@ -13,7 +13,7 @@ import {
   Tabs, Tab, FormTitle, FormSubtitle,
   GoogleButton, Divider,
   Form, Field, Row, Label, Input, ErrorMsg,
-  SubmitButton, SwitchText, LegalText,
+  SubmitButton, SwitchText, ForgotLink, LegalText,
 } from './styles'
 
 const registerSchema = yup.object({
@@ -30,11 +30,11 @@ const loginSchema = yup.object({
   password: yup.string().required('Obrigatório'),
 })
 
-export default function Register() {
+export default function Register({ initialMode = 'register' }) {
   const navigate = useNavigate()
   const { register: registerUser, login, googleLogin } = useAuth()
 
-  const [mode, setMode]           = useState('register')   // 'register' | 'login'
+  const mode                        = initialMode
   const [modalities, setModalities] = useState([])
 
   const { sports, loading: loadingSports } = useSports()
@@ -50,8 +50,8 @@ export default function Register() {
   } = useForm({ resolver: yupResolver(isRegister ? registerSchema : loginSchema) })
 
   function switchMode(next) {
-    setMode(next)
     reset()
+    navigate(next === 'login' ? '/login' : '/register')
   }
 
   async function onSubmit(data) {
@@ -158,6 +158,9 @@ export default function Register() {
               $error={!!errors.password}
             />
             {errors.password && <ErrorMsg>{errors.password.message}</ErrorMsg>}
+            <ForgotLink type="button" onClick={() => navigate('/esqueci-senha')}>
+              Esqueci minha senha
+            </ForgotLink>
           </Field>
         )}
 
