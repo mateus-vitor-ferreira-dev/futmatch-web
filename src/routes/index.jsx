@@ -1,7 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate, useNavigate } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
 import {
-  Intro, Register, Home,
+  Intro, Register, Home, Profile,
   AdminUsers, AdminRequests, AdminPlaces,
   OwnerPlaces, OwnerRequests,
 } from '../pages'
@@ -52,7 +52,8 @@ export default function AppRoutes() {
         <Route path="/register" element={<PublicRoute><Register initialMode="register" /></PublicRoute>} />
 
         {/* Usuário autenticado */}
-        <Route path="/home" element={<PrivateRoute><Home /></PrivateRoute>} />
+        <Route path="/home"   element={<PrivateRoute><Home    /></PrivateRoute>} />
+        <Route path="/perfil" element={<PrivateRoute><Profile /></PrivateRoute>} />
 
         {/* Painel Admin */}
         <Route path="/admin/users"    element={<AdminRoute><AdminUsers    /></AdminRoute>} />
