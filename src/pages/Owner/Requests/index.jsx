@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { useForm } from 'react-hook-form'
 import { yupResolver } from '@hookform/resolvers/yup'
 import * as yup from 'yup'
-import { Building2, ClipboardList, LayoutDashboard } from 'lucide-react'
+import { Building2, ClipboardList, LayoutDashboard, Home } from 'lucide-react'
 import DashboardLayout from '../../../components/DashboardLayout'
 import StatCard from '../../../components/StatCard'
 import { useAuth } from '../../../contexts/AuthContext'
@@ -17,9 +17,10 @@ import {
 } from './styles'
 
 const NAV_ITEMS = [
-  { to: '/owner',          label: 'Visão Geral',          icon: LayoutDashboard },
-  { to: '/owner/places',   label: 'Meus Estabelecimentos', icon: Building2      },
-  { to: '/owner/requests', label: 'Solicitações',          icon: ClipboardList  },
+  { to: '/owner',          label: 'Visão Geral',           icon: LayoutDashboard },
+  { to: '/owner/places',   label: 'Meus Estabelecimentos', icon: Building2       },
+  { to: '/owner/requests', label: 'Solicitações',          icon: ClipboardList   },
+  { to: '/home',           label: 'Área do Jogador',       icon: Home, divider: true },
 ]
 
 const STATUS_LABEL = { PENDING: 'Aguardando', APPROVED: 'Aprovada', REJECTED: 'Rejeitada' }
