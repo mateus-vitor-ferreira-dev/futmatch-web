@@ -12,9 +12,12 @@ function IntroRoute() {
 }
 
 function PublicRoute({ children }) {
-  const { isAuthenticated, loading } = useAuth()
+  const { user, loading } = useAuth()
   if (loading) return null
-  return isAuthenticated ? <Navigate to="/home" replace /> : children
+  if (!user) return children
+  if (user.role === 'ADMIN') return <Navigate to="/admin" replace />
+  if (user.role === 'OWNER') return <Navigate to="/owner" replace />
+  return <Navigate to="/home" replace />
 }
 
 function PrivateRoute({ children }) {
