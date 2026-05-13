@@ -2,7 +2,7 @@ import { BrowserRouter, Routes, Route, Navigate, useNavigate } from 'react-route
 import { useAuth } from '../contexts/AuthContext'
 import {
   Intro, Register, Home,
-  AdminUsers, AdminRequests,
+  AdminUsers, AdminRequests, AdminPlaces,
   OwnerPlaces, OwnerRequests,
 } from '../pages'
 
@@ -57,6 +57,7 @@ export default function AppRoutes() {
         {/* Painel Admin */}
         <Route path="/admin/users"    element={<AdminRoute><AdminUsers    /></AdminRoute>} />
         <Route path="/admin/requests" element={<AdminRoute><AdminRequests /></AdminRoute>} />
+        <Route path="/admin/places"   element={<AdminRoute><AdminPlaces   /></AdminRoute>} />
         <Route path="/admin"          element={<Navigate to="/admin/users" replace />} />
 
         {/* Painel Owner */}

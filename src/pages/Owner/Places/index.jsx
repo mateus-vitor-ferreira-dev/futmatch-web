@@ -16,9 +16,9 @@ const NAV_ITEMS = [
   { to: '/owner/requests', label: 'Solicitações',          icon: ClipboardList  },
 ]
 
-const STATUS_LABEL = { ACTIVE: 'Ativo', INACTIVE: 'Inativo', MAINTENANCE: 'Manutenção' }
-const STATUS_COLOR = { ACTIVE: '#16a34a', INACTIVE: '#6b7280', MAINTENANCE: '#d97706' }
-const STATUS_BG    = { ACTIVE: '#dcfce7', INACTIVE: '#f3f4f6', MAINTENANCE: '#fef3c7' }
+const STATUS_LABEL = { OPEN: 'Aberto', CLOSED: 'Fechado' }
+const STATUS_COLOR = { OPEN: '#16a34a', CLOSED: '#6b7280' }
+const STATUS_BG    = { OPEN: '#dcfce7', CLOSED: '#f3f4f6' }
 
 export default function OwnerPlaces() {
   const { user } = useAuth()
@@ -45,7 +45,7 @@ export default function OwnerPlaces() {
   useEffect(() => { fetchPlaces() }, [])
 
   const handleToggleStatus = async (place) => {
-    const next = place.status === 'ACTIVE' ? 'INACTIVE' : 'ACTIVE'
+    const next = place.status === 'OPEN' ? 'CLOSED' : 'OPEN'
     setToggling(place.id)
     try {
       await placesService.updateStatus(place.id, next)
@@ -112,13 +112,13 @@ export default function OwnerPlaces() {
                 Quadras
               </ActionBtn>
               <ActionBtn
-                variant={place.status === 'ACTIVE' ? 'danger' : 'success'}
+                variant={place.status === 'OPEN' ? 'danger' : 'success'}
                 onClick={() => handleToggleStatus(place)}
                 disabled={toggling === place.id}
               >
                 {toggling === place.id
                   ? 'Aguarde...'
-                  : place.status === 'ACTIVE' ? 'Desativar' : 'Ativar'}
+                  : place.status === 'OPEN' ? 'Fechar' : 'Abrir'}
               </ActionBtn>
             </PlaceActions>
           </PlaceCard>
