@@ -47,12 +47,15 @@ export default function DashboardLayout({
         <Divider />
 
         <Nav>
-          {navItems.map(({ to, label, icon: Icon, badge }) => (
-            <NavItem key={to} to={to}>
-              <Icon size={18} />
-              {label}
-              {badge > 0 && <NavBadge>{badge}</NavBadge>}
-            </NavItem>
+          {navItems.map(({ to, label, icon: Icon, badge, divider }) => (
+            <span key={to}>
+              {divider && <Divider />}
+              <NavItem to={to}>
+                <Icon size={18} />
+                {label}
+                {badge > 0 && <NavBadge>{badge}</NavBadge>}
+              </NavItem>
+            </span>
           ))}
         </Nav>
 
