@@ -1,4 +1,5 @@
 import { Home, Search, ClipboardList, History, User } from 'lucide-react'
+import { useNavigate } from 'react-router-dom'
 import {
   AppShell, Sidebar, Logo, LogoIcon, LogoText, LogoName, LogoTagline,
   Nav, NavItem, UserCard, Avatar, UserInfo, UserName, UserBadge, Content,
@@ -39,6 +40,7 @@ function getInitials(name = '') {
  * }} props
  */
 export default function MainLayout({ children, user }) {
+  const navigate = useNavigate()
   const initials = getInitials(user?.name)
 
   return (
@@ -62,7 +64,7 @@ export default function MainLayout({ children, user }) {
         </Nav>
 
         {user && (
-          <UserCard>
+          <UserCard onClick={() => navigate('/perfil')}>
             <Avatar>{initials}</Avatar>
             <UserInfo>
               <UserName>{user.name}</UserName>

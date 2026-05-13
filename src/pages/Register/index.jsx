@@ -72,28 +72,33 @@ export default function Register({ initialMode = 'register' }) {
     navigate(next === 'login' ? '/login' : '/register')
   }
 
-  /** Submete o formulário para a API e redireciona para /home em caso de sucesso */
+  function redirectByRole(role) {
+    if (role === 'ADMIN')  return navigate('/admin')
+    if (role === 'OWNER')  return navigate('/owner')
+    return navigate('/home')
+  }
+
   async function onSubmit(data) {
     try {
+      let res
       if (isRegister) {
-        await registerUser({ ...data, sports: modalities })
+        res = await registerUser({ ...data, sports: modalities })
       } else {
-        await login(data)
+        res = await login(data)
       }
-      navigate('/home')
+      redirectByRole(res.data.user.role)
     } catch (err) {
       const msg = err.response?.data?.message || 'Algo deu errado. Tente novamente.'
       setError('root', { message: msg })
     }
   }
 
-  /** Google OAuth só é habilitado se VITE_GOOGLE_CLIENT_ID estiver configurado */
   const googleEnabled = !!env.googleClientId
 
   async function handleGoogleSuccess({ credential }) {
     try {
-      await googleLogin(credential)
-      navigate('/home')
+      const res = await googleLogin(credential)
+      redirectByRole(res.data.user.role)
     } catch {
       setError('root', { message: 'Erro ao entrar com Google.' })
     }
