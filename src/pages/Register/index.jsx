@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { useForm } from 'react-hook-form'
+import { useForm, Controller } from 'react-hook-form'
 import { yupResolver } from '@hookform/resolvers/yup'
 import * as yup from 'yup'
 import { GoogleLogin } from '@react-oauth/google'
@@ -8,7 +8,7 @@ import { useAuth } from '../../contexts/AuthContext'
 import { useSports } from '../../hooks/useSports'
 import { env } from '../../config/env'
 import AuthLayout from '../../components/AuthLayout'
-import { SportSelect } from '../../components'
+import { SportSelect, PhoneInput, PasswordInput } from '../../components'
 import {
   Tabs, Tab, FormTitle, FormSubtitle,
   GoogleWrapper, Divider,
@@ -20,6 +20,12 @@ import {
 const registerSchema = yup.object({
   name:            yup.string().min(2, 'Mínimo 2 caracteres').required('Obrigatório'),
   email:           yup.string().email('E-mail inválido').required('Obrigatório'),
+  phone:           yup.string()
+    .test('phone-digits', 'Telefone inválido (ex: 9 9999-9999)', v => {
+      if (!v) return true
+      return v.replace(/\D/g, '').length >= 10
+    })
+    .nullable(),
   password:        yup.string().min(6, 'Mínimo 6 caracteres').required('Obrigatório'),
   confirmPassword: yup.string()
     .oneOf([yup.ref('password')], 'Senhas não coincidem')
@@ -63,6 +69,7 @@ export default function Register({ initialMode = 'register' }) {
     handleSubmit,
     setError,
     reset,
+    control,
     formState: { errors, isSubmitting },
   } = useForm({ resolver: yupResolver(isRegister ? registerSchema : loginSchema) })
 
@@ -147,14 +154,27 @@ export default function Register({ initialMode = 'register' }) {
           {errors.email && <ErrorMsg>{errors.email.message}</ErrorMsg>}
         </Field>
 
+        {isRegister && (
+          <Field>
+            <Label>Telefone</Label>
+            <Controller
+              name="phone"
+              control={control}
+              render={({ field }) => (
+                <PhoneInput {...field} error={!!errors.phone} />
+              )}
+            />
+            {errors.phone && <ErrorMsg>{errors.phone.message}</ErrorMsg>}
+          </Field>
+        )}
+
         {isRegister ? (
           // Cadastro: senha e confirmação lado a lado
           <Row>
             <Field>
               <Label>Senha</Label>
-              <Input
+              <PasswordInput
                 {...register('password')}
-                type="password"
                 placeholder="Mín. 6 caracteres"
                 $error={!!errors.password}
               />
@@ -162,9 +182,8 @@ export default function Register({ initialMode = 'register' }) {
             </Field>
             <Field>
               <Label>Confirmar</Label>
-              <Input
+              <PasswordInput
                 {...register('confirmPassword')}
-                type="password"
                 placeholder="Repita a senha"
                 $error={!!errors.confirmPassword}
               />
@@ -175,9 +194,8 @@ export default function Register({ initialMode = 'register' }) {
           // Login: senha em campo único com link "Esqueci a senha"
           <Field>
             <Label>Senha</Label>
-            <Input
+            <PasswordInput
               {...register('password')}
-              type="password"
               placeholder="Sua senha"
               $error={!!errors.password}
             />
