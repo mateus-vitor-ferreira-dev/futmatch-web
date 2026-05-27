@@ -11,7 +11,7 @@ import {
   PageWrapper, Section, SectionTitle, SectionDivider,
   AvatarBlock, AvatarCircle, AvatarInitials, AvatarHint,
   Form, FormGrid, Field, Label, Input, FieldError,
-  SaveBtn, SuccessMsg, ErrorMsg,
+  SaveBtn, SuccessMsg,
   LogoutSection, LogoutBtn,
 } from './styles'
 

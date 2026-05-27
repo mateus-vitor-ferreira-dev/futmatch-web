@@ -7,7 +7,7 @@ import { useAuth } from '../../../contexts/AuthContext'
 import * as adminService from '../../../services/admin'
 import {
   StatsRow, FilterBar, SearchInput, RoleFilters, RoleBtn,
-  Table, Thead, Th, Tr, Td, AvatarCell, UserMeta, UserEmail,
+  Table, Th, Tr, Td, AvatarCell, UserMeta, UserEmail,
   ActionBtn, EmptyState, ErrorMsg,
 } from './styles'
 
