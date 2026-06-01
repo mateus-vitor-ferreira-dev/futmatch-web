@@ -55,6 +55,7 @@ export default function Intro({ onComplete }) {
       tl.to(overlayRef.current, { opacity: 1, duration: 0.6, ease: 'power2.in' })
       tl.call(() => onComplete?.())
     })
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   return (

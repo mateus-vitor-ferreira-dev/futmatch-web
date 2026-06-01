@@ -1,7 +1,10 @@
 import { useState, useEffect } from 'react'
 import { getSports } from '../services/sports'
 
-// Espelha o enum CourtType do Prisma — usado como fallback quando a API estiver offline
+/**
+ * Espelha o enum CourtType do Prisma.
+ * Usado como fallback quando a API estiver offline ou indisponível.
+ */
 const FALLBACK_SPORTS = [
   { id: 'SOCIETY',      label: 'Society',         icon: '⚽' },
   { id: 'CAMPO',        label: 'Futebol de Campo', icon: '🏟️' },
@@ -16,6 +19,12 @@ const FALLBACK_SPORTS = [
   { id: 'TENIS',        label: 'Tênis',            icon: '🎾' },
 ]
 
+/**
+ * Busca a lista de modalidades esportivas da API.
+ * Aplica o fallback local se a requisição falhar (sem conexão, API offline etc.).
+ *
+ * @returns {{ sports: Array<{ id: string, label: string, icon: string }>, loading: boolean }}
+ */
 export function useSports() {
   const [sports, setSports]   = useState([])
   const [loading, setLoading] = useState(true)
