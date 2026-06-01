@@ -95,7 +95,11 @@ export default function Register({ initialMode = 'register' }) {
 
   const googleEnabled = !!env.googleClientId
 
-  async function handleGoogleSuccess({ credential }) {
+  async function handleGoogleSuccess({ credential } = {}) {
+    if (!credential) {
+      setError('root', { message: 'Erro ao obter credencial do Google.' })
+      return
+    }
     try {
       const res = await googleLogin(credential)
       redirectByRole(res.data.user.role)
