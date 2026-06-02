@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Search, MapPin, Calendar, Clock, CheckCircle } from 'lucide-react'
+import { Search, Calendar, Clock, CheckCircle } from 'lucide-react'
 import { useAuth } from '../../contexts/AuthContext'
 import { playerService } from '../../services/playerService'
 import { MainLayout } from '../../components'

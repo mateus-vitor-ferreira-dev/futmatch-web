@@ -61,6 +61,7 @@ export default function Historico() {
       others.forEach(p => { initialEvals[p.userId] = { stars: 5, tag: 'JOGA_FACIL' } })
       setEvaluations(initialEvals)
     } catch (error) {
+      console.error(error) // <-- Linha adicionada para usar a variável 'error'
       alert('Erro ao carregar participantes')
     }
   }
@@ -85,6 +86,7 @@ export default function Historico() {
       alert('Avaliações enviadas com sucesso!')
       setEvalEvent(null)
     } catch (error) {
+      console.error(error) // <-- Linha adicionada para usar a variável 'error'
       alert('Erro ao enviar avaliações')
     }
   }
