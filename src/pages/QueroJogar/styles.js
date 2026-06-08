@@ -1,0 +1,270 @@
+import styled from 'styled-components'
+
+export const Container = styled.div`
+  padding: ${({ theme }) => theme.spacing[6]};
+  max-width: 1200px;
+  margin: 0 auto;
+`
+
+export const Header = styled.div`
+  margin-bottom: ${({ theme }) => theme.spacing[6]};
+
+  h1 {
+    font-size: ${({ theme }) => theme.fontSizes['3xl']};
+    color: ${({ theme }) => theme.colors.textPrimary};
+    font-weight: ${({ theme }) => theme.fontWeights.bold};
+  }
+
+  p {
+    color: ${({ theme }) => theme.colors.textSecondary};
+    margin-top: ${({ theme }) => theme.spacing[2]};
+  }
+`
+
+export const FiltersArea = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: ${({ theme }) => theme.spacing[4]};
+  margin-bottom: ${({ theme }) => theme.spacing[8]};
+`
+
+export const SearchInput = styled.div`
+  display: flex;
+  align-items: center;
+  background: ${({ theme }) => theme.colors.white};
+  border: 1px solid ${({ theme }) => theme.colors.border};
+  border-radius: ${({ theme }) => theme.radii.lg};
+  padding: 0 ${({ theme }) => theme.spacing[4]};
+
+  svg {
+    color: ${({ theme }) => theme.colors.textMuted};
+    margin-right: ${({ theme }) => theme.spacing[2]};
+  }
+
+  input {
+    flex: 1;
+    padding: ${({ theme }) => theme.spacing[3]} 0;
+    border: none;
+    outline: none;
+    font-family: ${({ theme }) => theme.fonts.sans};
+    font-size: ${({ theme }) => theme.fontSizes.md};
+  }
+`
+
+export const ChipsContainer = styled.div`
+  display: flex;
+  gap: ${({ theme }) => theme.spacing[3]};
+  overflow-x: auto;
+  padding-bottom: ${({ theme }) => theme.spacing[2]};
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
+`
+
+export const Chip = styled.button`
+  background: ${({ theme, $active }) =>
+    $active ? theme.colors.primary : theme.colors.white};
+  color: ${({ theme, $active }) =>
+    $active ? theme.colors.white : theme.colors.textSecondary};
+  border: 1px solid
+    ${({ theme, $active }) =>
+      $active ? theme.colors.primary : theme.colors.border};
+  padding: ${({ theme }) => theme.spacing[2]} ${({ theme }) => theme.spacing[4]};
+  border-radius: ${({ theme }) => theme.radii.full};
+  font-size: ${({ theme }) => theme.fontSizes.sm};
+  font-weight: ${({ theme }) => theme.fontWeights.medium};
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.2s;
+
+  &:hover {
+    border-color: ${({ theme }) => theme.colors.primary};
+  }
+`
+
+export const HeaderRow = styled.div`
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: ${({ theme }) => theme.spacing[6]};
+`
+
+export const ViewToggle = styled.div`
+  display: flex;
+  border: 1px solid ${({ theme }) => theme.colors.border};
+  border-radius: ${({ theme }) => theme.radii.md};
+  overflow: hidden;
+  flex-shrink: 0;
+  height: fit-content;
+`
+
+export const ToggleBtn = styled.button`
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  border: none;
+  background: ${({ $active, theme }) => $active ? theme.colors.primary : 'white'};
+  color: ${({ $active, theme }) => $active ? 'white' : theme.colors.textSecondary};
+  font-size: ${({ theme }) => theme.fontSizes.sm};
+  font-weight: ${({ theme }) => theme.fontWeights.medium};
+  cursor: pointer;
+  transition: all 0.15s;
+  font-family: ${({ theme }) => theme.fonts.sans};
+
+  &:hover {
+    background: ${({ $active, theme }) =>
+      $active ? theme.colors.primaryHover : theme.colors.primarySubtle};
+    color: ${({ $active, theme }) => $active ? 'white' : theme.colors.primary};
+  }
+`
+
+export const MapWrapper = styled.div`
+  width: 100%;
+  height: calc(100vh - 320px);
+  min-height: 420px;
+  border-radius: ${({ theme }) => theme.radii.lg};
+  overflow: hidden;
+  border: 1px solid ${({ theme }) => theme.colors.border};
+`
+
+export const ResultsCount = styled.div`
+  font-size: ${({ theme }) => theme.fontSizes.sm};
+  color: ${({ theme }) => theme.colors.textSecondary};
+  margin-bottom: ${({ theme }) => theme.spacing[4]};
+`
+
+export const Grid = styled.div`
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: ${({ theme }) => theme.spacing[6]};
+`
+
+export const Card = styled.div`
+  background: ${({ theme }) => theme.colors.bgCard};
+  border-radius: ${({ theme }) => theme.radii.lg};
+  padding: ${({ theme }) => theme.spacing[5]};
+  box-shadow: ${({ theme }) => theme.shadows.sm};
+  border: 1px solid ${({ theme }) => theme.colors.borderLight};
+  display: flex;
+  flex-direction: column;
+`
+
+export const CardHeader = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: ${({ theme }) => theme.spacing[4]};
+
+  h3 {
+    font-size: ${({ theme }) => theme.fontSizes.lg};
+    color: ${({ theme }) => theme.colors.textPrimary};
+    font-weight: ${({ theme }) => theme.fontWeights.bold};
+    margin-bottom: 4px;
+  }
+
+  .address {
+    font-size: ${({ theme }) => theme.fontSizes.xs};
+    color: ${({ theme }) => theme.colors.textMuted};
+  }
+
+  .badge {
+    font-size: ${({ theme }) => theme.fontSizes.xs};
+    color: ${({ theme }) => theme.colors.primaryDark};
+    background: ${({ theme }) => theme.colors.primaryLight};
+    padding: 4px 8px;
+    border-radius: ${({ theme }) => theme.radii.md};
+    font-weight: ${({ theme }) => theme.fontWeights.semibold};
+  }
+`
+
+export const InfoRow = styled.div`
+  display: flex;
+  align-items: center;
+  gap: ${({ theme }) => theme.spacing[2]};
+  color: ${({ theme }) => theme.colors.textSecondary};
+  font-size: ${({ theme }) => theme.fontSizes.sm};
+  margin-bottom: ${({ theme }) => theme.spacing[2]};
+
+  svg {
+    width: 16px;
+    height: 16px;
+    color: ${({ theme }) => theme.colors.primary};
+  }
+`
+
+export const ProgressBarContainer = styled.div`
+  margin: ${({ theme }) => theme.spacing[4]} 0;
+`
+
+export const ProgressBar = styled.div`
+  width: 100%;
+  height: 8px;
+  background: ${({ theme }) => theme.colors.borderLight};
+  border-radius: ${({ theme }) => theme.radii.full};
+  overflow: hidden;
+  margin-bottom: 8px;
+
+  div {
+    height: 100%;
+    background: ${({ theme, $isFull }) =>
+      $isFull ? theme.colors.error : theme.colors.primary};
+    width: ${({ $progress }) => `${$progress}%`};
+    transition: width 0.3s ease;
+  }
+`
+
+export const SpotsInfo = styled.div`
+  display: flex;
+  justify-content: space-between;
+  font-size: ${({ theme }) => theme.fontSizes.xs};
+  color: ${({ theme }) => theme.colors.textMuted};
+  font-weight: ${({ theme }) => theme.fontWeights.medium};
+`
+
+export const PriceInfo = styled.div`
+  font-size: ${({ theme }) => theme.fontSizes.sm};
+  color: ${({ theme }) => theme.colors.textPrimary};
+  font-weight: ${({ theme }) => theme.fontWeights.bold};
+  margin-bottom: ${({ theme }) => theme.spacing[4]};
+  margin-top: auto;
+`
+
+export const ActionButton = styled.button`
+  width: 100%;
+  padding: ${({ theme }) => theme.spacing[3]};
+  border-radius: ${({ theme }) => theme.radii.md};
+  font-weight: ${({ theme }) => theme.fontWeights.semibold};
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+
+  background: ${({ theme, disabled, $isJoined }) =>
+    $isJoined
+      ? theme.colors.primarySubtle
+      : disabled
+        ? theme.colors.borderLight
+        : theme.colors.primary};
+
+  color: ${({ theme, disabled, $isJoined }) =>
+    $isJoined
+      ? theme.colors.primaryDark
+      : disabled
+        ? theme.colors.textMuted
+        : theme.colors.white};
+
+  border: 1px solid
+    ${({ theme, $isJoined }) =>
+      $isJoined ? theme.colors.primary : 'transparent'};
+
+  &:hover:not(:disabled) {
+    background: ${({ theme, $isJoined }) =>
+      $isJoined ? theme.colors.primaryLight : theme.colors.primaryHover};
+  }
+`

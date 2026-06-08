@@ -1,124 +1,162 @@
-import { MapContainer, TileLayer, Marker } from 'react-leaflet'
-import { useState } from 'react'
+import { useEffect, useRef } from 'react'
+import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet'
 import 'leaflet/dist/leaflet.css'
 import L from 'leaflet'
-import { EventCard } from '../EventCard'
 
 delete L.Icon.Default.prototype._getIconUrl
 L.Icon.Default.mergeOptions({
   iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
-  iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
-  shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
+  iconUrl:       'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
+  shadowUrl:     'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
 })
+
+const SPORT_LABELS = {
+  SOCIETY:      'Society',
+  CAMPO:        'Futebol de Campo',
+  FUTSAL:       'Futsal',
+  AREIA:        'Futevôlei',
+  VOLEI:        'Vôlei',
+  VOLEI_AREIA:  'Vôlei de Areia',
+  HANDBALL:     'Handebol',
+  PETECA:       'Peteca',
+  BEACH_TENNIS: 'Beach Tennis',
+  BASQUETE:     'Basquete',
+  TENIS:        'Tênis',
+  POKER:        'Poker',
+}
 
 const MOCK_EVENTS = [
   {
-    id: '1',
-    courtName: 'Quadra Futsal A',
-    type: 'FUTSAL',
-    place: 'Arena SportZone',
-    city: 'São Paulo',
-    maxPlayers: 10,
-    participations: 4,
-    totalValue: '200',
-    status: 'WAITING',
-    date: '2026-06-15T19:00:00.000Z',
-    lat: -23.5969,
-    lng: -46.6848,
+    id: '1', courtName: 'Quadra Futsal A', type: 'FUTSAL',
+    place: 'Arena SportZone', city: 'São Paulo',
+    maxPlayers: 10, participations: 4, totalValue: '200', status: 'WAITING',
+    lat: -23.5969, lng: -46.6848,
   },
   {
-    id: '2',
-    courtName: 'Campo Society 1',
-    type: 'SOCIETY',
-    place: 'Arena SportZone',
-    city: 'São Paulo',
-    maxPlayers: 18,
-    participations: 5,
-    totalValue: '360',
-    status: 'WAITING',
-    date: '2026-06-20T20:00:00.000Z',
-    lat: -23.5991,
-    lng: -46.6872,
+    id: '2', courtName: 'Campo Society 1', type: 'SOCIETY',
+    place: 'Arena SportZone', city: 'São Paulo',
+    maxPlayers: 18, participations: 5, totalValue: '360', status: 'WAITING',
+    lat: -23.5969, lng: -46.6848,
   },
   {
-    id: '3',
-    courtName: 'Quadra Futsal',
-    type: 'FUTSAL',
-    place: 'Complex Barra Sports',
-    city: 'Rio de Janeiro',
-    maxPlayers: 10,
-    participations: 2,
-    totalValue: '180',
-    status: 'FULL',
-    date: '2026-06-18T21:00:00.000Z',
-    lat: -23.0003,
-    lng: -43.3654,
+    id: '3', courtName: 'Quadra Futsal', type: 'FUTSAL',
+    place: 'Arena João Dono', city: 'Rio de Janeiro',
+    maxPlayers: 10, participations: 2, totalValue: '180', status: 'WAITING',
+    lat: -23.0003, lng: -43.3654,
   },
 ]
 
-function CardOverlay({ event, onClose }) {
+function AutoFit({ locations }) {
+  const map = useMap()
+  const fittedRef = useRef(false)
+
+  useEffect(() => {
+    if (locations.length === 0 || fittedRef.current) return
+
+    if (locations.length === 1) {
+      map.setView([locations[0].lat, locations[0].lng], 14)
+    } else {
+      const bounds = L.latLngBounds(locations.map(l => [l.lat, l.lng]))
+      map.fitBounds(bounds, { padding: [48, 48] })
+    }
+
+    fittedRef.current = true
+  }, [locations.length])
+
+  return null
+}
+
+function LocationPopup({ locEvents }) {
+  const primeira = locEvents[0]
+
   return (
-    <div style={{
-      position: 'absolute',
-      top: '50%',
-      left: '50%',
-      transform: 'translate(-50%, -50%)',
-      zIndex: 1001,
-    }}>
-      <div style={{ position: 'relative' }}>
-        <button
-          onClick={onClose}
-          style={{
-            position: 'absolute',
-            top: '-10px',
-            right: '-10px',
-            zIndex: 1002,
-            background: '#ff5252',
-            border: 'none',
-            borderRadius: '50%',
-            width: '28px',
-            height: '28px',
-            color: 'white',
-            fontWeight: 'bold',
-            cursor: 'pointer',
-            fontSize: '14px',
-          }}
-        >✕</button>
-        <EventCard event={event} />
+    <div style={{ fontFamily: 'Inter, Segoe UI, sans-serif', minWidth: 220 }}>
+      <div style={{ marginBottom: 10 }}>
+        <div style={{ fontWeight: 700, fontSize: 14, color: '#111827' }}>
+          {primeira.place || primeira.courtName}
+        </div>
+        {primeira.city && (
+          <div style={{ fontSize: 12, color: '#6b7280', marginTop: 2 }}>
+            📍 {primeira.city}
+          </div>
+        )}
       </div>
+
+      {locEvents.map((event, i) => {
+        const vagas          = event.maxPlayers - event.participations
+        const pricePerPerson = (Number(event.totalValue) / event.maxPlayers).toFixed(0)
+        const sportLabel     = SPORT_LABELS[event.type] || event.type
+
+        return (
+          <div
+            key={event.id}
+            style={{
+              borderTop:  '1px solid #e5e7eb',
+              paddingTop: 8,
+              marginTop:  i > 0 ? 8 : 0,
+            }}
+          >
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
+              <span style={{
+                fontSize: 11, fontWeight: 600,
+                background: '#dcfce7', color: '#166534',
+                padding: '2px 7px', borderRadius: 4,
+              }}>
+                {sportLabel}
+              </span>
+              <span style={{ fontSize: 13, fontWeight: 700, color: '#22c55e' }}>
+                R$ {pricePerPerson}/p
+              </span>
+            </div>
+
+            <div style={{ fontSize: 12, color: '#374151', fontWeight: 500 }}>
+              {event.courtName}
+            </div>
+
+            <div style={{ fontSize: 11, color: '#9ca3af', marginTop: 3 }}>
+              👥 {event.participations}/{event.maxPlayers} confirmados
+              {' · '}
+              <span style={{ color: vagas > 0 ? '#16a34a' : '#ef4444', fontWeight: 600 }}>
+                {vagas > 0 ? `${vagas} vaga${vagas !== 1 ? 's' : ''}` : 'Lotado'}
+              </span>
+            </div>
+          </div>
+        )
+      })}
     </div>
   )
 }
 
 export function Map({ events = MOCK_EVENTS }) {
-  const [selectedEvent, setSelectedEvent] = useState(null)
+  const grouped = events.reduce((acc, event) => {
+    const key = `${event.lat},${event.lng}`
+    if (!acc[key]) acc[key] = { lat: event.lat, lng: event.lng, events: [] }
+    acc[key].events.push(event)
+    return acc
+  }, {})
+
+  const locations = Object.values(grouped)
 
   return (
-    <div style={{ width: '100%', height: '100%', position: 'relative' }}>
-      <MapContainer
-        center={[-15.7801, -47.9292]}
-        zoom={4}
-        style={{ width: '100%', height: '100%' }}
-      >
-        <TileLayer
-          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-        />
-        {events.map((event) => (
-          <Marker
-            key={event.id}
-            position={[event.lat, event.lng]}
-            eventHandlers={{ click: () => setSelectedEvent(event) }}
-          />
-        ))}
-      </MapContainer>
+    <MapContainer
+      center={[-15.7801, -47.9292]}
+      zoom={4}
+      style={{ width: '100%', height: '100%' }}
+    >
+      <TileLayer
+        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+      />
 
-      {selectedEvent && (
-        <CardOverlay
-          event={selectedEvent}
-          onClose={() => setSelectedEvent(null)}
-        />
-      )}
-    </div>
+      <AutoFit locations={locations} />
+
+      {locations.map(({ lat, lng, events: locEvents }) => (
+        <Marker key={`${lat},${lng}`} position={[lat, lng]}>
+          <Popup minWidth={230} maxWidth={290}>
+            <LocationPopup locEvents={locEvents} />
+          </Popup>
+        </Marker>
+      ))}
+    </MapContainer>
   )
 }

@@ -3,9 +3,12 @@ import { useAuth } from '../contexts/AuthContext'
 import {
   Intro, Register, Home, Profile,
   ForgotPassword, ResetPassword,
-  AdminUsers, AdminRequests, AdminPlaces,
-  OwnerPlaces, OwnerRequests,
+  AdminUsers, AdminRequests, AdminPlaces, AdminDashboard,
+  OwnerPlaces, OwnerRequests, OwnerDashboard,
+  QueroJogar, MinhasPeladas, Historico,
 } from '../pages'
+
+// [MANTENHA IntroRoute, PublicRoute, PrivateRoute, AdminRoute, OwnerRoute EXATAMENTE IGUAIS]
 
 function IntroRoute() {
   const navigate = useNavigate()
@@ -54,21 +57,28 @@ export default function AppRoutes() {
         <Route path="/esqueci-senha"    element={<PublicRoute><ForgotPassword /></PublicRoute>} />
         <Route path="/redefinir-senha"  element={<PublicRoute><ResetPassword  /></PublicRoute>} />
 
-        {/* Usuário autenticado */}
-        <Route path="/home"   element={<PrivateRoute><Home    /></PrivateRoute>} />
-        <Route path="/perfil" element={<PrivateRoute><Profile /></PrivateRoute>} />
+        {/* Usuário autenticado (Jogador) */}
+        <Route path="/home"           element={<PrivateRoute><Home          /></PrivateRoute>} />
+        <Route path="/perfil"         element={<PrivateRoute><Profile       /></PrivateRoute>} />
+        <Route path="/quero-jogar"    element={<PrivateRoute><QueroJogar    /></PrivateRoute>} />
+        <Route path="/minhas-peladas" element={<PrivateRoute><MinhasPeladas /></PrivateRoute>} />
+        <Route path="/historico"      element={<PrivateRoute><Historico     /></PrivateRoute>} />
 
         {/* Painel Admin */}
-        <Route path="/admin/users"    element={<AdminRoute><AdminUsers    /></AdminRoute>} />
-        <Route path="/admin/requests" element={<AdminRoute><AdminRequests /></AdminRoute>} />
-        <Route path="/admin/places"   element={<AdminRoute><AdminPlaces   /></AdminRoute>} />
-        <Route path="/admin"          element={<Navigate to="/admin/users" replace />} />
+        <Route path="/admin/dashboard" element={<AdminRoute><AdminDashboard /></AdminRoute>} /> {/* NOVA ROTA */}
+        <Route path="/admin/users"     element={<AdminRoute><AdminUsers    /></AdminRoute>} />
+        <Route path="/admin/requests"  element={<AdminRoute><AdminRequests /></AdminRoute>} />
+        <Route path="/admin/places"    element={<AdminRoute><AdminPlaces   /></AdminRoute>} />
+        {/* Agora o fallback do /admin joga para o Dashboard (Visão Geral) */}
+        <Route path="/admin"           element={<Navigate to="/admin/dashboard" replace />} /> 
 
         {/* Painel Owner */}
-        <Route path="/owner/places"   element={<OwnerRoute><OwnerPlaces    /></OwnerRoute>} />
-        <Route path="/owner/requests" element={<OwnerRoute><OwnerRequests  /></OwnerRoute>} />
-        <Route path="/owner"          element={<Navigate to="/owner/places" replace />} />
+        <Route path="/owner/dashboard" element={<OwnerRoute><OwnerDashboard /></OwnerRoute>} /> {/* NOVA ROTA */}
+        <Route path="/owner/places"    element={<OwnerRoute><OwnerPlaces   /></OwnerRoute>} />
+        <Route path="/owner/requests"  element={<OwnerRoute><OwnerRequests /></OwnerRoute>} />
+        <Route path="/owner"           element={<Navigate to="/owner/dashboard" replace />} />
 
+        {/* Fallback */}
         <Route path="*" element={<Navigate to="/login" replace />} />
       </Routes>
     </BrowserRouter>
