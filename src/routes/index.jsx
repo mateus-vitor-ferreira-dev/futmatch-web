@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route, Navigate, useNavigate } from 'react-route
 import { useAuth } from '../contexts/AuthContext'
 import {
   Intro, Register, Home, Profile,
+  ForgotPassword, ResetPassword,
   AdminUsers, AdminRequests, AdminPlaces,
   OwnerPlaces, OwnerRequests,
 } from '../pages'
@@ -48,8 +49,10 @@ export default function AppRoutes() {
       <Routes>
         {/* Público */}
         <Route path="/" element={<IntroRoute />} />
-        <Route path="/login"    element={<PublicRoute><Register initialMode="login"    /></PublicRoute>} />
-        <Route path="/register" element={<PublicRoute><Register initialMode="register" /></PublicRoute>} />
+        <Route path="/login"            element={<PublicRoute><Register initialMode="login"    /></PublicRoute>} />
+        <Route path="/register"         element={<PublicRoute><Register initialMode="register" /></PublicRoute>} />
+        <Route path="/esqueci-senha"    element={<PublicRoute><ForgotPassword /></PublicRoute>} />
+        <Route path="/redefinir-senha"  element={<PublicRoute><ResetPassword  /></PublicRoute>} />
 
         {/* Usuário autenticado */}
         <Route path="/home"   element={<PrivateRoute><Home    /></PrivateRoute>} />
