@@ -83,6 +83,53 @@ export const Chip = styled.button`
   }
 `
 
+export const HeaderRow = styled.div`
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: ${({ theme }) => theme.spacing[6]};
+`
+
+export const ViewToggle = styled.div`
+  display: flex;
+  border: 1px solid ${({ theme }) => theme.colors.border};
+  border-radius: ${({ theme }) => theme.radii.md};
+  overflow: hidden;
+  flex-shrink: 0;
+  height: fit-content;
+`
+
+export const ToggleBtn = styled.button`
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  border: none;
+  background: ${({ $active, theme }) => $active ? theme.colors.primary : 'white'};
+  color: ${({ $active, theme }) => $active ? 'white' : theme.colors.textSecondary};
+  font-size: ${({ theme }) => theme.fontSizes.sm};
+  font-weight: ${({ theme }) => theme.fontWeights.medium};
+  cursor: pointer;
+  transition: all 0.15s;
+  font-family: ${({ theme }) => theme.fonts.sans};
+
+  &:hover {
+    background: ${({ $active, theme }) =>
+      $active ? theme.colors.primaryHover : theme.colors.primarySubtle};
+    color: ${({ $active, theme }) => $active ? 'white' : theme.colors.primary};
+  }
+`
+
+export const MapWrapper = styled.div`
+  width: 100%;
+  height: calc(100vh - 320px);
+  min-height: 420px;
+  border-radius: ${({ theme }) => theme.radii.lg};
+  overflow: hidden;
+  border: 1px solid ${({ theme }) => theme.colors.border};
+`
+
 export const ResultsCount = styled.div`
   font-size: ${({ theme }) => theme.fontSizes.sm};
   color: ${({ theme }) => theme.colors.textSecondary};

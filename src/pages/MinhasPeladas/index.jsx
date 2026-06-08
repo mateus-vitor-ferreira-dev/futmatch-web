@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useForm } from 'react-hook-form'
+import { useSearchParams } from 'react-router-dom'
 import { Calendar, Clock, Copy, Plus } from 'lucide-react'
 import { useAuth } from '../../contexts/AuthContext'
 import { playerService } from '../../services/playerService'
@@ -10,15 +11,24 @@ import { Container, PageHeader, CreateButton, Tabs, Tab, PixBox, ModalOverlay, M
 
 export default function MinhasPeladas() {
   const { user } = useAuth()
+  const [searchParams, setSearchParams] = useSearchParams()
   const [activeTab, setActiveTab] = useState('participating')
   const [events, setEvents] = useState([])
   const [loading, setLoading] = useState(true)
-  
+
   // States do Modal
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [courts, setCourts] = useState([])
-  
+
   const { register, handleSubmit, reset } = useForm()
+
+  // Abre o modal automaticamente se vier com ?action=criar
+  useEffect(() => {
+    if (searchParams.get('action') === 'criar') {
+      setIsModalOpen(true)
+      setSearchParams({}, { replace: true })
+    }
+  }, [])
 
   const fetchData = async () => {
     try {

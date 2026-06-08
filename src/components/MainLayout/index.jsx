@@ -1,11 +1,12 @@
-import { Home, Search, ClipboardList, History, User } from 'lucide-react'
-import { useNavigate } from 'react-router-dom'
+import { useState, useEffect } from 'react'
+import { Home, Search, ClipboardList, History, User, Menu } from 'lucide-react'
+import { useNavigate, useLocation } from 'react-router-dom'
 import {
-  AppShell, Sidebar, Logo, LogoIcon, LogoText, LogoName, LogoTagline,
-  Nav, NavItem, UserCard, Avatar, UserInfo, UserName, UserBadge, Content,
+  AppShell, Overlay, Sidebar, Logo, LogoIcon, LogoText, LogoName, LogoTagline,
+  Nav, NavItem, UserCard, Avatar, UserInfo, UserName, UserBadge,
+  ContentWrapper, MobileTopbar, HamburgerBtn, TopbarLogoName, Content,
 } from './styles'
 
-/** Itens de navegação da sidebar */
 const NAV_ITEMS = [
   { to: '/home',           label: 'Início',          icon: Home          },
   { to: '/quero-jogar',    label: 'Quero Jogar',     icon: Search        },
@@ -14,12 +15,6 @@ const NAV_ITEMS = [
   { to: '/perfil',         label: 'Perfil',          icon: User          },
 ]
 
-/**
- * Gera as iniciais do nome para exibir no avatar.
- * Ex: "João Silva" → "JS"
- * @param {string} name
- * @returns {string}
- */
 function getInitials(name = '') {
   return name
     .split(' ')
@@ -28,24 +23,22 @@ function getInitials(name = '') {
     .join('')
 }
 
-/**
- * Layout principal pós-autenticação.
- *
- * Estrutura: sidebar fixa à esquerda + área de conteúdo à direita.
- * A sidebar exibe logo, navegação e card do usuário logado.
- *
- * @param {{
- *   children: React.ReactNode,
- *   user: { name: string, rating?: number, badge?: string } | null,
- * }} props
- */
 export default function MainLayout({ children, user }) {
   const navigate = useNavigate()
+  const location = useLocation()
   const initials = getInitials(user?.name)
+  const [sidebarOpen, setSidebarOpen] = useState(false)
+
+  // Fecha a sidebar ao navegar (mobile)
+  useEffect(() => {
+    setSidebarOpen(false)
+  }, [location.pathname])
 
   return (
     <AppShell>
-      <Sidebar>
+      <Overlay $open={sidebarOpen} onClick={() => setSidebarOpen(false)} />
+
+      <Sidebar $open={sidebarOpen}>
         <Logo>
           <LogoIcon>⚽</LogoIcon>
           <LogoText>
@@ -74,7 +67,16 @@ export default function MainLayout({ children, user }) {
         )}
       </Sidebar>
 
-      <Content>{children}</Content>
+      <ContentWrapper>
+        <MobileTopbar>
+          <HamburgerBtn onClick={() => setSidebarOpen(true)} aria-label="Abrir menu">
+            <Menu size={20} />
+          </HamburgerBtn>
+          <TopbarLogoName>FutMatch</TopbarLogoName>
+        </MobileTopbar>
+
+        <Content>{children}</Content>
+      </ContentWrapper>
     </AppShell>
   )
 }
