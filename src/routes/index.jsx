@@ -6,6 +6,7 @@ import {
   AdminUsers, AdminRequests, AdminPlaces, AdminDashboard,
   OwnerPlaces, OwnerRequests, OwnerDashboard,
   QueroJogar, MinhasPeladas, Historico,
+  CriarPelada, Tournaments,
 } from '../pages'
 
 // [MANTENHA IntroRoute, PublicRoute, PrivateRoute, AdminRoute, OwnerRoute EXATAMENTE IGUAIS]
@@ -61,6 +62,8 @@ export default function AppRoutes() {
         <Route path="/home"           element={<PrivateRoute><Home          /></PrivateRoute>} />
         <Route path="/perfil"         element={<PrivateRoute><Profile       /></PrivateRoute>} />
         <Route path="/quero-jogar"    element={<PrivateRoute><QueroJogar    /></PrivateRoute>} />
+        <Route path="/criar-pelada"   element={<PrivateRoute><CriarPelada   /></PrivateRoute>} />
+        <Route path="/torneios"       element={<PrivateRoute><Tournaments   /></PrivateRoute>} />
         <Route path="/minhas-peladas" element={<PrivateRoute><MinhasPeladas /></PrivateRoute>} />
         <Route path="/historico"      element={<PrivateRoute><Historico     /></PrivateRoute>} />
 

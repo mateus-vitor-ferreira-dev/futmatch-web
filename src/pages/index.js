@@ -18,3 +18,6 @@ export { default as Historico } from './Historico'
 
 export { default as AdminDashboard } from './Admin/Dashboard'
 export { default as OwnerDashboard } from './Owner/Dashboard'
+
+export { default as CriarPelada }   from './CriarPelada'
+export { default as Tournaments }   from './Tournaments'

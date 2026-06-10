@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Home, Search, ClipboardList, History, User, Menu } from 'lucide-react'
+import { Home, Search, ClipboardList, History, User, Plus, Trophy, Menu } from 'lucide-react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import {
   AppShell, Overlay, Sidebar, Logo, LogoIcon, LogoText, LogoName, LogoTagline,
@@ -10,6 +10,8 @@ import {
 const NAV_ITEMS = [
   { to: '/home',           label: 'Início',          icon: Home          },
   { to: '/quero-jogar',    label: 'Quero Jogar',     icon: Search        },
+  { to: '/criar-pelada',   label: 'Criar Pelada',    icon: Plus          },
+  { to: '/torneios',       label: 'Torneios',        icon: Trophy        },
   { to: '/minhas-peladas', label: 'Minhas Peladas',  icon: ClipboardList },
   { to: '/historico',      label: 'Histórico',       icon: History       },
   { to: '/perfil',         label: 'Perfil',          icon: User          },
