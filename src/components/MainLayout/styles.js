@@ -8,6 +8,20 @@ export const AppShell = styled.div`
   font-family: ${({ theme }) => theme.fonts.sans};
 `
 
+// ── Overlay (mobile only) ─────────────────────────────────────────────────────
+
+export const Overlay = styled.div`
+  display: none;
+
+  @media (max-width: 768px) {
+    display: ${({ $open }) => ($open ? 'block' : 'none')};
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.45);
+    z-index: 199;
+  }
+`
+
 // ── Sidebar ──────────────────────────────────────────────────────────────────
 
 export const Sidebar = styled.aside`
@@ -21,6 +35,16 @@ export const Sidebar = styled.aside`
   padding: 24px 12px;
   position: sticky;
   top: 0;
+
+  @media (max-width: 768px) {
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 200;
+    transform: translateX(${({ $open }) => ($open ? '0' : '-100%')});
+    transition: transform 0.25s ease;
+    box-shadow: ${({ $open }) => ($open ? '4px 0 24px rgba(0,0,0,0.15)' : 'none')};
+  }
 `
 
 export const Logo = styled.div`
@@ -142,6 +166,55 @@ export const UserBadge = styled.span`
   color: ${({ theme }) => theme.colors.textMuted};
 `
 
+// ── Content wrapper ───────────────────────────────────────────────────────────
+
+export const ContentWrapper = styled.div`
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  overflow: hidden;
+`
+
+// ── Mobile Topbar ─────────────────────────────────────────────────────────────
+
+export const MobileTopbar = styled.header`
+  display: none;
+
+  @media (max-width: 768px) {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    background: ${({ theme }) => theme.colors.bgSidebar};
+    border-bottom: 1px solid ${({ theme }) => theme.colors.border};
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    flex-shrink: 0;
+  }
+`
+
+export const HamburgerBtn = styled.button`
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border: none;
+  background: ${({ theme }) => theme.colors.primarySubtle};
+  border-radius: 8px;
+  cursor: pointer;
+  color: ${({ theme }) => theme.colors.primary};
+  flex-shrink: 0;
+`
+
+export const TopbarLogoName = styled.span`
+  font-size: 1rem;
+  font-weight: 700;
+  color: ${({ theme }) => theme.colors.textPrimary};
+`
+
 // ── Main content ─────────────────────────────────────────────────────────────
 
 export const Content = styled.main`
@@ -149,4 +222,8 @@ export const Content = styled.main`
   overflow-y: auto;
   padding: 32px;
   min-width: 0;
+
+  @media (max-width: 768px) {
+    padding: 16px;
+  }
 `

@@ -1,30 +1,54 @@
 import { useState, useEffect } from 'react'
 import { useForm } from 'react-hook-form'
-import { Calendar, Clock, Copy, Plus } from 'lucide-react'
+import { useSearchParams } from 'react-router-dom'
+import { Calendar, Clock, Copy, Plus, Shuffle } from 'lucide-react'
 import { useAuth } from '../../contexts/AuthContext'
 import { playerService } from '../../services/playerService'
 import { MainLayout } from '../../components'
-// Reutilizando os componentes de Grid e Card do QueroJogar para consistência
 import { Grid, Card, CardHeader, InfoRow, ProgressBarContainer, ProgressBar, SpotsInfo } from '../QueroJogar/styles'
-import { Container, PageHeader, CreateButton, Tabs, Tab, PixBox, ModalOverlay, ModalContent, Form, ButtonGroup } from './styles'
+import {
+  Container, PageHeader, CreateButton, Tabs, Tab, PixBox,
+  ModalOverlay, ModalContent, Form, ButtonGroup,
+  DrawButton, DrawModalOverlay, DrawModalContent,
+  TeamGrid, TeamCard, TeamHeader, PlayerItem,
+} from './styles'
+
+const TEAM_COLORS = [
+  '#22c55e', '#3b82f6', '#f59e0b', '#ef4444', '#8b5cf6',
+  '#ec4899', '#14b8a6', '#eab308', '#6366f1', '#06b6d4',
+]
 
 export default function MinhasPeladas() {
   const { user } = useAuth()
+  const [searchParams, setSearchParams] = useSearchParams()
   const [activeTab, setActiveTab] = useState('participating')
   const [events, setEvents] = useState([])
   const [loading, setLoading] = useState(true)
-  
-  // States do Modal
+
+  // Modal criar jogo
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [courts, setCourts] = useState([])
-  
+
+  // Sorteio
+  const [drawEvent, setDrawEvent] = useState(null)
+  const [teamCount, setTeamCount] = useState(2)
+  const [drawResult, setDrawResult] = useState(null)
+  const [drawLoading, setDrawLoading] = useState(false)
+
   const { register, handleSubmit, reset } = useForm()
+
+  useEffect(() => {
+    if (searchParams.get('action') === 'criar') {
+      setIsModalOpen(true)
+      setSearchParams({}, { replace: true })
+    }
+  }, [])
 
   const fetchData = async () => {
     try {
       setLoading(true)
-      const res = activeTab === 'participating' 
-        ? await playerService.getMyParticipatingEvents() 
+      const res = activeTab === 'participating'
+        ? await playerService.getMyParticipatingEvents()
         : await playerService.getMyCreatedEvents()
       setEvents(res.data || [])
     } catch (error) {
@@ -43,13 +67,8 @@ export default function MinhasPeladas() {
     }
   }
 
-  useEffect(() => {
-    fetchData()
-  }, [activeTab])
-
-  useEffect(() => {
-    if (isModalOpen) fetchCourts()
-  }, [isModalOpen])
+  useEffect(() => { fetchData() }, [activeTab])
+  useEffect(() => { if (isModalOpen) fetchCourts() }, [isModalOpen])
 
   const onSubmit = async (data) => {
     try {
@@ -57,7 +76,7 @@ export default function MinhasPeladas() {
         date: new Date(`${data.date}T${data.time}:00`).toISOString(),
         maxPlayers: parseInt(data.maxPlayers),
         totalValue: parseFloat(data.totalValue),
-        pixKey: data.pixKey
+        pixKey: data.pixKey,
       }
       await playerService.createEvent(data.courtId, payload)
       setIsModalOpen(false)
@@ -74,6 +93,30 @@ export default function MinhasPeladas() {
     alert('Chave PIX copiada!')
   }
 
+  const openDraw = (ev) => {
+    setDrawEvent(ev)
+    setTeamCount(2)
+    setDrawResult(null)
+  }
+
+  const handleDraw = async () => {
+    if (!drawEvent) return
+    try {
+      setDrawLoading(true)
+      const res = await playerService.drawTeams(drawEvent.courtId, drawEvent.id, teamCount)
+      setDrawResult(res.data)
+    } catch (error) {
+      alert(error.response?.data?.message || 'Erro ao realizar sorteio. Verifique se há jogadores suficientes.')
+    } finally {
+      setDrawLoading(false)
+    }
+  }
+
+  const closeDraw = () => {
+    setDrawEvent(null)
+    setDrawResult(null)
+  }
+
   return (
     <MainLayout user={user}>
       <Container>
@@ -83,7 +126,7 @@ export default function MinhasPeladas() {
             <p>Gerencie os jogos que você criou ou está participando.</p>
           </div>
           <CreateButton onClick={() => setIsModalOpen(true)}>
-            <Plus size={18} style={{display: 'inline', marginRight: 4, verticalAlign: 'middle'}}/>
+            <Plus size={18} style={{ display: 'inline', marginRight: 4, verticalAlign: 'middle' }} />
             Criar Jogo
           </CreateButton>
         </PageHeader>
@@ -100,8 +143,7 @@ export default function MinhasPeladas() {
         {loading ? <p>Carregando...</p> : (
           <Grid>
             {events.map((event) => {
-              // Ajuste conforme o formato retornado pelas rotas 'my'
-              const ev = event.pelada || event // Se for participation, o evento pode estar aninhado
+              const ev = event.pelada || event
               if (!ev || !ev.id) return null
 
               const currentPlayers = ev._count?.participations || 0
@@ -113,9 +155,9 @@ export default function MinhasPeladas() {
                   <CardHeader>
                     <div>
                       <h3>{ev.court?.place?.name || 'Local'}</h3>
-                      <span style={{fontSize: 12, color: '#6b7280'}}>{ev.court?.name}</span>
+                      <span style={{ fontSize: 12, color: '#6b7280' }}>{ev.court?.name}</span>
                     </div>
-                    <span className="badge" style={{color: '#f59e0b', background: '#fef3c7'}}>
+                    <span className="badge" style={{ color: '#f59e0b', background: '#fef3c7' }}>
                       {ev.status}
                     </span>
                   </CardHeader>
@@ -124,19 +166,22 @@ export default function MinhasPeladas() {
                   <InfoRow><Clock /> {new Date(ev.date).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}</InfoRow>
 
                   <ProgressBarContainer>
-                    <ProgressBar $progress={progress}>
-                      <div />
-                    </ProgressBar>
-                    <SpotsInfo>
-                      <span>{currentPlayers} / {maxPlayers} confirmados</span>
-                    </SpotsInfo>
+                    <ProgressBar $progress={progress}><div /></ProgressBar>
+                    <SpotsInfo><span>{currentPlayers} / {maxPlayers} confirmados</span></SpotsInfo>
                   </ProgressBarContainer>
 
                   {activeTab === 'created' && (
-                    <PixBox>
-                      <span>PIX: {ev.pixKey}</span>
-                      <button onClick={() => copyPix(ev.pixKey)}><Copy size={14}/> Copiar</button>
-                    </PixBox>
+                    <>
+                      <PixBox>
+                        <span>PIX: {ev.pixKey}</span>
+                        <button onClick={() => copyPix(ev.pixKey)}><Copy size={14} /> Copiar</button>
+                      </PixBox>
+                      {(ev.status === 'WAITING' || ev.status === 'FULL') && (
+                        <DrawButton onClick={() => openDraw(ev)}>
+                          <Shuffle size={14} /> Sortear Times
+                        </DrawButton>
+                      )}
+                    </>
                   )}
                 </Card>
               )
@@ -152,7 +197,7 @@ export default function MinhasPeladas() {
               <Form onSubmit={handleSubmit(onSubmit)}>
                 <div>
                   <label>Quadra / Local</label>
-                  <select {...register("courtId", { required: true })}>
+                  <select {...register('courtId', { required: true })}>
                     <option value="">Selecione a quadra</option>
                     {courts.map(court => (
                       <option key={court.id} value={court.id}>
@@ -161,34 +206,30 @@ export default function MinhasPeladas() {
                     ))}
                   </select>
                 </div>
-
-                <div style={{display: 'flex', gap: 16}}>
-                  <div style={{flex: 1}}>
+                <div style={{ display: 'flex', gap: 16 }}>
+                  <div style={{ flex: 1 }}>
                     <label>Data</label>
-                    <input type="date" {...register("date", { required: true })} />
+                    <input type="date" {...register('date', { required: true })} />
                   </div>
-                  <div style={{flex: 1}}>
+                  <div style={{ flex: 1 }}>
                     <label>Horário</label>
-                    <input type="time" {...register("time", { required: true })} />
+                    <input type="time" {...register('time', { required: true })} />
                   </div>
                 </div>
-
-                <div style={{display: 'flex', gap: 16}}>
-                  <div style={{flex: 1}}>
+                <div style={{ display: 'flex', gap: 16 }}>
+                  <div style={{ flex: 1 }}>
                     <label>Nº de Participantes</label>
-                    <input type="number" {...register("maxPlayers", { required: true })} min="2" />
+                    <input type="number" {...register('maxPlayers', { required: true })} min="2" />
                   </div>
-                  <div style={{flex: 1}}>
+                  <div style={{ flex: 1 }}>
                     <label>Valor Total (R$)</label>
-                    <input type="number" step="0.01" {...register("totalValue", { required: true })} />
+                    <input type="number" step="0.01" {...register('totalValue', { required: true })} />
                   </div>
                 </div>
-
                 <div>
                   <label>Chave PIX (Para receber)</label>
-                  <input type="text" {...register("pixKey", { required: true })} placeholder="CPF, Email, Telefone..." />
+                  <input type="text" {...register('pixKey', { required: true })} placeholder="CPF, Email, Telefone..." />
                 </div>
-
                 <ButtonGroup>
                   <button type="button" className="cancel" onClick={() => setIsModalOpen(false)}>Cancelar</button>
                   <button type="submit" className="submit">Criar jogo</button>
@@ -196,6 +237,90 @@ export default function MinhasPeladas() {
               </Form>
             </ModalContent>
           </ModalOverlay>
+        )}
+
+        {/* Modal Sorteio de Times */}
+        {drawEvent && (
+          <DrawModalOverlay onClick={closeDraw}>
+            <DrawModalContent onClick={e => e.stopPropagation()}>
+              {!drawResult ? (
+                <>
+                  <h2>Sortear Times</h2>
+                  <p style={{ color: '#6b7280', marginBottom: 24 }}>
+                    {drawEvent.court?.place?.name} &mdash; {new Date(drawEvent.date).toLocaleDateString('pt-BR')}
+                  </p>
+
+                  <div style={{ marginBottom: 24 }}>
+                    <label style={{ display: 'block', fontWeight: 600, marginBottom: 8, color: '#111827' }}>
+                      Quantos times?
+                    </label>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+                      <input
+                        type="range"
+                        min="2"
+                        max="10"
+                        value={teamCount}
+                        onChange={e => setTeamCount(Number(e.target.value))}
+                        style={{ flex: 1, accentColor: '#22c55e', height: 6 }}
+                      />
+                      <span style={{ fontWeight: 700, fontSize: 28, color: '#22c55e', minWidth: 40, textAlign: 'center' }}>
+                        {teamCount}
+                      </span>
+                    </div>
+                    <p style={{ fontSize: 13, color: '#6b7280', marginTop: 8 }}>
+                      Os jogadores serão distribuídos aleatoriamente entre {teamCount} times.
+                    </p>
+                  </div>
+
+                  <ButtonGroup>
+                    <button type="button" className="cancel" onClick={closeDraw}>Cancelar</button>
+                    <button
+                      type="button"
+                      className="submit"
+                      onClick={handleDraw}
+                      disabled={drawLoading}
+                    >
+                      {drawLoading ? 'Sorteando...' : '⚽ Sortear!'}
+                    </button>
+                  </ButtonGroup>
+                </>
+              ) : (
+                <>
+                  <h2>Times Sorteados</h2>
+                  <p style={{ color: '#6b7280', marginBottom: 24 }}>
+                    {drawResult.totalPlayers} jogadores distribuídos em {drawResult.teamCount} times
+                  </p>
+
+                  <TeamGrid>
+                    {drawResult.teams.map((team, idx) => (
+                      <TeamCard key={idx} $color={TEAM_COLORS[idx % TEAM_COLORS.length]}>
+                        <TeamHeader $color={TEAM_COLORS[idx % TEAM_COLORS.length]}>
+                          {team.name}
+                        </TeamHeader>
+                        {team.players.map(p => (
+                          <PlayerItem key={p.id}>
+                            <div className="avatar">{p.name?.charAt(0)?.toUpperCase()}</div>
+                            <span>{p.name}</span>
+                          </PlayerItem>
+                        ))}
+                      </TeamCard>
+                    ))}
+                  </TeamGrid>
+
+                  <button
+                    onClick={closeDraw}
+                    style={{
+                      width: '100%', marginTop: 16, padding: 12,
+                      borderRadius: 10, background: '#22c55e', color: 'white',
+                      fontWeight: 700, border: 'none', cursor: 'pointer', fontSize: 15,
+                    }}
+                  >
+                    Fechar
+                  </button>
+                </>
+              )}
+            </DrawModalContent>
+          </DrawModalOverlay>
         )}
       </Container>
     </MainLayout>

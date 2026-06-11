@@ -1,7 +1,9 @@
-export { default as Intro } from './Intro'
-export { default as Register } from './Register'
-export { default as Home } from './Home'
-export { default as Profile } from './Profile'
+export { default as Intro }          from './Intro'
+export { default as Register }       from './Register'
+export { default as Home }           from './Home'
+export { default as Profile }        from './Profile'
+export { default as ForgotPassword } from './ForgotPassword'
+export { default as ResetPassword }  from './ResetPassword'
 
 export { default as AdminUsers } from './Admin/Users'
 export { default as AdminRequests } from './Admin/Requests'
@@ -16,3 +18,7 @@ export { default as Historico } from './Historico'
 
 export { default as AdminDashboard } from './Admin/Dashboard'
 export { default as OwnerDashboard } from './Owner/Dashboard'
+
+export { default as CriarPelada }   from './CriarPelada'
+export { default as Tournaments }   from './Tournaments'
+export { default as Avaliacoes }    from './Avaliacoes'

@@ -2,9 +2,11 @@ import { BrowserRouter, Routes, Route, Navigate, useNavigate } from 'react-route
 import { useAuth } from '../contexts/AuthContext'
 import {
   Intro, Register, Home, Profile,
-  AdminUsers, AdminRequests, AdminPlaces, AdminDashboard, // <- Adicionado AdminDashboard
-  OwnerPlaces, OwnerRequests, OwnerDashboard,             // <- Adicionado OwnerDashboard
-  QueroJogar, MinhasPeladas, Historico
+  ForgotPassword, ResetPassword,
+  AdminUsers, AdminRequests, AdminPlaces, AdminDashboard,
+  OwnerPlaces, OwnerRequests, OwnerDashboard,
+  QueroJogar, MinhasPeladas, Historico,
+  CriarPelada, Tournaments, Avaliacoes,
 } from '../pages'
 
 // [MANTENHA IntroRoute, PublicRoute, PrivateRoute, AdminRoute, OwnerRoute EXATAMENTE IGUAIS]
@@ -51,15 +53,20 @@ export default function AppRoutes() {
       <Routes>
         {/* Público */}
         <Route path="/" element={<IntroRoute />} />
-        <Route path="/login"    element={<PublicRoute><Register initialMode="login"    /></PublicRoute>} />
-        <Route path="/register" element={<PublicRoute><Register initialMode="register" /></PublicRoute>} />
+        <Route path="/login"            element={<PublicRoute><Register initialMode="login"    /></PublicRoute>} />
+        <Route path="/register"         element={<PublicRoute><Register initialMode="register" /></PublicRoute>} />
+        <Route path="/esqueci-senha"    element={<PublicRoute><ForgotPassword /></PublicRoute>} />
+        <Route path="/redefinir-senha"  element={<PublicRoute><ResetPassword  /></PublicRoute>} />
 
         {/* Usuário autenticado (Jogador) */}
         <Route path="/home"           element={<PrivateRoute><Home          /></PrivateRoute>} />
         <Route path="/perfil"         element={<PrivateRoute><Profile       /></PrivateRoute>} />
         <Route path="/quero-jogar"    element={<PrivateRoute><QueroJogar    /></PrivateRoute>} />
+        <Route path="/criar-pelada"   element={<PrivateRoute><CriarPelada   /></PrivateRoute>} />
+        <Route path="/torneios"       element={<PrivateRoute><Tournaments   /></PrivateRoute>} />
         <Route path="/minhas-peladas" element={<PrivateRoute><MinhasPeladas /></PrivateRoute>} />
         <Route path="/historico"      element={<PrivateRoute><Historico     /></PrivateRoute>} />
+        <Route path="/avaliacoes"     element={<PrivateRoute><Avaliacoes    /></PrivateRoute>} />
 
         {/* Painel Admin */}
         <Route path="/admin/dashboard" element={<AdminRoute><AdminDashboard /></AdminRoute>} /> {/* NOVA ROTA */}

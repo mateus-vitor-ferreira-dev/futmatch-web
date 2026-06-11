@@ -54,6 +54,40 @@ export const AvatarHint = styled.span`
   margin-top: 2px;
 `
 
+// ── Tabs ──────────────────────────────────────────────────────────────────────
+
+export const TabsRow = styled.div`
+  display: flex;
+  background: ${({ theme }) => theme.colors.borderLight};
+  border-radius: ${({ theme }) => theme.radii.lg};
+  padding: 4px;
+  margin-bottom: 24px;
+`
+
+export const TabBtn = styled.button`
+  flex: 1;
+  height: 36px;
+  border: none;
+  border-radius: ${({ theme }) => theme.radii.md};
+  font-size: ${({ theme }) => theme.fontSizes.sm};
+  font-weight: ${({ theme }) => theme.fontWeights.medium};
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s, box-shadow 0.15s;
+  background: ${({ $active, theme }) => $active ? theme.colors.white : 'transparent'};
+  color: ${({ $active, theme }) => $active ? theme.colors.textPrimary : theme.colors.textSecondary};
+  box-shadow: ${({ $active, theme }) => $active ? theme.shadows.sm : 'none'};
+`
+
+// ── Password step 2 reveal ────────────────────────────────────────────────────
+
+export const StepBox = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding-top: 20px;
+  border-top: 1.5px dashed ${({ theme }) => theme.colors.border};
+`
+
 // ── Layout ────────────────────────────────────────────────────────────────────
 
 export const SectionDivider = styled.hr`
