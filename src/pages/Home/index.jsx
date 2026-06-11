@@ -114,7 +114,7 @@ export default function Home() {
     } finally {
       setLoadingEvents(false)
     }
-  }, [user?.city])
+  }, [user])
 
   const fetchStats = useCallback(async () => {
     try {
