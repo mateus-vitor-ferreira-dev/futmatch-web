@@ -8,9 +8,10 @@ const GlobalStyles = createGlobalStyle`
   }
 
   body {
-    background: #0a0a0a;
+    background: ${({ theme }) => theme.colors.bgApp};
     font-family: 'Inter', 'Segoe UI', sans-serif;
     overflow: hidden;
+    transition: background-color 0.2s;
   }
 
   #root {
