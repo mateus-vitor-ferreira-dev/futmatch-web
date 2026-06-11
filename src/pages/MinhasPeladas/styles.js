@@ -98,7 +98,7 @@ export const ModalOverlay = styled.div`
 `
 
 export const ModalContent = styled.div`
-  background: ${({ theme }) => theme.colors.white};
+  background: ${({ theme }) => theme.colors.bgCard};
   padding: ${({ theme }) => theme.spacing[6]};
   border-radius: ${({ theme }) => theme.radii.xl};
   width: 100%;
@@ -131,6 +131,8 @@ export const Form = styled.form`
     border: 1px solid ${({ theme }) => theme.colors.border};
     border-radius: ${({ theme }) => theme.radii.md};
     font-family: ${({ theme }) => theme.fonts.sans};
+    background: ${({ theme }) => theme.colors.bgCard};
+    color: ${({ theme }) => theme.colors.textPrimary};
   }
 `
 export const ButtonGroup = styled.div`
@@ -198,7 +200,7 @@ export const DrawModalOverlay = styled.div`
 `
 
 export const DrawModalContent = styled.div`
-  background: ${({ theme }) => theme.colors.white};
+  background: ${({ theme }) => theme.colors.bgCard};
   padding: ${({ theme }) => theme.spacing[6]};
   border-radius: ${({ theme }) => theme.radii.xl};
   width: 100%;

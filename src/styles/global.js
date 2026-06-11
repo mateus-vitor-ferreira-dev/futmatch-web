@@ -7,6 +7,10 @@ const GlobalStyles = createGlobalStyle`
     box-sizing: border-box;
   }
 
+  html {
+    color-scheme: ${({ theme }) => theme.mode};
+  }
+
   body {
     background: ${({ theme }) => theme.colors.bgApp};
     font-family: 'Inter', 'Segoe UI', sans-serif;
@@ -17,6 +21,11 @@ const GlobalStyles = createGlobalStyle`
   #root {
     width: 100vw;
     height: 100vh;
+  }
+
+  input, select, textarea {
+    background: ${({ theme }) => theme.colors.bgCard};
+    color: ${({ theme }) => theme.colors.textPrimary};
   }
 `
 

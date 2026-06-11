@@ -18,7 +18,7 @@ const FALLBACK_SPORTS = [
 
 function deriveTabs(sports) {
   const map = new Map()
-  sports.forEach(sport => {
+  sports.filter(s => s.group).forEach(sport => {
     if (!map.has(sport.group)) {
       map.set(sport.group, {
         id:    sport.group,

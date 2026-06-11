@@ -28,7 +28,7 @@ export const KpiGrid = styled.div`
 `
 
 export const KpiCard = styled.div`
-  background: ${({ theme }) => theme.colors.white};
+  background: ${({ theme }) => theme.colors.bgCard};
   border: 1px solid ${({ theme }) => theme.colors.borderLight};
   border-left: 4px solid ${({ $borderColor }) => $borderColor};
   border-radius: ${({ theme }) => theme.radii.lg};
@@ -61,7 +61,7 @@ export const Section = styled.section`
 export const Table = styled.table`
   width: 100%;
   border-collapse: collapse;
-  background: ${({ theme }) => theme.colors.white};
+  background: ${({ theme }) => theme.colors.bgCard};
   border-radius: ${({ theme }) => theme.radii.lg};
   overflow: hidden;
   box-shadow: ${({ theme }) => theme.shadows.sm};

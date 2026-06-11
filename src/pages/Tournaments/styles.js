@@ -51,12 +51,14 @@ export const FiltersBar = styled.div`
 `
 
 export const FilterChip = styled.button`
-  padding: 6px 14px;
+  padding: 8px 16px;
+  min-width: 90px;
+  text-align: center;
   border-radius: ${({ theme }) => theme.radii.full};
   border: 1px solid ${({ $active, theme }) =>
     $active ? theme.colors.primary : theme.colors.border};
   background: ${({ $active, theme }) =>
-    $active ? theme.colors.primarySubtle : '#fff'};
+    $active ? theme.colors.primarySubtle : theme.colors.bgCard};
   color: ${({ $active, theme }) =>
     $active ? theme.colors.primary : theme.colors.textSecondary};
   font-size: ${({ theme }) => theme.fontSizes.sm};
@@ -116,22 +118,22 @@ export const StatusBadge = styled.span`
   background: ${({ $status, theme }) => {
     const map = {
       DRAFT:               theme.colors.borderLight,
-      OPEN:                '#dbeafe',
-      REGISTRATION_CLOSED: '#fef3c7',
-      IN_PROGRESS:         '#fef3c7',
-      FINISHED:            '#dcfce7',
-      CANCELLED:           '#fee2e2',
+      OPEN:                theme.colors.infoLight,
+      REGISTRATION_CLOSED: theme.colors.warningLight,
+      IN_PROGRESS:         theme.colors.warningLight,
+      FINISHED:            theme.colors.successLight,
+      CANCELLED:           theme.colors.errorLight,
     }
     return map[$status] ?? theme.colors.borderLight
   }};
   color: ${({ $status, theme }) => {
     const map = {
       DRAFT:               theme.colors.textMuted,
-      OPEN:                '#2563eb',
-      REGISTRATION_CLOSED: '#d97706',
-      IN_PROGRESS:         '#d97706',
-      FINISHED:            '#16a34a',
-      CANCELLED:           '#dc2626',
+      OPEN:                theme.colors.info,
+      REGISTRATION_CLOSED: theme.colors.warningText,
+      IN_PROGRESS:         theme.colors.warningText,
+      FINISHED:            theme.colors.success,
+      CANCELLED:           theme.colors.error,
     }
     return map[$status] ?? theme.colors.textMuted
   }};
@@ -201,7 +203,7 @@ export const Modal = styled.div`
 `
 
 export const ModalBox = styled.div`
-  background: #fff;
+  background: ${({ theme }) => theme.colors.bgCard};
   border-radius: ${({ theme }) => theme.radii.xl};
   padding: 32px;
   width: 100%;
@@ -276,7 +278,7 @@ export const Select = styled.select`
   border-radius: ${({ theme }) => theme.radii.md};
   font-size: ${({ theme }) => theme.fontSizes.sm};
   color: ${({ theme }) => theme.colors.textPrimary};
-  background: #fff;
+  background: ${({ theme }) => theme.colors.bgCard};
   outline: none;
   cursor: pointer;
   transition: border-color 0.15s;
@@ -300,7 +302,7 @@ export const CancelButton = styled.button`
   padding: 10px 20px;
   border-radius: ${({ theme }) => theme.radii.md};
   border: 1px solid ${({ theme }) => theme.colors.border};
-  background: #fff;
+  background: ${({ theme }) => theme.colors.bgCard};
   color: ${({ theme }) => theme.colors.textSecondary};
   font-size: ${({ theme }) => theme.fontSizes.sm};
   font-weight: ${({ theme }) => theme.fontWeights.medium};

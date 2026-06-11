@@ -353,6 +353,52 @@ export const FilterToggle = styled.button`
   }
 `
 
+export const PriceSliderWrapper = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 220px;
+
+  span {
+    font-size: ${({ theme }) => theme.fontSizes.xs};
+    color: ${({ theme }) => theme.colors.textSecondary};
+    font-weight: ${({ theme }) => theme.fontWeights.medium};
+  }
+
+  input[type='range'] {
+    -webkit-appearance: none;
+    width: 100%;
+    height: 4px;
+    border-radius: 999px;
+    background: ${({ theme, $pct }) =>
+      `linear-gradient(to right, ${theme.colors.primary} ${$pct}%, ${theme.colors.border} ${$pct}%)`};
+    cursor: pointer;
+    outline: none;
+    border: none;
+
+    &::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: ${({ theme }) => theme.colors.primary};
+      cursor: pointer;
+      border: 2px solid ${({ theme }) => theme.colors.bgCard};
+      box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+    }
+
+    &::-moz-range-thumb {
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: ${({ theme }) => theme.colors.primary};
+      cursor: pointer;
+      border: 2px solid ${({ theme }) => theme.colors.bgCard};
+      box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+    }
+  }
+`
+
 export const ClearBtn = styled.button`
   display: flex;
   align-items: center;

@@ -106,7 +106,7 @@ export const TabBtn = styled.button`
   font-weight: ${({ theme }) => theme.fontWeights.medium};
   cursor: pointer;
   transition: background 0.15s, color 0.15s, box-shadow 0.15s;
-  background: ${({ $active, theme }) => $active ? theme.colors.white : 'transparent'};
+  background: ${({ $active, theme }) => $active ? theme.colors.bgCard : 'transparent'};
   color: ${({ $active, theme }) => $active ? theme.colors.textPrimary : theme.colors.textSecondary};
   box-shadow: ${({ $active, theme }) => $active ? theme.shadows.sm : 'none'};
 `
