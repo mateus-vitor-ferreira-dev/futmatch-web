@@ -62,7 +62,6 @@ export default function CriarPelada() {
   const [loadingCourts, setLoadingCourts] = useState(true)
   const [selectedCourt, setSelectedCourt] = useState(null)
   const [submitting, setSubmitting] = useState(false)
-  const [_createdEvent, setCreatedEvent]  = useState(null)
   const [error, setError]           = useState(null)
 
   const {
@@ -90,8 +89,7 @@ export default function CriarPelada() {
         maxPlayers: Number(data.maxPlayers),
         totalValue: Number(data.totalValue),
       }
-      const res = await createEvent(selectedCourt.id, payload)
-      setCreatedEvent(res.data)
+      await createEvent(selectedCourt.id, payload)
       setStep(2)
     } catch (err) {
       setError(err.response?.data?.message || 'Erro ao criar pelada. Tente novamente.')
