@@ -259,7 +259,7 @@ export default function Tournaments() {
                   <Input
                     {...register('name')}
                     $error={!!errors.name}
-                    placeholder="Ex: Copa FutMatch Verão 2025"
+                    placeholder="Ex: Copa Só+1 Verão 2025"
                   />
                   {errors.name && <ErrorMsg>{errors.name.message}</ErrorMsg>}
                 </Field>

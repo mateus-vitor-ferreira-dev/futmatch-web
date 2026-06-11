@@ -149,7 +149,7 @@ export default function AuthLayout({ children }) {
         <Logo style={{ zIndex: 2 }}>
           <LogoIcon>⚽</LogoIcon>
           <LogoText>
-            <LogoName>FutMatch</LogoName>
+            <LogoName>Só+1</LogoName>
             <LogoTagline>Jogue hoje, sem combinar.</LogoTagline>
           </LogoText>
         </Logo>
