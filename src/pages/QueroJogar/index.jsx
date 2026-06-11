@@ -1,6 +1,6 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { useSearchParams } from 'react-router-dom'
-import { Search, Calendar, Clock, CheckCircle, MapPin } from 'lucide-react'
+import { Search, Calendar, Clock, CheckCircle, MapPin, SlidersHorizontal, X } from 'lucide-react'
 import { useAuth } from '../../contexts/AuthContext'
 import { playerService } from '../../services/playerService'
 import { useSports } from '../../hooks/useSports'
@@ -10,6 +10,8 @@ import {
   FiltersArea, SearchInput, ChipsContainer, Chip, ResultsCount,
   Grid, Card, CardHeader, InfoRow, ProgressBarContainer, ProgressBar,
   SpotsInfo, PriceInfo, ActionButton,
+  AdvancedFilters, FilterRow, FilterGroup, FilterLabel,
+  FilterSelect, FilterToggle, FiltersBtn, ActiveFilterBadge, ClearBtn,
 } from './styles'
 
 function buildGoogleMapsUrl(event) {
@@ -23,23 +25,40 @@ function buildGoogleMapsUrl(event) {
   return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(parts.join(', '))}`
 }
 
+const TIME_OPTIONS = [
+  { id: 'manha',  label: '🌅 Manhã',   from: 5,  to: 12 },
+  { id: 'tarde',  label: '☀️ Tarde',   from: 12, to: 18 },
+  { id: 'noite',  label: '🌙 Noite',   from: 18, to: 24 },
+]
+
+const PRICE_OPTIONS = [
+  { id: 'ate20',   label: 'Até R$20',  max: 20 },
+  { id: '20a40',   label: 'R$20–40',   min: 20, max: 40 },
+  { id: 'acima40', label: 'Acima R$40', min: 40 },
+]
+
 export default function QueroJogar() {
   const { user } = useAuth()
   const { tabs: sportTabs } = useSports()
   const [searchParams] = useSearchParams()
 
-  const [events, setEvents] = useState([])
-  const [loading, setLoading] = useState(true)
-  const [search, setSearch] = useState('')
+  const [events, setEvents]             = useState([])
+  const [loading, setLoading]           = useState(true)
+  const [search, setSearch]             = useState('')
   const [selectedSport, setSelectedSport] = useState(searchParams.get('sport') || '')
+  const [showFilters, setShowFilters]   = useState(false)
+  const [filterTime, setFilterTime]     = useState('')
+  const [filterPrice, setFilterPrice]   = useState('')
+  const [filterCity, setFilterCity]     = useState('')
+  const [filterVagas, setFilterVagas]   = useState(false)
 
   const fetchEvents = async () => {
     try {
       setLoading(true)
       const res = await playerService.searchEvents({ status: 'WAITING' })
       setEvents(res.data || [])
-    } catch (error) {
-      console.error('Erro ao buscar jogos', error)
+    } catch {
+      setEvents([])
     } finally {
       setLoading(false)
     }
@@ -47,14 +66,50 @@ export default function QueroJogar() {
 
   useEffect(() => { fetchEvents() }, [])
 
+  const cities = useMemo(() =>
+    [...new Set(events.map(e => e.court?.place?.city).filter(Boolean))].sort(),
+    [events]
+  )
+
   const activeTab = sportTabs.find(t => t.id === selectedSport)
+
   const filteredEvents = events.filter(e => {
     const matchesSearch =
       e.court?.place?.name?.toLowerCase().includes(search.toLowerCase()) ||
       e.court?.place?.neighborhood?.toLowerCase().includes(search.toLowerCase())
+
     const matchesSport = selectedSport ? activeTab?.types?.includes(e.court?.type) : true
-    return matchesSearch && matchesSport
+
+    const hour = new Date(e.date).getHours()
+    const matchesTime =
+      !filterTime ? true :
+      filterTime === 'manha' ? hour >= 5 && hour < 12 :
+      filterTime === 'tarde' ? hour >= 12 && hour < 18 :
+      hour >= 18 || hour < 5
+
+    const pricePerPerson = Number(e.totalValue) / e.maxPlayers
+    const matchesPrice =
+      !filterPrice ? true :
+      filterPrice === 'ate20'   ? pricePerPerson <= 20 :
+      filterPrice === '20a40'   ? pricePerPerson > 20 && pricePerPerson <= 40 :
+      pricePerPerson > 40
+
+    const matchesCity = !filterCity ? true : e.court?.place?.city === filterCity
+
+    const currentPlayers = e._count?.participations || 0
+    const matchesVagas = !filterVagas ? true : currentPlayers < e.maxPlayers
+
+    return matchesSearch && matchesSport && matchesTime && matchesPrice && matchesCity && matchesVagas
   })
+
+  const activeFilterCount = [filterTime, filterPrice, filterCity, filterVagas].filter(Boolean).length
+
+  function clearFilters() {
+    setFilterTime('')
+    setFilterPrice('')
+    setFilterCity('')
+    setFilterVagas(false)
+  }
 
   const handleJoin = async (courtId, eventId) => {
     try {
@@ -76,29 +131,107 @@ export default function QueroJogar() {
         </HeaderRow>
 
         <FiltersArea>
-          <SearchInput>
-            <Search size={20} />
-            <input
-              placeholder="Pesquisar por local ou bairro..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-            />
-          </SearchInput>
+          {/* Busca + botão de filtros */}
+          <div style={{ display: 'flex', gap: 12 }}>
+            <SearchInput style={{ flex: 1 }}>
+              <Search size={20} />
+              <input
+                placeholder="Pesquisar por local ou bairro..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+              />
+            </SearchInput>
+            <FiltersBtn
+              $active={activeFilterCount > 0}
+              onClick={() => setShowFilters(v => !v)}
+            >
+              <SlidersHorizontal size={16} />
+              Filtros
+              {activeFilterCount > 0 && (
+                <ActiveFilterBadge>{activeFilterCount}</ActiveFilterBadge>
+              )}
+            </FiltersBtn>
+          </div>
 
+          {/* Esporte chips */}
           <ChipsContainer>
-            <Chip $active={selectedSport === ''} onClick={() => setSelectedSport('')}>
-              Todos
-            </Chip>
+            <Chip $active={selectedSport === ''} onClick={() => setSelectedSport('')}>Todos</Chip>
             {sportTabs.map(tab => (
-              <Chip
-                key={tab.id}
-                $active={selectedSport === tab.id}
-                onClick={() => setSelectedSport(tab.id)}
-              >
+              <Chip key={tab.id} $active={selectedSport === tab.id} onClick={() => setSelectedSport(tab.id)}>
                 {tab.label}
               </Chip>
             ))}
           </ChipsContainer>
+
+          {/* Filtros avançados */}
+          {showFilters && (
+            <AdvancedFilters>
+              <FilterRow>
+                <FilterGroup>
+                  <FilterLabel>Horário</FilterLabel>
+                  <ChipsContainer style={{ paddingBottom: 0 }}>
+                    {TIME_OPTIONS.map(t => (
+                      <Chip
+                        key={t.id}
+                        $active={filterTime === t.id}
+                        onClick={() => setFilterTime(filterTime === t.id ? '' : t.id)}
+                      >
+                        {t.label}
+                      </Chip>
+                    ))}
+                  </ChipsContainer>
+                </FilterGroup>
+
+                <FilterGroup>
+                  <FilterLabel>Preço / pessoa</FilterLabel>
+                  <ChipsContainer style={{ paddingBottom: 0 }}>
+                    {PRICE_OPTIONS.map(p => (
+                      <Chip
+                        key={p.id}
+                        $active={filterPrice === p.id}
+                        onClick={() => setFilterPrice(filterPrice === p.id ? '' : p.id)}
+                      >
+                        {p.label}
+                      </Chip>
+                    ))}
+                  </ChipsContainer>
+                </FilterGroup>
+              </FilterRow>
+
+              <FilterRow>
+                <FilterGroup>
+                  <FilterLabel>Cidade</FilterLabel>
+                  <FilterSelect
+                    value={filterCity}
+                    onChange={e => setFilterCity(e.target.value)}
+                  >
+                    <option value="">Todas as cidades</option>
+                    {cities.map(city => (
+                      <option key={city} value={city}>{city}</option>
+                    ))}
+                  </FilterSelect>
+                </FilterGroup>
+
+                <FilterGroup style={{ justifyContent: 'flex-end' }}>
+                  <FilterToggle
+                    $active={filterVagas}
+                    onClick={() => setFilterVagas(v => !v)}
+                  >
+                    <span className="toggle-track">
+                      <span className="toggle-thumb" />
+                    </span>
+                    Com vagas disponíveis
+                  </FilterToggle>
+                </FilterGroup>
+
+                {activeFilterCount > 0 && (
+                  <ClearBtn onClick={clearFilters}>
+                    <X size={14} /> Limpar filtros
+                  </ClearBtn>
+                )}
+              </FilterRow>
+            </AdvancedFilters>
+          )}
         </FiltersArea>
 
         <ResultsCount>

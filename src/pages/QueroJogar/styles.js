@@ -232,6 +232,144 @@ export const PriceInfo = styled.div`
   margin-top: auto;
 `
 
+export const FiltersBtn = styled.button`
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 ${({ theme }) => theme.spacing[4]};
+  height: 46px;
+  border-radius: ${({ theme }) => theme.radii.lg};
+  border: 1px solid ${({ $active, theme }) => $active ? theme.colors.primary : theme.colors.border};
+  background: ${({ $active, theme }) => $active ? theme.colors.primarySubtle : theme.colors.white};
+  color: ${({ $active, theme }) => $active ? theme.colors.primary : theme.colors.textSecondary};
+  font-size: ${({ theme }) => theme.fontSizes.sm};
+  font-weight: ${({ theme }) => theme.fontWeights.medium};
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.2s;
+  font-family: ${({ theme }) => theme.fonts.sans};
+
+  &:hover {
+    border-color: ${({ theme }) => theme.colors.primary};
+    color: ${({ theme }) => theme.colors.primary};
+  }
+`
+
+export const ActiveFilterBadge = styled.span`
+  background: ${({ theme }) => theme.colors.primary};
+  color: white;
+  font-size: 11px;
+  font-weight: 700;
+  border-radius: 999px;
+  min-width: 18px;
+  height: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 4px;
+`
+
+export const AdvancedFilters = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: ${({ theme }) => theme.spacing[4]};
+  padding: ${({ theme }) => theme.spacing[4]};
+  background: ${({ theme }) => theme.colors.bgPage || '#f9fafb'};
+  border-radius: ${({ theme }) => theme.radii.lg};
+  border: 1px solid ${({ theme }) => theme.colors.border};
+`
+
+export const FilterRow = styled.div`
+  display: flex;
+  flex-wrap: wrap;
+  gap: ${({ theme }) => theme.spacing[4]};
+  align-items: flex-end;
+`
+
+export const FilterGroup = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: ${({ theme }) => theme.spacing[2]};
+`
+
+export const FilterLabel = styled.span`
+  font-size: ${({ theme }) => theme.fontSizes.xs};
+  font-weight: ${({ theme }) => theme.fontWeights.semibold};
+  color: ${({ theme }) => theme.colors.textSecondary};
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+`
+
+export const FilterSelect = styled.select`
+  padding: ${({ theme }) => theme.spacing[2]} ${({ theme }) => theme.spacing[3]};
+  border: 1px solid ${({ theme }) => theme.colors.border};
+  border-radius: ${({ theme }) => theme.radii.md};
+  background: ${({ theme }) => theme.colors.white};
+  font-size: ${({ theme }) => theme.fontSizes.sm};
+  color: ${({ theme }) => theme.colors.textPrimary};
+  font-family: ${({ theme }) => theme.fonts.sans};
+  cursor: pointer;
+  min-width: 180px;
+
+  &:focus {
+    outline: none;
+    border-color: ${({ theme }) => theme.colors.primary};
+  }
+`
+
+export const FilterToggle = styled.button`
+  display: flex;
+  align-items: center;
+  gap: ${({ theme }) => theme.spacing[2]};
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: ${({ theme }) => theme.fontSizes.sm};
+  color: ${({ $active, theme }) => $active ? theme.colors.primary : theme.colors.textSecondary};
+  font-family: ${({ theme }) => theme.fonts.sans};
+  font-weight: ${({ theme }) => theme.fontWeights.medium};
+  padding: ${({ theme }) => theme.spacing[2]} 0;
+
+  .toggle-track {
+    width: 36px;
+    height: 20px;
+    border-radius: 999px;
+    background: ${({ $active, theme }) => $active ? theme.colors.primary : theme.colors.border};
+    position: relative;
+    transition: background 0.2s;
+    flex-shrink: 0;
+  }
+
+  .toggle-thumb {
+    position: absolute;
+    top: 2px;
+    left: ${({ $active }) => $active ? '18px' : '2px'};
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: white;
+    transition: left 0.2s;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+  }
+`
+
+export const ClearBtn = styled.button`
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: none;
+  border: none;
+  color: ${({ theme }) => theme.colors.error || '#ef4444'};
+  font-size: ${({ theme }) => theme.fontSizes.sm};
+  font-family: ${({ theme }) => theme.fonts.sans};
+  cursor: pointer;
+  padding: ${({ theme }) => theme.spacing[2]} 0;
+  margin-left: auto;
+  font-weight: ${({ theme }) => theme.fontWeights.medium};
+
+  &:hover { text-decoration: underline; }
+`
+
 export const ActionButton = styled.button`
   width: 100%;
   padding: ${({ theme }) => theme.spacing[3]};
