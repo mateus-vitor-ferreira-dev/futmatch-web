@@ -45,7 +45,7 @@ export default function MainLayout({ children, user }) {
         <Logo>
           <LogoIcon>⚽</LogoIcon>
           <LogoText>
-            <LogoName>FutMatch</LogoName>
+            <LogoName>Só+1</LogoName>
             <LogoTagline>Encontre sua pelada</LogoTagline>
           </LogoText>
         </Logo>
@@ -75,7 +75,7 @@ export default function MainLayout({ children, user }) {
           <HamburgerBtn onClick={() => setSidebarOpen(true)} aria-label="Abrir menu">
             <Menu size={20} />
           </HamburgerBtn>
-          <TopbarLogoName>FutMatch</TopbarLogoName>
+          <TopbarLogoName>Só+1</TopbarLogoName>
         </MobileTopbar>
 
         <Content>{children}</Content>
