@@ -31,7 +31,7 @@ export const FiltersArea = styled.div`
 export const SearchInput = styled.div`
   display: flex;
   align-items: center;
-  background: ${({ theme }) => theme.colors.white};
+  background: ${({ theme }) => theme.colors.bgCard};
   border: 1px solid ${({ theme }) => theme.colors.border};
   border-radius: ${({ theme }) => theme.radii.lg};
   padding: 0 ${({ theme }) => theme.spacing[4]};
@@ -64,9 +64,9 @@ export const ChipsContainer = styled.div`
 
 export const Chip = styled.button`
   background: ${({ theme, $active }) =>
-    $active ? theme.colors.primary : theme.colors.white};
+    $active ? theme.colors.primary : theme.colors.bgCard};
   color: ${({ theme, $active }) =>
-    $active ? theme.colors.white : theme.colors.textSecondary};
+    $active ? theme.colors.bgCard : theme.colors.textSecondary};
   border: 1px solid
     ${({ theme, $active }) =>
       $active ? theme.colors.primary : theme.colors.border};
@@ -106,7 +106,7 @@ export const ToggleBtn = styled.button`
   gap: 6px;
   padding: 8px 14px;
   border: none;
-  background: ${({ $active, theme }) => $active ? theme.colors.primary : 'white'};
+  background: ${({ $active, theme }) => $active ? theme.colors.primary : theme.colors.bgCard};
   color: ${({ $active, theme }) => $active ? 'white' : theme.colors.textSecondary};
   font-size: ${({ theme }) => theme.fontSizes.sm};
   font-weight: ${({ theme }) => theme.fontWeights.medium};
@@ -240,7 +240,7 @@ export const FiltersBtn = styled.button`
   height: 46px;
   border-radius: ${({ theme }) => theme.radii.lg};
   border: 1px solid ${({ $active, theme }) => $active ? theme.colors.primary : theme.colors.border};
-  background: ${({ $active, theme }) => $active ? theme.colors.primarySubtle : theme.colors.white};
+  background: ${({ $active, theme }) => $active ? theme.colors.primarySubtle : theme.colors.bgCard};
   color: ${({ $active, theme }) => $active ? theme.colors.primary : theme.colors.textSecondary};
   font-size: ${({ theme }) => theme.fontSizes.sm};
   font-weight: ${({ theme }) => theme.fontWeights.medium};
@@ -304,7 +304,7 @@ export const FilterSelect = styled.select`
   padding: ${({ theme }) => theme.spacing[2]} ${({ theme }) => theme.spacing[3]};
   border: 1px solid ${({ theme }) => theme.colors.border};
   border-radius: ${({ theme }) => theme.radii.md};
-  background: ${({ theme }) => theme.colors.white};
+  background: ${({ theme }) => theme.colors.bgCard};
   font-size: ${({ theme }) => theme.fontSizes.sm};
   color: ${({ theme }) => theme.colors.textPrimary};
   font-family: ${({ theme }) => theme.fonts.sans};
@@ -395,7 +395,7 @@ export const ActionButton = styled.button`
       ? theme.colors.primaryDark
       : disabled
         ? theme.colors.textMuted
-        : theme.colors.white};
+        : theme.colors.bgCard};
 
   border: 1px solid
     ${({ theme, $isJoined }) =>

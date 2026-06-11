@@ -87,7 +87,7 @@ export const EvalModalOverlay = styled.div`
 `
 
 export const EvalModalContent = styled.div`
-  background: white;
+  background: ${({ theme }) => theme.colors.bgCard};
   padding: ${({ theme }) => theme.spacing[6]};
   border-radius: ${({ theme }) => theme.radii.xl};
   width: 100%;
