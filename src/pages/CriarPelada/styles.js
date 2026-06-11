@@ -155,7 +155,7 @@ export const Input = styled.input`
   border-radius: ${({ theme }) => theme.radii.md};
   font-size: ${({ theme }) => theme.fontSizes.sm};
   color: ${({ theme }) => theme.colors.textPrimary};
-  background: ${({ theme }) => theme.colors.bgCard};
+  background: ${({ theme }) => theme.colors.bgInput};
   outline: none;
   transition: border-color 0.15s;
 

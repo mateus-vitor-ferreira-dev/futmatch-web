@@ -24,8 +24,17 @@ const GlobalStyles = createGlobalStyle`
   }
 
   input, select, textarea {
-    background: ${({ theme }) => theme.colors.bgCard};
+    background: ${({ theme }) => theme.colors.bgInput};
     color: ${({ theme }) => theme.colors.textPrimary};
+  }
+
+  input:-webkit-autofill,
+  input:-webkit-autofill:hover,
+  input:-webkit-autofill:focus,
+  input:-webkit-autofill:active {
+    -webkit-box-shadow: 0 0 0 1000px ${({ theme }) => theme.colors.bgInput} inset !important;
+    -webkit-text-fill-color: ${({ theme }) => theme.colors.textPrimary} !important;
+    transition: background-color 5000s ease-in-out 0s;
   }
 `
 

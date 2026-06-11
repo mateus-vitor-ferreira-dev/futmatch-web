@@ -131,7 +131,7 @@ export const Form = styled.form`
     border: 1px solid ${({ theme }) => theme.colors.border};
     border-radius: ${({ theme }) => theme.radii.md};
     font-family: ${({ theme }) => theme.fonts.sans};
-    background: ${({ theme }) => theme.colors.bgCard};
+    background: ${({ theme }) => theme.colors.bgInput};
     color: ${({ theme }) => theme.colors.textPrimary};
   }
 `

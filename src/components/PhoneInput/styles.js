@@ -14,7 +14,7 @@ export const InputWrapper = styled.div`
   height: 40px;
   border: 1.5px solid ${({ $error, theme }) => $error ? theme.colors.error : theme.colors.border};
   border-radius: ${({ theme }) => theme.radii.md};
-  background: ${({ theme }) => theme.colors.bgCard};
+  background: ${({ theme }) => theme.colors.bgInput};
   transition: border-color 0.15s;
 
   &:focus-within {
@@ -88,7 +88,7 @@ export const Dropdown = styled.div`
   top: calc(100% + 4px);
   left: 0;
   right: 0;
-  background: ${({ theme }) => theme.colors.bgCard};
+  background: ${({ theme }) => theme.colors.bgInput};
   border: 1.5px solid ${({ theme }) => theme.colors.border};
   border-radius: ${({ theme }) => theme.radii.md};
   box-shadow: ${({ theme }) => theme.shadows.lg};
@@ -101,7 +101,7 @@ export const SearchInput = styled.input`
   padding: 9px 12px;
   border: none;
   border-bottom: 1.5px solid ${({ theme }) => theme.colors.border};
-  background: ${({ theme }) => theme.colors.bgCard};
+  background: ${({ theme }) => theme.colors.bgInput};
   color: ${({ theme }) => theme.colors.textPrimary};
   font-size: ${({ theme }) => theme.fontSizes.sm};
   outline: none;

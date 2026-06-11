@@ -187,7 +187,7 @@ export const ParticipantRow = styled.div`
       padding: 4px;
       border-radius: 4px;
       border: 1px solid ${({ theme }) => theme.colors.border};
-      background: ${({ theme }) => theme.colors.bgCard};
+      background: ${({ theme }) => theme.colors.bgInput};
       color: ${({ theme }) => theme.colors.textPrimary};
     }
   }
