@@ -38,7 +38,7 @@ export const Ball = styled.div`
   left: 0;
   font-size: 64px;
   line-height: 1;
-  z-index: 2;
+  z-index: 0;
   will-change: transform;
 `
 
