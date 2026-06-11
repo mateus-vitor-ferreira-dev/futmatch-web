@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { Plus, MapPin, Calendar, Users, Trophy, X } from 'lucide-react'
 import { useForm } from 'react-hook-form'
 import { yupResolver } from '@hookform/resolvers/yup'
@@ -95,7 +95,7 @@ export default function Tournaments() {
     formState: { errors },
   } = useForm({ resolver: yupResolver(schema) })
 
-  const fetchTournaments = async () => {
+  const fetchTournaments = useCallback(async () => {
     try {
       setLoading(true)
       const res = await listTournaments(statusFilter ? { status: statusFilter } : {})
@@ -105,9 +105,9 @@ export default function Tournaments() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [statusFilter])
 
-  useEffect(() => { fetchTournaments() }, [statusFilter])
+  useEffect(() => { fetchTournaments() }, [fetchTournaments])
 
   useEffect(() => {
     if (!showModal) return

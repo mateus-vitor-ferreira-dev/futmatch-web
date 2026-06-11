@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { Building2, ClipboardList, LayoutDashboard, Home } from 'lucide-react'
 import DashboardLayout from '../../../components/DashboardLayout'
 import StatCard from '../../../components/StatCard'
@@ -28,12 +28,11 @@ export default function OwnerPlaces() {
   const [error, setError]     = useState(null)
   const [toggling, setToggling] = useState(null)
 
-  const fetchPlaces = async () => {
+  const fetchPlaces = useCallback(async () => {
     setLoading(true)
     setError(null)
     try {
       const res = await placesService.list()
-      // Filtra apenas os do owner logado
       const mine = res.data.data.filter((p) => p.ownerId === user?.id)
       setPlaces(mine)
     } catch {
@@ -41,9 +40,9 @@ export default function OwnerPlaces() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [user?.id])
 
-  useEffect(() => { fetchPlaces() }, [])
+  useEffect(() => { fetchPlaces() }, [fetchPlaces])
 
   const handleToggleStatus = async (place) => {
     const next = place.status === 'OPEN' ? 'CLOSED' : 'OPEN'
