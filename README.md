@@ -24,6 +24,7 @@ Interface web do **FutMatch** — plataforma para organização de peladas amado
 - **Node.js 20+** — https://nodejs.org
 - **FutMatch API** rodando em `http://localhost:3000`
 
+
 ## Instalação e configuração
 
 ```bash
