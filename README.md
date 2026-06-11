@@ -1,206 +1,186 @@
-⚽ FutMatch Web
+# ⚽ FutMatch Web
 
-Interface web do FutMatch — plataforma para organização de eventos esportivos.
+Interface web do **FutMatch** — plataforma para organização de peladas amadoras.
 
-🚀 Tecnologias
-React 19
-Vite
-styled-components
-React Router DOM
-react-hook-form + Yup
-Axios
-GSAP
-Google OAuth (@react-oauth/google)
+**Deploy:** https://futmatch-web.vercel.app
 
-📦 Pré-requisitos (OBRIGATÓRIO)
+## Stack
 
-Antes de começar, você precisa instalar:
+- **React 19** + **Vite 8**
+- **styled-components** (tema centralizado com ThemeProvider)
+- **React Router v7** (rotas protegidas por papel)
+- **react-hook-form** + **Yup** (formulários)
+- **Axios** (HTTP + interceptors JWT)
+- **Lucide React** (ícones)
+- **Leaflet** (mapa de quadras em `/quero-jogar`)
+- **GSAP** (animação de intro)
+- **Google OAuth** (`@react-oauth/google`)
 
-1. Node.js
+## Pré-requisitos
 
-https://nodejs.org
+- **Node.js 20+** — https://nodejs.org
+- **FutMatch API** rodando em `http://localhost:3000`
 
-Após instalar, verifique:
+## Instalação e configuração
 
-node -v
-npm -v
-
-2. Git
-
-https://git-scm.com/
-
-Verifique:
-
-git --version
-
-3. FutMatch API rodando
-
-A interface depende da API para funcionar. Certifique-se de que ela está no ar em:
-
-http://localhost:3000
-
-📥 Como baixar o projeto
-Opção 1 — Clonar com Git (RECOMENDADO)
-
+```bash
+# 1. Clonar
 git clone https://github.com/mateus-vitor-ferreira-dev/futmatch-web.git
-
 cd futmatch-web
 
-Opção 2 — Baixar ZIP
-Clique em "Code"
-Clique em "Download ZIP"
-Extraia
-Abra a pasta no terminal
-
-⚙️ Configuração do projeto
-
-1. Instalar dependências
-
+# 2. Instalar dependências
 npm install
 
-2. Criar arquivo .env
+# 3. Criar .env
+```
 
-Crie um arquivo chamado .env na raiz do projeto com o seguinte conteúdo:
+Conteúdo do `.env`:
 
+```ini
 VITE_API_URL=http://localhost:3000
-VITE_GOOGLE_CLIENT_ID=446784228326-i78g3nfnmdvpgoqt6bmdgr43hc756p13.apps.googleusercontent.com
+VITE_GOOGLE_CLIENT_ID=<seu_google_client_id>
+```
 
-⚠️ Nunca commite o arquivo .env — ele já está no .gitignore.
-
-▶️ Rodando o projeto
-
+```bash
+# 4. Iniciar em desenvolvimento
 npm run dev
+```
 
-A interface estará em:
+Interface disponível em `http://localhost:5173`
 
-http://localhost:5173
+## Scripts
 
-🏗️ Build de produção
+```bash
+npm run dev      # Desenvolvimento com HMR
+npm run build    # Build de produção (output: dist/)
+npm run preview  # Preview do build local
+```
 
-npm run build
+## Rotas
 
-Os arquivos gerados ficam na pasta dist/ (não versionada).
+### Públicas
+| Rota | Descrição |
+|---|---|
+| `/` | Intro com animação GSAP |
+| `/login` | Login / Cadastro |
+| `/register` | Cadastro direto |
+| `/esqueci-senha` | Solicitar reset de senha |
+| `/redefinir-senha` | Redefinir senha com token |
 
-🧠 Estrutura do projeto
+### Jogador autenticado (PLAYER)
+| Rota | Descrição |
+|---|---|
+| `/home` | Dashboard principal |
+| `/perfil` | Perfil — editar dados e chave PIX |
+| `/quero-jogar` | Buscar peladas (lista + mapa Leaflet) |
+| `/criar-pelada` | Wizard 3 etapas para criar pelada |
+| `/minhas-peladas` | Jogos criados e participações + **sorteio de times** |
+| `/historico` | Partidas finalizadas + **avaliar jogadores** |
+| `/avaliacoes` | Reputação recebida — nota média, tags e reviews |
+| `/torneios` | Campeonatos com chaveamento visual |
 
+### Admin (`/admin`)
+| Rota | Descrição |
+|---|---|
+| `/admin/dashboard` | Visão geral |
+| `/admin/users` | Gestão de usuários e papéis |
+| `/admin/requests` | Solicitações de parceria |
+| `/admin/places` | Gestão de locais |
+
+### Owner (`/owner`)
+| Rota | Descrição |
+|---|---|
+| `/owner/dashboard` | Dashboard do proprietário |
+| `/owner/places` | Gerenciar próprios locais |
+| `/owner/requests` | Ver solicitações do local |
+
+## Estrutura do projeto
+
+```
 src/
 ├── assets/
-│   └── sports/         # Imagens das modalidades
+│   └── sports/         # Imagens das 11 modalidades
 ├── components/
-│   ├── AuthLayout/     # Layout da tela de autenticação
-│   ├── MainLayout/     # Layout principal com sidebar
-│   └── SportSelect/    # Seletor de modalidades
+│   ├── MainLayout/     # Sidebar + navegação responsiva
+│   ├── AuthLayout/     # Layout de autenticação
+│   ├── EventCard/      # Card de pelada reutilizável
+│   ├── Map/            # Mapa Leaflet com marcadores
+│   ├── SportSelect/    # Seletor de modalidades com imagens
+│   ├── RoleBadge/      # Badge de papel (PLAYER/OWNER/ADMIN)
+│   ├── PasswordInput/  # Input com toggle de visibilidade
+│   └── PhoneInput/     # Input com máscara de telefone
 ├── config/
-│   └── env.js          # Variáveis de ambiente
+│   └── env.js          # Variáveis de ambiente validadas
 ├── contexts/
-│   └── AuthContext.jsx # Contexto global de autenticação
+│   └── AuthContext.jsx # Estado global de autenticação (JWT + Google)
 ├── hooks/
-│   └── useSports.js    # Hook de modalidades
+│   ├── useCountries.js
+│   └── useSports.js
 ├── pages/
-│   ├── Home/           # Página inicial (autenticada)
-│   ├── Intro/          # Animação de entrada
-│   └── Register/       # Login e cadastro
+│   ├── Auth/           # Intro, Register, ForgotPassword, ResetPassword
+│   ├── Home/           # Dashboard principal
+│   ├── Profile/        # Perfil do jogador
+│   ├── QueroJogar/     # Busca de peladas (lista + mapa)
+│   ├── CriarPelada/    # Wizard de criação (3 etapas)
+│   ├── MinhasPeladas/  # Meus jogos + modal de sorteio
+│   ├── Historico/      # Histórico + modal de avaliação
+│   ├── Avaliacoes/     # Reputação recebida
+│   ├── Tournaments/    # Campeonatos
+│   ├── Admin/          # Dashboard, Users, Requests, Places
+│   └── Owner/          # Dashboard, Places, Requests
 ├── routes/
-│   └── index.jsx       # Rotas com proteção pública/privada
+│   └── index.jsx       # Rotas com proteção por papel
 ├── services/
-│   ├── api.js          # Cliente HTTP (Axios)
-│   ├── auth.js         # Serviços de autenticação
-│   └── sports.js       # Serviços de modalidades
+│   ├── api.js          # Axios com interceptors JWT (auto-logout em 401)
+│   ├── playerService.js # Todas as chamadas de peladas, sorteio, reviews
+│   ├── auth.js         # Login, registro, Google OAuth
+│   ├── events.js       # Eventos públicos
+│   ├── courts.js       # Quadras
+│   ├── places.js       # Locais
+│   ├── users.js        # Usuários
+│   └── tournaments.js  # Campeonatos
 └── styles/
-    ├── global.js       # Estilos globais
-    └── theme.js        # Tema (cores, fontes, espaçamentos)
+    ├── theme.js        # Tema (cores, espaçamentos, tipografia)
+    └── global.js       # Estilos globais
+```
 
-🌱 Fluxo de trabalho (GIT)
-Nunca trabalhe direto na main
+## Status dos requisitos funcionais (MVP)
 
-Criar branch:
+| RF | Funcionalidade | Status |
+|---|---|---|
+| RF01 | Cadastro de usuário | ✅ |
+| RF02 | Login com JWT | ✅ |
+| RF03 | Proteção de rotas por papel | ✅ |
+| RF04 | Criar pelada | ✅ |
+| RF05 | Listar + filtrar peladas | ✅ |
+| RF06 | Entrar em uma pelada | ✅ |
+| RF07 | Detalhe com vagas/valor | ✅ |
+| RF08 | Histórico de participações | ✅ |
+| RF09 | Sorteio de times | ✅ |
+| RF10 | Avaliação de jogadores | ✅ |
+| RF11 | Gerenciamento admin | ✅ |
 
-git checkout develop
-git pull
-git checkout -b feat/nome-da-feature
+## Fluxo de branches (Git)
 
-Fazer commit
+```
+main        ← releases estáveis
+develop     ← integração
+feat/<nome> ← desenvolvimento
+fix/<nome>  ← correções
+```
 
-git add .
-git commit -m "feat: add home page"
+## Convenção de commits (português)
 
-Enviar para GitHub
+```
+feat: adiciona página de avaliações recebidas
+fix: corrige mapeamento de tags no modal de avaliação
+style: ajusta espaçamento do card de pelada
+refactor: extrai componente DrawModal
+docs: atualiza README com rotas atuais
+```
 
-git push origin feat/nome-da-feature
+## Regras
 
-Criar Pull Request
-Vá no GitHub
-Clique em "Compare & pull request"
-Base: develop
-Enviar
-
-📌 Conventional Commits
-
-Formato:
-
-tipo: descrição
-
-Tipos principais:
-
-feat → nova funcionalidade
-fix → correção de bug
-chore → configuração
-docs → documentação
-refactor → melhoria interna
-test → testes
-
-Exemplos
-
-feat: add match listing page
-fix: correct login redirect after Google OAuth
-chore: remove Vite boilerplate assets
-docs: update readme
-refactor: extract auth logic to context
-
-🚫 Regras importantes
-NÃO fazer push na main
-NÃO commitar .env
-SEMPRE usar branch
-SEMPRE usar commit padrão
-TESTAR antes de subir
-
-🧪 Comandos úteis
-
-Rodar em desenvolvimento:
-npm run dev
-
-Gerar build de produção:
-npm run build
-
-Pré-visualizar build:
-npm run preview
-
-🧠 Dicas
-
-Sempre rode npm install após atualizar o projeto
-
-Se der erro:
-
-rm -rf node_modules
-npm install
-
-A pasta dist/ é gerada automaticamente no build e não deve ser versionada.
-
-👥 Colaboração
-
-Projeto com padrão profissional:
-
-arquitetura em camadas
-componentes reutilizáveis
-separação entre UI e lógica de negócio
-boas práticas
-
-🚀 Futuro
-responsividade mobile
-tema escuro
-página de perfil do usuário
-listagem e criação de eventos
-histórico de partidas
-notificações em tempo real
-
-🔥 Em caso de dúvida, pergunte antes de alterar código.
+- Não commitar `.env`
+- Sempre usar branch
+- Build deve passar antes de abrir PR (`npm run build`)

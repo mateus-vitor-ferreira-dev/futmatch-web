@@ -55,5 +55,21 @@ export const playerService = {
       payload
     )
     return data
-  }
+  },
+
+  getReviewProgress: async (courtId, eventId) => {
+    const { data } = await api.get(
+      `/courts/${courtId}/events/${eventId}/reviews/progress`
+    )
+    return data
+  },
+
+  // --- SORTEIO ---
+  drawTeams: async (courtId, eventId, teamCount) => {
+    const { data } = await api.post(
+      `/courts/${courtId}/events/${eventId}/draw`,
+      { teamCount }
+    )
+    return data
+  },
 }
