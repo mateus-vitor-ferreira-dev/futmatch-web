@@ -84,7 +84,7 @@ export const StatsRow = styled.div`
 `
 
 export const StatBox = styled.div`
-  background: white;
+  background: ${({ theme }) => theme.colors.bgCard};
   border: 1px solid ${({ theme }) => theme.colors.border};
   border-radius: 12px;
   padding: 20px;
@@ -145,8 +145,8 @@ export const Tab = styled.button`
   padding: 8px 16px;
   border-radius: 999px;
   border: 1.5px solid ${({ $active, theme }) => $active ? theme.colors.primary : theme.colors.border};
-  background: ${({ $active, theme }) => $active ? theme.colors.primary : 'white'};
-  color: ${({ $active, theme }) => $active ? 'white' : theme.colors.textPrimary};
+  background: ${({ $active, theme }) => $active ? theme.colors.primary : theme.colors.bgCard};
+  color: ${({ $active, theme }) => $active ? theme.colors.white : theme.colors.textPrimary};
   font-size: 0.875rem;
   font-weight: 500;
   cursor: pointer;
@@ -220,7 +220,7 @@ export const GamesGrid = styled.div`
 `
 
 export const GameCardWrapper = styled.div`
-  background: white;
+  background: ${({ theme }) => theme.colors.bgCard};
   border: 1px solid ${({ theme }) => theme.colors.border};
   border-radius: 12px;
   padding: 16px;
@@ -398,9 +398,9 @@ export const CTASecondary = styled.button`
   justify-content: center;
   gap: 8px;
   padding: 18px;
-  background: #fffbeb;
-  color: #92400e;
-  border: 1.5px solid #fde68a;
+  background: ${({ theme }) => theme.colors.warningLight};
+  color: ${({ theme }) => theme.colors.warningText};
+  border: 1.5px solid ${({ theme }) => theme.colors.warningBorder};
   border-radius: 12px;
   font-size: 0.9375rem;
   font-weight: 600;
@@ -409,7 +409,7 @@ export const CTASecondary = styled.button`
   font-family: ${({ theme }) => theme.fonts.sans};
 
   &:hover {
-    background: #fef3c7;
+    filter: brightness(0.95);
   }
 `
 
@@ -429,7 +429,7 @@ export const ModalityCard = styled.button`
   display: flex;
   align-items: center;
   gap: 12px;
-  background: white;
+  background: ${({ theme }) => theme.colors.bgCard};
   border: 1px solid ${({ theme }) => theme.colors.border};
   border-radius: 10px;
   padding: 14px;
@@ -477,8 +477,8 @@ export const ModalityCount = styled.span`
 // ── Tip Card ──────────────────────────────────────────────────────────────────
 
 export const TipCard = styled.div`
-  background: #fffbeb;
-  border: 1px solid #fde68a;
+  background: ${({ theme }) => theme.colors.warningLight};
+  border: 1px solid ${({ theme }) => theme.colors.warningBorder};
   border-radius: 12px;
   padding: 16px 20px;
   display: flex;
@@ -501,12 +501,12 @@ export const TipContent = styled.div`
 export const TipTitle = styled.span`
   font-size: 0.875rem;
   font-weight: 600;
-  color: #92400e;
+  color: ${({ theme }) => theme.colors.warningText};
 `
 
 export const TipText = styled.p`
   font-size: 0.8125rem;
-  color: #78350f;
+  color: ${({ theme }) => theme.colors.warningText};
   margin: 0;
   line-height: 1.5;
 `
