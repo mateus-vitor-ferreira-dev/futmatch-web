@@ -25,7 +25,7 @@ export const Grid = styled.div`
   }
 `
 export const Card = styled.div`
-  background: white;
+  background: ${({ theme }) => theme.colors.bgCard};
   border: 1px solid ${({ theme }) => theme.colors.borderLight};
   border-radius: 12px;
   padding: 24px;
