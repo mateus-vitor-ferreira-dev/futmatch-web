@@ -186,7 +186,9 @@ export const ParticipantRow = styled.div`
     select {
       padding: 4px;
       border-radius: 4px;
-      border: 1px solid #ccc;
+      border: 1px solid ${({ theme }) => theme.colors.border};
+      background: ${({ theme }) => theme.colors.bgCard};
+      color: ${({ theme }) => theme.colors.textPrimary};
     }
   }
 `

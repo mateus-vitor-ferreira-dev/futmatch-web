@@ -94,7 +94,7 @@ export const CourtCard = styled.div`
   padding: 14px;
   cursor: pointer;
   background: ${({ $selected, theme }) =>
-    $selected ? theme.colors.primarySubtle : '#fff'};
+    $selected ? theme.colors.primarySubtle : theme.colors.bgCard};
   transition: all 0.15s;
 
   &:hover {
@@ -155,7 +155,7 @@ export const Input = styled.input`
   border-radius: ${({ theme }) => theme.radii.md};
   font-size: ${({ theme }) => theme.fontSizes.sm};
   color: ${({ theme }) => theme.colors.textPrimary};
-  background: #fff;
+  background: ${({ theme }) => theme.colors.bgCard};
   outline: none;
   transition: border-color 0.15s;
 
@@ -189,7 +189,7 @@ export const BackButton = styled.button`
   padding: 10px 20px;
   border-radius: ${({ theme }) => theme.radii.md};
   border: 1px solid ${({ theme }) => theme.colors.border};
-  background: #fff;
+  background: ${({ theme }) => theme.colors.bgCard};
   color: ${({ theme }) => theme.colors.textSecondary};
   font-size: ${({ theme }) => theme.fontSizes.sm};
   font-weight: ${({ theme }) => theme.fontWeights.medium};
@@ -295,7 +295,7 @@ export const SecondaryBtn = styled.button`
   padding: 10px 24px;
   border-radius: ${({ theme }) => theme.radii.md};
   border: 1px solid ${({ theme }) => theme.colors.border};
-  background: #fff;
+  background: ${({ theme }) => theme.colors.bgCard};
   color: ${({ theme }) => theme.colors.textSecondary};
   font-size: ${({ theme }) => theme.fontSizes.sm};
   font-weight: ${({ theme }) => theme.fontWeights.medium};

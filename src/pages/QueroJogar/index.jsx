@@ -12,6 +12,7 @@ import {
   SpotsInfo, PriceInfo, ActionButton,
   AdvancedFilters, FilterRow, FilterGroup, FilterLabel,
   FilterSelect, FilterToggle, FiltersBtn, ActiveFilterBadge, ClearBtn,
+  PriceSliderWrapper,
 } from './styles'
 
 function buildGoogleMapsUrl(event) {
@@ -31,11 +32,7 @@ const TIME_OPTIONS = [
   { id: 'noite',  label: '🌙 Noite',   from: 18, to: 24 },
 ]
 
-const PRICE_OPTIONS = [
-  { id: 'ate20',   label: 'Até R$20',  max: 20 },
-  { id: '20a40',   label: 'R$20–40',   min: 20, max: 40 },
-  { id: 'acima40', label: 'Acima R$40', min: 40 },
-]
+const MAX_PRICE = 200
 
 export default function QueroJogar() {
   const { user } = useAuth()
@@ -48,7 +45,8 @@ export default function QueroJogar() {
   const [selectedSport, setSelectedSport] = useState(searchParams.get('sport') || '')
   const [showFilters, setShowFilters]   = useState(false)
   const [filterTime, setFilterTime]     = useState('')
-  const [filterPrice, setFilterPrice]   = useState('')
+  const [filterMaxPrice, setFilterMaxPrice] = useState(MAX_PRICE)
+  const [filterArena, setFilterArena]   = useState('')
   const [filterCity, setFilterCity]     = useState('')
   const [filterVagas, setFilterVagas]   = useState(false)
 
@@ -71,6 +69,11 @@ export default function QueroJogar() {
     [events]
   )
 
+  const arenas = useMemo(() =>
+    [...new Set(events.map(e => e.court?.place?.name).filter(Boolean))].sort(),
+    [events]
+  )
+
   const activeTab = sportTabs.find(t => t.id === selectedSport)
 
   const filteredEvents = events.filter(e => {
@@ -88,25 +91,29 @@ export default function QueroJogar() {
       hour >= 18 || hour < 5
 
     const pricePerPerson = Number(e.totalValue) / e.maxPlayers
-    const matchesPrice =
-      !filterPrice ? true :
-      filterPrice === 'ate20'   ? pricePerPerson <= 20 :
-      filterPrice === '20a40'   ? pricePerPerson > 20 && pricePerPerson <= 40 :
-      pricePerPerson > 40
+    const matchesPrice = filterMaxPrice >= MAX_PRICE ? true : pricePerPerson <= filterMaxPrice
 
+    const matchesArena = !filterArena ? true : e.court?.place?.name === filterArena
     const matchesCity = !filterCity ? true : e.court?.place?.city === filterCity
 
     const currentPlayers = e._count?.participations || 0
     const matchesVagas = !filterVagas ? true : currentPlayers < e.maxPlayers
 
-    return matchesSearch && matchesSport && matchesTime && matchesPrice && matchesCity && matchesVagas
+    return matchesSearch && matchesSport && matchesTime && matchesPrice && matchesArena && matchesCity && matchesVagas
   })
 
-  const activeFilterCount = [filterTime, filterPrice, filterCity, filterVagas].filter(Boolean).length
+  const activeFilterCount = [
+    filterTime,
+    filterMaxPrice < MAX_PRICE ? String(filterMaxPrice) : '',
+    filterArena,
+    filterCity,
+    filterVagas,
+  ].filter(Boolean).length
 
   function clearFilters() {
     setFilterTime('')
-    setFilterPrice('')
+    setFilterMaxPrice(MAX_PRICE)
+    setFilterArena('')
     setFilterCity('')
     setFilterVagas(false)
   }
@@ -183,22 +190,39 @@ export default function QueroJogar() {
                 </FilterGroup>
 
                 <FilterGroup>
-                  <FilterLabel>Preço / pessoa</FilterLabel>
-                  <ChipsContainer style={{ paddingBottom: 0 }}>
-                    {PRICE_OPTIONS.map(p => (
-                      <Chip
-                        key={p.id}
-                        $active={filterPrice === p.id}
-                        onClick={() => setFilterPrice(filterPrice === p.id ? '' : p.id)}
-                      >
-                        {p.label}
-                      </Chip>
-                    ))}
-                  </ChipsContainer>
+                  <FilterLabel>Preço máximo / pessoa</FilterLabel>
+                  <PriceSliderWrapper $pct={filterMaxPrice >= MAX_PRICE ? 100 : (filterMaxPrice / MAX_PRICE) * 100}>
+                    <input
+                      type="range"
+                      min={0}
+                      max={MAX_PRICE}
+                      step={5}
+                      value={filterMaxPrice}
+                      onChange={e => setFilterMaxPrice(Number(e.target.value))}
+                    />
+                    <span>
+                      {filterMaxPrice >= MAX_PRICE
+                        ? 'Qualquer preço'
+                        : `Até R$ ${filterMaxPrice}`}
+                    </span>
+                  </PriceSliderWrapper>
                 </FilterGroup>
               </FilterRow>
 
               <FilterRow>
+                <FilterGroup>
+                  <FilterLabel>Arena / Estabelecimento</FilterLabel>
+                  <FilterSelect
+                    value={filterArena}
+                    onChange={e => setFilterArena(e.target.value)}
+                  >
+                    <option value="">Todos os estabelecimentos</option>
+                    {arenas.map(arena => (
+                      <option key={arena} value={arena}>{arena}</option>
+                    ))}
+                  </FilterSelect>
+                </FilterGroup>
+
                 <FilterGroup>
                   <FilterLabel>Cidade</FilterLabel>
                   <FilterSelect

@@ -1,7 +1,10 @@
+import { Sun, Moon } from 'lucide-react'
+import { useThemeMode } from '../../contexts/ThemeContext'
 import {
   Shell, Sidebar, Logo, LogoIcon, LogoText, LogoName, LogoTagline,
   Divider, Nav, NavItem, NavBadge,
   UserCard, Avatar, UserInfo, UserName, UserRole,
+  ThemeToggleBtn,
   Main, Topbar, TopbarRow, TopbarTitle, TopbarSub, TopbarActions, Content,
 } from './styles'
 
@@ -33,6 +36,7 @@ export default function DashboardLayout({
   topbarActions,
   children,
 }) {
+  const { isDark, toggleTheme } = useThemeMode()
   return (
     <Shell>
       <Sidebar>
@@ -58,6 +62,11 @@ export default function DashboardLayout({
             </span>
           ))}
         </Nav>
+
+        <ThemeToggleBtn onClick={toggleTheme} title={isDark ? 'Modo claro' : 'Modo escuro'}>
+          {isDark ? <Sun size={16} /> : <Moon size={16} />}
+          {isDark ? 'Modo claro' : 'Modo escuro'}
+        </ThemeToggleBtn>
 
         {user && (
           <UserCard>
