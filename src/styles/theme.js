@@ -53,6 +53,7 @@ const base = {
 
 export const lightTheme = {
   ...base,
+  mode: 'light',
   colors: {
     primary:       '#22c55e',
     primaryHover:  '#16a34a',
@@ -92,6 +93,7 @@ export const lightTheme = {
 
 export const darkTheme = {
   ...base,
+  mode: 'dark',
   shadows: {
     sm:  '0 1px 3px rgba(0,0,0,0.3)',
     md:  '0 4px 12px rgba(0,0,0,0.3)',

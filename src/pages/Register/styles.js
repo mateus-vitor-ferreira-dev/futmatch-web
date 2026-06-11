@@ -18,7 +18,7 @@ export const Tab = styled.button`
   font-weight: ${({ theme }) => theme.fontWeights.medium};
   cursor: pointer;
   transition: background 0.15s, color 0.15s, box-shadow 0.15s;
-  background: ${({ $active, theme }) => $active ? theme.colors.white : 'transparent'};
+  background: ${({ $active, theme }) => $active ? theme.colors.bgCard : 'transparent'};
   color: ${({ $active, theme }) => $active ? theme.colors.textPrimary : theme.colors.textSecondary};
   box-shadow: ${({ $active, theme }) => $active ? theme.shadows.sm : 'none'};
 `
@@ -57,7 +57,7 @@ export const GoogleButton = styled.button`
   gap: 10px;
   border: 1.5px solid ${({ theme }) => theme.colors.border};
   border-radius: ${({ theme }) => theme.radii.md};
-  background: ${({ theme }) => theme.colors.white};
+  background: ${({ theme }) => theme.colors.bgCard};
   font-size: ${({ theme }) => theme.fontSizes.sm};
   font-weight: ${({ theme }) => theme.fontWeights.medium};
   color: ${({ theme }) => theme.colors.textPrimary};
@@ -122,7 +122,7 @@ export const Input = styled.input`
   border-radius: ${({ theme }) => theme.radii.md};
   font-size: ${({ theme }) => theme.fontSizes.sm};
   color: ${({ theme }) => theme.colors.textPrimary};
-  background: #fff;
+  background: ${({ theme }) => theme.colors.bgCard};
   outline: none;
   width: 100%;
   box-sizing: border-box;
@@ -152,7 +152,7 @@ export const ModalidadeOption = styled.button.attrs({ type: 'button' })`
   padding: 5px 10px;
   border-radius: ${({ theme }) => theme.radii.full};
   border: 1.5px solid ${({ $active, theme }) => $active ? theme.colors.primary : theme.colors.border};
-  background: ${({ $active, theme }) => $active ? theme.colors.primaryLight : '#fff'};
+  background: ${({ $active, theme }) => $active ? theme.colors.primaryLight : theme.colors.bgCard};
   color: ${({ $active, theme }) => $active ? theme.colors.primaryDark : theme.colors.textSecondary};
   font-size: ${({ theme }) => theme.fontSizes.xs};
   font-weight: ${({ $active, theme }) => $active ? theme.fontWeights.semibold : theme.fontWeights.regular};

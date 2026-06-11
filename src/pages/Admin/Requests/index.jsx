@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
-import { Users, ClipboardList, Building2, LayoutDashboard, Home } from 'lucide-react'
+import { Users, ClipboardList, Building2, LayoutDashboard, Home, Store } from 'lucide-react'
 import DashboardLayout from '../../../components/DashboardLayout'
 import StatCard from '../../../components/StatCard'
 import { useAuth } from '../../../contexts/AuthContext'
@@ -17,7 +17,8 @@ const NAV_ITEMS = [
   { to: '/admin/users',    label: 'Gestão de Usuários', icon: Users           },
   { to: '/admin/requests', label: 'Solicitações',       icon: ClipboardList   },
   { to: '/admin/places',   label: 'Estabelecimentos',   icon: Building2       },
-  { to: '/home',           label: 'Área do Jogador',    icon: Home, divider: true },
+  { to: '/owner',          label: 'Painel do Owner',    icon: Store, divider: true },
+  { to: '/home',           label: 'Área do Jogador',    icon: Home },
 ]
 
 const STATUS_TABS = [
