@@ -14,7 +14,7 @@ const api = axios.create({
 })
 
 api.interceptors.request.use((config) => {
-  const token = localStorage.getItem('futmatch:token')
+  const token = localStorage.getItem('só+1:token')
   if (token) config.headers.Authorization = `Bearer ${token}`
   return config
 })
@@ -24,7 +24,7 @@ api.interceptors.response.use(
   (err) => {
     // Token expirado ou inválido — desloga automaticamente
     if (err.response?.status === 401) {
-      localStorage.removeItem('futmatch:token')
+      localStorage.removeItem('só+1:token')
       window.location.href = '/login'
     }
     return Promise.reject(err)

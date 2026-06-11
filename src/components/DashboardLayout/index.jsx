@@ -39,7 +39,7 @@ export default function DashboardLayout({
         <Logo>
           <LogoIcon>⚽</LogoIcon>
           <LogoText>
-            <LogoName>FutMatch</LogoName>
+            <LogoName>Só+1</LogoName>
             <LogoTagline accent={accent}>{tagline}</LogoTagline>
           </LogoText>
         </Logo>

@@ -17,17 +17,17 @@ export function AuthProvider({ children }) {
 
   // Restaura sessão ao montar: verifica token salvo e busca dados do usuário
   useEffect(() => {
-    const token = localStorage.getItem('futmatch:token')
+    const token = localStorage.getItem('só+1:token')
     if (!token) { setLoading(false); return }
 
     authService.getMe()
       .then((res) => setUser(res.data))
-      .catch(() => localStorage.removeItem('futmatch:token'))
+      .catch(() => localStorage.removeItem('só+1:token'))
       .finally(() => setLoading(false))
   }, [])
 
   /** Persiste o JWT no localStorage */
-  const saveToken = (token) => localStorage.setItem('futmatch:token', token)
+  const saveToken = (token) => localStorage.setItem('só+1:token', token)
 
   /**
    * Cria conta com e-mail e senha.
@@ -64,7 +64,7 @@ export function AuthProvider({ children }) {
 
   /** Remove o token e limpa o estado do usuário */
   const logout = useCallback(() => {
-    localStorage.removeItem('futmatch:token')
+    localStorage.removeItem('só+1:token')
     setUser(null)
   }, [])
 
