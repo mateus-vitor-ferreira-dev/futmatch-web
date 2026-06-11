@@ -65,6 +65,7 @@ export const lightTheme = {
     bgPage:        '#f9fafb',
     bgSidebar:     '#ffffff',
     bgCard:        '#ffffff',
+    bgInput:       '#ffffff',
     bgOverlay:     'rgba(0, 0, 0, 0.4)',
 
     textPrimary:   '#111827',
@@ -111,6 +112,7 @@ export const darkTheme = {
     bgPage:        '#111111',
     bgSidebar:     '#1c1c1c',
     bgCard:        '#1c1c1c',
+    bgInput:       '#0e0e0e',
     bgOverlay:     'rgba(0, 0, 0, 0.7)',
 
     textPrimary:   '#e8e8e8',

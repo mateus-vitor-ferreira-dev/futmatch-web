@@ -170,7 +170,7 @@ export const Input = styled.input`
   padding: 9px 12px;
   font-size: ${({ theme }) => theme.fontSizes.sm};
   color: ${({ theme }) => theme.colors.textPrimary};
-  background: ${({ theme }) => theme.colors.bgCard};
+  background: ${({ theme }) => theme.colors.bgInput};
   outline: none;
   width: 100%;
   box-sizing: border-box;
