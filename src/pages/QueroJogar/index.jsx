@@ -3,6 +3,7 @@ import { useSearchParams } from 'react-router-dom'
 import { Search, Calendar, Clock, CheckCircle, LayoutList, Map as MapIcon, Loader } from 'lucide-react'
 import { useAuth } from '../../contexts/AuthContext'
 import { playerService } from '../../services/playerService'
+import { useSports } from '../../hooks/useSports'
 import { MainLayout } from '../../components'
 import { Map } from '../../components/Map'
 import {
@@ -53,14 +54,6 @@ function buildAddress(event) {
 
 // ─────────────────────────────────────────────────────────────────────────────
 
-const SPORTS_FILTERS = [
-  { label: 'Todos',        value: '' },
-  { label: 'Futebol',      value: 'SOCIETY' },
-  { label: 'Futevôlei',    value: 'AREIA' },
-  { label: 'Vôlei',        value: 'VOLEI' },
-  { label: 'Beach Tennis', value: 'BEACH_TENNIS' },
-]
-
 function normalizeForMap(event, coordsCache) {
   const lat = event.court?.place?.latitude
     ?? event.court?.place?.lat
@@ -91,6 +84,7 @@ function normalizeForMap(event, coordsCache) {
 
 export default function QueroJogar() {
   const { user } = useAuth()
+  const { tabs: sportTabs } = useSports()
   const [searchParams] = useSearchParams()
 
   const [events, setEvents] = useState([])
@@ -119,11 +113,12 @@ export default function QueroJogar() {
 
   useEffect(() => { fetchEvents() }, [])
 
+  const activeTab = sportTabs.find(t => t.id === selectedSport)
   const filteredEvents = events.filter(e => {
     const matchesSearch =
       e.court?.place?.name?.toLowerCase().includes(search.toLowerCase()) ||
       e.court?.place?.neighborhood?.toLowerCase().includes(search.toLowerCase())
-    const matchesSport = selectedSport ? e.court?.type === selectedSport : true
+    const matchesSport = selectedSport ? activeTab?.types?.includes(e.court?.type) : true
     return matchesSearch && matchesSport
   })
 
@@ -211,13 +206,16 @@ export default function QueroJogar() {
           </SearchInput>
 
           <ChipsContainer>
-            {SPORTS_FILTERS.map(sport => (
+            <Chip $active={selectedSport === ''} onClick={() => setSelectedSport('')}>
+              Todos
+            </Chip>
+            {sportTabs.map(tab => (
               <Chip
-                key={sport.label}
-                $active={selectedSport === sport.value}
-                onClick={() => setSelectedSport(sport.value)}
+                key={tab.id}
+                $active={selectedSport === tab.id}
+                onClick={() => setSelectedSport(tab.id)}
               >
-                {sport.label}
+                {tab.label}
               </Chip>
             ))}
           </ChipsContainer>

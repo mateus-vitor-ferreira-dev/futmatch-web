@@ -19,16 +19,7 @@ import {
   TipCard, TipIcon, TipContent, TipTitle, TipText,
 } from './styles'
 
-const SPORT_TABS = [
-  { id: 'ALL',          label: 'Todos',        icon: '🎯', types: null },
-  { id: 'FUTEBOL',      label: 'Futebol',      icon: '⚽', types: ['SOCIETY', 'CAMPO', 'FUTSAL'] },
-  { id: 'FUTEVOLEI',    label: 'Futevôlei',    icon: '🏖️', types: ['AREIA'] },
-  { id: 'VOLEI',        label: 'Vôlei',        icon: '🏐', types: ['VOLEI', 'VOLEI_AREIA'] },
-  { id: 'BEACH_TENNIS', label: 'Beach Tennis', icon: '🎾', types: ['BEACH_TENNIS'] },
-  { id: 'POKER',        label: 'Poker',        icon: '🃏', types: ['POKER'] },
-]
-
-const EXPLORE_SPORTS = SPORT_TABS.slice(1)
+const ALL_TAB = { id: 'ALL', label: 'Todos', icon: '🎯', types: null }
 
 const TIPS = [
   { title: 'Dica de craque', text: 'Avalie seus colegas após cada jogo e ajude a construir uma comunidade confiável — seja no campo, na areia ou na mesa!' },
@@ -92,7 +83,8 @@ function getSportLabel(type, sports) {
 export default function Home() {
   const { user } = useAuth()
   const navigate = useNavigate()
-  const { sports } = useSports()
+  const { sports, tabs: sportTabs } = useSports()
+  const SPORT_TABS = [ALL_TAB, ...sportTabs]
 
   const [events, setEvents] = useState([])
   const [loadingEvents, setLoadingEvents] = useState(true)
@@ -143,7 +135,7 @@ export default function Home() {
     ? events
     : events.filter(e => activeTab?.types?.includes(e.type))
 
-  const sportCountMap = EXPLORE_SPORTS.reduce((acc, tab) => {
+  const sportCountMap = sportTabs.reduce((acc, tab) => {
     acc[tab.id] = events.filter(e => tab.types?.includes(e.type)).length
     return acc
   }, {})
@@ -300,12 +292,12 @@ export default function Home() {
             <SectionTitle>Explorar por modalidade</SectionTitle>
           </SectionHeader>
           <ModalityGrid>
-            {EXPLORE_SPORTS.map(sport => {
+            {sportTabs.map(sport => {
               const count = sportCountMap[sport.id] ?? 0
               return (
                 <ModalityCard
                   key={sport.id}
-                  onClick={() => navigate(`/quero-jogar?sport=${sport.types?.[0] ?? sport.id}`)}
+                  onClick={() => navigate(`/quero-jogar?sport=${sport.id}`)}
                 >
                   <ModalityIconBox>{sport.icon}</ModalityIconBox>
                   <ModalityInfo>
