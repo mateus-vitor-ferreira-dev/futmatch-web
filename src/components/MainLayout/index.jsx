@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react'
-import { Home, Search, ClipboardList, History, User, Plus, Trophy, Menu, Star } from 'lucide-react'
+import { Home, Search, ClipboardList, History, User, Plus, Trophy, Menu, Star, Sun, Moon } from 'lucide-react'
 import { useNavigate, useLocation } from 'react-router-dom'
+import { useThemeMode } from '../../contexts/ThemeContext'
 import {
   AppShell, Overlay, Sidebar, Logo, LogoIcon, LogoText, LogoName, LogoTagline,
   Nav, NavItem, UserCard, Avatar, UserInfo, UserName, UserBadge,
   ContentWrapper, MobileTopbar, HamburgerBtn, TopbarLogoName, Content,
+  ThemeToggleBtn,
 } from './styles'
 
 const NAV_ITEMS = [
@@ -31,8 +33,8 @@ export default function MainLayout({ children, user }) {
   const location = useLocation()
   const initials = getInitials(user?.name)
   const [sidebarOpen, setSidebarOpen] = useState(false)
+  const { isDark, toggleTheme } = useThemeMode()
 
-  // Fecha a sidebar ao navegar (mobile)
   useEffect(() => {
     setSidebarOpen(false)
   }, [location.pathname])
@@ -59,6 +61,14 @@ export default function MainLayout({ children, user }) {
           ))}
         </Nav>
 
+        <ThemeToggleBtn
+          onClick={toggleTheme}
+          title={isDark ? 'Mudar para tema claro' : 'Mudar para tema escuro'}
+          style={{ margin: '8px 4px 4px' }}
+        >
+          {isDark ? <Sun size={18} /> : <Moon size={18} />}
+        </ThemeToggleBtn>
+
         {user && (
           <UserCard onClick={() => navigate('/perfil')}>
             <Avatar>{initials}</Avatar>
@@ -76,6 +86,13 @@ export default function MainLayout({ children, user }) {
             <Menu size={20} />
           </HamburgerBtn>
           <TopbarLogoName>Só+1</TopbarLogoName>
+          <ThemeToggleBtn
+            onClick={toggleTheme}
+            style={{ marginLeft: 'auto' }}
+            title={isDark ? 'Mudar para tema claro' : 'Mudar para tema escuro'}
+          >
+            {isDark ? <Sun size={18} /> : <Moon size={18} />}
+          </ThemeToggleBtn>
         </MobileTopbar>
 
         <Content>{children}</Content>
