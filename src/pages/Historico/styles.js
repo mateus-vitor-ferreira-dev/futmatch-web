@@ -96,6 +96,60 @@ export const EvalModalContent = styled.div`
   overflow-y: auto;
 `
 
+export const ProgressInfo = styled.div`
+  background: ${({ theme }) => theme.colors.bgApp};
+  border-radius: ${({ theme }) => theme.radii.md};
+  padding: ${({ theme }) => theme.spacing[3]};
+  margin-bottom: ${({ theme }) => theme.spacing[4]};
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  span {
+    font-size: ${({ theme }) => theme.fontSizes.sm};
+    color: ${({ theme }) => theme.colors.textSecondary};
+  }
+
+  strong {
+    font-size: ${({ theme }) => theme.fontSizes.sm};
+    color: ${({ theme }) => theme.colors.primary};
+  }
+`
+
+export const ProgressBarWrap = styled.div`
+  height: 6px;
+  background: ${({ theme }) => theme.colors.border};
+  border-radius: ${({ theme }) => theme.radii.full};
+  margin-top: ${({ theme }) => theme.spacing[2]};
+  flex: 1;
+  margin-left: ${({ theme }) => theme.spacing[3]};
+
+  div {
+    height: 100%;
+    background: ${({ theme }) => theme.colors.primary};
+    border-radius: ${({ theme }) => theme.radii.full};
+    width: ${({ $pct }) => $pct}%;
+    transition: width 0.4s ease;
+  }
+`
+
+export const CommentTextarea = styled.textarea`
+  width: 100%;
+  padding: ${({ theme }) => theme.spacing[2]};
+  border: 1px solid ${({ theme }) => theme.colors.border};
+  border-radius: ${({ theme }) => theme.radii.sm};
+  font-family: ${({ theme }) => theme.fonts.sans};
+  font-size: ${({ theme }) => theme.fontSizes.sm};
+  color: ${({ theme }) => theme.colors.textPrimary};
+  resize: vertical;
+  min-height: 52px;
+  box-sizing: border-box;
+
+  &::placeholder {
+    color: ${({ theme }) => theme.colors.textMuted};
+  }
+`
+
 export const ParticipantRow = styled.div`
   display: flex;
   align-items: center;

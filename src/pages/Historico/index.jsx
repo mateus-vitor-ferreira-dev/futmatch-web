@@ -2,42 +2,44 @@ import { useState, useEffect } from 'react'
 import { useAuth } from '../../contexts/AuthContext'
 import { playerService } from '../../services/playerService'
 import { MainLayout } from '../../components'
-import { 
-  Container, StatsCard, HistoryList, HistoryCard, 
-  EvalModalOverlay, EvalModalContent, ParticipantRow 
+import {
+  Container, StatsCard, HistoryList, HistoryCard,
+  EvalModalOverlay, EvalModalContent, ParticipantRow,
+  ProgressInfo, ProgressBarWrap, CommentTextarea,
 } from './styles'
 
 const TAG_OPTIONS = [
-  { label: 'Sumiu do jogo', value: 'PASSA_DE_ANO' }, // Adaptado aos ENUMs reais
-  { label: 'Perna de pau', value: 'PASSA_DE_ANO' },
-  { label: 'Passa de ano', value: 'PASSA_DE_ANO' },
-  { label: 'Joga fácil', value: 'JOGA_FACIL' },
-  { label: 'Craque da pelada', value: 'CRAQUE_DA_PELADA' }
+  { label: 'Craque da Pelada', value: 'CRAQUE_DA_PELADA' },
+  { label: 'Joga Fácil',       value: 'JOGA_FACIL'       },
+  { label: 'Passa de Ano',     value: 'PASSA_DE_ANO'     },
+  { label: 'Pontual',          value: 'PONTUAL'           },
+  { label: 'Fair Play',        value: 'FAIR_PLAY'         },
+  { label: 'Boa Comunicação',  value: 'BOA_COMUNICACAO'  },
 ]
 
 export default function Historico() {
   const { user } = useAuth()
   const [history, setHistory] = useState([])
-  const [reviewsReceived, setReviewsReceived] = useState([])
+  const [reviewSummary, setReviewSummary] = useState({})
   const [loading, setLoading] = useState(true)
 
-  // Avaliação Modal States
+  // Modal de avaliação
   const [evalEvent, setEvalEvent] = useState(null)
   const [participants, setParticipants] = useState([])
-  const [evaluations, setEvaluations] = useState({}) // { userId: { stars: 5, tag: '' } }
+  const [evaluations, setEvaluations] = useState({})
+  const [reviewProgress, setReviewProgress] = useState(null)
+  const [submitting, setSubmitting] = useState(false)
 
   useEffect(() => {
     const fetchHistoric = async () => {
       try {
         setLoading(true)
-        // Histórico pode ser derivado das participações (finalizadas)
         const partRes = await playerService.getMyParticipatingEvents()
         const pastEvents = (partRes.data || []).filter(p => p.pelada?.status === 'FINISHED')
         setHistory(pastEvents)
 
-        // Pegar reputação (nota média) via reviews recebidas
         const revRes = await playerService.getUserReviews(user.id)
-        setReviewsReceived(revRes.data || [])
+        setReviewSummary(revRes.data?.summary || {})
       } catch (error) {
         console.error(error)
       } finally {
@@ -50,18 +52,23 @@ export default function Historico() {
   const openEvaluation = async (event) => {
     try {
       const pelada = event.pelada
-      const res = await playerService.getEventParticipants(pelada.courtId, pelada.id)
-      const others = (res.data || []).filter(p => p.userId !== user.id)
-      
+      const [participantsRes, progressRes] = await Promise.all([
+        playerService.getEventParticipants(pelada.courtId, pelada.id),
+        playerService.getReviewProgress(pelada.courtId, pelada.id).catch(() => null),
+      ])
+
+      const others = (participantsRes.data || []).filter(p => p.userId !== user.id)
       setParticipants(others)
       setEvalEvent(pelada)
-      
-      // Inicializar state do form
+      setReviewProgress(progressRes?.data || null)
+
       const initialEvals = {}
-      others.forEach(p => { initialEvals[p.userId] = { stars: 5, tag: 'JOGA_FACIL' } })
+      others.forEach(p => {
+        initialEvals[p.userId] = { stars: 5, tag: 'JOGA_FACIL', comment: '' }
+      })
       setEvaluations(initialEvals)
     } catch (error) {
-      console.error(error) // <-- Linha adicionada para usar a variável 'error'
+      console.error(error)
       alert('Erro ao carregar participantes')
     }
   }
@@ -69,38 +76,45 @@ export default function Historico() {
   const handleReviewChange = (userId, field, value) => {
     setEvaluations(prev => ({
       ...prev,
-      [userId]: { ...prev[userId], [field]: value }
+      [userId]: { ...prev[userId], [field]: value },
     }))
   }
 
   const submitEvaluations = async () => {
     try {
+      setSubmitting(true)
       for (const p of participants) {
         const review = evaluations[p.userId]
         await playerService.submitReview(evalEvent.courtId, evalEvent.id, {
           reviewedId: p.userId,
           stars: parseInt(review.stars),
           tag: review.tag,
+          comment: review.comment || null,
         })
       }
       alert('Avaliações enviadas com sucesso!')
       setEvalEvent(null)
     } catch (error) {
-      console.error(error) // <-- Linha adicionada para usar a variável 'error'
-      alert('Erro ao enviar avaliações')
+      console.error(error)
+      alert(error.response?.data?.message || 'Erro ao enviar avaliações')
+    } finally {
+      setSubmitting(false)
     }
   }
 
-  // Calculo de estatisticas
-  const avgStars = reviewsReceived.length 
-    ? (reviewsReceived.reduce((acc, r) => acc + r.stars, 0) / reviewsReceived.length).toFixed(1)
-    : 'N/A';
+  const avgStars = reviewSummary.averageStars
+    ? Number(reviewSummary.averageStars).toFixed(1)
+    : 'N/A'
+
+  const progressPct = reviewProgress
+    ? Math.round((reviewProgress.reviewed / Math.max(reviewProgress.total, 1)) * 100)
+    : 0
 
   return (
     <MainLayout user={user}>
       <Container>
         <h1>Meu Histórico</h1>
-        
+
         <StatsCard>
           <div className="stat-item">
             <h2>⭐ {avgStars}</h2>
@@ -111,7 +125,7 @@ export default function Historico() {
             <p>Jogos Disputados</p>
           </div>
           <div className="stat-item">
-            <h2>{reviewsReceived.length}</h2>
+            <h2>{reviewSummary.totalReviews ?? 0}</h2>
             <p>Avaliações Recebidas</p>
           </div>
         </StatsCard>
@@ -124,7 +138,10 @@ export default function Historico() {
               <HistoryCard key={ev.id}>
                 <div className="info">
                   <h4>{ev.court?.place?.name} - {ev.court?.type?.replace('_', ' ')}</h4>
-                  <p>{new Date(ev.date).toLocaleDateString()} às {new Date(ev.date).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</p>
+                  <p>
+                    {new Date(ev.date).toLocaleDateString('pt-BR')} às{' '}
+                    {new Date(ev.date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                  </p>
                 </div>
                 <div className="action">
                   <button onClick={() => openEvaluation(event)}>Avaliar Jogadores</button>
@@ -139,8 +156,22 @@ export default function Historico() {
           <EvalModalOverlay>
             <EvalModalContent>
               <h2>Avaliar Partida</h2>
-              <p style={{marginBottom: 16, color: '#6b7280'}}>Selecione a nota e classificação para cada jogador.</p>
-              
+
+              {reviewProgress && (
+                <ProgressInfo>
+                  <span>
+                    Avaliações: <strong>{reviewProgress.reviewed} de {reviewProgress.total}</strong>
+                  </span>
+                  <ProgressBarWrap $pct={progressPct}>
+                    <div />
+                  </ProgressBarWrap>
+                </ProgressInfo>
+              )}
+
+              <p style={{ marginBottom: 16, color: '#6b7280' }}>
+                Selecione a nota, classificação e deixe um comentário (opcional).
+              </p>
+
               {participants.map(p => (
                 <ParticipantRow key={p.userId}>
                   <div className="avatar">{p.user?.name?.charAt(0)}</div>
@@ -148,9 +179,9 @@ export default function Historico() {
                     <div className="name">{p.user?.name}</div>
                   </div>
                   <div className="controls">
-                    <select 
+                    <select
                       value={evaluations[p.userId]?.stars}
-                      onChange={(e) => handleReviewChange(p.userId, 'stars', e.target.value)}
+                      onChange={e => handleReviewChange(p.userId, 'stars', e.target.value)}
                     >
                       <option value="5">⭐⭐⭐⭐⭐</option>
                       <option value="4">⭐⭐⭐⭐</option>
@@ -158,22 +189,42 @@ export default function Historico() {
                       <option value="2">⭐⭐</option>
                       <option value="1">⭐</option>
                     </select>
-                    <select 
+                    <select
                       value={evaluations[p.userId]?.tag}
-                      onChange={(e) => handleReviewChange(p.userId, 'tag', e.target.value)}
+                      onChange={e => handleReviewChange(p.userId, 'tag', e.target.value)}
                     >
                       {TAG_OPTIONS.map(tag => (
                         <option key={tag.value} value={tag.value}>{tag.label}</option>
                       ))}
                     </select>
+                    <CommentTextarea
+                      placeholder="Comentário (opcional, máx. 300 caracteres)"
+                      maxLength={300}
+                      value={evaluations[p.userId]?.comment || ''}
+                      onChange={e => handleReviewChange(p.userId, 'comment', e.target.value)}
+                    />
                   </div>
                 </ParticipantRow>
               ))}
 
-              <div style={{display: 'flex', gap: 16, marginTop: 24}}>
-                <button onClick={() => setEvalEvent(null)} style={{flex: 1, padding: 12, borderRadius: 8, border: 'none', cursor: 'pointer'}}>Cancelar</button>
-                <button onClick={submitEvaluations} style={{flex: 1, padding: 12, borderRadius: 8, border: 'none', background: '#22c55e', color: 'white', fontWeight: 'bold', cursor: 'pointer'}}>
-                  Salvar Avaliações
+              <div style={{ display: 'flex', gap: 16, marginTop: 24 }}>
+                <button
+                  onClick={() => setEvalEvent(null)}
+                  style={{ flex: 1, padding: 12, borderRadius: 8, border: 'none', cursor: 'pointer' }}
+                >
+                  Cancelar
+                </button>
+                <button
+                  onClick={submitEvaluations}
+                  disabled={submitting}
+                  style={{
+                    flex: 1, padding: 12, borderRadius: 8, border: 'none',
+                    background: '#22c55e', color: 'white', fontWeight: 'bold',
+                    cursor: submitting ? 'not-allowed' : 'pointer',
+                    opacity: submitting ? 0.7 : 1,
+                  }}
+                >
+                  {submitting ? 'Enviando...' : 'Salvar Avaliações'}
                 </button>
               </div>
             </EvalModalContent>

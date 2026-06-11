@@ -154,5 +154,109 @@ export const ButtonGroup = styled.div`
   .submit {
     background: ${({ theme }) => theme.colors.primary};
     color: white;
+
+    &:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+  }
+`
+
+export const DrawButton = styled.button`
+  width: 100%;
+  margin-top: ${({ theme }) => theme.spacing[3]};
+  padding: ${({ theme }) => theme.spacing[2]} ${({ theme }) => theme.spacing[4]};
+  background: ${({ theme }) => theme.colors.infoLight};
+  color: ${({ theme }) => theme.colors.info};
+  border: 1px solid ${({ theme }) => theme.colors.info};
+  border-radius: ${({ theme }) => theme.radii.md};
+  font-weight: 600;
+  font-size: ${({ theme }) => theme.fontSizes.sm};
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+
+  &:hover {
+    background: ${({ theme }) => theme.colors.info};
+    color: white;
+  }
+`
+
+export const DrawModalOverlay = styled.div`
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: ${({ theme }) => theme.colors.bgOverlay};
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+`
+
+export const DrawModalContent = styled.div`
+  background: ${({ theme }) => theme.colors.white};
+  padding: ${({ theme }) => theme.spacing[6]};
+  border-radius: ${({ theme }) => theme.radii.xl};
+  width: 100%;
+  max-width: 640px;
+  max-height: 90vh;
+  overflow-y: auto;
+
+  h2 {
+    margin-bottom: ${({ theme }) => theme.spacing[2]};
+    font-size: ${({ theme }) => theme.fontSizes['2xl']};
+  }
+`
+
+export const TeamGrid = styled.div`
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: ${({ theme }) => theme.spacing[4]};
+`
+
+export const TeamCard = styled.div`
+  border: 2px solid ${({ $color }) => $color};
+  border-radius: ${({ theme }) => theme.radii.lg};
+  overflow: hidden;
+`
+
+export const TeamHeader = styled.div`
+  background: ${({ $color }) => $color};
+  color: white;
+  padding: ${({ theme }) => theme.spacing[2]} ${({ theme }) => theme.spacing[3]};
+  font-weight: 700;
+  font-size: ${({ theme }) => theme.fontSizes.sm};
+  text-align: center;
+`
+
+export const PlayerItem = styled.div`
+  display: flex;
+  align-items: center;
+  gap: ${({ theme }) => theme.spacing[2]};
+  padding: ${({ theme }) => theme.spacing[2]} ${({ theme }) => theme.spacing[3]};
+  border-bottom: 1px solid ${({ theme }) => theme.colors.borderLight};
+  font-size: ${({ theme }) => theme.fontSizes.sm};
+  color: ${({ theme }) => theme.colors.textPrimary};
+
+  &:last-child {
+    border-bottom: none;
+  }
+
+  .avatar {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: ${({ theme }) => theme.colors.primaryLight};
+    color: ${({ theme }) => theme.colors.primaryDark};
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 12px;
+    flex-shrink: 0;
   }
 `
