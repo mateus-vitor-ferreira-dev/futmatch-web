@@ -27,7 +27,7 @@ export default function Intro({ onComplete }) {
 
       const firstLetterLeft = letterRefs.current[0].getBoundingClientRect().left - wrapperRect.left
       const ballWidth       = ballRef.current.getBoundingClientRect().width
-      const ballStopX       = firstLetterLeft - ballWidth - 14
+      const ballStopX       = firstLetterLeft - ballWidth - 28
 
       const tl = gsap.timeline()
 
@@ -60,7 +60,7 @@ export default function Intro({ onComplete }) {
 
   return (
     <Wrapper ref={wrapperRef}>
-      <TitleRow>
+      <TitleRow translate="no">
         {LETTERS.map((letter, i) => (
           <Letter key={i} ref={(el) => (letterRefs.current[i] = el)}>
             {letter}
