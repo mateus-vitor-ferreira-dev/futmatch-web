@@ -62,7 +62,7 @@ export default function CriarPelada() {
   const [loadingCourts, setLoadingCourts] = useState(true)
   const [selectedCourt, setSelectedCourt] = useState(null)
   const [submitting, setSubmitting] = useState(false)
-  const [createdEvent, setCreatedEvent]   = useState(null)
+  const [_createdEvent, setCreatedEvent]  = useState(null)
   const [error, setError]           = useState(null)
 
   const {
