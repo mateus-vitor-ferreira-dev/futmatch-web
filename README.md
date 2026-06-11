@@ -1,8 +1,11 @@
 # ⚽ FutMatch Web
 
+![CI](https://github.com/mateus-vitor-ferreira-dev/futmatch-web/actions/workflows/ci-cd.yml/badge.svg)
+
 Interface web do **FutMatch** — plataforma para organização de peladas amadoras.
 
-**Deploy:** https://futmatch-web.vercel.app
+**App:** https://futmatch-web.vercel.app  
+**API:** https://futmatch-api-production.up.railway.app
 
 ## Stack
 
