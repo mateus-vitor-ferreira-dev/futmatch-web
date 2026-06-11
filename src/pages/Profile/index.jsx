@@ -1,17 +1,19 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useForm, Controller } from 'react-hook-form'
 import { yupResolver } from '@hookform/resolvers/yup'
 import * as yup from 'yup'
-import { LogOut } from 'lucide-react'
+import { Camera, Loader, LogOut } from 'lucide-react'
 import MainLayout from '../../components/MainLayout'
 import { PhoneInput, PasswordInput } from '../../components'
 import { useAuth } from '../../contexts/AuthContext'
 import * as usersService from '../../services/users'
+import { uploadImage } from '../../services/cloudinary'
+import { env } from '../../config/env'
 import {
   PageWrapper, TabsRow, TabBtn,
   SectionTitle, SectionDivider,
-  AvatarBlock, AvatarCircle, AvatarInitials, AvatarHint,
+  AvatarBlock, AvatarUploadWrapper, AvatarOverlay, AvatarCircle, AvatarInitials, AvatarHint,
   Form, FormGrid, Field, Label, Input, FieldError,
   SaveBtn, SuccessMsg,
   LogoutSection, LogoutBtn,
@@ -44,6 +46,12 @@ function getInitials(name = '') {
 export default function Profile() {
   const { user, logout } = useAuth()
   const navigate = useNavigate()
+
+  // ── Upload de avatar ───────────────────────────────────────────────────────
+  const fileInputRef = useRef(null)
+  const [uploading, setUploading]     = useState(false)
+  const [uploadError, setUploadError] = useState('')
+  const cloudinaryReady = Boolean(env.cloudinaryCloud && env.cloudinaryPreset)
 
   // ── Tabs ──────────────────────────────────────────────────────────────────
   const [activeTab, setActiveTab] = useState('personal')
@@ -79,9 +87,13 @@ export default function Profile() {
     register: regProfile,
     handleSubmit: handleProfile,
     reset: resetProfile,
+    setValue: setProfileValue,
+    watch: watchProfile,
     control: profileControl,
     formState: { errors: errP, isSubmitting: savingProfile, isSubmitSuccessful: profileSaved },
   } = useForm({ resolver: yupResolver(profileSchema) })
+
+  const avatarUrlValue = watchProfile('avatarUrl')
 
   useEffect(() => {
     if (user) {
@@ -93,6 +105,22 @@ export default function Profile() {
       })
     }
   }, [user, resetProfile])
+
+  const handleAvatarFileChange = async (e) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    setUploading(true)
+    setUploadError('')
+    try {
+      const url = await uploadImage(file)
+      setProfileValue('avatarUrl', url, { shouldValidate: true })
+    } catch {
+      setUploadError('Erro ao fazer upload. Tente novamente.')
+    } finally {
+      setUploading(false)
+      e.target.value = ''
+    }
+  }
 
   const onSaveProfile = async (data) => {
     await usersService.updateMe(data)
@@ -136,16 +164,39 @@ export default function Profile() {
 
         {/* Avatar */}
         <AvatarBlock>
-          <AvatarCircle>
-            {user?.avatarUrl
-              ? <img src={user.avatarUrl} alt={user?.name} />
-              : <AvatarInitials>{getInitials(user?.name)}</AvatarInitials>
-            }
-          </AvatarCircle>
+          <AvatarUploadWrapper onClick={() => cloudinaryReady && fileInputRef.current?.click()}>
+            <AvatarCircle>
+              {(avatarUrlValue || user?.avatarUrl)
+                ? <img src={avatarUrlValue || user?.avatarUrl} alt={user?.name} />
+                : <AvatarInitials>{getInitials(user?.name)}</AvatarInitials>
+              }
+            </AvatarCircle>
+            {cloudinaryReady && (
+              <AvatarOverlay $visible={uploading}>
+                {uploading
+                  ? <Loader size={20} className="spinning" />
+                  : <Camera size={20} />
+                }
+              </AvatarOverlay>
+            )}
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              style={{ display: 'none' }}
+              onChange={handleAvatarFileChange}
+            />
+          </AvatarUploadWrapper>
           <div>
             <strong>{user?.name}</strong>
             <AvatarHint>{user?.email}</AvatarHint>
-            <AvatarHint>Role: {user?.role}</AvatarHint>
+            {cloudinaryReady
+              ? <AvatarHint>Clique na foto para alterar</AvatarHint>
+              : <AvatarHint>Role: {user?.role}</AvatarHint>
+            }
+            {uploadError && (
+              <AvatarHint style={{ color: '#ef4444' }}>{uploadError}</AvatarHint>
+            )}
           </div>
         </AvatarBlock>
 
@@ -186,11 +237,7 @@ export default function Profile() {
                 <Input {...regProfile('pixKey')} placeholder="CPF, e-mail, telefone ou chave aleatória" />
                 {errP.pixKey && <FieldError>{errP.pixKey.message}</FieldError>}
               </Field>
-              <Field style={{ gridColumn: '1 / -1' }}>
-                <Label>URL do Avatar</Label>
-                <Input {...regProfile('avatarUrl')} placeholder="https://..." />
-                {errP.avatarUrl && <FieldError>{errP.avatarUrl.message}</FieldError>}
-              </Field>
+              <input type="hidden" {...regProfile('avatarUrl')} />
             </FormGrid>
 
             {profileSaved && <SuccessMsg>Perfil atualizado com sucesso!</SuccessMsg>}
