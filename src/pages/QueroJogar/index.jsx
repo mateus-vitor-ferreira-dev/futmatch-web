@@ -36,7 +36,7 @@ const MAX_PRICE = 200
 
 export default function QueroJogar() {
   const { user } = useAuth()
-  const { tabs: sportTabs } = useSports()
+  const { sports: allSports } = useSports()
   const [searchParams] = useSearchParams()
 
   const [events, setEvents]             = useState([])
@@ -74,14 +74,12 @@ export default function QueroJogar() {
     [events]
   )
 
-  const activeTab = sportTabs.find(t => t.id === selectedSport)
-
   const filteredEvents = events.filter(e => {
     const matchesSearch =
       e.court?.place?.name?.toLowerCase().includes(search.toLowerCase()) ||
       e.court?.place?.neighborhood?.toLowerCase().includes(search.toLowerCase())
 
-    const matchesSport = selectedSport ? activeTab?.types?.includes(e.court?.type) : true
+    const matchesSport = selectedSport ? e.court?.type === selectedSport : true
 
     const hour = new Date(e.date).getHours()
     const matchesTime =
@@ -165,9 +163,9 @@ export default function QueroJogar() {
           {/* Esporte chips */}
           <ChipsContainer>
             <Chip $active={selectedSport === ''} onClick={() => setSelectedSport('')}>Todos</Chip>
-            {sportTabs.map(tab => (
-              <Chip key={tab.id} $active={selectedSport === tab.id} onClick={() => setSelectedSport(tab.id)}>
-                {tab.label}
+            {allSports.map(sport => (
+              <Chip key={sport.id} $active={selectedSport === sport.id} onClick={() => setSelectedSport(sport.id)}>
+                {sport.icon} {sport.label}
               </Chip>
             ))}
           </ChipsContainer>
@@ -183,8 +181,8 @@ export default function QueroJogar() {
                     onChange={e => setSelectedSport(e.target.value)}
                   >
                     <option value="">Todas as modalidades</option>
-                    {sportTabs.map(tab => (
-                      <option key={tab.id} value={tab.id}>{tab.icon} {tab.label}</option>
+                    {allSports.map(sport => (
+                      <option key={sport.id} value={sport.id}>{sport.icon} {sport.label}</option>
                     ))}
                   </FilterSelect>
                 </FilterGroup>
