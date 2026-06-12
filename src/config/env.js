@@ -10,4 +10,5 @@ export const env = {
   googleClientId:   import.meta.env.VITE_GOOGLE_CLIENT_ID        || '',
   cloudinaryCloud:  import.meta.env.VITE_CLOUDINARY_CLOUD_NAME   || '',
   cloudinaryPreset: import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET || '',
+  stripePublishableKey: import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY || '',
 }
