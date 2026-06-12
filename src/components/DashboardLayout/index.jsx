@@ -4,7 +4,7 @@ import { useThemeMode } from '../../contexts/ThemeContext'
 import iconUrl from '../../assets/icon-so-mais-um.svg'
 import logoUrl from '../../assets/logo-so-mais-um.svg'
 import {
-  Shell, Sidebar, Logo, LogoIcon, LogoText, LogoName, LogoTagline,
+  Shell, Sidebar, Logo, LogoIcon, LogoText, LogoTagline,
   Divider, Nav, NavItem, NavBadge,
   UserCard, Avatar, UserInfo, UserName, UserRole,
   ThemeToggleBtn,
