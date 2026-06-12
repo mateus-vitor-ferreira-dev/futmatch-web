@@ -26,7 +26,11 @@ export const BgImage = styled.div`
   position: absolute;
   inset: 0;
   background: ${({ $url }) =>
-    $url ? `url("${$url}") center/cover no-repeat` : '#0a1628'};
+    !$url
+      ? '#0a1628'
+      : $url.includes('gradient')
+      ? $url
+      : `url("${$url}") center/cover no-repeat`};
   transition: opacity 0.9s ease;
   opacity: ${({ $visible }) => ($visible ? 1 : 0)};
   z-index: 0;
