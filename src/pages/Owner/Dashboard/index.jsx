@@ -1,34 +1,59 @@
 import { useState, useEffect } from 'react'
-import { LayoutDashboard, ClipboardList, Building2, Home } from 'lucide-react'
+import { LayoutDashboard, ClipboardList, Building2, Home, CreditCard, Loader2 } from 'lucide-react'
+import { useSearchParams } from 'react-router-dom'
 import { useAuth } from '../../../contexts/AuthContext'
-import api from '../../../services/api'
+import { subscriptionService } from '../../../services/subscriptionService'
 import DashboardLayout from '../../../components/DashboardLayout'
 import { Container, Grid, Card, PlanHighlight, RowList, PrimaryButton, Badge } from './styles'
 
-// Navegação exata do Owner
 const OWNER_NAV_ITEMS = [
-  { to: '/owner',          label: 'Visão Geral',        icon: LayoutDashboard, end: true },
-  { to: '/owner/requests', label: 'Solicitações',       icon: ClipboardList   },
-  { to: '/owner/places',   label: 'Estabelecimentos',   icon: Building2       },
-  { to: '/home',           label: 'Área do Jogador',    icon: Home, divider: true },
+  { to: '/owner',          label: 'Visão Geral',      icon: LayoutDashboard, end: true },
+  { to: '/owner/requests', label: 'Solicitações',     icon: ClipboardList   },
+  { to: '/owner/places',   label: 'Estabelecimentos', icon: Building2       },
+  { to: '/home',           label: 'Área do Jogador',  icon: Home, divider: true },
 ]
+
+const STATUS_LABEL = {
+  active:    'Ativo',
+  trialing:  'Trial',
+  past_due:  'Vencida',
+  canceled:  'Cancelada',
+  inactive:  'Inativo',
+}
 
 export default function OwnerDashboard() {
   const { user } = useAuth()
+  const [searchParams] = useSearchParams()
   const [sub, setSub] = useState(null)
-  const [payments, setPayments] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [paying, setPaying] = useState(false)
+  const [feedback, setFeedback] = useState(null)
 
   useEffect(() => {
-    const fetchData = async () => {
-      const [subRes, payRes] = await Promise.all([
-        api.get('/owner/subscription').catch(() => ({ data: { plan: 'Básico', value: '150,00', status: 'Ativo', nextDue: '2026-06-10', contract: '#CTR-089' } })),
-        api.get('/owner/payments').catch(() => ({ data: [] }))
-      ])
-      setSub(subRes.data || subRes)
-      setPayments(payRes.data || payRes)
-    }
-    fetchData()
+    const payment = searchParams.get('payment')
+    if (payment === 'success')   setFeedback({ type: 'success', msg: 'Pagamento realizado com sucesso!' })
+    if (payment === 'cancelled') setFeedback({ type: 'warn',    msg: 'Pagamento cancelado.' })
+  }, [searchParams])
+
+  useEffect(() => {
+    subscriptionService.getStatus()
+      .then(data => setSub(data))
+      .catch(() => setSub({ status: 'inactive' }))
+      .finally(() => setLoading(false))
   }, [])
+
+  const handlePay = async () => {
+    try {
+      setPaying(true)
+      const { url } = await subscriptionService.createCheckout()
+      window.location.href = url
+    } catch {
+      setFeedback({ type: 'error', msg: 'Erro ao iniciar pagamento. Tente novamente.' })
+      setPaying(false)
+    }
+  }
+
+  const isActive = sub?.status === 'active' || sub?.status === 'trialing'
 
   return (
     <DashboardLayout
@@ -37,40 +62,78 @@ export default function OwnerDashboard() {
       tagline="Owner Panel"
       accent="#3b82f6"
       pageTitle="Minha Assinatura"
-      pageSub="Verifique o status do seu contrato e seus pagamentos mensais ao Só+1."
+      pageSub="Gerencie sua assinatura Só+1 Pro."
     >
       <Container>
+        {feedback && (
+          <div style={{
+            padding: '12px 16px',
+            borderRadius: 8,
+            marginBottom: 16,
+            background: feedback.type === 'success' ? '#dcfce7' : feedback.type === 'warn' ? '#fef9c3' : '#fee2e2',
+            color: feedback.type === 'success' ? '#166534' : feedback.type === 'warn' ? '#854d0e' : '#991b1b',
+          }}>
+            {feedback.msg}
+          </div>
+        )}
+
         <Grid>
           <Card>
             <h2>Seu Plano Atual</h2>
-            <PlanHighlight>
-              <div className="header">
-                <h3>Plano {sub?.plan || 'Básico'}</h3>
-                <Badge $status={sub?.status || 'Ativo'}>{sub?.status || 'Ativo'}</Badge>
+            {loading ? (
+              <div style={{ display: 'flex', justifyContent: 'center', padding: 32 }}>
+                <Loader2 size={24} style={{ animation: 'spin 1s linear infinite' }} />
               </div>
-              <div className="price">R$ {sub?.value || '150,00'} / mês</div>
-            </PlanHighlight>
-            <RowList>
-              <div className="row"><span className="label">Data de Contratação</span><span className="value">01/01/2026</span></div>
-              <div className="row"><span className="label">Contrato</span><span className="value">{sub?.contract || '#CTR-2026-089'}</span></div>
-              <div className="row"><span className="label">Próximo Vencimento</span><span className="value" style={{color: '#ef4444'}}>{new Date(sub?.nextDue || '2026-06-10').toLocaleDateString('pt-BR')}</span></div>
-            </RowList>
-            <PrimaryButton>Pagar Mensalidade</PrimaryButton>
+            ) : (
+              <>
+                <PlanHighlight>
+                  <div className="header">
+                    <h3>Só+1 Pro</h3>
+                    <Badge $status={sub?.status || 'inactive'}>
+                      {STATUS_LABEL[sub?.status] || 'Inativo'}
+                    </Badge>
+                  </div>
+                  <div className="price">R$ 79,90 / mês</div>
+                </PlanHighlight>
+                <RowList>
+                  {sub?.currentPeriodEnd && (
+                    <div className="row">
+                      <span className="label">Próximo Vencimento</span>
+                      <span className="value" style={{ color: isActive ? undefined : '#ef4444' }}>
+                        {new Date(sub.currentPeriodEnd).toLocaleDateString('pt-BR')}
+                      </span>
+                    </div>
+                  )}
+                  <div className="row">
+                    <span className="label">Métodos aceitos</span>
+                    <span className="value">Cartão · Boleto</span>
+                  </div>
+                </RowList>
+                <PrimaryButton onClick={handlePay} disabled={paying}>
+                  {paying
+                    ? <><Loader2 size={16} style={{ animation: 'spin 1s linear infinite' }} /> Aguarde...</>
+                    : <><CreditCard size={16} /> {isActive ? 'Gerenciar Assinatura' : 'Assinar Só+1 Pro'}</>
+                  }
+                </PrimaryButton>
+              </>
+            )}
           </Card>
 
           <Card>
-            <h2>Histórico de Mensalidades</h2>
+            <h2>Incluso no plano</h2>
             <RowList>
-              {payments.map((p, i) => (
-                <div className="row" key={i}>
-                  <div>
-                    <div className="value">R$ {p.amount}</div>
-                    <div className="label">{new Date(p.date).toLocaleDateString('pt-BR')}</div>
-                  </div>
-                  <Badge $status={p.status}>{p.status}</Badge>
+              {[
+                'Quadras ilimitadas',
+                'Peladas ilimitadas',
+                'Painel de gestão completo',
+                'Histórico de eventos',
+                'Suporte por e-mail',
+              ].map(item => (
+                <div className="row" key={item}>
+                  <span style={{ color: '#3BAA34', fontWeight: 600 }}>✓</span>
+                  <span className="value">{item}</span>
                 </div>
               ))}
-              {payments.length === 0 && <span className="label">Nenhum pagamento registrado.</span>}
             </RowList>
           </Card>
         </Grid>
