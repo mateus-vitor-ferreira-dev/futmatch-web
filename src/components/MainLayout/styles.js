@@ -51,30 +51,34 @@ export const Logo = styled.div`
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 0 8px;
+  padding: 10px 12px;
   margin-bottom: 32px;
+  background: #3BAA34;
+  border-radius: 12px;
 `
 
 export const LogoIcon = styled.div`
-  font-size: 28px;
-  line-height: 1;
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
 `
 
 export const LogoText = styled.div`
   display: flex;
   flex-direction: column;
+  gap: 2px;
 `
 
 export const LogoName = styled.span`
   font-size: ${({ theme }) => theme.fontSizes.lg};
   font-weight: ${({ theme }) => theme.fontWeights.bold};
-  color: ${({ theme }) => theme.colors.textPrimary};
+  color: #fff;
   line-height: 1.2;
 `
 
 export const LogoTagline = styled.span`
   font-size: ${({ theme }) => theme.fontSizes.xs};
-  color: ${({ theme }) => theme.colors.textMuted};
+  color: rgba(255, 255, 255, 0.7);
 `
 
 export const Nav = styled.nav`
