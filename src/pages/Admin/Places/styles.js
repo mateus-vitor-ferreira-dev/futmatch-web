@@ -164,6 +164,72 @@ export const Select = styled.select`
 
 export const OwnerOption = styled.option``
 
+export const PromoteDivider = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 16px 0 0;
+  color: ${({ theme }) => theme.colors.textMuted};
+  font-size: ${({ theme }) => theme.fontSizes.xs};
+
+  &::before, &::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: ${({ theme }) => theme.colors.border};
+  }
+`
+
+export const PromoteLink = styled.button`
+  background: none;
+  border: none;
+  padding: 6px 0 0;
+  font-size: ${({ theme }) => theme.fontSizes.xs};
+  color: ${({ theme }) => theme.colors.primary};
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  width: 100%;
+  text-align: left;
+
+  &:hover { opacity: 0.75; }
+`
+
+export const PromoteBox = styled.div`
+  margin-top: 12px;
+  padding: 12px;
+  border-radius: ${({ theme }) => theme.radii.md};
+  background: ${({ theme }) => theme.colors.bgApp};
+  border: 1px solid ${({ theme }) => theme.colors.border};
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+
+  label {
+    font-size: ${({ theme }) => theme.fontSizes.xs};
+    font-weight: ${({ theme }) => theme.fontWeights.semibold};
+    color: ${({ theme }) => theme.colors.textSecondary};
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+`
+
+export const PromoteBtn = styled.button`
+  padding: 8px 14px;
+  border-radius: ${({ theme }) => theme.radii.md};
+  font-size: ${({ theme }) => theme.fontSizes.xs};
+  font-weight: ${({ theme }) => theme.fontWeights.semibold};
+  cursor: pointer;
+  border: 1px solid #f59e0b;
+  background: #fef3c7;
+  color: #92400e;
+  transition: opacity 0.15s;
+  align-self: flex-end;
+
+  &:hover:not(:disabled) { opacity: 0.8; }
+  &:disabled { opacity: 0.5; cursor: not-allowed; }
+`
+
 export const ModalActions = styled.div`
   display: flex;
   justify-content: flex-end;
