@@ -1,10 +1,9 @@
 import { Sun, Moon, LayoutDashboard, Store } from 'lucide-react'
 import { useLocation } from 'react-router-dom'
 import { useThemeMode } from '../../contexts/ThemeContext'
-import iconUrl from '../../assets/icon-so-mais-um.svg'
 import logoUrl from '../../assets/logo-so-mais-um.svg'
 import {
-  Shell, Sidebar, Logo, LogoIcon, LogoText, LogoTagline,
+  Shell, Sidebar, Logo, LogoIcon, LogoText, LogoName, LogoTagline,
   Divider, Nav, NavItem, NavBadge,
   UserCard, Avatar, UserInfo, UserName, UserRole,
   ThemeToggleBtn,
@@ -56,7 +55,12 @@ export default function DashboardLayout({
       <Sidebar>
         <Logo>
           <LogoIcon>
-            <img src={iconUrl} alt="" height="30" style={{ display: 'block' }} />
+            <img
+              src={logoUrl}
+              alt="Só+1"
+              height="30"
+              style={{ display: 'block', filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.3))' }}
+            />
           </LogoIcon>
           <LogoText>
             <img

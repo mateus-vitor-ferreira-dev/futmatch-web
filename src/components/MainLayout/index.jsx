@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react'
 import { Home, Search, ClipboardList, History, User, Plus, Trophy, Menu, Star, Sun, Moon, LayoutDashboard, Store } from 'lucide-react'
-import iconUrl from '../../assets/icon-so-mais-um.svg'
 import logoUrl from '../../assets/logo-so-mais-um.svg'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { useThemeMode } from '../../contexts/ThemeContext'
@@ -54,7 +53,12 @@ export default function MainLayout({ children, user }) {
       <Sidebar $open={sidebarOpen}>
         <Logo>
           <LogoIcon>
-            <img src={iconUrl} alt="" height="32" style={{ display: 'block' }} />
+            <img
+              src={logoUrl}
+              alt="Só+1"
+              height="32"
+              style={{ display: 'block', filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.3))' }}
+            />
           </LogoIcon>
           <LogoText>
             <img
