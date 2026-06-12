@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { getSportMeta } from '../../hooks/useSports'
 import { useAuth } from '../../contexts/AuthContext'
 import { playerService } from '../../services/playerService'
 import { MainLayout } from '../../components'
@@ -137,7 +138,7 @@ export default function Historico() {
             return (
               <HistoryCard key={ev.id}>
                 <div className="info">
-                  <h4>{ev.court?.place?.name} - {ev.court?.type?.replace('_', ' ')}</h4>
+                  <h4>{ev.court?.place?.name} — {getSportMeta(ev.court?.type).icon} {getSportMeta(ev.court?.type).label}</h4>
                   <p>
                     {new Date(ev.date).toLocaleDateString('pt-BR')} às{' '}
                     {new Date(ev.date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}

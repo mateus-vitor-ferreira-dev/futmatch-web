@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
+import { getSportMeta } from '../../hooks/useSports'
 import { useForm } from 'react-hook-form'
 import { useSearchParams } from 'react-router-dom'
 import { Calendar, Clock, Copy, Plus, Shuffle } from 'lucide-react'
@@ -201,7 +202,7 @@ export default function MinhasPeladas() {
                     <option value="">Selecione a quadra</option>
                     {courts.map(court => (
                       <option key={court.id} value={court.id}>
-                        {court.place?.name} - {court.name} ({court.type})
+                        {court.place?.name} - {court.name} ({getSportMeta(court.type).icon} {getSportMeta(court.type).label})
                       </option>
                     ))}
                   </select>
