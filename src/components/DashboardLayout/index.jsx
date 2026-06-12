@@ -63,12 +63,7 @@ export default function DashboardLayout({
             />
           </LogoIcon>
           <LogoText>
-            <img
-              src={logoUrl}
-              alt="Só+1"
-              height="24"
-              style={{ display: 'block', filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.3))' }}
-            />
+            <LogoName>Só+1</LogoName>
             <LogoTagline accent={accent}>{tagline}</LogoTagline>
           </LogoText>
         </Logo>
