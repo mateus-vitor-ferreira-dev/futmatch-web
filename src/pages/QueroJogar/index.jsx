@@ -3,7 +3,7 @@ import { useSearchParams } from 'react-router-dom'
 import { Search, Calendar, Clock, CheckCircle, MapPin, SlidersHorizontal, X } from 'lucide-react'
 import { useAuth } from '../../contexts/AuthContext'
 import { playerService } from '../../services/playerService'
-import { useSports } from '../../hooks/useSports'
+import { useSports, getSportMeta } from '../../hooks/useSports'
 import { MainLayout } from '../../components'
 import {
   Container, Header, HeaderRow,
@@ -299,7 +299,7 @@ export default function QueroJogar() {
                       {event.court?.place?.street}, {event.court?.place?.neighborhood}
                     </span>
                   </div>
-                  <span className="badge">{event.court?.type?.replace('_', ' ')}</span>
+                  <span className="badge">{getSportMeta(event.court?.type).icon} {getSportMeta(event.court?.type).label}</span>
                 </CardHeader>
 
                 <InfoRow><Calendar size={14} /> {new Date(event.date).toLocaleDateString('pt-BR')}</InfoRow>

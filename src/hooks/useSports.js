@@ -33,6 +33,13 @@ function deriveTabs(sports) {
   return [...map.values()].sort((a, b) => a.order - b.order)
 }
 
+const SPORT_MAP = Object.fromEntries(FALLBACK_SPORTS.map(s => [s.id, s]))
+
+/** Retorna { label, icon } para um CourtType, sem precisar do hook. */
+export function getSportMeta(type) {
+  return SPORT_MAP[type] ?? { label: type, icon: '⚽' }
+}
+
 /**
  * Busca modalidades da API e deriva tabs de filtro agrupadas por `group`.
  * Usa fallback local se a API estiver indisponível.
