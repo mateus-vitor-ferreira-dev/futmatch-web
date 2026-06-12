@@ -79,8 +79,8 @@ function getPricePerPlayer(event) {
 export default function Home() {
   const { user } = useAuth()
   const navigate = useNavigate()
-  const { tabs: sportTabs } = useSports()
-  const SPORT_TABS = [ALL_TAB, ...sportTabs]
+  const { sports: allSports } = useSports()
+  const SPORT_TABS = [ALL_TAB, ...allSports]
 
   const [events, setEvents] = useState([])
   const [loadingEvents, setLoadingEvents] = useState(true)
@@ -126,13 +126,12 @@ export default function Home() {
     fetchStats()
   }, [fetchFeaturedEvents, fetchStats])
 
-  const activeTab = SPORT_TABS.find(t => t.id === activeSport)
   const filteredEvents = activeSport === 'ALL'
     ? events
-    : events.filter(e => activeTab?.types?.includes(e.court?.type))
+    : events.filter(e => e.court?.type === activeSport)
 
-  const sportCountMap = sportTabs.reduce((acc, tab) => {
-    acc[tab.id] = events.filter(e => tab.types?.includes(e.court?.type)).length
+  const sportCountMap = allSports.reduce((acc, sport) => {
+    acc[sport.id] = events.filter(e => e.court?.type === sport.id).length
     return acc
   }, {})
 
@@ -289,7 +288,7 @@ export default function Home() {
             <SectionTitle>Explorar por modalidade</SectionTitle>
           </SectionHeader>
           <ModalityGrid>
-            {sportTabs.map(sport => {
+            {allSports.map(sport => {
               const count = sportCountMap[sport.id] ?? 0
               return (
                 <ModalityCard
