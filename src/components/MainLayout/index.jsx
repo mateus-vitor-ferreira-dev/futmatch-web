@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react'
 import { Home, Search, ClipboardList, History, User, Plus, Trophy, Menu, Star, Sun, Moon, LayoutDashboard, Store } from 'lucide-react'
-import iconUrl from '../../assets/icon-so-mais-um.svg'
 import logoUrl from '../../assets/logo-so-mais-um.svg'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { useThemeMode } from '../../contexts/ThemeContext'
