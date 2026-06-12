@@ -452,3 +452,61 @@ export const ActionButton = styled.button`
       $isJoined ? theme.colors.primaryLight : theme.colors.primaryHover};
   }
 `
+
+export const SportBtnsRow = styled.div`
+  display: flex;
+  gap: ${({ theme }) => theme.spacing[3]};
+`
+
+export const SportAllBtn = styled.button`
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 ${({ theme }) => theme.spacing[5]};
+  height: 40px;
+  border-radius: ${({ theme }) => theme.radii.full};
+  border: 1px solid ${({ $active, theme }) => $active ? theme.colors.primary : theme.colors.border};
+  background: ${({ $active, theme }) => $active ? theme.colors.primary : theme.colors.bgCard};
+  color: ${({ $active, theme }) => $active ? '#fff' : theme.colors.textSecondary};
+  font-size: ${({ theme }) => theme.fontSizes.sm};
+  font-weight: ${({ theme }) => theme.fontWeights.medium};
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.2s;
+
+  &:hover {
+    border-color: ${({ theme }) => theme.colors.primary};
+  }
+`
+
+export const SportSelectWrapper = styled.div`
+  position: relative;
+  display: flex;
+  align-items: center;
+
+  span {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 0 ${({ theme }) => theme.spacing[5]};
+    height: 40px;
+    border-radius: ${({ theme }) => theme.radii.full};
+    border: 1px solid ${({ $active, theme }) => $active ? theme.colors.primary : theme.colors.border};
+    background: ${({ $active, theme }) => $active ? theme.colors.primarySubtle : theme.colors.bgCard};
+    color: ${({ $active, theme }) => $active ? theme.colors.primary : theme.colors.textSecondary};
+    font-size: ${({ theme }) => theme.fontSizes.sm};
+    font-weight: ${({ theme }) => theme.fontWeights.medium};
+    white-space: nowrap;
+    pointer-events: none;
+    user-select: none;
+  }
+
+  select {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    cursor: pointer;
+    width: 100%;
+    font-size: 1rem;
+  }
+`

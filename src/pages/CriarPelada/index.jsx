@@ -25,7 +25,8 @@ import {
 const schema = yup.object({
   date: yup
     .string()
-    .required('Informe a data e horário'),
+    .required('Informe a data e horário')
+    .test('future', 'A data deve ser no futuro', v => !v || new Date(v) > new Date()),
   maxPlayers: yup
     .number()
     .typeError('Informe um número válido')
@@ -279,6 +280,7 @@ export default function CriarPelada() {
                 <Label>Data e horário *</Label>
                 <Input
                   type="datetime-local"
+                  min={new Date(Date.now() + 60000).toISOString().slice(0, 16)}
                   {...register('date')}
                   $error={!!errors.date}
                 />
