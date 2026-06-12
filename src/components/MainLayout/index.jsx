@@ -5,7 +5,7 @@ import logoUrl from '../../assets/logo-so-mais-um.svg'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { useThemeMode } from '../../contexts/ThemeContext'
 import {
-  AppShell, Overlay, Sidebar, Logo, LogoIcon, LogoText, LogoTagline,
+  AppShell, Overlay, Sidebar, Logo, LogoIcon, LogoText, LogoName, LogoTagline,
   Nav, NavItem, NavDivider, UserCard, Avatar, UserInfo, UserName, UserBadge,
   ContentWrapper, MobileTopbar, HamburgerBtn, TopbarLogoName, Content,
   ThemeToggleBtn,
@@ -62,12 +62,7 @@ export default function MainLayout({ children, user }) {
             />
           </LogoIcon>
           <LogoText>
-            <img
-              src={logoUrl}
-              alt="Só+1"
-              height="26"
-              style={{ display: 'block', filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.3))' }}
-            />
+            <LogoName>Só+1</LogoName>
             <LogoTagline>Encontre sua pelada</LogoTagline>
           </LogoText>
         </Logo>
