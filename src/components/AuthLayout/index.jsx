@@ -35,6 +35,7 @@ const SPORT_IMAGES = {
   BEACH_TENNIS: imgBeachTennis,
   BASQUETE:     imgBasquete,
   TENIS:        imgTenis,
+  POKER:        'radial-gradient(ellipse at 50% 20%, #2d6a4f 0%, #1b4332 55%, #0a2218 100%)',
 }
 
 /** Altura de cada item na roda de modalidades (px) */
