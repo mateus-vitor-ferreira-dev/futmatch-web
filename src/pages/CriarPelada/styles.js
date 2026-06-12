@@ -82,9 +82,12 @@ export const SectionTitle = styled.h3`
 
 export const CourtsGrid = styled.div`
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
   gap: 12px;
   margin-bottom: 20px;
+  max-height: 340px;
+  overflow-y: auto;
+  padding-right: 4px;
 `
 
 export const CourtCard = styled.div`
@@ -309,9 +312,11 @@ export const SecondaryBtn = styled.button`
 
 export const SportChipsGrid = styled.div`
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
   gap: 12px;
   margin-bottom: 20px;
+  max-height: 340px;
+  overflow-y: auto;
 `
 
 export const SportChip = styled.button`
@@ -343,9 +348,12 @@ export const SportChip = styled.button`
 
 export const PlacesGrid = styled.div`
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
   gap: 12px;
   margin-bottom: 20px;
+  max-height: 360px;
+  overflow-y: auto;
+  padding-right: 4px;
 `
 
 export const PlaceCard = styled.div`

@@ -74,16 +74,7 @@ export default function CriarPelada() {
       .finally(() => setLoadingCourts(false))
   }, [])
 
-  // Esportes presentes nas quadras disponíveis (evita mostrar chips sem resultado)
-  const availableSportIds = useMemo(
-    () => new Set(courts.map(c => c.type)),
-    [courts]
-  )
-
-  const sportOptions = useMemo(
-    () => sports.filter(s => availableSportIds.has(s.id)),
-    [sports, availableSportIds]
-  )
+  const sportOptions = sports
 
   // Places únicas para o esporte selecionado
   const sportCourts = useMemo(
