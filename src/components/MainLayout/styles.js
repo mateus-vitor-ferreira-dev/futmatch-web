@@ -56,13 +56,8 @@ export const Logo = styled.div`
 `
 
 export const LogoIcon = styled.div`
-  width: 44px;
-  height: 44px;
-  background: #3BAA34;
-  border-radius: 10px;
   display: flex;
   align-items: center;
-  justify-content: center;
   flex-shrink: 0;
 `
 
