@@ -8,6 +8,7 @@ import { MainLayout } from '../../components'
 import {
   Container, Header, HeaderRow,
   FiltersArea, SearchInput, ChipsContainer, Chip, ResultsCount,
+  SportBtnsRow, SportAllBtn, SportSelectWrapper,
   Grid, Card, CardHeader, InfoRow, ProgressBarContainer, ProgressBar,
   SpotsInfo, PriceInfo, ActionButton,
   AdvancedFilters, FilterRow, FilterGroup, FilterLabel,
@@ -160,15 +161,32 @@ export default function QueroJogar() {
             </FiltersBtn>
           </div>
 
-          {/* Esporte chips */}
-          <ChipsContainer>
-            <Chip $active={selectedSport === ''} onClick={() => setSelectedSport('')}>Todos</Chip>
-            {allSports.map(sport => (
-              <Chip key={sport.id} $active={selectedSport === sport.id} onClick={() => setSelectedSport(sport.id)}>
-                {sport.icon} {sport.label}
-              </Chip>
-            ))}
-          </ChipsContainer>
+          {/* Esporte — 2 botões */}
+          <SportBtnsRow>
+            <SportAllBtn
+              $active={selectedSport === ''}
+              onClick={() => setSelectedSport('')}
+            >
+              🎯 Todas as modalidades
+            </SportAllBtn>
+            <SportSelectWrapper $active={selectedSport !== ''}>
+              <span>
+                {selectedSport
+                  ? `${allSports.find(s => s.id === selectedSport)?.icon ?? ''} ${allSports.find(s => s.id === selectedSport)?.label ?? ''}`
+                  : '⚽ Selecionar modalidade'}
+                {' ▾'}
+              </span>
+              <select
+                value={selectedSport}
+                onChange={e => setSelectedSport(e.target.value)}
+              >
+                <option value="">Selecionar modalidade</option>
+                {allSports.map(sport => (
+                  <option key={sport.id} value={sport.id}>{sport.icon} {sport.label}</option>
+                ))}
+              </select>
+            </SportSelectWrapper>
+          </SportBtnsRow>
 
           {/* Filtros avançados */}
           {showFilters && (

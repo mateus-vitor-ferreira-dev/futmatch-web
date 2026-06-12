@@ -57,7 +57,12 @@ export default function MainLayout({ children, user }) {
             <img src={iconUrl} alt="" height="32" style={{ display: 'block' }} />
           </LogoIcon>
           <LogoText>
-            <LogoName>Só+1</LogoName>
+            <img
+              src={logoUrl}
+              alt="Só+1"
+              height="26"
+              style={{ display: 'block', filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.3))' }}
+            />
             <LogoTagline>Encontre sua pelada</LogoTagline>
           </LogoText>
         </Logo>
