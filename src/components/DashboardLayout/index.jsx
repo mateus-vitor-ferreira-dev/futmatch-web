@@ -1,5 +1,7 @@
-import { Sun, Moon } from 'lucide-react'
+import { Sun, Moon, LayoutDashboard, Store } from 'lucide-react'
+import { useLocation } from 'react-router-dom'
 import { useThemeMode } from '../../contexts/ThemeContext'
+import iconUrl from '../../assets/icon-so-mais-um.svg'
 import {
   Shell, Sidebar, Logo, LogoIcon, LogoText, LogoName, LogoTagline,
   Divider, Nav, NavItem, NavBadge,
@@ -26,6 +28,14 @@ function getInitials(name = '') {
  *   children: React.ReactNode,
  * }} props
  */
+function getCrossPanel(role, pathname) {
+  if (role === 'ADMIN' && pathname.startsWith('/owner'))
+    return { to: '/admin', label: 'Painel Admin', Icon: LayoutDashboard }
+  if (role === 'ADMIN' && pathname.startsWith('/admin'))
+    return { to: '/owner', label: 'Painel Owner', Icon: Store }
+  return null
+}
+
 export default function DashboardLayout({
   user,
   navItems,
@@ -37,11 +47,16 @@ export default function DashboardLayout({
   children,
 }) {
   const { isDark, toggleTheme } = useThemeMode()
+  const { pathname } = useLocation()
+  const crossPanel = getCrossPanel(user?.role, pathname)
+
   return (
     <Shell>
       <Sidebar>
         <Logo>
-          <LogoIcon>⚽</LogoIcon>
+          <LogoIcon>
+            <img src={iconUrl} alt="" height="30" style={{ display: 'block' }} />
+          </LogoIcon>
           <LogoText>
             <LogoName>Só+1</LogoName>
             <LogoTagline accent={accent}>{tagline}</LogoTagline>
@@ -61,6 +76,16 @@ export default function DashboardLayout({
               </NavItem>
             </span>
           ))}
+
+          {crossPanel && (
+            <>
+              <Divider />
+              <NavItem to={crossPanel.to}>
+                <crossPanel.Icon size={18} />
+                {crossPanel.label}
+              </NavItem>
+            </>
+          )}
         </Nav>
 
         <ThemeToggleBtn onClick={toggleTheme} title={isDark ? 'Modo claro' : 'Modo escuro'}>
