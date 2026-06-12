@@ -22,26 +22,36 @@ function renderStars(count) {
   return '⭐'.repeat(Math.min(Math.max(count, 1), 5))
 }
 
+function formatDate(dateStr) {
+  return dateStr ? new Date(dateStr).toLocaleDateString('pt-BR') : ''
+}
+
 export default function Avaliacoes() {
   const { user } = useAuth()
-  const [summary, setSummary] = useState({})
-  const [reviews, setReviews] = useState([])
-  const [loading, setLoading] = useState(true)
+  const [summary, setSummary]           = useState({})
+  const [reviews, setReviews]           = useState([])
+  const [reviewsGiven, setReviewsGiven] = useState([])
+  const [loading, setLoading]           = useState(true)
 
   useEffect(() => {
-    const fetchReviews = async () => {
+    if (!user?.id) return
+    const fetch = async () => {
       try {
         setLoading(true)
-        const res = await playerService.getUserReviews(user.id)
-        setSummary(res.data?.summary || {})
-        setReviews(res.data?.reviews || [])
+        const [received, given] = await Promise.all([
+          playerService.getUserReviews(user.id),
+          playerService.getUserReviewsGiven(user.id),
+        ])
+        setSummary(received.data?.summary || {})
+        setReviews(received.data?.reviews || [])
+        setReviewsGiven(given.data || [])
       } catch (error) {
         console.error(error)
       } finally {
         setLoading(false)
       }
     }
-    if (user?.id) fetchReviews()
+    fetch()
   }, [user])
 
   const avgStars = summary.averageStars
@@ -61,6 +71,10 @@ export default function Avaliacoes() {
           <div className="stat-item">
             <h2>{summary.totalReviews ?? 0}</h2>
             <p>Avaliações Recebidas</p>
+          </div>
+          <div className="stat-item">
+            <h2>{reviewsGiven.length}</h2>
+            <p>Avaliações Feitas</p>
           </div>
         </StatsCard>
 
@@ -82,8 +96,9 @@ export default function Avaliacoes() {
               </Section>
             )}
 
+            {/* Avaliações recebidas */}
             <Section>
-              <h3>Histórico de Avaliações</h3>
+              <h3>Avaliações Recebidas</h3>
 
               {reviews.length === 0 ? (
                 <EmptyState>
@@ -104,9 +119,47 @@ export default function Avaliacoes() {
                             {review.pelada?.court?.place?.name && (
                               <>{review.pelada.court.place.name} &mdash; </>
                             )}
-                            {review.createdAt
-                              ? new Date(review.createdAt).toLocaleDateString('pt-BR')
-                              : ''}
+                            {formatDate(review.createdAt)}
+                          </div>
+                        </div>
+                        <div className="stars">{renderStars(review.stars)}</div>
+                      </ReviewHeader>
+
+                      <TagBadge>{TAG_LABELS[review.tag] || review.tag}</TagBadge>
+
+                      {review.comment && (
+                        <ReviewComment>"{review.comment}"</ReviewComment>
+                      )}
+                    </ReviewCard>
+                  ))}
+                </ReviewList>
+              )}
+            </Section>
+
+            {/* Avaliações feitas pelo usuário */}
+            <Section>
+              <h3>Avaliações que Fiz</h3>
+
+              {reviewsGiven.length === 0 ? (
+                <EmptyState>
+                  <p>Você ainda não avaliou nenhum jogador.</p>
+                  <p>Após uma pelada finalizada, avalie seus colegas de jogo!</p>
+                </EmptyState>
+              ) : (
+                <ReviewList>
+                  {reviewsGiven.map(review => (
+                    <ReviewCard key={review.id}>
+                      <ReviewHeader>
+                        <div className="avatar">
+                          {review.reviewed?.name?.charAt(0)?.toUpperCase()}
+                        </div>
+                        <div className="meta">
+                          <div className="reviewer-name">{review.reviewed?.name}</div>
+                          <div className="game-info">
+                            {review.pelada?.court?.place?.name && (
+                              <>{review.pelada.court.place.name} &mdash; </>
+                            )}
+                            {formatDate(review.createdAt)}
                           </div>
                         </div>
                         <div className="stars">{renderStars(review.stars)}</div>
