@@ -4,7 +4,7 @@ import { MapPin, Clock, Users, ChevronRight, Search, Zap } from 'lucide-react'
 import { useAuth } from '../../contexts/AuthContext'
 import { MainLayout } from '../../components'
 import { playerService } from '../../services/playerService'
-import { useSports } from '../../hooks/useSports'
+import { useSports, getSportMeta } from '../../hooks/useSports'
 import {
   PageWrapper,
   HeroBanner, HeroDecor1, HeroDecor2, HeroGreeting, HeroTitle, HeroSubtitle,
@@ -76,14 +76,10 @@ function getPricePerPlayer(event) {
   return (total / players).toFixed(0)
 }
 
-function getSportLabel(type, sports) {
-  return sports.find(s => s.id === type)?.label || type
-}
-
 export default function Home() {
   const { user } = useAuth()
   const navigate = useNavigate()
-  const { sports, tabs: sportTabs } = useSports()
+  const { tabs: sportTabs } = useSports()
   const SPORT_TABS = [ALL_TAB, ...sportTabs]
 
   const [events, setEvents] = useState([])
@@ -133,10 +129,10 @@ export default function Home() {
   const activeTab = SPORT_TABS.find(t => t.id === activeSport)
   const filteredEvents = activeSport === 'ALL'
     ? events
-    : events.filter(e => activeTab?.types?.includes(e.type))
+    : events.filter(e => activeTab?.types?.includes(e.court?.type))
 
   const sportCountMap = sportTabs.reduce((acc, tab) => {
-    acc[tab.id] = events.filter(e => tab.types?.includes(e.type)).length
+    acc[tab.id] = events.filter(e => tab.types?.includes(e.court?.type)).length
     return acc
   }, {})
 
@@ -225,7 +221,8 @@ export default function Home() {
                 const vagas = maxPlayers - participations
                 const pct = maxPlayers > 0 ? Math.round((participations / maxPlayers) * 100) : 0
                 const courtName = getCourtName(event)
-                const sportLabel = getSportLabel(event.type, sports)
+                const sport = getSportMeta(event.court?.type)
+                const sportLabel = sport.label
                 const address = getAddress(event)
                 const dateStr = getEventDateStr(event)
                 const pricePerPlayer = getPricePerPlayer(event)
@@ -233,7 +230,7 @@ export default function Home() {
                 return (
                   <GameCardWrapper key={event.id} onClick={() => navigate('/quero-jogar')}>
                     <CardTop>
-                      <CardCourtIcon>⚽</CardCourtIcon>
+                      <CardCourtIcon>{sport.icon}</CardCourtIcon>
                       <CardCourtInfo>
                         <CourtName>{courtName}</CourtName>
                         <SportBadge>{sportLabel}</SportBadge>
