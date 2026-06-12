@@ -42,6 +42,11 @@ export const playerService = {
     return data
   },
 
+  getUserReviewsGiven: async userId => {
+    const { data } = await api.get(`/users/${userId}/reviews/given`)
+    return data
+  },
+
   getEventParticipants: async (courtId, eventId) => {
     const { data } = await api.get(
       `/courts/${courtId}/events/${eventId}/participations`

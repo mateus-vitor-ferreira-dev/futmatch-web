@@ -5,7 +5,7 @@ const FALLBACK_SPORTS = [
   { id: 'SOCIETY',      label: 'Society',         icon: '⚽', group: 'FUTEBOL',      groupLabel: 'Futebol',      groupIcon: '⚽', groupOrder: 1 },
   { id: 'CAMPO',        label: 'Futebol de Campo', icon: '🏟️', group: 'FUTEBOL',      groupLabel: 'Futebol',      groupIcon: '⚽', groupOrder: 1 },
   { id: 'FUTSAL',       label: 'Futsal',           icon: '👟', group: 'FUTEBOL',      groupLabel: 'Futebol',      groupIcon: '⚽', groupOrder: 1 },
-  { id: 'AREIA',        label: 'Futevôlei',        icon: '🦵', group: 'FUTEVOLEI',    groupLabel: 'Futevôlei',    groupIcon: '🦵', groupOrder: 2 },
+  { id: 'AREIA',        label: 'Futevôlei',        icon: '🟡', group: 'FUTEVOLEI',    groupLabel: 'Futevôlei',    groupIcon: '🟡', groupOrder: 2 },
   { id: 'VOLEI',        label: 'Vôlei',            icon: '🏐', group: 'VOLEI',        groupLabel: 'Vôlei',        groupIcon: '🏐', groupOrder: 3 },
   { id: 'VOLEI_AREIA',  label: 'Vôlei de Areia',   icon: '🏖️', group: 'VOLEI',        groupLabel: 'Vôlei',        groupIcon: '🏐', groupOrder: 3 },
   { id: 'HANDBALL',     label: 'Handebol',         icon: '🤾', group: 'HANDBALL',     groupLabel: 'Handebol',     groupIcon: '🤾', groupOrder: 4 },
