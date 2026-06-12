@@ -103,6 +103,7 @@ export default function QueroJogar() {
   })
 
   const activeFilterCount = [
+    selectedSport,
     filterTime,
     filterMaxPrice < MAX_PRICE ? String(filterMaxPrice) : '',
     filterArena,
@@ -111,6 +112,7 @@ export default function QueroJogar() {
   ].filter(Boolean).length
 
   function clearFilters() {
+    setSelectedSport('')
     setFilterTime('')
     setFilterMaxPrice(MAX_PRICE)
     setFilterArena('')
@@ -174,6 +176,19 @@ export default function QueroJogar() {
           {showFilters && (
             <AdvancedFilters>
               <FilterRow>
+                <FilterGroup>
+                  <FilterLabel>Modalidade</FilterLabel>
+                  <FilterSelect
+                    value={selectedSport}
+                    onChange={e => setSelectedSport(e.target.value)}
+                  >
+                    <option value="">Todas as modalidades</option>
+                    {sportTabs.map(tab => (
+                      <option key={tab.id} value={tab.id}>{tab.icon} {tab.label}</option>
+                    ))}
+                  </FilterSelect>
+                </FilterGroup>
+
                 <FilterGroup>
                   <FilterLabel>Horário</FilterLabel>
                   <ChipsContainer style={{ paddingBottom: 0 }}>
