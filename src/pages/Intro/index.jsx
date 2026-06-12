@@ -2,7 +2,7 @@ import { useEffect, useRef } from 'react'
 import { gsap } from 'gsap'
 import { Wrapper, TitleRow, Letter, Ball, FadeOverlay } from './styles'
 
-const LETTERS = ['F', 'u', 't', 'M', 'a', 't', 'c', 'h']
+const LETTERS = ['S', 'ó', '+', '1']
 
 export default function Intro({ onComplete }) {
   const wrapperRef  = useRef()

@@ -193,11 +193,26 @@ export const RightPanel = styled.div`
   align-items: center;
   justify-content: center;
   padding: 32px 20px;
-  background: ${({ theme }) => theme.colors.bgPage};
   min-height: 100vh;
   position: sticky;
   top: 0;
   align-self: flex-start;
+  background-color: #0f172a;
+  background-image:
+    repeating-linear-gradient(
+      45deg,
+      transparent 0px,
+      transparent 18px,
+      rgba(255, 255, 255, 0.04) 18px,
+      rgba(255, 255, 255, 0.04) 19px
+    ),
+    repeating-linear-gradient(
+      -45deg,
+      transparent 0px,
+      transparent 18px,
+      rgba(255, 255, 255, 0.04) 18px,
+      rgba(255, 255, 255, 0.04) 19px
+    );
 `
 
 export const Card = styled.div`
