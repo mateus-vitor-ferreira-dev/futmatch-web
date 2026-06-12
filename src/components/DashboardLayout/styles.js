@@ -32,14 +32,13 @@ export const Logo = styled.div`
 `
 
 export const LogoIcon = styled.div`
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
-  background: ${({ theme }) => theme.colors.primary};
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  background: #3BAA34;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 18px;
   flex-shrink: 0;
 `
 
