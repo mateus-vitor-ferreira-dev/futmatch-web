@@ -7,7 +7,7 @@ import { Container, Grid, Card, PlanHighlight, RowList, PrimaryButton, Badge } f
 
 // Navegação exata do Owner
 const OWNER_NAV_ITEMS = [
-  { to: '/owner',          label: 'Visão Geral',        icon: LayoutDashboard },
+  { to: '/owner',          label: 'Visão Geral',        icon: LayoutDashboard, end: true },
   { to: '/owner/requests', label: 'Solicitações',       icon: ClipboardList   },
   { to: '/owner/places',   label: 'Estabelecimentos',   icon: Building2       },
   { to: '/home',           label: 'Área do Jogador',    icon: Home, divider: true },

@@ -1,10 +1,10 @@
 import { useState, useEffect } from 'react'
-import { Home, Search, ClipboardList, History, User, Plus, Trophy, Menu, Star, Sun, Moon } from 'lucide-react'
+import { Home, Search, ClipboardList, History, User, Plus, Trophy, Menu, Star, Sun, Moon, LayoutDashboard, Store } from 'lucide-react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { useThemeMode } from '../../contexts/ThemeContext'
 import {
   AppShell, Overlay, Sidebar, Logo, LogoIcon, LogoText, LogoName, LogoTagline,
-  Nav, NavItem, UserCard, Avatar, UserInfo, UserName, UserBadge,
+  Nav, NavItem, NavDivider, UserCard, Avatar, UserInfo, UserName, UserBadge,
   ContentWrapper, MobileTopbar, HamburgerBtn, TopbarLogoName, Content,
   ThemeToggleBtn,
 } from './styles'
@@ -19,6 +19,12 @@ const NAV_ITEMS = [
   { to: '/avaliacoes',     label: 'Avaliações',      icon: Star          },
   { to: '/perfil',         label: 'Perfil',          icon: User          },
 ]
+
+function getPanelLink(role) {
+  if (role === 'ADMIN')  return { to: '/admin', label: 'Painel Admin',  icon: LayoutDashboard }
+  if (role === 'OWNER')  return { to: '/owner', label: 'Painel Owner',  icon: Store }
+  return null
+}
 
 function getInitials(name = '') {
   return name
@@ -59,6 +65,19 @@ export default function MainLayout({ children, user }) {
               {label}
             </NavItem>
           ))}
+
+          {getPanelLink(user?.role) && (() => {
+            const { to, label, icon: Icon } = getPanelLink(user.role)
+            return (
+              <>
+                <NavDivider />
+                <NavItem to={to}>
+                  <Icon />
+                  {label}
+                </NavItem>
+              </>
+            )
+          })()}
         </Nav>
 
         <ThemeToggleBtn
