@@ -236,6 +236,12 @@ export const ThemeToggleBtn = styled.button`
   }
 `
 
+export const NavDivider = styled.div`
+  height: 1px;
+  background: ${({ theme }) => theme.colors.border};
+  margin: 8px 4px;
+`
+
 // ── Main content ─────────────────────────────────────────────────────────────
 
 export const Content = styled.main`
