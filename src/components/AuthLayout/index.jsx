@@ -21,6 +21,7 @@ import imgPeteca      from '../../assets/sports/peteca.png'
 import imgBeachTennis from '../../assets/sports/beach_tennis.webp'
 import imgBasquete    from '../../assets/sports/basquete.jpg'
 import imgTenis       from '../../assets/sports/tenis.jpg'
+import imgPoker       from '../../assets/sports/poker.jpg'
 
 /** Mapa de id do esporte → imagem de fundo correspondente */
 const SPORT_IMAGES = {
@@ -35,7 +36,7 @@ const SPORT_IMAGES = {
   BEACH_TENNIS: imgBeachTennis,
   BASQUETE:     imgBasquete,
   TENIS:        imgTenis,
-  POKER:        'radial-gradient(ellipse at 50% 20%, #2d6a4f 0%, #1b4332 55%, #0a2218 100%)',
+  POKER:        imgPoker,
 }
 
 /** Altura de cada item na roda de modalidades (px) */
