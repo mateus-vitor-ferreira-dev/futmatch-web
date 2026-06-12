@@ -61,7 +61,7 @@ function AutoFit({ locations }) {
     }
 
     fittedRef.current = true
-  }, [locations.length])
+  }, [locations, map])
 
   return null
 }

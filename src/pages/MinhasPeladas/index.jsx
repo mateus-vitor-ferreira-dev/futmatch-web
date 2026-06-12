@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useForm } from 'react-hook-form'
 import { useSearchParams } from 'react-router-dom'
 import { Calendar, Clock, Copy, Plus, Shuffle } from 'lucide-react'
@@ -25,8 +25,8 @@ export default function MinhasPeladas() {
   const [events, setEvents] = useState([])
   const [loading, setLoading] = useState(true)
 
-  // Modal criar jogo
-  const [isModalOpen, setIsModalOpen] = useState(false)
+  // Modal criar jogo — inicializa a partir da URL para evitar flash
+  const [isModalOpen, setIsModalOpen] = useState(() => searchParams.get('action') === 'criar')
   const [courts, setCourts] = useState([])
 
   // Sorteio
@@ -37,14 +37,14 @@ export default function MinhasPeladas() {
 
   const { register, handleSubmit, reset } = useForm()
 
+  // Limpa o ?action=criar da URL após abrir o modal
   useEffect(() => {
     if (searchParams.get('action') === 'criar') {
-      setIsModalOpen(true)
       setSearchParams({}, { replace: true })
     }
-  }, [])
+  }, [searchParams, setSearchParams])
 
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     try {
       setLoading(true)
       const res = activeTab === 'participating'
@@ -56,7 +56,7 @@ export default function MinhasPeladas() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [activeTab])
 
   const fetchCourts = async () => {
     try {
@@ -67,7 +67,7 @@ export default function MinhasPeladas() {
     }
   }
 
-  useEffect(() => { fetchData() }, [activeTab])
+  useEffect(() => { fetchData() }, [fetchData])
   useEffect(() => { if (isModalOpen) fetchCourts() }, [isModalOpen])
 
   const onSubmit = async (data) => {
