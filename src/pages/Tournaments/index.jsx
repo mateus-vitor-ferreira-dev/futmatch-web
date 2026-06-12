@@ -1,9 +1,10 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback, useMemo } from 'react'
 import { Plus, MapPin, Calendar, Users, Trophy, X } from 'lucide-react'
 import { useForm } from 'react-hook-form'
 import { yupResolver } from '@hookform/resolvers/yup'
 import * as yup from 'yup'
 import { useAuth } from '../../contexts/AuthContext'
+import { useSports } from '../../hooks/useSports'
 import { MainLayout } from '../../components'
 import TournamentBracket from '../../components/TournamentBracket'
 import { listTournaments, createTournament } from '../../services/tournaments'
@@ -36,20 +37,6 @@ const STATUS_LABELS = {
   CANCELLED:           'Cancelado',
 }
 
-const SPORT_LABELS = {
-  SOCIETY:      '⚽ Society',
-  CAMPO:        '🏟️ Campo',
-  FUTSAL:       '🥅 Futsal',
-  AREIA:        '🏖️ Areia',
-  VOLEI:        '🏐 Vôlei',
-  VOLEI_AREIA:  '🌊 Vôlei de Praia',
-  HANDBALL:     '🤾 Handebol',
-  PETECA:       '🏸 Peteca',
-  BEACH_TENNIS: '🎾 Beach Tennis',
-  BASQUETE:     '🏀 Basquete',
-  TENIS:        '🎾 Tênis',
-}
-
 const FORMATS = [
   { value: 'KNOCKOUT',              label: 'Eliminatório Simples' },
   { value: 'LEAGUE',                label: 'Pontos Corridos' },
@@ -58,7 +45,6 @@ const FORMATS = [
   { value: 'SWISS',                 label: 'Sistema Suíço' },
 ]
 
-const SPORTS = Object.entries(SPORT_LABELS).map(([value, label]) => ({ value, label }))
 
 const schema = yup.object({
   name:          yup.string().required('Informe o nome do torneio'),
@@ -79,7 +65,17 @@ function formatDate(dateStr) {
 
 export default function Tournaments() {
   const { user }     = useAuth()
+  const { sports }   = useSports()
   const canCreate    = user?.role === 'OWNER' || user?.role === 'ADMIN'
+
+  const sportLabels = useMemo(() =>
+    Object.fromEntries(sports.map(s => [s.id, `${s.icon} ${s.label}`])),
+    [sports]
+  )
+  const sportOptions = useMemo(() =>
+    sports.map(s => ({ value: s.id, label: `${s.icon} ${s.label}` })),
+    [sports]
+  )
 
   const [tournaments, setTournaments]   = useState([])
   const [loading, setLoading]           = useState(true)
@@ -95,7 +91,7 @@ export default function Tournaments() {
     formState: { errors },
   } = useForm({ resolver: yupResolver(schema) })
 
-  const fetchTournaments = async () => {
+  const fetchTournaments = useCallback(async () => {
     try {
       setLoading(true)
       const res = await listTournaments(statusFilter ? { status: statusFilter } : {})
@@ -105,9 +101,9 @@ export default function Tournaments() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [statusFilter])
 
-  useEffect(() => { fetchTournaments() }, [statusFilter])
+  useEffect(() => { fetchTournaments() }, [fetchTournaments])
 
   useEffect(() => {
     if (!showModal) return
@@ -198,7 +194,7 @@ export default function Tournaments() {
               <TournamentCard key={t.id}>
                 <CardTop>
                   <TournamentName>
-                    {SPORT_LABELS[t.sportType] ?? t.sportType} {t.name}
+                    {sportLabels[t.sportType] ?? t.sportType} {t.name}
                   </TournamentName>
                   <StatusBadge $status={t.status}>
                     {STATUS_LABELS[t.status] ?? t.status}
@@ -268,7 +264,7 @@ export default function Tournaments() {
                   <Label>Modalidade *</Label>
                   <Select {...register('sportType')} $error={!!errors.sportType}>
                     <option value="">Selecione...</option>
-                    {SPORTS.map((s) => (
+                    {sportOptions.map((s) => (
                       <option key={s.value} value={s.value}>{s.label}</option>
                     ))}
                   </Select>

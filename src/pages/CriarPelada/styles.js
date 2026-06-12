@@ -306,3 +306,109 @@ export const SecondaryBtn = styled.button`
     color: ${({ theme }) => theme.colors.primary};
   }
 `
+
+export const SportChipsGrid = styled.div`
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 12px;
+  margin-bottom: 20px;
+`
+
+export const SportChip = styled.button`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 20px 12px;
+  border-radius: ${({ theme }) => theme.radii.lg};
+  border: 2px solid ${({ theme }) => theme.colors.border};
+  background: ${({ theme }) => theme.colors.bgCard};
+  color: ${({ theme }) => theme.colors.textPrimary};
+  font-size: ${({ theme }) => theme.fontSizes.sm};
+  font-weight: ${({ theme }) => theme.fontWeights.medium};
+  cursor: pointer;
+  transition: all 0.15s;
+
+  span {
+    font-size: 1.8rem;
+    line-height: 1;
+  }
+
+  &:hover {
+    border-color: ${({ theme }) => theme.colors.primary};
+    background: ${({ theme }) => theme.colors.primarySubtle};
+    color: ${({ theme }) => theme.colors.primary};
+  }
+`
+
+export const PlacesGrid = styled.div`
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 12px;
+  margin-bottom: 20px;
+`
+
+export const PlaceCard = styled.div`
+  border: 2px solid ${({ theme }) => theme.colors.border};
+  border-radius: ${({ theme }) => theme.radii.md};
+  padding: 16px;
+  cursor: pointer;
+  background: ${({ theme }) => theme.colors.bgCard};
+  transition: all 0.15s;
+
+  &:hover {
+    border-color: ${({ theme }) => theme.colors.primary};
+    background: ${({ theme }) => theme.colors.primarySubtle};
+  }
+`
+
+export const PlaceName = styled.div`
+  font-size: ${({ theme }) => theme.fontSizes.sm};
+  font-weight: ${({ theme }) => theme.fontWeights.semibold};
+  color: ${({ theme }) => theme.colors.textPrimary};
+  margin-bottom: 4px;
+`
+
+export const PlaceAddress = styled.div`
+  font-size: ${({ theme }) => theme.fontSizes.xs};
+  color: ${({ theme }) => theme.colors.textSecondary};
+  margin-bottom: 8px;
+`
+
+export const PlaceCourtCount = styled.div`
+  font-size: ${({ theme }) => theme.fontSizes.xs};
+  font-weight: ${({ theme }) => theme.fontWeights.medium};
+  color: ${({ theme }) => theme.colors.primary};
+`
+
+export const BreadcrumbBar = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+`
+
+export const BreadcrumbTag = styled.button`
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  border-radius: ${({ theme }) => theme.radii.full};
+  border: 1px solid ${({ theme }) => theme.colors.primary};
+  background: ${({ theme }) => theme.colors.primarySubtle};
+  color: ${({ theme }) => theme.colors.primary};
+  font-size: ${({ theme }) => theme.fontSizes.xs};
+  font-weight: ${({ theme }) => theme.fontWeights.medium};
+  cursor: pointer;
+  transition: all 0.15s;
+
+  &:hover {
+    background: ${({ theme }) => theme.colors.primaryLight};
+  }
+`
+
+export const BreadcrumbSep = styled.span`
+  color: ${({ theme }) => theme.colors.textMuted};
+  font-size: ${({ theme }) => theme.fontSizes.sm};
+`
