@@ -51,34 +51,37 @@ export const Logo = styled.div`
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 10px 12px;
+  padding: 0 8px;
   margin-bottom: 32px;
-  background: #3BAA34;
-  border-radius: 12px;
 `
 
 export const LogoIcon = styled.div`
+  width: 44px;
+  height: 44px;
+  background: #3BAA34;
+  border-radius: 10px;
   display: flex;
   align-items: center;
+  justify-content: center;
   flex-shrink: 0;
 `
 
 export const LogoText = styled.div`
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 1px;
 `
 
 export const LogoName = styled.span`
   font-size: ${({ theme }) => theme.fontSizes.lg};
   font-weight: ${({ theme }) => theme.fontWeights.bold};
-  color: #fff;
+  color: ${({ theme }) => theme.colors.textPrimary};
   line-height: 1.2;
 `
 
 export const LogoTagline = styled.span`
   font-size: ${({ theme }) => theme.fontSizes.xs};
-  color: rgba(255, 255, 255, 0.7);
+  color: ${({ theme }) => theme.colors.textMuted};
 `
 
 export const Nav = styled.nav`
@@ -214,6 +217,8 @@ export const HamburgerBtn = styled.button`
 `
 
 export const TopbarLogoName = styled.span`
+  display: flex;
+  align-items: center;
   font-size: 1rem;
   font-weight: 700;
   color: ${({ theme }) => theme.colors.textPrimary};

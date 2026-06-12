@@ -54,10 +54,10 @@ export default function MainLayout({ children, user }) {
       <Sidebar $open={sidebarOpen}>
         <Logo>
           <LogoIcon>
-            <img src={iconUrl} alt="" height="40" style={{ display: 'block' }} />
+            <img src={iconUrl} alt="" height="32" style={{ display: 'block' }} />
           </LogoIcon>
           <LogoText>
-            <img src={logoUrl} alt="Só+1" height="30" style={{ display: 'block' }} />
+            <LogoName>Só+1</LogoName>
             <LogoTagline>Encontre sua pelada</LogoTagline>
           </LogoText>
         </Logo>
@@ -109,8 +109,10 @@ export default function MainLayout({ children, user }) {
             <Menu size={20} />
           </HamburgerBtn>
           <TopbarLogoName>
-            <img src={iconUrl} alt="" height="28" style={{ display: 'inline-block', verticalAlign: 'middle', marginRight: 6 }} />
-            <img src={logoUrl} alt="Só+1" height="22" style={{ display: 'inline-block', verticalAlign: 'middle' }} />
+            <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', background: '#3BAA34', borderRadius: 8, width: 32, height: 32, marginRight: 8, verticalAlign: 'middle', flexShrink: 0 }}>
+              <img src={iconUrl} alt="" height="22" style={{ display: 'block' }} />
+            </span>
+            Só+1
           </TopbarLogoName>
           <ThemeToggleBtn
             onClick={toggleTheme}
