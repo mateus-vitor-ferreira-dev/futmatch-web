@@ -1,8 +1,11 @@
-# ⚽ FutMatch Web
+# Só+1 — Web App
 
-Interface web do **FutMatch** — plataforma para organização de peladas amadoras.
+![CI](https://github.com/mateus-vitor-ferreira-dev/so-mais-um-web/actions/workflows/ci-cd.yml/badge.svg)
 
-**Deploy:** https://futmatch-web.vercel.app
+Interface web do **Só+1** — plataforma para organização de eventos esportivos amadores.
+
+**App:** https://app.so-mais-um.com  
+**API:** https://futmatch-api-production.up.railway.app
 
 ## Stack
 
@@ -19,14 +22,15 @@ Interface web do **FutMatch** — plataforma para organização de peladas amado
 ## Pré-requisitos
 
 - **Node.js 20+** — https://nodejs.org
-- **FutMatch API** rodando em `http://localhost:3000`
+- **API do Só+1** rodando em `http://localhost:3000`
+
 
 ## Instalação e configuração
 
 ```bash
 # 1. Clonar
-git clone https://github.com/mateus-vitor-ferreira-dev/futmatch-web.git
-cd futmatch-web
+git clone https://github.com/mateus-vitor-ferreira-dev/so-mais-um-web.git
+cd so-mais-um-web
 
 # 2. Instalar dependências
 npm install

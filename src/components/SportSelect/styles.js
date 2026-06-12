@@ -11,7 +11,7 @@ export const Trigger = styled.button.attrs({ type: 'button' })`
   padding: 6px 10px;
   border: 1.5px solid ${({ $open, theme }) => $open ? theme.colors.primary : theme.colors.border};
   border-radius: ${({ theme }) => theme.radii.md};
-  background: #fff;
+  background: ${({ theme }) => theme.colors.bgInput};
   text-align: left;
   cursor: pointer;
   display: flex;
@@ -63,7 +63,7 @@ export const Dropdown = styled.div`
   top: calc(100% + 6px);
   left: 0;
   right: 0;
-  background: #fff;
+  background: ${({ theme }) => theme.colors.bgCard};
   border: 1.5px solid ${({ theme }) => theme.colors.border};
   border-radius: ${({ theme }) => theme.radii.md};
   box-shadow: ${({ theme }) => theme.shadows.lg};
@@ -100,7 +100,7 @@ export const Checkbox = styled.span`
   height: 16px;
   border-radius: 4px;
   border: 1.5px solid ${({ $checked, theme }) => $checked ? theme.colors.primary : theme.colors.border};
-  background: ${({ $checked, theme }) => $checked ? theme.colors.primary : '#fff'};
+  background: ${({ $checked, theme }) => $checked ? theme.colors.primary : theme.colors.bgInput};
   display: flex;
   align-items: center;
   justify-content: center;

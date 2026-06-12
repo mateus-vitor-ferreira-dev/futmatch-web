@@ -6,6 +6,8 @@
  *   VITE_GOOGLE_CLIENT_ID  — Client ID do Google OAuth
  */
 export const env = {
-  apiUrl:         import.meta.env.VITE_API_URL          || 'http://localhost:3000',
-  googleClientId: import.meta.env.VITE_GOOGLE_CLIENT_ID || '',
+  apiUrl:           import.meta.env.VITE_API_URL                 || 'http://localhost:3000',
+  googleClientId:   import.meta.env.VITE_GOOGLE_CLIENT_ID        || '',
+  cloudinaryCloud:  import.meta.env.VITE_CLOUDINARY_CLOUD_NAME   || '',
+  cloudinaryPreset: import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET || '',
 }

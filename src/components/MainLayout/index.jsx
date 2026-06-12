@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react'
-import { Home, Search, ClipboardList, History, User, Plus, Trophy, Menu, Star } from 'lucide-react'
+import { Home, Search, ClipboardList, History, User, Plus, Trophy, Menu, Star, Sun, Moon, LayoutDashboard, Store } from 'lucide-react'
 import { useNavigate, useLocation } from 'react-router-dom'
+import { useThemeMode } from '../../contexts/ThemeContext'
 import {
   AppShell, Overlay, Sidebar, Logo, LogoIcon, LogoText, LogoName, LogoTagline,
-  Nav, NavItem, UserCard, Avatar, UserInfo, UserName, UserBadge,
+  Nav, NavItem, NavDivider, UserCard, Avatar, UserInfo, UserName, UserBadge,
   ContentWrapper, MobileTopbar, HamburgerBtn, TopbarLogoName, Content,
+  ThemeToggleBtn,
 } from './styles'
 
 const NAV_ITEMS = [
@@ -17,6 +19,12 @@ const NAV_ITEMS = [
   { to: '/avaliacoes',     label: 'Avaliações',      icon: Star          },
   { to: '/perfil',         label: 'Perfil',          icon: User          },
 ]
+
+function getPanelLink(role) {
+  if (role === 'ADMIN')  return { to: '/admin', label: 'Painel Admin',  icon: LayoutDashboard }
+  if (role === 'OWNER')  return { to: '/owner', label: 'Painel Owner',  icon: Store }
+  return null
+}
 
 function getInitials(name = '') {
   return name
@@ -31,8 +39,8 @@ export default function MainLayout({ children, user }) {
   const location = useLocation()
   const initials = getInitials(user?.name)
   const [sidebarOpen, setSidebarOpen] = useState(false)
+  const { isDark, toggleTheme } = useThemeMode()
 
-  // Fecha a sidebar ao navegar (mobile)
   useEffect(() => {
     setSidebarOpen(false)
   }, [location.pathname])
@@ -45,7 +53,7 @@ export default function MainLayout({ children, user }) {
         <Logo>
           <LogoIcon>⚽</LogoIcon>
           <LogoText>
-            <LogoName>FutMatch</LogoName>
+            <LogoName>Só+1</LogoName>
             <LogoTagline>Encontre sua pelada</LogoTagline>
           </LogoText>
         </Logo>
@@ -57,7 +65,28 @@ export default function MainLayout({ children, user }) {
               {label}
             </NavItem>
           ))}
+
+          {getPanelLink(user?.role) && (() => {
+            const { to, label, icon: Icon } = getPanelLink(user.role)
+            return (
+              <>
+                <NavDivider />
+                <NavItem to={to}>
+                  <Icon />
+                  {label}
+                </NavItem>
+              </>
+            )
+          })()}
         </Nav>
+
+        <ThemeToggleBtn
+          onClick={toggleTheme}
+          title={isDark ? 'Mudar para tema claro' : 'Mudar para tema escuro'}
+          style={{ margin: '8px 4px 4px' }}
+        >
+          {isDark ? <Sun size={18} /> : <Moon size={18} />}
+        </ThemeToggleBtn>
 
         {user && (
           <UserCard onClick={() => navigate('/perfil')}>
@@ -75,7 +104,14 @@ export default function MainLayout({ children, user }) {
           <HamburgerBtn onClick={() => setSidebarOpen(true)} aria-label="Abrir menu">
             <Menu size={20} />
           </HamburgerBtn>
-          <TopbarLogoName>FutMatch</TopbarLogoName>
+          <TopbarLogoName>Só+1</TopbarLogoName>
+          <ThemeToggleBtn
+            onClick={toggleTheme}
+            style={{ marginLeft: 'auto' }}
+            title={isDark ? 'Mudar para tema claro' : 'Mudar para tema escuro'}
+          >
+            {isDark ? <Sun size={18} /> : <Moon size={18} />}
+          </ThemeToggleBtn>
         </MobileTopbar>
 
         <Content>{children}</Content>

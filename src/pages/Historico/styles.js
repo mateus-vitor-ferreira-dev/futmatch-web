@@ -87,7 +87,7 @@ export const EvalModalOverlay = styled.div`
 `
 
 export const EvalModalContent = styled.div`
-  background: white;
+  background: ${({ theme }) => theme.colors.bgCard};
   padding: ${({ theme }) => theme.spacing[6]};
   border-radius: ${({ theme }) => theme.radii.xl};
   width: 100%;
@@ -186,7 +186,9 @@ export const ParticipantRow = styled.div`
     select {
       padding: 4px;
       border-radius: 4px;
-      border: 1px solid #ccc;
+      border: 1px solid ${({ theme }) => theme.colors.border};
+      background: ${({ theme }) => theme.colors.bgInput};
+      color: ${({ theme }) => theme.colors.textPrimary};
     }
   }
 `

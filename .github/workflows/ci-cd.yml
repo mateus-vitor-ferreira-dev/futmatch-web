@@ -64,6 +64,9 @@ jobs:
           fi
 
       - name: Build project artifacts
+        env:
+          VITE_API_URL: https://futmatch-api-production.up.railway.app
+          VITE_GOOGLE_CLIENT_ID: 446784228326-i78g3nfnmdvpgoqt6bmdgr43hc756p13.apps.googleusercontent.com
         run: |
           if [ "${{ github.ref }}" = "refs/heads/main" ]; then
             npx vercel build --prod --token=$VERCEL_TOKEN

@@ -31,7 +31,7 @@ export const FiltersArea = styled.div`
 export const SearchInput = styled.div`
   display: flex;
   align-items: center;
-  background: ${({ theme }) => theme.colors.white};
+  background: ${({ theme }) => theme.colors.bgCard};
   border: 1px solid ${({ theme }) => theme.colors.border};
   border-radius: ${({ theme }) => theme.radii.lg};
   padding: 0 ${({ theme }) => theme.spacing[4]};
@@ -64,9 +64,9 @@ export const ChipsContainer = styled.div`
 
 export const Chip = styled.button`
   background: ${({ theme, $active }) =>
-    $active ? theme.colors.primary : theme.colors.white};
+    $active ? theme.colors.primary : theme.colors.bgCard};
   color: ${({ theme, $active }) =>
-    $active ? theme.colors.white : theme.colors.textSecondary};
+    $active ? theme.colors.bgCard : theme.colors.textSecondary};
   border: 1px solid
     ${({ theme, $active }) =>
       $active ? theme.colors.primary : theme.colors.border};
@@ -106,7 +106,7 @@ export const ToggleBtn = styled.button`
   gap: 6px;
   padding: 8px 14px;
   border: none;
-  background: ${({ $active, theme }) => $active ? theme.colors.primary : 'white'};
+  background: ${({ $active, theme }) => $active ? theme.colors.primary : theme.colors.bgCard};
   color: ${({ $active, theme }) => $active ? 'white' : theme.colors.textSecondary};
   font-size: ${({ theme }) => theme.fontSizes.sm};
   font-weight: ${({ theme }) => theme.fontWeights.medium};
@@ -232,6 +232,190 @@ export const PriceInfo = styled.div`
   margin-top: auto;
 `
 
+export const FiltersBtn = styled.button`
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 ${({ theme }) => theme.spacing[4]};
+  height: 46px;
+  border-radius: ${({ theme }) => theme.radii.lg};
+  border: 1px solid ${({ $active, theme }) => $active ? theme.colors.primary : theme.colors.border};
+  background: ${({ $active, theme }) => $active ? theme.colors.primarySubtle : theme.colors.bgCard};
+  color: ${({ $active, theme }) => $active ? theme.colors.primary : theme.colors.textSecondary};
+  font-size: ${({ theme }) => theme.fontSizes.sm};
+  font-weight: ${({ theme }) => theme.fontWeights.medium};
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.2s;
+  font-family: ${({ theme }) => theme.fonts.sans};
+
+  &:hover {
+    border-color: ${({ theme }) => theme.colors.primary};
+    color: ${({ theme }) => theme.colors.primary};
+  }
+`
+
+export const ActiveFilterBadge = styled.span`
+  background: ${({ theme }) => theme.colors.primary};
+  color: white;
+  font-size: 11px;
+  font-weight: 700;
+  border-radius: 999px;
+  min-width: 18px;
+  height: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 4px;
+`
+
+export const AdvancedFilters = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: ${({ theme }) => theme.spacing[4]};
+  padding: ${({ theme }) => theme.spacing[4]};
+  background: ${({ theme }) => theme.colors.bgPage || '#f9fafb'};
+  border-radius: ${({ theme }) => theme.radii.lg};
+  border: 1px solid ${({ theme }) => theme.colors.border};
+`
+
+export const FilterRow = styled.div`
+  display: flex;
+  flex-wrap: wrap;
+  gap: ${({ theme }) => theme.spacing[4]};
+  align-items: flex-end;
+`
+
+export const FilterGroup = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: ${({ theme }) => theme.spacing[2]};
+`
+
+export const FilterLabel = styled.span`
+  font-size: ${({ theme }) => theme.fontSizes.xs};
+  font-weight: ${({ theme }) => theme.fontWeights.semibold};
+  color: ${({ theme }) => theme.colors.textSecondary};
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+`
+
+export const FilterSelect = styled.select`
+  padding: ${({ theme }) => theme.spacing[2]} ${({ theme }) => theme.spacing[3]};
+  border: 1px solid ${({ theme }) => theme.colors.border};
+  border-radius: ${({ theme }) => theme.radii.md};
+  background: ${({ theme }) => theme.colors.bgCard};
+  font-size: ${({ theme }) => theme.fontSizes.sm};
+  color: ${({ theme }) => theme.colors.textPrimary};
+  font-family: ${({ theme }) => theme.fonts.sans};
+  cursor: pointer;
+  min-width: 180px;
+
+  &:focus {
+    outline: none;
+    border-color: ${({ theme }) => theme.colors.primary};
+  }
+`
+
+export const FilterToggle = styled.button`
+  display: flex;
+  align-items: center;
+  gap: ${({ theme }) => theme.spacing[2]};
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: ${({ theme }) => theme.fontSizes.sm};
+  color: ${({ $active, theme }) => $active ? theme.colors.primary : theme.colors.textSecondary};
+  font-family: ${({ theme }) => theme.fonts.sans};
+  font-weight: ${({ theme }) => theme.fontWeights.medium};
+  padding: ${({ theme }) => theme.spacing[2]} 0;
+
+  .toggle-track {
+    width: 36px;
+    height: 20px;
+    border-radius: 999px;
+    background: ${({ $active, theme }) => $active ? theme.colors.primary : theme.colors.border};
+    position: relative;
+    transition: background 0.2s;
+    flex-shrink: 0;
+  }
+
+  .toggle-thumb {
+    position: absolute;
+    top: 2px;
+    left: ${({ $active }) => $active ? '18px' : '2px'};
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: white;
+    transition: left 0.2s;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+  }
+`
+
+export const PriceSliderWrapper = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 220px;
+
+  span {
+    font-size: ${({ theme }) => theme.fontSizes.xs};
+    color: ${({ theme }) => theme.colors.textSecondary};
+    font-weight: ${({ theme }) => theme.fontWeights.medium};
+  }
+
+  input[type='range'] {
+    -webkit-appearance: none;
+    width: 100%;
+    height: 4px;
+    border-radius: 999px;
+    background: ${({ theme, $pct }) =>
+      `linear-gradient(to right, ${theme.colors.primary} ${$pct}%, ${theme.colors.border} ${$pct}%)`};
+    cursor: pointer;
+    outline: none;
+    border: none;
+
+    &::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: ${({ theme }) => theme.colors.primary};
+      cursor: pointer;
+      border: 2px solid ${({ theme }) => theme.colors.bgCard};
+      box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+    }
+
+    &::-moz-range-thumb {
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: ${({ theme }) => theme.colors.primary};
+      cursor: pointer;
+      border: 2px solid ${({ theme }) => theme.colors.bgCard};
+      box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+    }
+  }
+`
+
+export const ClearBtn = styled.button`
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: none;
+  border: none;
+  color: ${({ theme }) => theme.colors.error || '#ef4444'};
+  font-size: ${({ theme }) => theme.fontSizes.sm};
+  font-family: ${({ theme }) => theme.fonts.sans};
+  cursor: pointer;
+  padding: ${({ theme }) => theme.spacing[2]} 0;
+  margin-left: auto;
+  font-weight: ${({ theme }) => theme.fontWeights.medium};
+
+  &:hover { text-decoration: underline; }
+`
+
 export const ActionButton = styled.button`
   width: 100%;
   padding: ${({ theme }) => theme.spacing[3]};
@@ -257,7 +441,7 @@ export const ActionButton = styled.button`
       ? theme.colors.primaryDark
       : disabled
         ? theme.colors.textMuted
-        : theme.colors.white};
+        : theme.colors.bgCard};
 
   border: 1px solid
     ${({ theme, $isJoined }) =>

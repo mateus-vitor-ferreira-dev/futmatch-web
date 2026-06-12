@@ -120,6 +120,33 @@ export const NavBadge = styled.span`
   padding: 0 5px;
 `
 
+// ── Theme toggle ──────────────────────────────────────────────────────────────
+
+export const ThemeToggleBtn = styled.button`
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 8px 12px;
+  border: none;
+  border-radius: ${({ theme }) => theme.radii.md};
+  background: transparent;
+  color: ${({ theme }) => theme.colors.textSecondary};
+  font-size: ${({ theme }) => theme.fontSizes.sm};
+  font-weight: ${({ theme }) => theme.fontWeights.medium};
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+  font-family: ${({ theme }) => theme.fonts.sans};
+  margin-bottom: 4px;
+
+  &:hover {
+    background: ${({ theme }) => theme.colors.primarySubtle};
+    color: ${({ theme }) => theme.colors.primary};
+  }
+
+  svg { flex-shrink: 0; }
+`
+
 // ── User card ─────────────────────────────────────────────────────────────────
 
 export const UserCard = styled.div`

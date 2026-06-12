@@ -1,15 +1,26 @@
+import { lazy, Suspense } from 'react'
 import { BrowserRouter, Routes, Route, Navigate, useNavigate } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
-import {
-  Intro, Register, Home, Profile,
-  ForgotPassword, ResetPassword,
-  AdminUsers, AdminRequests, AdminPlaces, AdminDashboard,
-  OwnerPlaces, OwnerRequests, OwnerDashboard,
-  QueroJogar, MinhasPeladas, Historico,
-  CriarPelada, Tournaments, Avaliacoes,
-} from '../pages'
 
-// [MANTENHA IntroRoute, PublicRoute, PrivateRoute, AdminRoute, OwnerRoute EXATAMENTE IGUAIS]
+const Intro          = lazy(() => import('../pages/Intro'))
+const Register       = lazy(() => import('../pages/Register'))
+const Home           = lazy(() => import('../pages/Home'))
+const Profile        = lazy(() => import('../pages/Profile'))
+const ForgotPassword = lazy(() => import('../pages/ForgotPassword'))
+const ResetPassword  = lazy(() => import('../pages/ResetPassword'))
+const QueroJogar     = lazy(() => import('../pages/QueroJogar'))
+const MinhasPeladas  = lazy(() => import('../pages/MinhasPeladas'))
+const Historico      = lazy(() => import('../pages/Historico'))
+const CriarPelada    = lazy(() => import('../pages/CriarPelada'))
+const Tournaments    = lazy(() => import('../pages/Tournaments'))
+const Avaliacoes     = lazy(() => import('../pages/Avaliacoes'))
+const AdminDashboard = lazy(() => import('../pages/Admin/Dashboard'))
+const AdminUsers     = lazy(() => import('../pages/Admin/Users'))
+const AdminRequests  = lazy(() => import('../pages/Admin/Requests'))
+const AdminPlaces    = lazy(() => import('../pages/Admin/Places'))
+const OwnerDashboard = lazy(() => import('../pages/Owner/Dashboard'))
+const OwnerPlaces    = lazy(() => import('../pages/Owner/Places'))
+const OwnerRequests  = lazy(() => import('../pages/Owner/Requests'))
 
 function IntroRoute() {
   const navigate = useNavigate()
@@ -50,41 +61,42 @@ function OwnerRoute({ children }) {
 export default function AppRoutes() {
   return (
     <BrowserRouter>
-      <Routes>
-        {/* Público */}
-        <Route path="/" element={<IntroRoute />} />
-        <Route path="/login"            element={<PublicRoute><Register initialMode="login"    /></PublicRoute>} />
-        <Route path="/register"         element={<PublicRoute><Register initialMode="register" /></PublicRoute>} />
-        <Route path="/esqueci-senha"    element={<PublicRoute><ForgotPassword /></PublicRoute>} />
-        <Route path="/redefinir-senha"  element={<PublicRoute><ResetPassword  /></PublicRoute>} />
+      <Suspense fallback={null}>
+        <Routes>
+          {/* Público */}
+          <Route path="/"                element={<IntroRoute />} />
+          <Route path="/login"           element={<PublicRoute><Register initialMode="login"    /></PublicRoute>} />
+          <Route path="/register"        element={<PublicRoute><Register initialMode="register" /></PublicRoute>} />
+          <Route path="/esqueci-senha"   element={<PublicRoute><ForgotPassword /></PublicRoute>} />
+          <Route path="/redefinir-senha" element={<PublicRoute><ResetPassword  /></PublicRoute>} />
 
-        {/* Usuário autenticado (Jogador) */}
-        <Route path="/home"           element={<PrivateRoute><Home          /></PrivateRoute>} />
-        <Route path="/perfil"         element={<PrivateRoute><Profile       /></PrivateRoute>} />
-        <Route path="/quero-jogar"    element={<PrivateRoute><QueroJogar    /></PrivateRoute>} />
-        <Route path="/criar-pelada"   element={<PrivateRoute><CriarPelada   /></PrivateRoute>} />
-        <Route path="/torneios"       element={<PrivateRoute><Tournaments   /></PrivateRoute>} />
-        <Route path="/minhas-peladas" element={<PrivateRoute><MinhasPeladas /></PrivateRoute>} />
-        <Route path="/historico"      element={<PrivateRoute><Historico     /></PrivateRoute>} />
-        <Route path="/avaliacoes"     element={<PrivateRoute><Avaliacoes    /></PrivateRoute>} />
+          {/* Usuário autenticado (Jogador) */}
+          <Route path="/home"           element={<PrivateRoute><Home          /></PrivateRoute>} />
+          <Route path="/perfil"         element={<PrivateRoute><Profile       /></PrivateRoute>} />
+          <Route path="/quero-jogar"    element={<PrivateRoute><QueroJogar    /></PrivateRoute>} />
+          <Route path="/criar-pelada"   element={<PrivateRoute><CriarPelada   /></PrivateRoute>} />
+          <Route path="/torneios"       element={<PrivateRoute><Tournaments   /></PrivateRoute>} />
+          <Route path="/minhas-peladas" element={<PrivateRoute><MinhasPeladas /></PrivateRoute>} />
+          <Route path="/historico"      element={<PrivateRoute><Historico     /></PrivateRoute>} />
+          <Route path="/avaliacoes"     element={<PrivateRoute><Avaliacoes    /></PrivateRoute>} />
 
-        {/* Painel Admin */}
-        <Route path="/admin/dashboard" element={<AdminRoute><AdminDashboard /></AdminRoute>} /> {/* NOVA ROTA */}
-        <Route path="/admin/users"     element={<AdminRoute><AdminUsers    /></AdminRoute>} />
-        <Route path="/admin/requests"  element={<AdminRoute><AdminRequests /></AdminRoute>} />
-        <Route path="/admin/places"    element={<AdminRoute><AdminPlaces   /></AdminRoute>} />
-        {/* Agora o fallback do /admin joga para o Dashboard (Visão Geral) */}
-        <Route path="/admin"           element={<Navigate to="/admin/dashboard" replace />} /> 
+          {/* Painel Admin */}
+          <Route path="/admin/dashboard" element={<AdminRoute><AdminDashboard /></AdminRoute>} />
+          <Route path="/admin/users"     element={<AdminRoute><AdminUsers     /></AdminRoute>} />
+          <Route path="/admin/requests"  element={<AdminRoute><AdminRequests  /></AdminRoute>} />
+          <Route path="/admin/places"    element={<AdminRoute><AdminPlaces    /></AdminRoute>} />
+          <Route path="/admin"           element={<Navigate to="/admin/dashboard" replace />} />
 
-        {/* Painel Owner */}
-        <Route path="/owner/dashboard" element={<OwnerRoute><OwnerDashboard /></OwnerRoute>} /> {/* NOVA ROTA */}
-        <Route path="/owner/places"    element={<OwnerRoute><OwnerPlaces   /></OwnerRoute>} />
-        <Route path="/owner/requests"  element={<OwnerRoute><OwnerRequests /></OwnerRoute>} />
-        <Route path="/owner"           element={<Navigate to="/owner/dashboard" replace />} />
+          {/* Painel Owner */}
+          <Route path="/owner/dashboard" element={<OwnerRoute><OwnerDashboard /></OwnerRoute>} />
+          <Route path="/owner/places"    element={<OwnerRoute><OwnerPlaces    /></OwnerRoute>} />
+          <Route path="/owner/requests"  element={<OwnerRoute><OwnerRequests  /></OwnerRoute>} />
+          <Route path="/owner"           element={<Navigate to="/owner/dashboard" replace />} />
 
-        {/* Fallback */}
-        <Route path="*" element={<Navigate to="/login" replace />} />
-      </Routes>
+          {/* Fallback */}
+          <Route path="*" element={<Navigate to="/login" replace />} />
+        </Routes>
+      </Suspense>
     </BrowserRouter>
   )
 }

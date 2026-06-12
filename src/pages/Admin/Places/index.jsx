@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
-import { Users, ClipboardList, Building2, LayoutDashboard, Home } from 'lucide-react'
+import { Users, ClipboardList, Building2, LayoutDashboard, Home, Store } from 'lucide-react'
 import DashboardLayout from '../../../components/DashboardLayout'
 import StatCard from '../../../components/StatCard'
 import { useAuth } from '../../../contexts/AuthContext'
@@ -12,6 +12,7 @@ import {
   Modal, ModalOverlay, ModalBox, ModalTitle,
   ModalActions, CancelBtn, ConfirmBtn,
   Select, OwnerOption,
+  PromoteLink, PromoteBox, PromoteBtn,
 } from './styles'
 
 const NAV_ITEMS = [
@@ -19,7 +20,8 @@ const NAV_ITEMS = [
   { to: '/admin/users',    label: 'Gestão de Usuários', icon: Users           },
   { to: '/admin/requests', label: 'Solicitações',       icon: ClipboardList   },
   { to: '/admin/places',   label: 'Estabelecimentos',   icon: Building2       },
-  { to: '/home',           label: 'Área do Jogador',    icon: Home, divider: true },
+  { to: '/owner',          label: 'Painel do Owner',    icon: Store, divider: true },
+  { to: '/home',           label: 'Área do Jogador',    icon: Home },
 ]
 
 const STATUS_LABEL = { OPEN: 'Aberto', CLOSED: 'Fechado' }
@@ -36,6 +38,10 @@ export default function AdminPlaces() {
   const [assignTarget, setAssignTarget] = useState(null)
   const [selectedOwner, setSelectedOwner] = useState('')
   const [assigning, setAssigning] = useState(false)
+  const [promoteMode, setPromoteMode] = useState(false)
+  const [allUsers, setAllUsers]       = useState([])
+  const [selectedPromote, setSelectedPromote] = useState('')
+  const [promoting, setPromoting] = useState(false)
 
   const fetchPlaces = useCallback(async () => {
     setLoading(true)
@@ -77,7 +83,40 @@ export default function AdminPlaces() {
   const openAssignModal = async (place) => {
     setAssignTarget(place)
     setSelectedOwner(place.ownerId ?? '')
+    setPromoteMode(false)
+    setSelectedPromote('')
     await fetchOwners()
+  }
+
+  const openPromoteMode = async () => {
+    setPromoteMode(true)
+    if (allUsers.length === 0) {
+      try {
+        const res = await adminService.listUsers()
+        setAllUsers(res.data.data.filter((u) => u.role !== 'OWNER' && u.role !== 'ADMIN'))
+      } catch {
+        // silencioso
+      }
+    }
+  }
+
+  const handlePromoteAndAssign = async () => {
+    if (!assignTarget || !selectedPromote) return
+    setPromoting(true)
+    try {
+      await adminService.updateUserRole(selectedPromote, 'OWNER')
+      await placesService.assignOwner(assignTarget.id, selectedPromote)
+      setAssignTarget(null)
+      setSelectedOwner('')
+      setPromoteMode(false)
+      setSelectedPromote('')
+      setAllUsers([])
+      await fetchPlaces()
+    } catch {
+      alert('Erro ao promover e atribuir proprietário.')
+    } finally {
+      setPromoting(false)
+    }
   }
 
   const handleAssignOwner = async () => {
@@ -195,6 +234,35 @@ export default function AdminPlaces() {
                 </OwnerOption>
               ))}
             </Select>
+
+            {!promoteMode && (
+              <PromoteLink onClick={openPromoteMode}>
+                Usuário não tem role Owner ainda? Promover aqui →
+              </PromoteLink>
+            )}
+
+            {promoteMode && (
+              <PromoteBox>
+                <label>Promover jogador para Owner</label>
+                <Select
+                  value={selectedPromote}
+                  onChange={(e) => setSelectedPromote(e.target.value)}
+                >
+                  <option value="" disabled>Selecione um usuário...</option>
+                  {allUsers.map((u) => (
+                    <OwnerOption key={u.id} value={u.id}>
+                      {u.name} — {u.email} ({u.role})
+                    </OwnerOption>
+                  ))}
+                </Select>
+                <PromoteBtn
+                  onClick={handlePromoteAndAssign}
+                  disabled={!selectedPromote || promoting}
+                >
+                  {promoting ? 'Promovendo...' : 'Promover e Atribuir'}
+                </PromoteBtn>
+              </PromoteBox>
+            )}
 
             <ModalActions>
               <CancelBtn onClick={() => setAssignTarget(null)}>Cancelar</CancelBtn>

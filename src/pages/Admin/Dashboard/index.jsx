@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { LayoutDashboard, Users, ClipboardList, Building2, Home } from 'lucide-react'
+import { LayoutDashboard, Users, ClipboardList, Building2, Home, Store } from 'lucide-react'
 import { useAuth } from '../../../contexts/AuthContext'
 import api from '../../../services/api'
 import DashboardLayout from '../../../components/DashboardLayout'
@@ -7,11 +7,12 @@ import { Container, KpiGrid, KpiCard, Section, Table, Badge, ActionButton } from
 
 // Navegação exata do Admin
 const NAV_ITEMS = [
-  { to: '/admin',          label: 'Visão Geral',        icon: LayoutDashboard },
+  { to: '/admin',          label: 'Visão Geral',        icon: LayoutDashboard, end: true },
   { to: '/admin/users',    label: 'Gestão de Usuários', icon: Users           },
   { to: '/admin/requests', label: 'Solicitações',       icon: ClipboardList   },
   { to: '/admin/places',   label: 'Estabelecimentos',   icon: Building2       },
-  { to: '/home',           label: 'Área do Jogador',    icon: Home, divider: true },
+  { to: '/owner',          label: 'Painel do Owner',    icon: Store, divider: true },
+  { to: '/home',           label: 'Área do Jogador',    icon: Home },
 ]
 
 export default function AdminDashboard() {

@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import styled, { keyframes } from 'styled-components'
+import { getSportMeta } from '../../hooks/useSports'
 
 // ---- Animações ----
 const flipToBack = keyframes`
@@ -160,27 +161,14 @@ const StatusBadge = styled.span`
     'rgba(255,255,255,0.3)'};
 `
 
-const COURT_ICONS = {
-  FUTSAL:      '⚽',
-  SOCIETY:     '🏟️',
-  CAMPO:       '🌿',
-  AREIA:       '🏖️',
-  VOLEI:       '🏐',
-  VOLEI_AREIA: '🏖️',
-  HANDBALL:    '🤾',
-  PETECA:      '🏸',
-  BEACH_TENNIS:'🎾',
-  BASQUETE:    '🏀',
-  TENIS:       '🎾',
-}
-
 // ---- Componente ----
 export function EventCard({ event }) {
   const [flipped, setFlipped] = useState(false)
 
   const vagas = event.maxPlayers - event.participations
   const valorPorPessoa = (Number(event.totalValue) / event.maxPlayers).toFixed(2)
-  const icon = COURT_ICONS[event.type] ?? '⚽'
+  const sport = getSportMeta(event.type)
+  const icon = sport.icon
 
   const date = new Date(event.date)
   const dateStr = date.toLocaleDateString('pt-BR')
@@ -192,7 +180,7 @@ export function EventCard({ event }) {
 
         {/* FRENTE */}
         <Front>
-          <CourtType>{event.type}</CourtType>
+          <CourtType>{sport.icon} {sport.label}</CourtType>
           <CourtIcon>{icon}</CourtIcon>
           <ArenaName>{event.place}</ArenaName>
           <Divider />

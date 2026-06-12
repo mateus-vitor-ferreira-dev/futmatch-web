@@ -1,9 +1,10 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
 import { yupResolver } from '@hookform/resolvers/yup'
 import * as yup from 'yup'
 import { useAuth } from '../../contexts/AuthContext'
+import { useSports } from '../../hooks/useSports'
 import { MainLayout } from '../../components'
 import { searchCourts } from '../../services/courts'
 import { createEvent } from '../../services/events'
@@ -16,21 +17,10 @@ import {
   Actions, BackButton, NextButton,
   EmptyState, LoadingState,
   SuccessBox, SuccessActions, PrimaryBtn, SecondaryBtn,
+  SportChipsGrid, SportChip,
+  PlacesGrid, PlaceCard, PlaceName, PlaceAddress, PlaceCourtCount,
+  BreadcrumbBar, BreadcrumbTag, BreadcrumbSep,
 } from './styles'
-
-const SPORT_LABELS = {
-  SOCIETY:     '⚽ Society',
-  CAMPO:       '🏟️ Campo',
-  FUTSAL:      '🥅 Futsal',
-  AREIA:       '🏖️ Areia',
-  VOLEI:       '🏐 Vôlei',
-  VOLEI_AREIA: '🌊 Vôlei de Praia',
-  HANDBALL:    '🤾 Handebol',
-  PETECA:      '🏸 Peteca',
-  BEACH_TENNIS:'🎾 Beach Tennis',
-  BASQUETE:    '🏀 Basquete',
-  TENIS:       '🎾 Tênis',
-}
 
 const schema = yup.object({
   date: yup
@@ -57,12 +47,18 @@ const STEPS = ['Escolher Quadra', 'Detalhes da Pelada', 'Confirmação']
 export default function CriarPelada() {
   const { user }   = useAuth()
   const navigate   = useNavigate()
-  const [step, setStep]             = useState(0)
-  const [courts, setCourts]         = useState([])
+  const { sports } = useSports()
+
+  const [step, setStep]                 = useState(0)
+  const [courts, setCourts]             = useState([])
   const [loadingCourts, setLoadingCourts] = useState(true)
   const [selectedCourt, setSelectedCourt] = useState(null)
-  const [submitting, setSubmitting] = useState(false)
-  const [error, setError]           = useState(null)
+  const [submitting, setSubmitting]     = useState(false)
+  const [error, setError]               = useState(null)
+
+  // Sub-etapas do step 0
+  const [filterSport, setFilterSport]   = useState('')   // CourtType enum value
+  const [filterPlace, setFilterPlace]   = useState(null) // objeto place
 
   const {
     register,
@@ -77,6 +73,38 @@ export default function CriarPelada() {
       .catch(() => setCourts([]))
       .finally(() => setLoadingCourts(false))
   }, [])
+
+  const sportOptions = sports
+
+  // Places únicas para o esporte selecionado
+  const sportCourts = useMemo(
+    () => courts.filter(c => c.type === filterSport),
+    [courts, filterSport]
+  )
+
+  const availablePlaces = useMemo(() => {
+    const map = new Map()
+    sportCourts.forEach(c => {
+      if (c.place && !map.has(c.place.id)) map.set(c.place.id, c.place)
+    })
+    return [...map.values()]
+  }, [sportCourts])
+
+  // Quadras do esporte + place selecionados
+  const placeCourts = useMemo(
+    () => sportCourts.filter(c => c.place?.id === filterPlace?.id),
+    [sportCourts, filterPlace]
+  )
+
+  // Auto-seleciona quadra se só há 1 opção
+  const handleSelectPlace = (place) => {
+    setFilterPlace(place)
+    const courts = sportCourts.filter(c => c.place?.id === place.id)
+    if (courts.length === 1) {
+      setSelectedCourt(courts[0])
+      setStep(1)
+    }
+  }
 
   const onSubmit = async (data) => {
     if (!selectedCourt) return
@@ -103,6 +131,14 @@ export default function CriarPelada() {
     ? (Number(watchedValues.totalValue) / Number(watchedValues.maxPlayers)).toFixed(2)
     : null
 
+  const selectedSport = sports.find(s => s.id === filterSport)
+
+  // Título e breadcrumb do step 0
+  const step0Title =
+    !filterSport ? 'Qual modalidade você quer jogar?' :
+    !filterPlace ? 'Escolha o estabelecimento' :
+    'Escolha a quadra'
+
   return (
     <MainLayout user={user}>
       <Container>
@@ -111,7 +147,6 @@ export default function CriarPelada() {
           <Subtitle>Abra vagas e chame a galera para jogar.</Subtitle>
         </PageHeader>
 
-        {/* Indicador de etapas */}
         <StepIndicator>
           {STEPS.map((label, i) => (
             <div key={label} style={{ display: 'contents' }}>
@@ -126,52 +161,108 @@ export default function CriarPelada() {
           ))}
         </StepIndicator>
 
-        {/* ── Etapa 0: Escolher quadra ── */}
+        {/* ── Etapa 0: Seleção em cascata ── */}
         {step === 0 && (
           <Card>
-            <SectionTitle>Selecione a quadra</SectionTitle>
+            <SectionTitle>{step0Title}</SectionTitle>
+
+            {/* Breadcrumb da seleção atual */}
+            {filterSport && (
+              <BreadcrumbBar>
+                <BreadcrumbTag onClick={() => { setFilterSport(''); setFilterPlace(null); setSelectedCourt(null) }}>
+                  {selectedSport?.icon} {selectedSport?.label}  ×
+                </BreadcrumbTag>
+                {filterPlace && (
+                  <>
+                    <BreadcrumbSep>›</BreadcrumbSep>
+                    <BreadcrumbTag onClick={() => { setFilterPlace(null); setSelectedCourt(null) }}>
+                      {filterPlace.name}  ×
+                    </BreadcrumbTag>
+                  </>
+                )}
+              </BreadcrumbBar>
+            )}
 
             {loadingCourts ? (
               <LoadingState>Carregando quadras disponíveis...</LoadingState>
-            ) : courts.length === 0 ? (
-              <EmptyState>
-                <span>🏟️</span>
-                <p>Nenhuma quadra disponível no momento.</p>
-              </EmptyState>
             ) : (
-              <CourtsGrid>
-                {courts.map((court) => (
-                  <CourtCard
-                    key={court.id}
-                    $selected={selectedCourt?.id === court.id}
-                    onClick={() => setSelectedCourt(court)}
-                  >
-                    <CourtName>{court.name}</CourtName>
-                    <CourtInfo>
-                      {court.place?.name && <div>{court.place.name}</div>}
-                      {court.place?.neighborhood && court.place?.city && (
-                        <div>{court.place.neighborhood} · {court.place.city}</div>
-                      )}
-                    </CourtInfo>
-                    {court.type && (
-                      <SportBadge>{SPORT_LABELS[court.type] ?? court.type}</SportBadge>
-                    )}
-                  </CourtCard>
-                ))}
-              </CourtsGrid>
+              <>
+                {/* Sub-etapa A: Escolher Modalidade */}
+                {!filterSport && (
+                  sportOptions.length === 0 ? (
+                    <EmptyState>
+                      <span>🏟️</span>
+                      <p>Nenhuma quadra disponível no momento.</p>
+                    </EmptyState>
+                  ) : (
+                    <SportChipsGrid>
+                      {sportOptions.map(s => (
+                        <SportChip key={s.id} onClick={() => setFilterSport(s.id)}>
+                          <span>{s.icon}</span>
+                          {s.label}
+                        </SportChip>
+                      ))}
+                    </SportChipsGrid>
+                  )
+                )}
+
+                {/* Sub-etapa B: Escolher Estabelecimento */}
+                {filterSport && !filterPlace && (
+                  availablePlaces.length === 0 ? (
+                    <EmptyState>
+                      <span>🏟️</span>
+                      <p>Nenhum estabelecimento disponível para essa modalidade.</p>
+                    </EmptyState>
+                  ) : (
+                    <PlacesGrid>
+                      {availablePlaces.map(place => {
+                        const count = sportCourts.filter(c => c.place?.id === place.id).length
+                        return (
+                          <PlaceCard key={place.id} onClick={() => handleSelectPlace(place)}>
+                            <PlaceName>{place.name}</PlaceName>
+                            <PlaceAddress>
+                              {place.neighborhood && `${place.neighborhood} · `}{place.city}
+                            </PlaceAddress>
+                            <PlaceCourtCount>
+                              {count} quadra{count !== 1 ? 's' : ''} disponível{count !== 1 ? 'is' : ''}
+                            </PlaceCourtCount>
+                          </PlaceCard>
+                        )
+                      })}
+                    </PlacesGrid>
+                  )
+                )}
+
+                {/* Sub-etapa C: Escolher Quadra */}
+                {filterSport && filterPlace && (
+                  <CourtsGrid>
+                    {placeCourts.map((court) => (
+                      <CourtCard
+                        key={court.id}
+                        $selected={selectedCourt?.id === court.id}
+                        onClick={() => { setSelectedCourt(court); setStep(1) }}
+                      >
+                        <CourtName>{court.name}</CourtName>
+                        <CourtInfo>
+                          {court.place?.name && <div>{court.place.name}</div>}
+                          {court.place?.neighborhood && court.place?.city && (
+                            <div>{court.place.neighborhood} · {court.place.city}</div>
+                          )}
+                        </CourtInfo>
+                        {court.pricePerHour && (
+                          <SportBadge>R$ {Number(court.pricePerHour).toFixed(0)}/h</SportBadge>
+                        )}
+                      </CourtCard>
+                    ))}
+                  </CourtsGrid>
+                )}
+              </>
             )}
 
             <Actions>
               <BackButton type="button" onClick={() => navigate('/quero-jogar')}>
                 Cancelar
               </BackButton>
-              <NextButton
-                type="button"
-                disabled={!selectedCourt}
-                onClick={() => setStep(1)}
-              >
-                Próximo →
-              </NextButton>
             </Actions>
           </Card>
         )}

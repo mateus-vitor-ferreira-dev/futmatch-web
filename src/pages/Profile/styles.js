@@ -23,6 +23,40 @@ export const AvatarBlock = styled.div`
   }
 `
 
+export const AvatarUploadWrapper = styled.div`
+  position: relative;
+  width: 72px;
+  height: 72px;
+  flex-shrink: 0;
+  cursor: pointer;
+  border-radius: 50%;
+`
+
+export const AvatarOverlay = styled.div`
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  opacity: ${({ $visible }) => $visible ? 1 : 0};
+  transition: opacity 0.2s;
+
+  ${AvatarUploadWrapper}:hover & {
+    opacity: 1;
+  }
+
+  @keyframes spin {
+    to { transform: rotate(360deg); }
+  }
+
+  svg.spinning {
+    animation: spin 0.8s linear infinite;
+  }
+`
+
 export const AvatarCircle = styled.div`
   width: 72px;
   height: 72px;
@@ -32,7 +66,6 @@ export const AvatarCircle = styled.div`
   align-items: center;
   justify-content: center;
   overflow: hidden;
-  flex-shrink: 0;
 
   img {
     width: 100%;
@@ -73,7 +106,7 @@ export const TabBtn = styled.button`
   font-weight: ${({ theme }) => theme.fontWeights.medium};
   cursor: pointer;
   transition: background 0.15s, color 0.15s, box-shadow 0.15s;
-  background: ${({ $active, theme }) => $active ? theme.colors.white : 'transparent'};
+  background: ${({ $active, theme }) => $active ? theme.colors.bgCard : 'transparent'};
   color: ${({ $active, theme }) => $active ? theme.colors.textPrimary : theme.colors.textSecondary};
   box-shadow: ${({ $active, theme }) => $active ? theme.shadows.sm : 'none'};
 `
@@ -137,7 +170,7 @@ export const Input = styled.input`
   padding: 9px 12px;
   font-size: ${({ theme }) => theme.fontSizes.sm};
   color: ${({ theme }) => theme.colors.textPrimary};
-  background: ${({ theme }) => theme.colors.bgCard};
+  background: ${({ theme }) => theme.colors.bgInput};
   outline: none;
   width: 100%;
   box-sizing: border-box;

@@ -4,7 +4,7 @@ import { MapPin, Clock, Users, ChevronRight, Search, Zap } from 'lucide-react'
 import { useAuth } from '../../contexts/AuthContext'
 import { MainLayout } from '../../components'
 import { playerService } from '../../services/playerService'
-import { useSports } from '../../hooks/useSports'
+import { useSports, getSportMeta } from '../../hooks/useSports'
 import {
   PageWrapper,
   HeroBanner, HeroDecor1, HeroDecor2, HeroGreeting, HeroTitle, HeroSubtitle,
@@ -19,16 +19,7 @@ import {
   TipCard, TipIcon, TipContent, TipTitle, TipText,
 } from './styles'
 
-const SPORT_TABS = [
-  { id: 'ALL',          label: 'Todos',        icon: '🎯', types: null },
-  { id: 'FUTEBOL',      label: 'Futebol',      icon: '⚽', types: ['SOCIETY', 'CAMPO', 'FUTSAL'] },
-  { id: 'FUTEVOLEI',    label: 'Futevôlei',    icon: '🏖️', types: ['AREIA'] },
-  { id: 'VOLEI',        label: 'Vôlei',        icon: '🏐', types: ['VOLEI', 'VOLEI_AREIA'] },
-  { id: 'BEACH_TENNIS', label: 'Beach Tennis', icon: '🎾', types: ['BEACH_TENNIS'] },
-  { id: 'POKER',        label: 'Poker',        icon: '🃏', types: ['POKER'] },
-]
-
-const EXPLORE_SPORTS = SPORT_TABS.slice(1)
+const ALL_TAB = { id: 'ALL', label: 'Todos', icon: '🎯', types: null }
 
 const TIPS = [
   { title: 'Dica de craque', text: 'Avalie seus colegas após cada jogo e ajude a construir uma comunidade confiável — seja no campo, na areia ou na mesa!' },
@@ -85,14 +76,11 @@ function getPricePerPlayer(event) {
   return (total / players).toFixed(0)
 }
 
-function getSportLabel(type, sports) {
-  return sports.find(s => s.id === type)?.label || type
-}
-
 export default function Home() {
   const { user } = useAuth()
   const navigate = useNavigate()
-  const { sports } = useSports()
+  const { sports: allSports } = useSports()
+  const SPORT_TABS = [ALL_TAB, ...allSports]
 
   const [events, setEvents] = useState([])
   const [loadingEvents, setLoadingEvents] = useState(true)
@@ -138,13 +126,12 @@ export default function Home() {
     fetchStats()
   }, [fetchFeaturedEvents, fetchStats])
 
-  const activeTab = SPORT_TABS.find(t => t.id === activeSport)
   const filteredEvents = activeSport === 'ALL'
     ? events
-    : events.filter(e => activeTab?.types?.includes(e.type))
+    : events.filter(e => e.court?.type === activeSport)
 
-  const sportCountMap = EXPLORE_SPORTS.reduce((acc, tab) => {
-    acc[tab.id] = events.filter(e => tab.types?.includes(e.type)).length
+  const sportCountMap = allSports.reduce((acc, sport) => {
+    acc[sport.id] = events.filter(e => e.court?.type === sport.id).length
     return acc
   }, {})
 
@@ -233,7 +220,8 @@ export default function Home() {
                 const vagas = maxPlayers - participations
                 const pct = maxPlayers > 0 ? Math.round((participations / maxPlayers) * 100) : 0
                 const courtName = getCourtName(event)
-                const sportLabel = getSportLabel(event.type, sports)
+                const sport = getSportMeta(event.court?.type)
+                const sportLabel = sport.label
                 const address = getAddress(event)
                 const dateStr = getEventDateStr(event)
                 const pricePerPlayer = getPricePerPlayer(event)
@@ -241,7 +229,7 @@ export default function Home() {
                 return (
                   <GameCardWrapper key={event.id} onClick={() => navigate('/quero-jogar')}>
                     <CardTop>
-                      <CardCourtIcon>⚽</CardCourtIcon>
+                      <CardCourtIcon>{sport.icon}</CardCourtIcon>
                       <CardCourtInfo>
                         <CourtName>{courtName}</CourtName>
                         <SportBadge>{sportLabel}</SportBadge>
@@ -300,12 +288,12 @@ export default function Home() {
             <SectionTitle>Explorar por modalidade</SectionTitle>
           </SectionHeader>
           <ModalityGrid>
-            {EXPLORE_SPORTS.map(sport => {
+            {allSports.map(sport => {
               const count = sportCountMap[sport.id] ?? 0
               return (
                 <ModalityCard
                   key={sport.id}
-                  onClick={() => navigate(`/quero-jogar?sport=${sport.types?.[0] ?? sport.id}`)}
+                  onClick={() => navigate(`/quero-jogar?sport=${sport.id}`)}
                 >
                   <ModalityIconBox>{sport.icon}</ModalityIconBox>
                   <ModalityInfo>

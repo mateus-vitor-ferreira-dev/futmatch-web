@@ -193,7 +193,7 @@ export const RightPanel = styled.div`
   align-items: center;
   justify-content: center;
   padding: 32px 20px;
-  background: #f9fafb;
+  background: ${({ theme }) => theme.colors.bgPage};
   min-height: 100vh;
   position: sticky;
   top: 0;
@@ -201,7 +201,8 @@ export const RightPanel = styled.div`
 `
 
 export const Card = styled.div`
-  background: #fff;
+  background: ${({ theme }) => theme.colors.bgCard};
+  border: 1px solid ${({ theme }) => theme.colors.border};
   border-radius: ${({ theme }) => theme.radii.xl};
   box-shadow: ${({ theme }) => theme.shadows.lg};
   padding: 32px 28px 24px;
