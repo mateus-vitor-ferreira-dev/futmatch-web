@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Home, Search, ClipboardList, History, User, Plus, Trophy, Menu, Star, Sun, Moon, LayoutDashboard, Store } from 'lucide-react'
+import iconUrl from '../../assets/icon-so-mais-um.svg'
+import logoUrl from '../../assets/logo-so-mais-um.svg'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { useThemeMode } from '../../contexts/ThemeContext'
 import {
@@ -51,9 +53,11 @@ export default function MainLayout({ children, user }) {
 
       <Sidebar $open={sidebarOpen}>
         <Logo>
-          <LogoIcon>⚽</LogoIcon>
+          <LogoIcon>
+            <img src={iconUrl} alt="" height="40" style={{ display: 'block' }} />
+          </LogoIcon>
           <LogoText>
-            <LogoName>Só+1</LogoName>
+            <img src={logoUrl} alt="Só+1" height="30" style={{ display: 'block' }} />
             <LogoTagline>Encontre sua pelada</LogoTagline>
           </LogoText>
         </Logo>
@@ -104,7 +108,10 @@ export default function MainLayout({ children, user }) {
           <HamburgerBtn onClick={() => setSidebarOpen(true)} aria-label="Abrir menu">
             <Menu size={20} />
           </HamburgerBtn>
-          <TopbarLogoName>Só+1</TopbarLogoName>
+          <TopbarLogoName>
+            <img src={iconUrl} alt="" height="28" style={{ display: 'inline-block', verticalAlign: 'middle', marginRight: 6 }} />
+            <img src={logoUrl} alt="Só+1" height="22" style={{ display: 'inline-block', verticalAlign: 'middle' }} />
+          </TopbarLogoName>
           <ThemeToggleBtn
             onClick={toggleTheme}
             style={{ marginLeft: 'auto' }}
