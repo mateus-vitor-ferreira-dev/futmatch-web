@@ -14,6 +14,7 @@ const Historico      = lazy(() => import('../pages/Historico'))
 const CriarPelada    = lazy(() => import('../pages/CriarPelada'))
 const Tournaments    = lazy(() => import('../pages/Tournaments'))
 const Avaliacoes     = lazy(() => import('../pages/Avaliacoes'))
+const PeladaDetail   = lazy(() => import('../pages/PeladaDetail'))
 const AdminDashboard = lazy(() => import('../pages/Admin/Dashboard'))
 const AdminUsers     = lazy(() => import('../pages/Admin/Users'))
 const AdminRequests  = lazy(() => import('../pages/Admin/Requests'))
@@ -21,6 +22,15 @@ const AdminPlaces    = lazy(() => import('../pages/Admin/Places'))
 const OwnerDashboard = lazy(() => import('../pages/Owner/Dashboard'))
 const OwnerPlaces    = lazy(() => import('../pages/Owner/Places'))
 const OwnerRequests  = lazy(() => import('../pages/Owner/Requests'))
+
+function PageLoader() {
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh', background: '#f9fafb' }}>
+      <div style={{ width: 36, height: 36, border: '3px solid #e5e7eb', borderTopColor: '#22c55e', borderRadius: '50%', animation: 'spin 0.7s linear infinite' }} />
+      <style>{`@keyframes spin { to { transform: rotate(360deg) } }`}</style>
+    </div>
+  )
+}
 
 function IntroRoute() {
   const navigate = useNavigate()
@@ -61,7 +71,7 @@ function OwnerRoute({ children }) {
 export default function AppRoutes() {
   return (
     <BrowserRouter>
-      <Suspense fallback={null}>
+      <Suspense fallback={<PageLoader />}>
         <Routes>
           {/* Público */}
           <Route path="/"                element={<IntroRoute />} />
@@ -79,6 +89,7 @@ export default function AppRoutes() {
           <Route path="/minhas-peladas" element={<PrivateRoute><MinhasPeladas /></PrivateRoute>} />
           <Route path="/historico"      element={<PrivateRoute><Historico     /></PrivateRoute>} />
           <Route path="/avaliacoes"     element={<PrivateRoute><Avaliacoes    /></PrivateRoute>} />
+          <Route path="/pelada/:eventId" element={<PrivateRoute><PeladaDetail  /></PrivateRoute>} />
 
           {/* Painel Admin */}
           <Route path="/admin/dashboard" element={<AdminRoute><AdminDashboard /></AdminRoute>} />

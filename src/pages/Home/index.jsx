@@ -227,7 +227,7 @@ export default function Home() {
                 const pricePerPlayer = getPricePerPlayer(event)
 
                 return (
-                  <GameCardWrapper key={event.id} onClick={() => navigate('/quero-jogar')}>
+                  <GameCardWrapper key={event.id} onClick={() => navigate(`/pelada/${event.id}`)}>
                     <CardTop>
                       <CardCourtIcon>{sport.icon}</CardCourtIcon>
                       <CardCourtInfo>
