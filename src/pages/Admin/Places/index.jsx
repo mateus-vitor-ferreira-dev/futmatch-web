@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
+import { toast } from 'sonner'
 import { Users, ClipboardList, Building2, LayoutDashboard, Home, Store } from 'lucide-react'
 import DashboardLayout from '../../../components/DashboardLayout'
 import StatCard from '../../../components/StatCard'
@@ -74,7 +75,7 @@ export default function AdminPlaces() {
       await placesService.updateStatus(place.id, next)
       await fetchPlaces()
     } catch {
-      alert('Erro ao alterar status.')
+      toast.error('Erro ao alterar status.')
     } finally {
       setTogglingId(null)
     }
@@ -113,7 +114,7 @@ export default function AdminPlaces() {
       setAllUsers([])
       await fetchPlaces()
     } catch {
-      alert('Erro ao promover e atribuir proprietário.')
+      toast.error('Erro ao promover e atribuir proprietário.')
     } finally {
       setPromoting(false)
     }
@@ -128,7 +129,7 @@ export default function AdminPlaces() {
       setSelectedOwner('')
       await fetchPlaces()
     } catch {
-      alert('Erro ao atribuir proprietário.')
+      toast.error('Erro ao atribuir proprietário.')
     } finally {
       setAssigning(false)
     }

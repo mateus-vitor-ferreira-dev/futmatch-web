@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
+import { toast } from 'sonner'
 import { Users, ClipboardList, Building2, LayoutDashboard, Home, Store } from 'lucide-react'
 import DashboardLayout from '../../../components/DashboardLayout'
 import StatCard from '../../../components/StatCard'
@@ -63,7 +64,7 @@ export default function AdminRequests() {
       await placeRequestsService.approve(id)
       await fetchRequests()
     } catch {
-      alert('Erro ao aprovar solicitação.')
+      toast.error('Erro ao aprovar solicitação.')
     } finally {
       setActionId(null)
     }
@@ -78,7 +79,7 @@ export default function AdminRequests() {
       setRejectReason('')
       await fetchRequests()
     } catch {
-      alert('Erro ao rejeitar solicitação.')
+      toast.error('Erro ao rejeitar solicitação.')
     } finally {
       setActionId(null)
     }

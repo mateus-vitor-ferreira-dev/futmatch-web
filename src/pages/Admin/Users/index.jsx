@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
+import { toast } from 'sonner'
 import { Users, ClipboardList, Building2, LayoutDashboard, Home, Store } from 'lucide-react'
 import DashboardLayout from '../../../components/DashboardLayout'
 import StatCard from '../../../components/StatCard'
@@ -66,7 +67,7 @@ export default function AdminUsers() {
       await adminService.updateUserRole(targetUser.id, next)
       await fetchUsers()
     } catch {
-      alert('Erro ao alterar role.')
+      toast.error('Erro ao alterar role.')
     } finally {
       setUpdatingId(null)
     }

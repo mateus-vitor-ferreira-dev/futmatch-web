@@ -1,5 +1,6 @@
 import { ThemeProvider } from 'styled-components'
 import { GoogleOAuthProvider } from '@react-oauth/google'
+import { Toaster } from 'sonner'
 import { lightTheme, darkTheme } from './styles/theme'
 import GlobalStyles from './styles/global'
 import { AuthProvider } from './contexts/AuthContext'
@@ -16,6 +17,12 @@ function ThemedApp() {
       <AuthProvider>
         <GlobalStyles />
         <AppRoutes />
+        <Toaster
+          position="top-right"
+          toastOptions={{ duration: 4000 }}
+          theme={isDark ? 'dark' : 'light'}
+          richColors
+        />
       </AuthProvider>
     </ThemeProvider>
   )

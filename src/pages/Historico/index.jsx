@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { toast } from 'sonner'
 import { getSportMeta } from '../../hooks/useSports'
 import { useAuth } from '../../contexts/AuthContext'
 import { playerService } from '../../services/playerService'
@@ -70,7 +71,7 @@ export default function Historico() {
       setEvaluations(initialEvals)
     } catch (error) {
       console.error(error)
-      alert('Erro ao carregar participantes')
+      toast.error('Erro ao carregar participantes')
     }
   }
 
@@ -93,11 +94,11 @@ export default function Historico() {
           comment: review.comment || null,
         })
       }
-      alert('Avaliações enviadas com sucesso!')
+      toast.success('Avaliações enviadas com sucesso!')
       setEvalEvent(null)
     } catch (error) {
       console.error(error)
-      alert(error.response?.data?.message || 'Erro ao enviar avaliações')
+      toast.error(error.response?.data?.message || 'Erro ao enviar avaliações')
     } finally {
       setSubmitting(false)
     }
