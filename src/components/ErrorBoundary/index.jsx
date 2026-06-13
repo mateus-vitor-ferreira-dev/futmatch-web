@@ -1,10 +1,24 @@
 import { Component } from 'react'
 import logoSoMaisUm from '../../assets/logo-so-mais-um.svg'
 
+function isChunkError(error) {
+  const msg = error?.message ?? ''
+  return (
+    msg.includes('Failed to fetch dynamically imported module') ||
+    msg.includes('Importing a module script failed') ||
+    msg.includes('dynamically imported module') ||
+    msg.includes('Unable to preload CSS')
+  )
+}
+
 export default class ErrorBoundary extends Component {
   state = { hasError: false }
 
-  static getDerivedStateFromError() {
+  static getDerivedStateFromError(error) {
+    if (isChunkError(error)) {
+      window.location.reload()
+      return { hasError: false }
+    }
     return { hasError: true }
   }
 
@@ -32,7 +46,7 @@ export default class ErrorBoundary extends Component {
             Ocorreu um erro inesperado. Tente recarregar a página.
           </p>
           <button
-            onClick={() => this.setState({ hasError: false })}
+            onClick={() => window.location.reload()}
             style={{
               marginTop: 8,
               padding: '10px 24px',
