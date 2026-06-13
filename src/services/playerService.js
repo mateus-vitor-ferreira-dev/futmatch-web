@@ -77,4 +77,19 @@ export const playerService = {
     )
     return data
   },
+
+  // --- DETALHE DE EVENTO ---
+  getEvent: async (eventId) => {
+    const { data } = await api.get(`/events/${eventId}`)
+    return data
+  },
+
+  // --- STATUS DO EVENTO (organizador) ---
+  updateEventStatus: async (courtId, eventId, status) => {
+    const { data } = await api.patch(
+      `/courts/${courtId}/events/${eventId}/status`,
+      { status }
+    )
+    return data
+  },
 }

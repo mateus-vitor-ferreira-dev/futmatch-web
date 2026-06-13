@@ -1,5 +1,5 @@
-import { useState, useEffect, useMemo } from 'react'
-import { useSearchParams } from 'react-router-dom'
+import { useState, useEffect, useCallback, useMemo } from 'react'
+import { useSearchParams, useNavigate } from 'react-router-dom'
 import { toast } from 'sonner'
 import { Search, Calendar, Clock, CheckCircle, MapPin, SlidersHorizontal, X } from 'lucide-react'
 import { useAuth } from '../../contexts/AuthContext'
@@ -41,6 +41,7 @@ export default function QueroJogar() {
   const { user } = useAuth()
   const { sports: allSports } = useSports()
   const [searchParams] = useSearchParams()
+  const navigate = useNavigate()
 
   const [events, setEvents]             = useState([])
   const [loading, setLoading]           = useState(true)
@@ -56,11 +57,15 @@ export default function QueroJogar() {
   const [filterCity, setFilterCity]     = useState('')
   const [filterVagas, setFilterVagas]   = useState(false)
 
-  const fetchEvents = async (pageNum = 1) => {
+  // courtType e city são filtros server-side — requerem novo fetch quando mudam
+  const fetchEvents = useCallback(async (pageNum = 1) => {
     try {
       if (pageNum === 1) setLoading(true)
       else setLoadingMore(true)
-      const res = await playerService.searchEvents({ status: 'WAITING', page: pageNum, limit: 20 })
+      const params = { status: 'WAITING', page: pageNum, limit: 20 }
+      if (selectedSport) params.courtType = selectedSport
+      if (filterCity)    params.city      = filterCity
+      const res = await playerService.searchEvents(params)
       const incoming = res.data?.events ?? res.data ?? []
       setEvents(prev => pageNum === 1 ? incoming : [...prev, ...incoming])
       setHasMore(res.data?.hasMore ?? false)
@@ -71,9 +76,10 @@ export default function QueroJogar() {
       setLoading(false)
       setLoadingMore(false)
     }
-  }
+  }, [selectedSport, filterCity])
 
-  useEffect(() => { fetchEvents(1) }, [])
+  // Refaz fetch do zero quando filtros server-side mudam
+  useEffect(() => { fetchEvents(1) }, [fetchEvents])
 
   const cities = useMemo(() =>
     [...new Set(events.map(e => e.court?.place?.city).filter(Boolean))].sort(),
@@ -132,7 +138,7 @@ export default function QueroJogar() {
   const handleJoin = async (courtId, eventId) => {
     try {
       await playerService.joinEvent(courtId, eventId)
-      fetchEvents()
+      fetchEvents(1)
     } catch (error) {
       toast.error(error.response?.data?.message || 'Erro ao entrar no jogo')
     }
@@ -317,7 +323,7 @@ export default function QueroJogar() {
             const mapsUrl = buildGoogleMapsUrl(event)
 
             return (
-              <Card key={event.id}>
+              <Card key={event.id} onClick={() => navigate(`/pelada/${event.id}`)} style={{ cursor: 'pointer' }}>
                 <CardHeader>
                   <div>
                     <h3>{event.court?.place?.name || 'Local'}</h3>
@@ -336,6 +342,7 @@ export default function QueroJogar() {
                 {mapsUrl && (
                   <InfoRow as="a" href={mapsUrl} target="_blank" rel="noopener noreferrer"
                     style={{ color: '#2563eb', textDecoration: 'none', cursor: 'pointer' }}
+                    onClick={e => e.stopPropagation()}
                   >
                     <MapPin size={14} /> Ver no Google Maps
                   </InfoRow>
@@ -356,7 +363,7 @@ export default function QueroJogar() {
                 <ActionButton
                   disabled={isFull || isJoined}
                   $isJoined={isJoined}
-                  onClick={() => handleJoin(event.courtId, event.id)}
+                  onClick={(e) => { e.stopPropagation(); handleJoin(event.courtId, event.id) }}
                 >
                   {isJoined
                     ? <><CheckCircle size={18} /> Você entrou</>
