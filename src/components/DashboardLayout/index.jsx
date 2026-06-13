@@ -1,12 +1,13 @@
-import { Sun, Moon, LayoutDashboard, Store } from 'lucide-react'
-import { useLocation } from 'react-router-dom'
+import { Sun, Moon, LayoutDashboard, Store, LogOut } from 'lucide-react'
+import { useLocation, useNavigate } from 'react-router-dom'
 import { useThemeMode } from '../../contexts/ThemeContext'
+import { useAuth } from '../../contexts/AuthContext'
 import logoUrl from '../../assets/logo-so-mais-um.svg'
 import {
   Shell, Sidebar, Logo, LogoIcon, LogoText, LogoName, LogoTagline,
   Divider, Nav, NavItem, NavBadge,
   UserCard, Avatar, UserInfo, UserName, UserRole,
-  ThemeToggleBtn,
+  ThemeToggleBtn, LogoutBtn,
   Main, Topbar, TopbarRow, TopbarTitle, TopbarSub, TopbarActions, Content,
 } from './styles'
 
@@ -48,7 +49,14 @@ export default function DashboardLayout({
 }) {
   const { isDark, toggleTheme } = useThemeMode()
   const { pathname } = useLocation()
+  const navigate = useNavigate()
+  const { logout } = useAuth()
   const crossPanel = getCrossPanel(user?.role, pathname)
+
+  function handleLogout() {
+    logout()
+    navigate('/login')
+  }
 
   return (
     <Shell>
@@ -97,6 +105,11 @@ export default function DashboardLayout({
           {isDark ? <Sun size={16} /> : <Moon size={16} />}
           {isDark ? 'Modo claro' : 'Modo escuro'}
         </ThemeToggleBtn>
+
+        <LogoutBtn onClick={handleLogout}>
+          <LogOut size={16} />
+          Sair da conta
+        </LogoutBtn>
 
         {user && (
           <UserCard>

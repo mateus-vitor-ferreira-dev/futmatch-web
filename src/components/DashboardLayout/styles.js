@@ -141,6 +141,31 @@ export const ThemeToggleBtn = styled.button`
   svg { flex-shrink: 0; }
 `
 
+export const LogoutBtn = styled.button`
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 8px 12px;
+  border: none;
+  border-radius: ${({ theme }) => theme.radii.md};
+  background: transparent;
+  color: ${({ theme }) => theme.colors.textSecondary};
+  font-size: ${({ theme }) => theme.fontSizes.sm};
+  font-weight: ${({ theme }) => theme.fontWeights.medium};
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+  font-family: ${({ theme }) => theme.fonts.sans};
+  margin-bottom: 4px;
+
+  &:hover {
+    background: rgba(239, 68, 68, 0.1);
+    color: #ef4444;
+  }
+
+  svg { flex-shrink: 0; }
+`
+
 // ── User card ─────────────────────────────────────────────────────────────────
 
 export const UserCard = styled.div`
