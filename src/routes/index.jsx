@@ -2,26 +2,34 @@ import { lazy, Suspense } from 'react'
 import { BrowserRouter, Routes, Route, Navigate, useNavigate } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
 
-const Intro          = lazy(() => import('../pages/Intro'))
-const Register       = lazy(() => import('../pages/Register'))
-const Home           = lazy(() => import('../pages/Home'))
-const Profile        = lazy(() => import('../pages/Profile'))
-const ForgotPassword = lazy(() => import('../pages/ForgotPassword'))
-const ResetPassword  = lazy(() => import('../pages/ResetPassword'))
-const QueroJogar     = lazy(() => import('../pages/QueroJogar'))
-const MinhasPeladas  = lazy(() => import('../pages/MinhasPeladas'))
-const Historico      = lazy(() => import('../pages/Historico'))
-const CriarPelada    = lazy(() => import('../pages/CriarPelada'))
-const Tournaments    = lazy(() => import('../pages/Tournaments'))
-const Avaliacoes     = lazy(() => import('../pages/Avaliacoes'))
-const PeladaDetail   = lazy(() => import('../pages/PeladaDetail'))
-const AdminDashboard = lazy(() => import('../pages/Admin/Dashboard'))
-const AdminUsers     = lazy(() => import('../pages/Admin/Users'))
-const AdminRequests  = lazy(() => import('../pages/Admin/Requests'))
-const AdminPlaces    = lazy(() => import('../pages/Admin/Places'))
-const OwnerDashboard = lazy(() => import('../pages/Owner/Dashboard'))
-const OwnerPlaces    = lazy(() => import('../pages/Owner/Places'))
-const OwnerRequests  = lazy(() => import('../pages/Owner/Requests'))
+// Recarrega a página automaticamente quando um chunk antigo não é encontrado após um novo deploy
+function lazyWithRetry(fn) {
+  return lazy(() => fn().catch(() => {
+    window.location.reload()
+    return new Promise(() => {})
+  }))
+}
+
+const Intro          = lazyWithRetry(() => import('../pages/Intro'))
+const Register       = lazyWithRetry(() => import('../pages/Register'))
+const Home           = lazyWithRetry(() => import('../pages/Home'))
+const Profile        = lazyWithRetry(() => import('../pages/Profile'))
+const ForgotPassword = lazyWithRetry(() => import('../pages/ForgotPassword'))
+const ResetPassword  = lazyWithRetry(() => import('../pages/ResetPassword'))
+const QueroJogar     = lazyWithRetry(() => import('../pages/QueroJogar'))
+const MinhasPeladas  = lazyWithRetry(() => import('../pages/MinhasPeladas'))
+const Historico      = lazyWithRetry(() => import('../pages/Historico'))
+const CriarPelada    = lazyWithRetry(() => import('../pages/CriarPelada'))
+const Tournaments    = lazyWithRetry(() => import('../pages/Tournaments'))
+const Avaliacoes     = lazyWithRetry(() => import('../pages/Avaliacoes'))
+const PeladaDetail   = lazyWithRetry(() => import('../pages/PeladaDetail'))
+const AdminDashboard = lazyWithRetry(() => import('../pages/Admin/Dashboard'))
+const AdminUsers     = lazyWithRetry(() => import('../pages/Admin/Users'))
+const AdminRequests  = lazyWithRetry(() => import('../pages/Admin/Requests'))
+const AdminPlaces    = lazyWithRetry(() => import('../pages/Admin/Places'))
+const OwnerDashboard = lazyWithRetry(() => import('../pages/Owner/Dashboard'))
+const OwnerPlaces    = lazyWithRetry(() => import('../pages/Owner/Places'))
+const OwnerRequests  = lazyWithRetry(() => import('../pages/Owner/Requests'))
 
 function PageLoader() {
   return (
