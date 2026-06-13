@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { toast } from 'sonner'
+import { SkeletonList } from '../../components/Skeleton'
 import { getSportMeta } from '../../hooks/useSports'
 import { useAuth } from '../../contexts/AuthContext'
 import { playerService } from '../../services/playerService'
@@ -134,7 +135,7 @@ export default function Historico() {
 
         <h3>Partidas Concluídas</h3>
         <HistoryList>
-          {loading ? <p>Carregando...</p> : history.map((event) => {
+          {loading ? <SkeletonList count={4} /> : history.map((event) => {
             const ev = event.pelada
             return (
               <HistoryCard key={ev.id}>

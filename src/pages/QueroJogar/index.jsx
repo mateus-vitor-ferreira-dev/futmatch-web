@@ -5,6 +5,7 @@ import { Search, Calendar, Clock, CheckCircle, MapPin, SlidersHorizontal, X } fr
 import { useAuth } from '../../contexts/AuthContext'
 import { playerService } from '../../services/playerService'
 import { useSports, getSportMeta } from '../../hooks/useSports'
+import { SkeletonCard } from '../../components/Skeleton'
 import { MainLayout } from '../../components'
 import {
   Container, Header, HeaderRow,
@@ -298,7 +299,7 @@ export default function QueroJogar() {
         </ResultsCount>
 
         <Grid>
-          {filteredEvents.map((event) => {
+          {loading ? <SkeletonCard count={3} /> : filteredEvents.map((event) => {
             const currentPlayers = event._count?.participations || 0
             const maxPlayers = event.maxPlayers
             const progress = (currentPlayers / maxPlayers) * 100
@@ -356,7 +357,7 @@ export default function QueroJogar() {
               </Card>
             )
           })}
-        </Grid>
+          </Grid>
       </Container>
     </MainLayout>
   )
