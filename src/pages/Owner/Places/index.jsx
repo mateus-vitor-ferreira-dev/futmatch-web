@@ -3,7 +3,9 @@ import { toast } from 'sonner'
 import { Building2, ClipboardList, LayoutDashboard, Home } from 'lucide-react'
 import DashboardLayout from '../../../components/DashboardLayout'
 import StatCard from '../../../components/StatCard'
+import SubscriptionGate from '../../../components/SubscriptionGate'
 import { useAuth } from '../../../contexts/AuthContext'
+import { useSubscription } from '../../../hooks/useSubscription'
 import * as placesService from '../../../services/places'
 import {
   StatsRow, PlaceGrid, PlaceCard, PlaceCardHeader, PlaceInfo,
@@ -24,6 +26,7 @@ const STATUS_BG    = { OPEN: '#dcfce7', CLOSED: '#f3f4f6' }
 
 export default function OwnerPlaces() {
   const { user } = useAuth()
+  const { isActive, loading: subLoading } = useSubscription()
   const [places, setPlaces]   = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError]     = useState(null)
@@ -73,6 +76,7 @@ export default function OwnerPlaces() {
       pageTitle="Meus Estabelecimentos"
       pageSub="Gerencie seus locais, quadras e status de cada estabelecimento"
     >
+      <SubscriptionGate isActive={isActive} loading={subLoading}>
       <StatsRow>
         <StatCard label="Estabelecimentos" value={places.length} accent="#f59e0b" />
         <StatCard label="Quadras"          value={totalCourts}   accent="#22c55e" />
@@ -125,6 +129,7 @@ export default function OwnerPlaces() {
           </PlaceCard>
         ))}
       </PlaceGrid>
+      </SubscriptionGate>
     </DashboardLayout>
   )
 }

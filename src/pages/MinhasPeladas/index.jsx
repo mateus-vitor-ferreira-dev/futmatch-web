@@ -3,6 +3,7 @@ import { getSportMeta } from '../../hooks/useSports'
 import { useForm } from 'react-hook-form'
 import { useSearchParams } from 'react-router-dom'
 import { toast } from 'sonner'
+import { SkeletonCard } from '../../components/Skeleton'
 import { Calendar, Clock, Copy, Plus, Shuffle } from 'lucide-react'
 import { useAuth } from '../../contexts/AuthContext'
 import { playerService } from '../../services/playerService'
@@ -142,7 +143,7 @@ export default function MinhasPeladas() {
           </Tab>
         </Tabs>
 
-        {loading ? <p>Carregando...</p> : (
+        {loading ? <SkeletonCard count={3} /> : (
           <Grid>
             {events.map((event) => {
               const ev = event.pelada || event

@@ -6,7 +6,9 @@ import { toast } from 'sonner'
 import { Building2, ClipboardList, LayoutDashboard, Home } from 'lucide-react'
 import DashboardLayout from '../../../components/DashboardLayout'
 import StatCard from '../../../components/StatCard'
+import SubscriptionGate from '../../../components/SubscriptionGate'
 import { useAuth } from '../../../contexts/AuthContext'
+import { useSubscription } from '../../../hooks/useSubscription'
 import * as placeRequestsService from '../../../services/placeRequests'
 import {
   StatsRow, RequestList, RequestCard, RequestAccent, RequestHeader,
@@ -37,6 +39,7 @@ const schema = yup.object({
 
 export default function OwnerRequests() {
   const { user } = useAuth()
+  const { isActive, loading: subLoading } = useSubscription()
   const [requests, setRequests]   = useState([])
   const [loading, setLoading]     = useState(true)
   const [error, setError]         = useState(null)
@@ -95,6 +98,7 @@ export default function OwnerRequests() {
         <NewBtn onClick={() => setShowModal(true)}>+ Nova Solicitação</NewBtn>
       }
     >
+      <SubscriptionGate isActive={isActive} loading={subLoading}>
       <StatsRow>
         <StatCard label="Total Enviadas" value={counts.total}    accent="#3b82f6" />
         <StatCard label="Aprovadas"      value={counts.approved} accent="#22c55e" />
@@ -205,6 +209,7 @@ export default function OwnerRequests() {
           </ModalBox>
         </Modal>
       )}
+      </SubscriptionGate>
     </DashboardLayout>
   )
 }
