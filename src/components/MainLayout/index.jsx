@@ -1,14 +1,15 @@
 import { useState, useEffect } from 'react'
-import { Home, Search, ClipboardList, History, User, Plus, Trophy, Menu, Star, Sun, Moon, LayoutDashboard, Store } from 'lucide-react'
+import { Home, Search, ClipboardList, History, User, Plus, Trophy, Menu, Star, Sun, Moon, LayoutDashboard, Store, LogOut } from 'lucide-react'
 import iconUrl from '../../assets/icon-so-mais-um.svg'
 import logoUrl from '../../assets/logo-so-mais-um.svg'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { useThemeMode } from '../../contexts/ThemeContext'
+import { useAuth } from '../../contexts/AuthContext'
 import {
   AppShell, Overlay, Sidebar, Logo, LogoIcon, LogoText, LogoName, LogoTagline,
   Nav, NavItem, NavDivider, UserCard, Avatar, UserInfo, UserName, UserBadge,
   ContentWrapper, MobileTopbar, HamburgerBtn, TopbarLogoName, Content,
-  ThemeToggleBtn,
+  ThemeToggleBtn, LogoutBtn,
 } from './styles'
 
 const NAV_ITEMS = [
@@ -42,6 +43,12 @@ export default function MainLayout({ children, user }) {
   const initials = getInitials(user?.name)
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const { isDark, toggleTheme } = useThemeMode()
+  const { logout } = useAuth()
+
+  function handleLogout() {
+    logout()
+    navigate('/login')
+  }
 
   useEffect(() => {
     setSidebarOpen(false)
@@ -96,6 +103,11 @@ export default function MainLayout({ children, user }) {
         >
           {isDark ? <Sun size={18} /> : <Moon size={18} />}
         </ThemeToggleBtn>
+
+        <LogoutBtn onClick={handleLogout}>
+          <LogOut size={18} />
+          Sair da conta
+        </LogoutBtn>
 
         {user && (
           <UserCard onClick={() => navigate('/perfil')}>
