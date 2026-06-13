@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { useForm, Controller } from 'react-hook-form'
+import { useForm, Controller, useWatch } from 'react-hook-form'
 import { yupResolver } from '@hookform/resolvers/yup'
 import * as yup from 'yup'
 import { toast } from 'sonner'
@@ -87,12 +87,12 @@ export default function Profile() {
     handleSubmit: handleProfile,
     reset: resetProfile,
     setValue: setProfileValue,
-    watch: watchProfile,
+
     control: profileControl,
     formState: { errors: errP, isSubmitting: savingProfile },
   } = useForm({ resolver: yupResolver(profileSchema) })
 
-  const avatarUrlValue = watchProfile('avatarUrl')
+  const avatarUrlValue = useWatch({ control: profileControl, name: 'avatarUrl' })
 
   useEffect(() => {
     if (user) {
