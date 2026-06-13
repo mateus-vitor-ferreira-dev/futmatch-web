@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
+import { toast } from 'sonner'
 import { Building2, ClipboardList, LayoutDashboard, Home } from 'lucide-react'
 import DashboardLayout from '../../../components/DashboardLayout'
 import StatCard from '../../../components/StatCard'
@@ -51,7 +52,7 @@ export default function OwnerPlaces() {
       await placesService.updateStatus(place.id, next)
       await fetchPlaces()
     } catch {
-      alert('Erro ao alterar status.')
+      toast.error('Erro ao alterar status.')
     } finally {
       setToggling(null)
     }

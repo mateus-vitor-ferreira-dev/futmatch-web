@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo } from 'react'
 import { useSearchParams } from 'react-router-dom'
+import { toast } from 'sonner'
 import { Search, Calendar, Clock, CheckCircle, MapPin, SlidersHorizontal, X } from 'lucide-react'
 import { useAuth } from '../../contexts/AuthContext'
 import { playerService } from '../../services/playerService'
@@ -124,7 +125,7 @@ export default function QueroJogar() {
       await playerService.joinEvent(courtId, eventId)
       fetchEvents()
     } catch (error) {
-      alert(error.response?.data?.message || 'Erro ao entrar no jogo')
+      toast.error(error.response?.data?.message || 'Erro ao entrar no jogo')
     }
   }
 

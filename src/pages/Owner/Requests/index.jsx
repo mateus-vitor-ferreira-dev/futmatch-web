@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useForm } from 'react-hook-form'
 import { yupResolver } from '@hookform/resolvers/yup'
 import * as yup from 'yup'
+import { toast } from 'sonner'
 import { Building2, ClipboardList, LayoutDashboard, Home } from 'lucide-react'
 import DashboardLayout from '../../../components/DashboardLayout'
 import StatCard from '../../../components/StatCard'
@@ -69,7 +70,7 @@ export default function OwnerRequests() {
       setShowModal(false)
       await fetchRequests()
     } catch {
-      alert('Erro ao enviar solicitação.')
+      toast.error('Erro ao enviar solicitação.')
     } finally {
       setSubmitting(false)
     }

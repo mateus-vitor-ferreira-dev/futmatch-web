@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { getSportMeta } from '../../hooks/useSports'
 import { useForm } from 'react-hook-form'
 import { useSearchParams } from 'react-router-dom'
+import { toast } from 'sonner'
 import { Calendar, Clock, Copy, Plus, Shuffle } from 'lucide-react'
 import { useAuth } from '../../contexts/AuthContext'
 import { playerService } from '../../services/playerService'
@@ -85,13 +86,13 @@ export default function MinhasPeladas() {
       setActiveTab('created')
       fetchData()
     } catch (error) {
-      alert(error.response?.data?.message || 'Erro ao criar pelada')
+      toast.error(error.response?.data?.message || 'Erro ao criar pelada')
     }
   }
 
   const copyPix = (key) => {
     navigator.clipboard.writeText(key)
-    alert('Chave PIX copiada!')
+    toast.success('Chave PIX copiada!')
   }
 
   const openDraw = (ev) => {
@@ -107,7 +108,7 @@ export default function MinhasPeladas() {
       const res = await playerService.drawTeams(drawEvent.courtId, drawEvent.id, teamCount)
       setDrawResult(res.data)
     } catch (error) {
-      alert(error.response?.data?.message || 'Erro ao realizar sorteio. Verifique se há jogadores suficientes.')
+      toast.error(error.response?.data?.message || 'Erro ao realizar sorteio. Verifique se há jogadores suficientes.')
     } finally {
       setDrawLoading(false)
     }
