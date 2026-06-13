@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { Bell } from 'lucide-react'
 import { notificationService } from '../../services/notificationService'
+import { env } from '../../config/env'
 import {
   Wrapper, BellBtn, Badge, Dropdown, DropHeader, DropTitle,
   MarkAllBtn, NotifList, NotifItem, NotifDot, NotifText,
@@ -19,22 +20,42 @@ function timeAgo(dateStr) {
 
 export default function NotificationBell() {
   const [notifs, setNotifs] = useState([])
-  const [open, setOpen] = useState(false)
-  const ref = useRef(null)
+  const [open, setOpen]     = useState(false)
+  const ref                 = useRef(null)
+  const esRef               = useRef(null)
 
   async function load() {
     try {
       const data = await notificationService.list()
       setNotifs(data)
     } catch {
-      // silently fail — not critical
+      // não crítico
     }
   }
 
   useEffect(() => {
     load()
-    const interval = setInterval(load, 30000)
-    return () => clearInterval(interval)
+
+    const token = localStorage.getItem('só+1:token')
+    if (!token) return
+
+    const url = `${env.apiUrl}/notifications/stream?token=${encodeURIComponent(token)}`
+    const es  = new EventSource(url)
+    esRef.current = es
+
+    es.onmessage = (e) => {
+      try {
+        const notification = JSON.parse(e.data)
+        setNotifs(prev => [notification, ...prev])
+      } catch {
+        // ignora payloads malformados
+      }
+    }
+
+    return () => {
+      es.close()
+      esRef.current = null
+    }
   }, [])
 
   useEffect(() => {
@@ -80,7 +101,7 @@ export default function NotificationBell() {
                 <NotifItem key={n.id} $read={n.read} onClick={() => handleRead(n.id)}>
                   {!n.read && <NotifDot />}
                   <div style={{ flex: 1 }}>
-                    <NotifText>{n.message}</NotifText>
+                    <NotifText>{n.title || n.message}</NotifText>
                     <NotifTime>{timeAgo(n.createdAt)}</NotifTime>
                   </div>
                 </NotifItem>

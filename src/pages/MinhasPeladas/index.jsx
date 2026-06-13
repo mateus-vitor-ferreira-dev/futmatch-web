@@ -4,7 +4,7 @@ import { useForm } from 'react-hook-form'
 import { useSearchParams } from 'react-router-dom'
 import { toast } from 'sonner'
 import { SkeletonCard } from '../../components/Skeleton'
-import { Calendar, Clock, Copy, Plus, Shuffle } from 'lucide-react'
+import { Calendar, Clock, Copy, Plus, Shuffle, Flag, XCircle } from 'lucide-react'
 import { useAuth } from '../../contexts/AuthContext'
 import { playerService } from '../../services/playerService'
 import { MainLayout } from '../../components'
@@ -120,6 +120,18 @@ export default function MinhasPeladas() {
     setDrawResult(null)
   }
 
+  const handleUpdateStatus = async (ev, status) => {
+    const label = status === 'FINISHED' ? 'finalizar' : 'cancelar'
+    if (!window.confirm(`Tem certeza que deseja ${label} esta pelada?`)) return
+    try {
+      await playerService.updateEventStatus(ev.courtId, ev.id, status)
+      toast.success(`Pelada ${status === 'FINISHED' ? 'finalizada' : 'cancelada'}.`)
+      fetchData()
+    } catch (error) {
+      toast.error(error.response?.data?.message || 'Erro ao atualizar status.')
+    }
+  }
+
   return (
     <MainLayout user={user}>
       <Container>
@@ -180,9 +192,25 @@ export default function MinhasPeladas() {
                         <button onClick={() => copyPix(ev.pixKey)}><Copy size={14} /> Copiar</button>
                       </PixBox>
                       {(ev.status === 'WAITING' || ev.status === 'FULL') && (
-                        <DrawButton onClick={() => openDraw(ev)}>
-                          <Shuffle size={14} /> Sortear Times
-                        </DrawButton>
+                        <>
+                          <DrawButton onClick={() => openDraw(ev)}>
+                            <Shuffle size={14} /> Sortear Times
+                          </DrawButton>
+                          <div style={{ display: 'flex', gap: 8, marginTop: 8 }}>
+                            <button
+                              onClick={() => handleUpdateStatus(ev, 'FINISHED')}
+                              style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, padding: '8px 12px', borderRadius: 8, border: '1px solid #e5e7eb', background: '#f0fdf4', color: '#166534', fontWeight: 600, fontSize: 13, cursor: 'pointer' }}
+                            >
+                              <Flag size={13} /> Finalizar
+                            </button>
+                            <button
+                              onClick={() => handleUpdateStatus(ev, 'CANCELLED')}
+                              style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, padding: '8px 12px', borderRadius: 8, border: '1px solid #fee2e2', background: '#fee2e2', color: '#991b1b', fontWeight: 600, fontSize: 13, cursor: 'pointer' }}
+                            >
+                              <XCircle size={13} /> Cancelar
+                            </button>
+                          </div>
+                        </>
                       )}
                     </>
                   )}
