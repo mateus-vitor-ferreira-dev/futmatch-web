@@ -37,9 +37,8 @@ export default function Historico() {
     const fetchHistoric = async () => {
       try {
         setLoading(true)
-        const partRes = await playerService.getMyParticipatingEvents()
-        const pastEvents = (partRes.data || []).filter(p => p.pelada?.status === 'FINISHED')
-        setHistory(pastEvents)
+        const partRes = await playerService.getMyParticipatingEvents({ status: 'FINISHED' })
+        setHistory(partRes.data || [])
 
         const revRes = await playerService.getUserReviews(user.id)
         setReviewSummary(revRes.data?.summary || {})

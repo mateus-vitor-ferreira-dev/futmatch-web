@@ -44,6 +44,9 @@ export default function QueroJogar() {
 
   const [events, setEvents]             = useState([])
   const [loading, setLoading]           = useState(true)
+  const [loadingMore, setLoadingMore]   = useState(false)
+  const [page, setPage]                 = useState(1)
+  const [hasMore, setHasMore]           = useState(false)
   const [search, setSearch]             = useState('')
   const [selectedSport, setSelectedSport] = useState(searchParams.get('sport') || '')
   const [showFilters, setShowFilters]   = useState(false)
@@ -53,19 +56,24 @@ export default function QueroJogar() {
   const [filterCity, setFilterCity]     = useState('')
   const [filterVagas, setFilterVagas]   = useState(false)
 
-  const fetchEvents = async () => {
+  const fetchEvents = async (pageNum = 1) => {
     try {
-      setLoading(true)
-      const res = await playerService.searchEvents({ status: 'WAITING' })
-      setEvents(res.data || [])
+      if (pageNum === 1) setLoading(true)
+      else setLoadingMore(true)
+      const res = await playerService.searchEvents({ status: 'WAITING', page: pageNum, limit: 20 })
+      const incoming = res.data?.events ?? res.data ?? []
+      setEvents(prev => pageNum === 1 ? incoming : [...prev, ...incoming])
+      setHasMore(res.data?.hasMore ?? false)
+      setPage(pageNum)
     } catch {
-      setEvents([])
+      if (pageNum === 1) setEvents([])
     } finally {
       setLoading(false)
+      setLoadingMore(false)
     }
   }
 
-  useEffect(() => { fetchEvents() }, [])
+  useEffect(() => { fetchEvents(1) }, [])
 
   const cities = useMemo(() =>
     [...new Set(events.map(e => e.court?.place?.city).filter(Boolean))].sort(),
@@ -358,6 +366,28 @@ export default function QueroJogar() {
             )
           })}
           </Grid>
+
+        {hasMore && (
+          <div style={{ display: 'flex', justifyContent: 'center', marginTop: 32 }}>
+            <button
+              onClick={() => fetchEvents(page + 1)}
+              disabled={loadingMore}
+              style={{
+                padding: '12px 32px',
+                background: '#22c55e',
+                color: '#fff',
+                border: 'none',
+                borderRadius: 10,
+                fontWeight: 600,
+                fontSize: 15,
+                cursor: loadingMore ? 'not-allowed' : 'pointer',
+                opacity: loadingMore ? 0.7 : 1,
+              }}
+            >
+              {loadingMore ? 'Carregando...' : 'Carregar mais jogos'}
+            </button>
+          </div>
+        )}
       </Container>
     </MainLayout>
   )

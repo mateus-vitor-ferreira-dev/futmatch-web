@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react'
-import { LayoutDashboard, ClipboardList, Building2, Home, CreditCard, Loader2 } from 'lucide-react'
+import { LayoutDashboard, ClipboardList, Building2, Home, CreditCard, Loader2, MapPin, Shield, CalendarCheck, Bell } from 'lucide-react'
 import { useSearchParams } from 'react-router-dom'
+import { toast } from 'sonner'
 import { useAuth } from '../../../contexts/AuthContext'
 import { subscriptionService } from '../../../services/subscriptionService'
+import { ownerService } from '../../../services/ownerService'
 import DashboardLayout from '../../../components/DashboardLayout'
-import { Container, Grid, Card, PlanHighlight, RowList, PrimaryButton, Badge } from './styles'
+import { Container, Grid, Card, PlanHighlight, RowList, PrimaryButton, Badge, StatsGrid, StatCard, StatIcon, StatInfo, StatValue, StatLabel } from './styles'
 
 const OWNER_NAV_ITEMS = [
   { to: '/owner',          label: 'Visão Geral',      icon: LayoutDashboard, end: true },
@@ -27,19 +29,22 @@ export default function OwnerDashboard() {
   const [sub, setSub] = useState(null)
   const [loading, setLoading] = useState(true)
   const [paying, setPaying] = useState(false)
-  const [feedback, setFeedback] = useState(null)
+  const [stats, setStats] = useState(null)
 
   useEffect(() => {
     const payment = searchParams.get('payment')
-    if (payment === 'success')   setFeedback({ type: 'success', msg: 'Pagamento realizado com sucesso!' })
-    if (payment === 'cancelled') setFeedback({ type: 'warn',    msg: 'Pagamento cancelado.' })
+    if (payment === 'success')   toast.success('Pagamento realizado com sucesso!')
+    if (payment === 'cancelled') toast.warning('Pagamento cancelado.')
   }, [searchParams])
 
   useEffect(() => {
-    subscriptionService.getStatus()
-      .then(data => setSub(data))
-      .catch(() => setSub({ status: 'inactive' }))
-      .finally(() => setLoading(false))
+    Promise.all([
+      subscriptionService.getStatus().catch(() => ({ status: 'inactive' })),
+      ownerService.getStats().catch(() => null),
+    ]).then(([subData, statsData]) => {
+      setSub(subData)
+      setStats(statsData)
+    }).finally(() => setLoading(false))
   }, [])
 
   const handlePay = async () => {
@@ -48,7 +53,7 @@ export default function OwnerDashboard() {
       const { url } = await subscriptionService.createCheckout()
       window.location.href = url
     } catch {
-      setFeedback({ type: 'error', msg: 'Erro ao iniciar pagamento. Tente novamente.' })
+      toast.error('Erro ao iniciar pagamento. Tente novamente.')
       setPaying(false)
     }
   }
@@ -65,17 +70,22 @@ export default function OwnerDashboard() {
       pageSub="Gerencie sua assinatura Só+1 Pro."
     >
       <Container>
-        {feedback && (
-          <div style={{
-            padding: '12px 16px',
-            borderRadius: 8,
-            marginBottom: 16,
-            background: feedback.type === 'success' ? '#dcfce7' : feedback.type === 'warn' ? '#fef9c3' : '#fee2e2',
-            color: feedback.type === 'success' ? '#166534' : feedback.type === 'warn' ? '#854d0e' : '#991b1b',
-          }}>
-            {feedback.msg}
-          </div>
-        )}
+        <StatsGrid>
+          {[
+            { icon: MapPin,       color: '#3b82f6', label: 'Estabelecimentos', value: stats?.totalPlaces  ?? '—' },
+            { icon: Shield,       color: '#22c55e', label: 'Quadras',          value: stats?.totalCourts  ?? '—' },
+            { icon: CalendarCheck,color: '#f59e0b', label: 'Peladas ativas',   value: stats?.activeEvents ?? '—' },
+            { icon: Bell,         color: '#ef4444', label: 'Sol. pendentes',   value: stats?.pendingRequests ?? '—' },
+          ].map(({ icon: Icon, color, label, value }) => (
+            <StatCard key={label}>
+              <StatIcon $color={color}><Icon size={20} /></StatIcon>
+              <StatInfo>
+                <StatValue>{loading ? '—' : value}</StatValue>
+                <StatLabel>{label}</StatLabel>
+              </StatInfo>
+            </StatCard>
+          ))}
+        </StatsGrid>
 
         <Grid>
           <Card>

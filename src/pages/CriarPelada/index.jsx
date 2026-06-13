@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { useForm } from 'react-hook-form'
+import { useForm, useWatch } from 'react-hook-form'
 import { yupResolver } from '@hookform/resolvers/yup'
 import * as yup from 'yup'
 import { useAuth } from '../../contexts/AuthContext'
@@ -64,7 +64,7 @@ export default function CriarPelada() {
   const {
     register,
     handleSubmit,
-    watch,
+    control,
     formState: { errors },
   } = useForm({ resolver: yupResolver(schema) })
 
@@ -127,9 +127,11 @@ export default function CriarPelada() {
     }
   }
 
-  const watchedValues = watch()
-  const pricePerPerson = watchedValues.totalValue && watchedValues.maxPlayers
-    ? (Number(watchedValues.totalValue) / Number(watchedValues.maxPlayers)).toFixed(2)
+  const watchedTotalValue = useWatch({ control, name: 'totalValue' })
+  const watchedMaxPlayers = useWatch({ control, name: 'maxPlayers' })
+  const minDate = useMemo(() => new Date(Date.now() + 60000).toISOString().slice(0, 16), [])
+  const pricePerPerson = watchedTotalValue && watchedMaxPlayers
+    ? (Number(watchedTotalValue) / Number(watchedMaxPlayers)).toFixed(2)
     : null
 
   const selectedSport = sports.find(s => s.id === filterSport)
@@ -280,7 +282,7 @@ export default function CriarPelada() {
                 <Label>Data e horário *</Label>
                 <Input
                   type="datetime-local"
-                  min={new Date(Date.now() + 60000).toISOString().slice(0, 16)}
+                  min={minDate}
                   {...register('date')}
                   $error={!!errors.date}
                 />

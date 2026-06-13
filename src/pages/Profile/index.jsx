@@ -1,8 +1,9 @@
 import { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { useForm, Controller } from 'react-hook-form'
+import { useForm, Controller, useWatch } from 'react-hook-form'
 import { yupResolver } from '@hookform/resolvers/yup'
 import * as yup from 'yup'
+import { toast } from 'sonner'
 import { Camera, Loader, LogOut } from 'lucide-react'
 import MainLayout from '../../components/MainLayout'
 import { PhoneInput, PasswordInput } from '../../components'
@@ -15,7 +16,7 @@ import {
   SectionTitle, SectionDivider,
   AvatarBlock, AvatarUploadWrapper, AvatarOverlay, AvatarCircle, AvatarInitials, AvatarHint,
   Form, FormGrid, Field, Label, Input, FieldError,
-  SaveBtn, SuccessMsg,
+  SaveBtn,
   LogoutSection, LogoutBtn,
   StepBox,
 } from './styles'
@@ -44,7 +45,7 @@ function getInitials(name = '') {
 }
 
 export default function Profile() {
-  const { user, logout } = useAuth()
+  const { user, logout, refreshUser } = useAuth()
   const navigate = useNavigate()
 
   // ── Upload de avatar ───────────────────────────────────────────────────────
@@ -60,7 +61,6 @@ export default function Profile() {
   const [pwdStep, setPwdStep]           = useState(1)
   const [currentPwd, setCurrentPwd]     = useState('')
   const [currentPwdErr, setCurrentPwdErr] = useState('')
-  const [pwdSuccess, setPwdSuccess]     = useState(false)
 
   function switchTab(tab) {
     setActiveTab(tab)
@@ -68,7 +68,6 @@ export default function Profile() {
       setPwdStep(1)
       setCurrentPwd('')
       setCurrentPwdErr('')
-      setPwdSuccess(false)
       resetPwd()
     }
   }
@@ -88,12 +87,12 @@ export default function Profile() {
     handleSubmit: handleProfile,
     reset: resetProfile,
     setValue: setProfileValue,
-    watch: watchProfile,
+
     control: profileControl,
-    formState: { errors: errP, isSubmitting: savingProfile, isSubmitSuccessful: profileSaved },
+    formState: { errors: errP, isSubmitting: savingProfile },
   } = useForm({ resolver: yupResolver(profileSchema) })
 
-  const avatarUrlValue = watchProfile('avatarUrl')
+  const avatarUrlValue = useWatch({ control: profileControl, name: 'avatarUrl' })
 
   useEffect(() => {
     if (user) {
@@ -124,6 +123,8 @@ export default function Profile() {
 
   const onSaveProfile = async (data) => {
     await usersService.updateMe(data)
+    await refreshUser()
+    toast.success('Perfil atualizado com sucesso!')
   }
 
   // ── Formulário de nova senha (passo 2) ────────────────────────────────────
@@ -144,7 +145,7 @@ export default function Profile() {
       resetPwd()
       setCurrentPwd('')
       setPwdStep(1)
-      setPwdSuccess(true)
+      toast.success('Senha alterada com sucesso!')
     } catch (err) {
       const msg = err.response?.data?.message ?? 'Erro ao alterar senha.'
       setPwdStep(1)
@@ -240,8 +241,6 @@ export default function Profile() {
               <input type="hidden" {...regProfile('avatarUrl')} />
             </FormGrid>
 
-            {profileSaved && <SuccessMsg>Perfil atualizado com sucesso!</SuccessMsg>}
-
             <SaveBtn type="submit" disabled={savingProfile}>
               {savingProfile ? 'Salvando...' : 'Salvar alterações'}
             </SaveBtn>
@@ -265,7 +264,6 @@ export default function Profile() {
                 disabled={pwdStep === 2}
               />
               {currentPwdErr && <FieldError>{currentPwdErr}</FieldError>}
-              {pwdSuccess && <SuccessMsg>Senha alterada com sucesso!</SuccessMsg>}
             </Field>
 
             {pwdStep === 1 && (
