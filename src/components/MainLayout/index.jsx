@@ -5,6 +5,7 @@ import logoUrl from '../../assets/logo-so-mais-um.svg'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { useThemeMode } from '../../contexts/ThemeContext'
 import { useAuth } from '../../contexts/AuthContext'
+import NotificationBell from '../NotificationBell'
 import {
   AppShell, Overlay, Sidebar, Logo, LogoIcon, LogoText, LogoName, LogoTagline,
   Nav, NavItem, NavDivider, UserCard, Avatar, UserInfo, UserName, UserBadge,
@@ -131,13 +132,15 @@ export default function MainLayout({ children, user }) {
             </span>
             Só+1
           </TopbarLogoName>
-          <ThemeToggleBtn
-            onClick={toggleTheme}
-            style={{ marginLeft: 'auto' }}
-            title={isDark ? 'Mudar para tema claro' : 'Mudar para tema escuro'}
-          >
-            {isDark ? <Sun size={18} /> : <Moon size={18} />}
-          </ThemeToggleBtn>
+          <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 8 }}>
+            <NotificationBell />
+            <ThemeToggleBtn
+              onClick={toggleTheme}
+              title={isDark ? 'Mudar para tema claro' : 'Mudar para tema escuro'}
+            >
+              {isDark ? <Sun size={18} /> : <Moon size={18} />}
+            </ThemeToggleBtn>
+          </div>
         </MobileTopbar>
 
         <Content>{children}</Content>

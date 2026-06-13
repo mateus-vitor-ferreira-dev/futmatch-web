@@ -3,6 +3,7 @@ import { useLocation, useNavigate } from 'react-router-dom'
 import { useThemeMode } from '../../contexts/ThemeContext'
 import { useAuth } from '../../contexts/AuthContext'
 import logoUrl from '../../assets/logo-so-mais-um.svg'
+import NotificationBell from '../NotificationBell'
 import {
   Shell, Sidebar, Logo, LogoIcon, LogoText, LogoName, LogoTagline,
   Divider, Nav, NavItem, NavBadge,
@@ -129,7 +130,10 @@ export default function DashboardLayout({
               <TopbarTitle>{pageTitle}</TopbarTitle>
               {pageSub && <TopbarSub>{pageSub}</TopbarSub>}
             </div>
-            {topbarActions && <TopbarActions>{topbarActions}</TopbarActions>}
+            <TopbarActions>
+              <NotificationBell />
+              {topbarActions}
+            </TopbarActions>
           </TopbarRow>
         </Topbar>
 
