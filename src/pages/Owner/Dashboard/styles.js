@@ -91,6 +91,55 @@ export const PrimaryButton = styled.button`
   cursor: pointer;
   margin-top: 16px;
 `
+export const StatsGrid = styled.div`
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  margin-bottom: 24px;
+  @media (max-width: 900px) { grid-template-columns: repeat(2, 1fr); }
+  @media (max-width: 480px) { grid-template-columns: 1fr; }
+`
+
+export const StatCard = styled.div`
+  background: ${({ theme }) => theme.colors.bgCard};
+  border: 1px solid ${({ theme }) => theme.colors.borderLight};
+  border-radius: 12px;
+  padding: 20px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  box-shadow: ${({ theme }) => theme.shadows.sm};
+`
+
+export const StatIcon = styled.div`
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
+  background: ${({ $color }) => $color}18;
+  color: ${({ $color }) => $color};
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+`
+
+export const StatInfo = styled.div`
+  min-width: 0;
+`
+
+export const StatValue = styled.div`
+  font-size: 24px;
+  font-weight: 700;
+  color: ${({ theme }) => theme.colors.textPrimary};
+  line-height: 1;
+`
+
+export const StatLabel = styled.div`
+  font-size: 12px;
+  color: ${({ theme }) => theme.colors.textSecondary};
+  margin-top: 4px;
+`
+
 export const Badge = styled.span`
   padding: 4px 12px;
   border-radius: 99px;

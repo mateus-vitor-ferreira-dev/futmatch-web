@@ -62,6 +62,12 @@ export function AuthProvider({ children }) {
     return res
   }, [])
 
+  /** Recarrega os dados do usuário autenticado (uso após editar perfil) */
+  const refreshUser = useCallback(async () => {
+    const res = await authService.getMe()
+    setUser(res.data)
+  }, [])
+
   /** Remove o token e limpa o estado do usuário */
   const logout = useCallback(() => {
     localStorage.removeItem('só+1:token')
@@ -77,6 +83,7 @@ export function AuthProvider({ children }) {
       login,
       googleLogin,
       logout,
+      refreshUser,
     }}>
       {children}
     </AuthContext.Provider>
