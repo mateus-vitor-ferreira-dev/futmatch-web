@@ -44,6 +44,7 @@ const schema = yup.object({
 })
 
 const STEPS = ['Escolher Quadra', 'Detalhes da Pelada', 'Confirmação']
+const MIN_DATE = new Date(Date.now() + 60000).toISOString().slice(0, 16)
 
 export default function CriarPelada() {
   const { user }   = useAuth()
@@ -129,7 +130,6 @@ export default function CriarPelada() {
 
   const watchedTotalValue = useWatch({ control, name: 'totalValue' })
   const watchedMaxPlayers = useWatch({ control, name: 'maxPlayers' })
-  const minDate = useMemo(() => new Date(Date.now() + 60000).toISOString().slice(0, 16), [])
   const pricePerPerson = watchedTotalValue && watchedMaxPlayers
     ? (Number(watchedTotalValue) / Number(watchedMaxPlayers)).toFixed(2)
     : null
@@ -282,7 +282,7 @@ export default function CriarPelada() {
                 <Label>Data e horário *</Label>
                 <Input
                   type="datetime-local"
-                  min={minDate}
+                  min={MIN_DATE}
                   {...register('date')}
                   $error={!!errors.date}
                 />
