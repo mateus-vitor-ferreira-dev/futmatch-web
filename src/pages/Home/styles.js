@@ -135,7 +135,10 @@ export const StatLabel = styled.span`
 export const TabsRow = styled.div`
   display: flex;
   gap: 8px;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  scrollbar-width: none;
+  &::-webkit-scrollbar { display: none; }
 `
 
 export const Tab = styled.button`
