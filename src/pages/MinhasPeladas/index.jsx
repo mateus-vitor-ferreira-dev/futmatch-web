@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { getSportMeta } from '../../hooks/useSports'
 import { useForm } from 'react-hook-form'
-import { useSearchParams } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { toast } from 'sonner'
 import { SkeletonCard } from '../../components/Skeleton'
 import { Calendar, Clock, Copy, Plus, Shuffle, Flag, XCircle } from 'lucide-react'
@@ -16,6 +16,13 @@ import {
   TeamGrid, TeamCard, TeamHeader, PlayerItem,
 } from './styles'
 
+const STATUS_LABELS = {
+  WAITING:   'Aguardando',
+  FULL:      'Lotado',
+  FINISHED:  'Finalizado',
+  CANCELLED: 'Cancelado',
+}
+
 const TEAM_COLORS = [
   '#22c55e', '#3b82f6', '#f59e0b', '#ef4444', '#8b5cf6',
   '#ec4899', '#14b8a6', '#eab308', '#6366f1', '#06b6d4',
@@ -23,6 +30,7 @@ const TEAM_COLORS = [
 
 export default function MinhasPeladas() {
   const { user } = useAuth()
+  const navigate = useNavigate()
   const [searchParams, setSearchParams] = useSearchParams()
   const [activeTab, setActiveTab] = useState('participating')
   const [events, setEvents] = useState([])
@@ -166,14 +174,14 @@ export default function MinhasPeladas() {
               const progress = (currentPlayers / maxPlayers) * 100
 
               return (
-                <Card key={ev.id}>
+                <Card key={ev.id} onClick={() => navigate(`/pelada/${ev.id}`)} style={{ cursor: 'pointer' }}>
                   <CardHeader>
                     <div>
                       <h3>{ev.court?.place?.name || 'Local'}</h3>
                       <span style={{ fontSize: 12, color: '#6b7280' }}>{ev.court?.name}</span>
                     </div>
                     <span className="badge" style={{ color: '#f59e0b', background: '#fef3c7' }}>
-                      {ev.status}
+                      {STATUS_LABELS[ev.status] ?? ev.status}
                     </span>
                   </CardHeader>
 
