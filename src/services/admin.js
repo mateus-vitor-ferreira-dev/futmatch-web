@@ -5,3 +5,6 @@ export const listUsers = (role) =>
 
 export const updateUserRole = (userId, role) =>
   api.patch(`/admin/users/${userId}/role`, { role })
+
+export const inviteOwner = (email) =>
+  api.post('/admin/invite-owner', { email })
