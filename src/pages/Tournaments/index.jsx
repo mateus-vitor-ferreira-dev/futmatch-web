@@ -286,6 +286,7 @@ export default function Tournaments() {
   const [apiError, setApiError]         = useState(null)
   const [categories, setCategories]     = useState([])
   const [catInput, setCatInput]         = useState('')
+  const [multiCategory, setMultiCategory] = useState(false)
 
   const {
     register, handleSubmit, reset, control,
@@ -328,6 +329,7 @@ export default function Tournaments() {
     reset()
     setCategories([])
     setCatInput('')
+    setMultiCategory(false)
     setApiError(null)
   }
 
@@ -592,33 +594,56 @@ export default function Tournaments() {
                   />
                 </Field>
 
-                {/* Categorias (divisões) */}
-                <CategorySection>
-                  <Label>Categorias <span style={{ fontWeight: 400, color: '#9ca3af' }}>(opcional)</span></Label>
-                  <CatChipsRow>
-                    {PRESET_CATEGORIES.filter(c => !categories.includes(c)).map(c => (
-                      <PresetChip key={c} type="button" onClick={() => addCategory(c)}>{c}</PresetChip>
-                    ))}
-                  </CatChipsRow>
-                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 8 }}>
-                    {categories.map(cat => (
-                      <CatTag key={cat}>
-                        {cat}
-                        <CatTagRemove type="button" onClick={() => removeCategory(cat)}>
-                          <X size={12} />
-                        </CatTagRemove>
-                      </CatTag>
-                    ))}
-                    <CatInput
-                      type="text"
-                      placeholder="Outra categoria..."
-                      value={catInput}
-                      onChange={e => setCatInput(e.target.value)}
-                      onKeyDown={handleCatKeyDown}
-                      onBlur={() => catInput.trim() && addCategory(catInput)}
-                    />
+                {/* Pergunta: múltiplas categorias? */}
+                <Field>
+                  <Label>Vai ter mais de uma categoria?</Label>
+                  <div style={{ display: 'flex', gap: 8 }}>
+                    <FilterChip
+                      type="button"
+                      $active={!multiCategory}
+                      onClick={() => { setMultiCategory(false); setCategories([]); setCatInput('') }}
+                    >
+                      Não
+                    </FilterChip>
+                    <FilterChip
+                      type="button"
+                      $active={multiCategory}
+                      onClick={() => setMultiCategory(true)}
+                    >
+                      Sim
+                    </FilterChip>
                   </div>
-                </CategorySection>
+                </Field>
+
+                {/* Categorias (divisões) — só exibe se o usuário escolheu "Sim" */}
+                {multiCategory && (
+                  <CategorySection>
+                    <Label>Categorias</Label>
+                    <CatChipsRow>
+                      {PRESET_CATEGORIES.filter(c => !categories.includes(c)).map(c => (
+                        <PresetChip key={c} type="button" onClick={() => addCategory(c)}>{c}</PresetChip>
+                      ))}
+                    </CatChipsRow>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 8 }}>
+                      {categories.map(cat => (
+                        <CatTag key={cat}>
+                          {cat}
+                          <CatTagRemove type="button" onClick={() => removeCategory(cat)}>
+                            <X size={12} />
+                          </CatTagRemove>
+                        </CatTag>
+                      ))}
+                      <CatInput
+                        type="text"
+                        placeholder="Outra categoria..."
+                        value={catInput}
+                        onChange={e => setCatInput(e.target.value)}
+                        onKeyDown={handleCatKeyDown}
+                        onBlur={() => catInput.trim() && addCategory(catInput)}
+                      />
+                    </div>
+                  </CategorySection>
+                )}
 
                 <Field>
                   <Label>Descrição</Label>
