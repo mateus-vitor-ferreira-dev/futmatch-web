@@ -10,7 +10,7 @@ import {
   AppShell, Overlay, Sidebar, Logo, LogoIcon, LogoText, LogoName, LogoTagline,
   Nav, NavItem, NavDivider, UserCard, Avatar, UserInfo, UserName, UserBadge,
   ContentWrapper, MobileTopbar, HamburgerBtn, TopbarLogoName, Content,
-  ThemeToggleBtn, LogoutBtn,
+  ThemeToggleBtn, ThemeToggleBtnCompact, LogoutBtn,
 } from './styles'
 
 const NAV_ITEMS = [
@@ -97,12 +97,9 @@ export default function MainLayout({ children, user }) {
           })()}
         </Nav>
 
-        <ThemeToggleBtn
-          onClick={toggleTheme}
-          title={isDark ? 'Mudar para tema claro' : 'Mudar para tema escuro'}
-          style={{ margin: '8px 4px 4px' }}
-        >
+        <ThemeToggleBtn onClick={toggleTheme}>
           {isDark ? <Sun size={18} /> : <Moon size={18} />}
+          {isDark ? 'Modo claro' : 'Modo escuro'}
         </ThemeToggleBtn>
 
         <LogoutBtn onClick={handleLogout}>
@@ -134,12 +131,9 @@ export default function MainLayout({ children, user }) {
           </TopbarLogoName>
           <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 8 }}>
             <NotificationBell />
-            <ThemeToggleBtn
-              onClick={toggleTheme}
-              title={isDark ? 'Mudar para tema claro' : 'Mudar para tema escuro'}
-            >
+            <ThemeToggleBtnCompact onClick={toggleTheme} title={isDark ? 'Modo claro' : 'Modo escuro'}>
               {isDark ? <Sun size={18} /> : <Moon size={18} />}
-            </ThemeToggleBtn>
+            </ThemeToggleBtnCompact>
           </div>
         </MobileTopbar>
 

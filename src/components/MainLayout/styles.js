@@ -222,22 +222,40 @@ export const TopbarLogoName = styled.span`
 export const ThemeToggleBtn = styled.button`
   display: flex;
   align-items: center;
+  gap: 10px;
+  width: calc(100% - 16px);
+  margin: 0 8px 4px;
+  padding: 10px 12px;
+  border: none;
+  border-radius: ${({ theme }) => theme.radii.md};
+  background: ${({ theme }) => theme.colors.primarySubtle};
+  color: ${({ theme }) => theme.colors.primary};
+  font-size: ${({ theme }) => theme.fontSizes.sm};
+  font-weight: ${({ theme }) => theme.fontWeights.semibold};
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+  font-family: ${({ theme }) => theme.fonts.sans};
+
+  &:hover { opacity: 0.85; }
+
+  svg { flex-shrink: 0; width: 18px; height: 18px; }
+`
+
+export const ThemeToggleBtnCompact = styled.button`
+  display: flex;
+  align-items: center;
   justify-content: center;
   width: 36px;
   height: 36px;
-  border: 1px solid ${({ theme }) => theme.colors.border};
+  border: none;
   border-radius: ${({ theme }) => theme.radii.md};
-  background: ${({ theme }) => theme.colors.bgCard};
-  color: ${({ theme }) => theme.colors.textSecondary};
+  background: ${({ theme }) => theme.colors.primarySubtle};
+  color: ${({ theme }) => theme.colors.primary};
   cursor: pointer;
-  transition: background 0.15s, color 0.15s, border-color 0.15s;
+  transition: opacity 0.15s;
   flex-shrink: 0;
 
-  &:hover {
-    background: ${({ theme }) => theme.colors.primarySubtle};
-    color: ${({ theme }) => theme.colors.primary};
-    border-color: ${({ theme }) => theme.colors.primary};
-  }
+  &:hover { opacity: 0.85; }
 `
 
 export const NavDivider = styled.div`
