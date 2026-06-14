@@ -129,7 +129,7 @@ export default function Tournaments() {
     try {
       setLoading(true)
       const res = await listTournaments(statusFilter ? { status: statusFilter } : {})
-      setTournaments(res.data || [])
+      setTournaments(Array.isArray(res.data) ? res.data : [])
     } catch {
       setTournaments([])
     } finally {

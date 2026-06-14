@@ -57,7 +57,8 @@ export function useSports() {
       .finally(() => setLoading(false))
   }, [])
 
-  const effectiveSports = sports.length > 0 && sports.some(s => s.group) ? sports : FALLBACK_SPORTS
+  const safeSports = Array.isArray(sports) ? sports : []
+  const effectiveSports = safeSports.length > 0 && safeSports.some(s => s.group) ? safeSports : FALLBACK_SPORTS
   const tabs = deriveTabs(effectiveSports)
 
   return { sports: effectiveSports, tabs, loading }
