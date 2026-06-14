@@ -107,6 +107,81 @@ export const Badge = styled.span`
         : theme.colors.error};
 `
 
+export const DetailModal = styled.div`
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+`
+
+export const DetailOverlay = styled.div`
+  position: absolute;
+  inset: 0;
+  background: ${({ theme }) => theme.colors.bgOverlay};
+`
+
+export const DetailBox = styled.div`
+  position: relative;
+  background: ${({ theme }) => theme.colors.bgCard};
+  border-radius: ${({ theme }) => theme.radii.xl};
+  padding: 28px 32px;
+  width: 100%;
+  max-width: 440px;
+  box-shadow: ${({ theme }) => theme.shadows.lg};
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+`
+
+export const DetailHeader = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 4px;
+`
+
+export const DetailTitle = styled.h3`
+  font-size: ${({ theme }) => theme.fontSizes.lg};
+  font-weight: ${({ theme }) => theme.fontWeights.semibold};
+  color: ${({ theme }) => theme.colors.textPrimary};
+  margin: 0;
+`
+
+export const CloseBtn = styled.button`
+  background: none;
+  border: none;
+  font-size: 16px;
+  cursor: pointer;
+  color: ${({ theme }) => theme.colors.textMuted};
+  &:hover { color: ${({ theme }) => theme.colors.textPrimary}; }
+`
+
+export const DetailRow = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 8px 0;
+  border-bottom: 1px solid ${({ theme }) => theme.colors.borderLight};
+  &:last-child { border-bottom: none; }
+`
+
+export const DetailLabel = styled.span`
+  font-size: ${({ theme }) => theme.fontSizes.xs};
+  font-weight: ${({ theme }) => theme.fontWeights.semibold};
+  color: ${({ theme }) => theme.colors.textMuted};
+  text-transform: uppercase;
+`
+
+export const DetailValue = styled.span`
+  font-size: ${({ theme }) => theme.fontSizes.sm};
+  font-weight: ${({ theme }) => theme.fontWeights.medium};
+  color: ${({ theme }) => theme.colors.textPrimary};
+  text-align: right;
+`
+
 export const ActionButton = styled.button`
   background: transparent;
   border: 1px solid ${({ theme }) => theme.colors.primary};

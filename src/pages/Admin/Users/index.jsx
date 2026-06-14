@@ -41,6 +41,7 @@ export default function AdminUsers() {
   const [loading, setLoading]     = useState(true)
   const [error, setError]         = useState(null)
   const [updatingId, setUpdatingId] = useState(null)
+  const [confirmTarget, setConfirmTarget] = useState(null)
 
   const fetchUsers = useCallback(async () => {
     setLoading(true)
@@ -58,13 +59,13 @@ export default function AdminUsers() {
 
   useEffect(() => { fetchUsers() }, [fetchUsers])
 
-  const handleRoleChange = async (targetUser) => {
-    const next = targetUser.role === 'USER' ? 'OWNER' : 'USER'
-    const ok = window.confirm(`Alterar role de "${targetUser.name}" para ${next}?`)
-    if (!ok) return
-    setUpdatingId(targetUser.id)
+  const handleRoleChange = async () => {
+    if (!confirmTarget) return
+    const next = confirmTarget.role === 'USER' ? 'OWNER' : 'USER'
+    setUpdatingId(confirmTarget.id)
+    setConfirmTarget(null)
     try {
-      await adminService.updateUserRole(targetUser.id, next)
+      await adminService.updateUserRole(confirmTarget.id, next)
       await fetchUsers()
     } catch {
       toast.error('Erro ao alterar role.')
@@ -153,7 +154,7 @@ export default function AdminUsers() {
                 <Td>
                   {u.role !== 'ADMIN' && (
                     <ActionBtn
-                      onClick={() => handleRoleChange(u)}
+                      onClick={() => setConfirmTarget(u)}
                       disabled={updatingId === u.id}
                     >
                       {updatingId === u.id
@@ -167,6 +168,37 @@ export default function AdminUsers() {
           </tbody>
         </Table>
       )}
+      {confirmTarget && (() => {
+        const next = confirmTarget.role === 'USER' ? 'OWNER' : 'USER'
+        const isPromo = next === 'OWNER'
+        return (
+          <div style={{ position: 'fixed', inset: 0, zIndex: 50, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.45)' }} onClick={() => setConfirmTarget(null)} />
+            <div style={{ position: 'relative', background: 'var(--bg-card, #fff)', borderRadius: 16, padding: '28px 32px', width: '100%', maxWidth: 420, boxShadow: '0 20px 60px rgba(0,0,0,0.2)' }}>
+              <h3 style={{ margin: '0 0 8px', fontSize: 18, fontWeight: 700, color: '#111827' }}>
+                {isPromo ? 'Promover para Owner' : 'Rebaixar para Usuário'}
+              </h3>
+              <p style={{ margin: '0 0 20px', fontSize: 14, color: '#6b7280', lineHeight: 1.6 }}>
+                Você está prestes a {isPromo ? 'promover' : 'rebaixar'} <strong>{confirmTarget.name}</strong> ({confirmTarget.email}) de <strong>{confirmTarget.role}</strong> para <strong>{next}</strong>. Deseja continuar?
+              </p>
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10 }}>
+                <button
+                  onClick={() => setConfirmTarget(null)}
+                  style={{ padding: '9px 18px', borderRadius: 8, border: '1px solid #e5e7eb', background: 'transparent', color: '#374151', fontWeight: 600, cursor: 'pointer', fontSize: 14 }}
+                >
+                  Cancelar
+                </button>
+                <button
+                  onClick={handleRoleChange}
+                  style={{ padding: '9px 18px', borderRadius: 8, border: 'none', background: isPromo ? '#22c55e' : '#ef4444', color: '#fff', fontWeight: 700, cursor: 'pointer', fontSize: 14 }}
+                >
+                  {isPromo ? 'Promover' : 'Rebaixar'}
+                </button>
+              </div>
+            </div>
+          </div>
+        )
+      })()}
     </DashboardLayout>
   )
 }
