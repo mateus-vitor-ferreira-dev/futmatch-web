@@ -12,8 +12,8 @@ const FALLBACK_SPORTS = [
   { id: 'PETECA',       label: 'Peteca',           icon: '🏸', group: 'PETECA',       groupLabel: 'Peteca',       groupIcon: '🏸', groupOrder: 5 },
   { id: 'BEACH_TENNIS', label: 'Beach Tennis',     icon: '🎾', group: 'BEACH_TENNIS', groupLabel: 'Beach Tennis', groupIcon: '🎾', groupOrder: 6 },
   { id: 'BASQUETE',     label: 'Basquete',         icon: '🏀', group: 'BASQUETE',     groupLabel: 'Basquete',     groupIcon: '🏀', groupOrder: 7 },
-  { id: 'TENIS',        label: 'Tênis',            icon: '🎾', group: 'TENIS',        groupLabel: 'Tênis',        groupIcon: '🎾', groupOrder: 8 },
-  { id: 'POKER',        label: 'Poker',            icon: '🃏', group: 'POKER',        groupLabel: 'Poker',        groupIcon: '🃏', groupOrder: 9 },
+  { id: 'POKER',        label: 'Poker',            icon: '🃏', group: 'POKER',        groupLabel: 'Poker',        groupIcon: '🃏', groupOrder: 8 },
+  { id: 'TENIS',        label: 'Tênis',            icon: '🎾', group: 'TENIS',        groupLabel: 'Tênis',        groupIcon: '🎾', groupOrder: 9 },
 ]
 
 function deriveTabs(sports) {
