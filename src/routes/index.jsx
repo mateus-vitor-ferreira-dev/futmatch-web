@@ -31,6 +31,7 @@ const AdminPlaces    = lazyWithRetry(() => import('../pages/Admin/Places'))
 const OwnerDashboard = lazyWithRetry(() => import('../pages/Owner/Dashboard'))
 const OwnerPlaces    = lazyWithRetry(() => import('../pages/Owner/Places'))
 const OwnerRequests  = lazyWithRetry(() => import('../pages/Owner/Requests'))
+const OwnerCourts    = lazyWithRetry(() => import('../pages/Owner/Courts'))
 
 function PageLoader() {
   return (
@@ -109,10 +110,11 @@ export default function AppRoutes() {
           <Route path="/admin"           element={<Navigate to="/admin/dashboard" replace />} />
 
           {/* Painel Owner */}
-          <Route path="/owner/dashboard" element={<OwnerRoute><OwnerDashboard /></OwnerRoute>} />
-          <Route path="/owner/places"    element={<OwnerRoute><OwnerPlaces    /></OwnerRoute>} />
-          <Route path="/owner/requests"  element={<OwnerRoute><OwnerRequests  /></OwnerRoute>} />
-          <Route path="/owner"           element={<Navigate to="/owner/dashboard" replace />} />
+          <Route path="/owner/dashboard"              element={<OwnerRoute><OwnerDashboard /></OwnerRoute>} />
+          <Route path="/owner/places"               element={<OwnerRoute><OwnerPlaces    /></OwnerRoute>} />
+          <Route path="/owner/places/:placeId/courts" element={<OwnerRoute><OwnerCourts  /></OwnerRoute>} />
+          <Route path="/owner/requests"             element={<OwnerRoute><OwnerRequests  /></OwnerRoute>} />
+          <Route path="/owner"                      element={<Navigate to="/owner/dashboard" replace />} />
 
           {/* Fallback */}
           <Route path="*" element={<Navigate to="/login" replace />} />
