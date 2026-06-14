@@ -350,3 +350,94 @@ export const LoadingState = styled.div`
   color: ${({ theme }) => theme.colors.textMuted};
   font-size: ${({ theme }) => theme.fontSizes.sm};
 `
+
+export const FormatHint = styled.div`
+  margin-top: 6px;
+  padding: 10px 12px;
+  background: ${({ theme }) => theme.colors.primarySubtle};
+  border-left: 3px solid ${({ theme }) => theme.colors.primary};
+  border-radius: 0 ${({ theme }) => theme.radii.sm} ${({ theme }) => theme.radii.sm} 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+
+  span {
+    font-size: ${({ theme }) => theme.fontSizes.sm};
+    color: ${({ theme }) => theme.colors.textPrimary};
+  }
+
+  small {
+    font-size: ${({ theme }) => theme.fontSizes.xs};
+    color: ${({ theme }) => theme.colors.primary};
+    font-weight: ${({ theme }) => theme.fontWeights.medium};
+  }
+`
+
+export const CategorySection = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+`
+
+export const CatChipsRow = styled.div`
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+`
+
+export const PresetChip = styled.button`
+  padding: 4px 10px;
+  border-radius: ${({ theme }) => theme.radii.full};
+  border: 1px solid ${({ theme }) => theme.colors.border};
+  background: ${({ theme }) => theme.colors.bgCard};
+  color: ${({ theme }) => theme.colors.textSecondary};
+  font-size: ${({ theme }) => theme.fontSizes.xs};
+  cursor: pointer;
+  transition: all 0.15s;
+
+  &:hover {
+    border-color: ${({ theme }) => theme.colors.primary};
+    color: ${({ theme }) => theme.colors.primary};
+    background: ${({ theme }) => theme.colors.primarySubtle};
+  }
+`
+
+export const CatTag = styled.span`
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  border-radius: ${({ theme }) => theme.radii.full};
+  background: ${({ theme }) => theme.colors.primary};
+  color: #fff;
+  font-size: ${({ theme }) => theme.fontSizes.xs};
+  font-weight: ${({ theme }) => theme.fontWeights.medium};
+`
+
+export const CatTagRemove = styled.button`
+  display: flex;
+  align-items: center;
+  background: none;
+  border: none;
+  padding: 0;
+  color: rgba(255,255,255,0.8);
+  cursor: pointer;
+  line-height: 1;
+
+  &:hover { color: #fff; }
+`
+
+export const CatInput = styled.input`
+  flex: 1;
+  min-width: 130px;
+  padding: 4px 10px;
+  border: 1px dashed ${({ theme }) => theme.colors.border};
+  border-radius: ${({ theme }) => theme.radii.full};
+  font-size: ${({ theme }) => theme.fontSizes.xs};
+  color: ${({ theme }) => theme.colors.textPrimary};
+  background: transparent;
+  outline: none;
+
+  &::placeholder { color: ${({ theme }) => theme.colors.textMuted}; }
+  &:focus { border-color: ${({ theme }) => theme.colors.primary}; }
+`

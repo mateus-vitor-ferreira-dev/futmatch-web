@@ -1,14 +1,15 @@
 import { useState, useEffect, useCallback, useMemo } from 'react'
 import { Plus, MapPin, Calendar, Users, Trophy, X } from 'lucide-react'
-import { useForm } from 'react-hook-form'
+import { useForm, useWatch } from 'react-hook-form'
 import { yupResolver } from '@hookform/resolvers/yup'
 import * as yup from 'yup'
+import { toast } from 'sonner'
 import { useAuth } from '../../contexts/AuthContext'
 import { useSports } from '../../hooks/useSports'
 import { MainLayout } from '../../components'
 import TournamentBracket from '../../components/TournamentBracket'
-import { listTournaments, createTournament } from '../../services/tournaments'
-import { searchCourts } from '../../services/courts'
+import { listTournaments, createTournament, createDivision } from '../../services/tournaments'
+import { list as listPlaces } from '../../services/places'
 import {
   Container, PageHeader, Title, Subtitle, CreateButton,
   FiltersBar, FilterChip,
@@ -19,6 +20,8 @@ import {
   Form, Field, Label, Input, Select, ErrorMsg,
   ModalActions, CancelButton, SubmitButton,
   EmptyState, LoadingState,
+  FormatHint,
+  CategorySection, CatChipsRow, PresetChip, CatTag, CatTagRemove, CatInput,
 } from './styles'
 
 const STATUS_FILTERS = [
@@ -38,24 +41,41 @@ const STATUS_LABELS = {
 }
 
 const FORMATS = [
-  { value: 'KNOCKOUT',              label: 'Eliminatório Simples' },
-  { value: 'LEAGUE',                label: 'Pontos Corridos' },
-  { value: 'GROUPS_AND_KNOCKOUT',   label: 'Grupos + Eliminatório' },
-  { value: 'DOUBLE_ELIMINATION',    label: 'Dupla Eliminação' },
-  { value: 'SWISS',                 label: 'Sistema Suíço' },
+  { value: 'KNOCKOUT',            label: 'Eliminatório Simples' },
+  { value: 'LEAGUE',              label: 'Pontos Corridos' },
+  { value: 'GROUPS_AND_KNOCKOUT', label: 'Grupos + Eliminatório' },
+  { value: 'DOUBLE_ELIMINATION',  label: 'Dupla Eliminação' },
+  { value: 'SWISS',               label: 'Sistema Suíço' },
 ]
 
+const FORMAT_INFO = {
+  KNOCKOUT:            { desc: 'Times se eliminam a cada rodada — perde, está fora.', hint: 'Funciona melhor com potência de 2: 4, 8, 16 ou 32 times.' },
+  LEAGUE:              { desc: 'Todos jogam entre si e acumulam pontos na tabela.',    hint: 'Mínimo recomendado: 3 times.' },
+  GROUPS_AND_KNOCKOUT: { desc: 'Fase de grupos seguida de eliminatória entre os melhores.', hint: 'Mínimo recomendado: 4 times.' },
+  DOUBLE_ELIMINATION:  { desc: 'Cada time precisa perder duas vezes para ser eliminado — há chave de perdedores.', hint: 'Mínimo recomendado: 4 times.' },
+  SWISS:               { desc: 'Rodadas pareadas por desempenho — ninguém é eliminado até o fim.', hint: 'Flexível, mínimo 4 times.' },
+}
+
+const FORMAT_PLACEHOLDER = {
+  KNOCKOUT:            'Ex: 8 (potência de 2: 4, 8, 16, 32)',
+  LEAGUE:              'Ex: 6 (mínimo 3)',
+  GROUPS_AND_KNOCKOUT: 'Ex: 8 (mínimo 4)',
+  DOUBLE_ELIMINATION:  'Ex: 8 (mínimo 4)',
+  SWISS:               'Ex: 8 (mínimo 4)',
+}
+
+const PRESET_CATEGORIES = ['Feminino', 'Masculino', 'Misto', 'Amador', 'Iniciante', 'Open', 'Profissional']
 
 const schema = yup.object({
-  name:          yup.string().required('Informe o nome do torneio'),
-  sportType:     yup.string().required('Selecione a modalidade'),
-  format:        yup.string().required('Selecione o formato'),
-  placeId:       yup.string().required('Selecione o estabelecimento'),
-  startDate:     yup.string().nullable(),
-  endDate:       yup.string().nullable(),
+  name:            yup.string().required('Informe o nome do torneio'),
+  sportType:       yup.string().required('Selecione a modalidade'),
+  format:          yup.string().required('Selecione o formato'),
+  placeId:         yup.string().required('Selecione o estabelecimento'),
+  startDate:       yup.string().nullable(),
+  endDate:         yup.string().nullable(),
   maxParticipants: yup.number().typeError('Número inválido').min(2).nullable(),
   registrationFee: yup.number().typeError('Valor inválido').min(0).nullable(),
-  description:   yup.string().nullable(),
+  description:     yup.string().nullable(),
 })
 
 function formatDate(dateStr) {
@@ -64,9 +84,9 @@ function formatDate(dateStr) {
 }
 
 export default function Tournaments() {
-  const { user }     = useAuth()
-  const { sports }   = useSports()
-  const canCreate    = user?.role === 'OWNER' || user?.role === 'ADMIN'
+  const { user }   = useAuth()
+  const { sports } = useSports()
+  const canCreate  = user?.role === 'OWNER' || user?.role === 'ADMIN'
 
   const sportLabels = useMemo(() =>
     Object.fromEntries(sports.map(s => [s.id, `${s.icon} ${s.label}`])),
@@ -85,11 +105,15 @@ export default function Tournaments() {
   const [places, setPlaces]             = useState([])
   const [submitting, setSubmitting]     = useState(false)
   const [apiError, setApiError]         = useState(null)
+  const [categories, setCategories]     = useState([])
+  const [catInput, setCatInput]         = useState('')
 
   const {
-    register, handleSubmit, reset,
+    register, handleSubmit, reset, control,
     formState: { errors },
   } = useForm({ resolver: yupResolver(schema) })
+
+  const watchedFormat = useWatch({ control, name: 'format' })
 
   const fetchTournaments = useCallback(async () => {
     try {
@@ -105,22 +129,45 @@ export default function Tournaments() {
 
   useEffect(() => { fetchTournaments() }, [fetchTournaments])
 
+  // Carrega estabelecimentos: owner vê só os seus, admin vê todos
   useEffect(() => {
     if (!showModal) return
-    searchCourts()
+    listPlaces()
       .then((res) => {
-        const uniquePlaces = []
-        const seen = new Set()
-        ;(res.data || []).forEach((court) => {
-          if (court.place && !seen.has(court.place.id)) {
-            seen.add(court.place.id)
-            uniquePlaces.push(court.place)
-          }
-        })
-        setPlaces(uniquePlaces)
+        const all = Array.isArray(res) ? res : (res.data ?? [])
+        const filtered = user?.role === 'OWNER'
+          ? all.filter(p => p.owner?.id === user.id)
+          : all
+        setPlaces(filtered)
       })
       .catch(() => setPlaces([]))
-  }, [showModal])
+  }, [showModal, user])
+
+  function closeModal() {
+    setShowModal(false)
+    reset()
+    setCategories([])
+    setCatInput('')
+    setApiError(null)
+  }
+
+  function addCategory(name) {
+    const trimmed = name.trim()
+    if (!trimmed || categories.includes(trimmed)) return
+    setCategories(prev => [...prev, trimmed])
+    setCatInput('')
+  }
+
+  function removeCategory(name) {
+    setCategories(prev => prev.filter(c => c !== name))
+  }
+
+  function handleCatKeyDown(e) {
+    if (e.key === 'Enter') {
+      e.preventDefault()
+      addCategory(catInput)
+    }
+  }
 
   const onSubmit = async (data) => {
     setSubmitting(true)
@@ -136,9 +183,17 @@ export default function Tournaments() {
         maxParticipants:  data.maxParticipants ? Number(data.maxParticipants) : null,
         registrationFee:  data.registrationFee ? Number(data.registrationFee) : null,
       }
-      await createTournament(payload)
-      reset()
-      setShowModal(false)
+      const res = await createTournament(payload)
+      const tournamentId = res.data?.id ?? res.id
+
+      if (tournamentId && categories.length > 0) {
+        await Promise.allSettled(
+          categories.map(cat => createDivision(tournamentId, { name: cat }))
+        )
+      }
+
+      toast.success('Torneio criado com sucesso!')
+      closeModal()
       fetchTournaments()
     } catch (err) {
       setApiError(err.response?.data?.message || 'Erro ao criar torneio.')
@@ -240,11 +295,11 @@ export default function Tournaments() {
 
         {/* ── Modal de criação ── */}
         {showModal && (
-          <Modal onClick={() => setShowModal(false)}>
+          <Modal onClick={closeModal}>
             <ModalBox onClick={(e) => e.stopPropagation()}>
               <ModalHeader>
                 <ModalTitle>Novo Torneio</ModalTitle>
-                <CloseBtn onClick={() => setShowModal(false)}>
+                <CloseBtn onClick={closeModal}>
                   <X size={20} />
                 </CloseBtn>
               </ModalHeader>
@@ -280,6 +335,12 @@ export default function Tournaments() {
                     ))}
                   </Select>
                   {errors.format && <ErrorMsg>{errors.format.message}</ErrorMsg>}
+                  {watchedFormat && FORMAT_INFO[watchedFormat] && (
+                    <FormatHint>
+                      <span>{FORMAT_INFO[watchedFormat].desc}</span>
+                      <small>{FORMAT_INFO[watchedFormat].hint}</small>
+                    </FormatHint>
+                  )}
                 </Field>
 
                 <Field>
@@ -290,6 +351,13 @@ export default function Tournaments() {
                       <option key={p.id} value={p.id}>{p.name}</option>
                     ))}
                   </Select>
+                  {places.length === 0 && (
+                    <ErrorMsg style={{ color: '#f59e0b' }}>
+                      {user?.role === 'OWNER'
+                        ? 'Nenhum estabelecimento vinculado à sua conta.'
+                        : 'Nenhum estabelecimento cadastrado.'}
+                    </ErrorMsg>
+                  )}
                   {errors.placeId && <ErrorMsg>{errors.placeId.message}</ErrorMsg>}
                 </Field>
 
@@ -307,9 +375,10 @@ export default function Tournaments() {
                   <Label>Máximo de times</Label>
                   <Input
                     type="number" min={2}
-                    placeholder="Ex: 8"
+                    placeholder={FORMAT_PLACEHOLDER[watchedFormat] ?? 'Ex: 8'}
                     {...register('maxParticipants')}
                   />
+                  {errors.maxParticipants && <ErrorMsg>{errors.maxParticipants.message}</ErrorMsg>}
                 </Field>
 
                 <Field>
@@ -320,6 +389,34 @@ export default function Tournaments() {
                     {...register('registrationFee')}
                   />
                 </Field>
+
+                {/* Categorias (divisões) */}
+                <CategorySection>
+                  <Label>Categorias <span style={{ fontWeight: 400, color: '#9ca3af' }}>(opcional)</span></Label>
+                  <CatChipsRow>
+                    {PRESET_CATEGORIES.filter(c => !categories.includes(c)).map(c => (
+                      <PresetChip key={c} type="button" onClick={() => addCategory(c)}>{c}</PresetChip>
+                    ))}
+                  </CatChipsRow>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 8 }}>
+                    {categories.map(cat => (
+                      <CatTag key={cat}>
+                        {cat}
+                        <CatTagRemove type="button" onClick={() => removeCategory(cat)}>
+                          <X size={12} />
+                        </CatTagRemove>
+                      </CatTag>
+                    ))}
+                    <CatInput
+                      type="text"
+                      placeholder="Outra categoria..."
+                      value={catInput}
+                      onChange={e => setCatInput(e.target.value)}
+                      onKeyDown={handleCatKeyDown}
+                      onBlur={() => catInput.trim() && addCategory(catInput)}
+                    />
+                  </div>
+                </CategorySection>
 
                 <Field>
                   <Label>Descrição</Label>
@@ -336,7 +433,7 @@ export default function Tournaments() {
                 )}
 
                 <ModalActions>
-                  <CancelButton type="button" onClick={() => setShowModal(false)}>
+                  <CancelButton type="button" onClick={closeModal}>
                     Cancelar
                   </CancelButton>
                   <SubmitButton type="submit" disabled={submitting}>
