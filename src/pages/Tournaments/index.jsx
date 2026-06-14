@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useMemo } from 'react'
-import { Plus, MapPin, Calendar, Users, Trophy, X } from 'lucide-react'
+import { Plus, MapPin, Calendar, Users, Trophy, X, Layers } from 'lucide-react'
 import { useForm, useWatch } from 'react-hook-form'
+import { useNavigate } from 'react-router-dom'
 import { yupResolver } from '@hookform/resolvers/yup'
 import * as yup from 'yup'
 import { toast } from 'sonner'
@@ -48,6 +49,14 @@ const FORMATS = [
   { value: 'SWISS',               label: 'Sistema Suíço' },
 ]
 
+const FORMAT_ICONS = {
+  KNOCKOUT:            '⚡',
+  LEAGUE:              '📊',
+  GROUPS_AND_KNOCKOUT: '🎯',
+  DOUBLE_ELIMINATION:  '🔁',
+  SWISS:               '♟️',
+}
+
 const FORMAT_INFO = {
   KNOCKOUT:            { desc: 'Times se eliminam a cada rodada — perde, está fora.', hint: 'Funciona melhor com potência de 2: 4, 8, 16 ou 32 times.' },
   LEAGUE:              { desc: 'Todos jogam entre si e acumulam pontos na tabela.',    hint: 'Mínimo recomendado: 3 times.' },
@@ -84,6 +93,7 @@ function formatDate(dateStr) {
 }
 
 export default function Tournaments() {
+  const navigate   = useNavigate()
   const { user }   = useAuth()
   const { sports } = useSports()
   const canCreate  = user?.role === 'OWNER' || user?.role === 'ADMIN'
@@ -245,43 +255,60 @@ export default function Tournaments() {
           </EmptyState>
         ) : (
           <Grid>
-            {tournaments.map((t) => (
-              <TournamentCard key={t.id}>
-                <CardTop>
-                  <TournamentName>
-                    {sportLabels[t.sportType] ?? t.sportType} {t.name}
-                  </TournamentName>
-                  <StatusBadge $status={t.status}>
-                    {STATUS_LABELS[t.status] ?? t.status}
-                  </StatusBadge>
-                </CardTop>
+            {tournaments.map((t) => {
+              const fmt = FORMATS.find(f => f.value === t.format)
+              const divCount = t._count?.divisions ?? 0
+              return (
+                <TournamentCard key={t.id} onClick={() => navigate(`/torneios/${t.id}`)}>
+                  <CardTop>
+                    <TournamentName>
+                      {sportLabels[t.sportType] ?? t.sportType} {t.name}
+                    </TournamentName>
+                    <StatusBadge $status={t.status}>
+                      {STATUS_LABELS[t.status] ?? t.status}
+                    </StatusBadge>
+                  </CardTop>
 
-                <CardMeta>
-                  <MetaRow>
-                    <Calendar />
-                    {formatDate(t.startDate)} → {formatDate(t.endDate)}
-                  </MetaRow>
-                  {t.place?.name && (
-                    <MetaRow><MapPin />{t.place.name}</MetaRow>
-                  )}
-                  {t.maxParticipants && (
-                    <MetaRow><Users />{t.maxParticipants} times</MetaRow>
-                  )}
-                  {t.registrationFee > 0 && (
+                  <CardMeta>
+                    {fmt && (
+                      <MetaRow>
+                        <span style={{ fontSize: 14 }}>{FORMAT_ICONS[t.format]}</span>
+                        {fmt.label}
+                      </MetaRow>
+                    )}
                     <MetaRow>
-                      <Trophy size={14} />
-                      Taxa: R$ {Number(t.registrationFee).toFixed(2)}
+                      <Calendar />
+                      {formatDate(t.startDate)} → {formatDate(t.endDate)}
                     </MetaRow>
-                  )}
-                </CardMeta>
+                    {t.place?.name && (
+                      <MetaRow><MapPin />{t.place.name}</MetaRow>
+                    )}
+                    {t.maxParticipants && (
+                      <MetaRow><Users />{t.maxParticipants} times</MetaRow>
+                    )}
+                    {divCount > 0 && (
+                      <MetaRow>
+                        <Layers size={14} />
+                        {divCount} categoria{divCount !== 1 ? 's' : ''}
+                      </MetaRow>
+                    )}
+                    {t.registrationFee > 0 && (
+                      <MetaRow>
+                        <Trophy size={14} />
+                        Taxa: R$ {Number(t.registrationFee).toFixed(2)}
+                      </MetaRow>
+                    )}
+                  </CardMeta>
 
-                <ViewBracketBtn onClick={() =>
-                  setSelected(selected?.id === t.id ? null : t)
-                }>
-                  {selected?.id === t.id ? '▲ Fechar Chaveamento' : '🏆 Ver Chaveamento'}
-                </ViewBracketBtn>
-              </TournamentCard>
-            ))}
+                  <ViewBracketBtn onClick={(e) => {
+                    e.stopPropagation()
+                    setSelected(selected?.id === t.id ? null : t)
+                  }}>
+                    {selected?.id === t.id ? '▲ Fechar Chaveamento' : '🏆 Ver Chaveamento'}
+                  </ViewBracketBtn>
+                </TournamentCard>
+              )
+            })}
           </Grid>
         )}
 

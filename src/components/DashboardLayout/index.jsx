@@ -113,7 +113,7 @@ export default function DashboardLayout({
         </LogoutBtn>
 
         {user && (
-          <UserCard>
+          <UserCard onClick={() => navigate('/perfil')} title="Editar perfil">
             <Avatar>{getInitials(user.name)}</Avatar>
             <UserInfo>
               <UserName>{user.name}</UserName>

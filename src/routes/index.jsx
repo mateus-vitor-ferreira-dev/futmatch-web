@@ -22,7 +22,8 @@ const Historico      = lazyWithRetry(() => import('../pages/Historico'))
 const CriarPelada    = lazyWithRetry(() => import('../pages/CriarPelada'))
 const Tournaments    = lazyWithRetry(() => import('../pages/Tournaments'))
 const Avaliacoes     = lazyWithRetry(() => import('../pages/Avaliacoes'))
-const PeladaDetail   = lazyWithRetry(() => import('../pages/PeladaDetail'))
+const PeladaDetail        = lazyWithRetry(() => import('../pages/PeladaDetail'))
+const TournamentDetail    = lazyWithRetry(() => import('../pages/TournamentDetail'))
 const AdminDashboard = lazyWithRetry(() => import('../pages/Admin/Dashboard'))
 const AdminUsers     = lazyWithRetry(() => import('../pages/Admin/Users'))
 const AdminRequests  = lazyWithRetry(() => import('../pages/Admin/Requests'))
@@ -93,7 +94,8 @@ export default function AppRoutes() {
           <Route path="/perfil"         element={<PrivateRoute><Profile       /></PrivateRoute>} />
           <Route path="/quero-jogar"    element={<PrivateRoute><QueroJogar    /></PrivateRoute>} />
           <Route path="/criar-pelada"   element={<PrivateRoute><CriarPelada   /></PrivateRoute>} />
-          <Route path="/torneios"       element={<PrivateRoute><Tournaments   /></PrivateRoute>} />
+          <Route path="/torneios"       element={<PrivateRoute><Tournaments       /></PrivateRoute>} />
+          <Route path="/torneios/:id"   element={<PrivateRoute><TournamentDetail  /></PrivateRoute>} />
           <Route path="/minhas-peladas" element={<PrivateRoute><MinhasPeladas /></PrivateRoute>} />
           <Route path="/historico"      element={<PrivateRoute><Historico     /></PrivateRoute>} />
           <Route path="/avaliacoes"     element={<PrivateRoute><Avaliacoes    /></PrivateRoute>} />
