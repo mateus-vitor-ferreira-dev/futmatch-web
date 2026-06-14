@@ -144,7 +144,8 @@ export default function Tournaments() {
     if (!showModal) return
     listPlaces()
       .then((res) => {
-        const all = Array.isArray(res) ? res : (res.data ?? [])
+        const body = res?.data ?? res ?? {}
+        const all = Array.isArray(body) ? body : (Array.isArray(body?.data) ? body.data : [])
         const filtered = user?.role === 'OWNER'
           ? all.filter(p => p.owner?.id === user.id)
           : all
