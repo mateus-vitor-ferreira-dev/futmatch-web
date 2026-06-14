@@ -69,6 +69,15 @@ export const playerService = {
     return data
   },
 
+  // --- PRESENÇA ---
+  confirmAttendance: async (courtId, eventId, userId, attended) => {
+    const { data } = await api.patch(
+      `/courts/${courtId}/events/${eventId}/participations/${userId}/attendance`,
+      { attended }
+    )
+    return data
+  },
+
   // --- SORTEIO ---
   drawTeams: async (courtId, eventId, teamCount) => {
     const { data } = await api.post(

@@ -3,7 +3,11 @@ import { LayoutDashboard, Users, ClipboardList, Building2, Home, Store } from 'l
 import { useAuth } from '../../../contexts/AuthContext'
 import api from '../../../services/api'
 import DashboardLayout from '../../../components/DashboardLayout'
-import { Container, KpiGrid, KpiCard, Section, Table, Badge, ActionButton } from './styles'
+import {
+  Container, KpiGrid, KpiCard, Section, Table, Badge, ActionButton,
+  DetailModal, DetailOverlay, DetailBox, DetailHeader, DetailTitle, CloseBtn,
+  DetailRow, DetailLabel, DetailValue,
+} from './styles'
 
 // Navegação exata do Admin
 const NAV_ITEMS = [
@@ -15,12 +19,17 @@ const NAV_ITEMS = [
   { to: '/home',           label: 'Área do Jogador',    icon: Home },
 ]
 
+const STATUS_LABEL = { active: 'Ativo', trialing: 'Trial', past_due: 'Vencida', canceled: 'Cancelada', inactive: 'Inativo' }
+const STATUS_COLOR = { active: '#15803d', trialing: '#1d4ed8', past_due: '#dc2626', canceled: '#6b7280', inactive: '#6b7280' }
+const STATUS_BG    = { active: '#dcfce7', trialing: '#dbeafe', past_due: '#fee2e2', canceled: '#f3f4f6', inactive: '#f3f4f6' }
+
 export default function AdminDashboard() {
   const { user } = useAuth()
   const [stats, setStats] = useState({ totalArenas: 0, active: 0, revenue: 0, expiring: 0 })
   const [contracts, setContracts] = useState([])
   const [payments, setPayments] = useState([])
   const [loading, setLoading] = useState(true)
+  const [detailContract, setDetailContract] = useState(null)
 
   useEffect(() => {
     const fetchData = async () => {
@@ -31,9 +40,9 @@ export default function AdminDashboard() {
           api.get('/admin/subscriptions').catch(() => ({ data: [] })),
           api.get('/admin/payments').catch(() => ({ data: [] }))
         ])
-        setStats(statsRes.data || statsRes)
-        setContracts(contractsRes.data || [])
-        setPayments(paymentsRes.data || [])
+        setStats(statsRes.data?.data ?? statsRes.data ?? {})
+        setContracts(contractsRes.data?.data ?? contractsRes.data ?? [])
+        setPayments(paymentsRes.data?.data ?? paymentsRes.data ?? [])
       } finally {
         setLoading(false)
       }
@@ -78,8 +87,8 @@ export default function AdminDashboard() {
                   <td>{contract.owner?.name}</td>
                   <td>{contract.planName || 'Básico'}</td>
                   <td>R$ {contract.monthlyValue}</td>
-                  <td><Badge $status={contract.status === 'OPEN' ? 'Ativo' : 'Pendente'}>{contract.status === 'OPEN' ? 'Ativo' : 'Pendente'}</Badge></td>
-                  <td><ActionButton>Ver Detalhes</ActionButton></td>
+                  <td><Badge $status={contract.status === 'active' || contract.status === 'trialing' ? 'Ativo' : 'Pendente'}>{STATUS_LABEL[contract.status] ?? contract.status}</Badge></td>
+                  <td><ActionButton onClick={() => setDetailContract(contract)}>Ver Detalhes</ActionButton></td>
                 </tr>
               ))}
               {contracts.length === 0 && !loading && <tr><td colSpan="6" style={{textAlign:'center'}}>Nenhum contrato encontrado.</td></tr>}
@@ -114,6 +123,57 @@ export default function AdminDashboard() {
           </Table>
         </Section>
       </Container>
+
+      {detailContract && (
+        <DetailModal>
+          <DetailOverlay onClick={() => setDetailContract(null)} />
+          <DetailBox>
+            <DetailHeader>
+              <DetailTitle>Detalhes do Contrato</DetailTitle>
+              <CloseBtn onClick={() => setDetailContract(null)}>✕</CloseBtn>
+            </DetailHeader>
+
+            <DetailRow>
+              <DetailLabel>Proprietário</DetailLabel>
+              <DetailValue>{detailContract.owner?.name ?? '—'}</DetailValue>
+            </DetailRow>
+            <DetailRow>
+              <DetailLabel>E-mail</DetailLabel>
+              <DetailValue>{detailContract.owner?.email ?? '—'}</DetailValue>
+            </DetailRow>
+            <DetailRow>
+              <DetailLabel>Estabelecimento</DetailLabel>
+              <DetailValue>{detailContract.place?.name ?? 'Não vinculado'}</DetailValue>
+            </DetailRow>
+            <DetailRow>
+              <DetailLabel>Plano</DetailLabel>
+              <DetailValue>{detailContract.planName ?? 'Só+1 Pro'}</DetailValue>
+            </DetailRow>
+            <DetailRow>
+              <DetailLabel>Valor Mensal</DetailLabel>
+              <DetailValue>R$ {detailContract.monthlyValue}</DetailValue>
+            </DetailRow>
+            <DetailRow>
+              <DetailLabel>Status</DetailLabel>
+              <DetailValue>
+                <span style={{
+                  padding: '3px 12px', borderRadius: 999, fontSize: 12, fontWeight: 700,
+                  background: STATUS_BG[detailContract.status] ?? '#f3f4f6',
+                  color: STATUS_COLOR[detailContract.status] ?? '#6b7280',
+                }}>
+                  {STATUS_LABEL[detailContract.status] ?? detailContract.status}
+                </span>
+              </DetailValue>
+            </DetailRow>
+            {detailContract.currentPeriodEnd && (
+              <DetailRow>
+                <DetailLabel>Vencimento</DetailLabel>
+                <DetailValue>{new Date(detailContract.currentPeriodEnd).toLocaleDateString('pt-BR')}</DetailValue>
+              </DetailRow>
+            )}
+          </DetailBox>
+        </DetailModal>
+      )}
     </DashboardLayout>
   )
 }
