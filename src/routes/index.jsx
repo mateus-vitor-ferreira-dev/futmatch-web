@@ -90,7 +90,7 @@ export default function AppRoutes() {
           <Route path="/register"        element={<PublicRoute><Register initialMode="register" /></PublicRoute>} />
           <Route path="/esqueci-senha"   element={<PublicRoute><ForgotPassword /></PublicRoute>} />
           <Route path="/redefinir-senha" element={<PublicRoute><ResetPassword  /></PublicRoute>} />
-          <Route path="/seja-parceiro"  element={<PublicRoute><OwnerAccess    /></PublicRoute>} />
+          <Route path="/seja-parceiro"  element={<OwnerAccess />} />
 
           {/* Usuário autenticado (Jogador) */}
           <Route path="/home"           element={<PrivateRoute><Home          /></PrivateRoute>} />
