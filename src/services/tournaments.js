@@ -32,3 +32,8 @@ export function createTournament(data) {
 export function updateTournamentStatus(tournamentId, status) {
   return api.patch(`/tournaments/${tournamentId}/status`, { status }).then((r) => r.data)
 }
+
+/** Cria uma divisão/categoria dentro de um torneio */
+export function createDivision(tournamentId, data) {
+  return api.post(`/tournaments/${tournamentId}/divisions`, data).then((r) => r.data)
+}
