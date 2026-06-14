@@ -285,10 +285,20 @@ export const SectionTitle = styled.h3`
   margin: 0 0 ${({ theme }) => theme.spacing[3]};
 `
 
-export const AvatarRow = styled.div`
+export const ParticipantList = styled.div`
   display: flex;
-  flex-wrap: wrap;
+  flex-direction: column;
   gap: ${({ theme }) => theme.spacing[2]};
+`
+
+export const ParticipantItem = styled.div`
+  display: flex;
+  align-items: center;
+  gap: ${({ theme }) => theme.spacing[3]};
+  padding: ${({ theme }) => theme.spacing[2]} ${({ theme }) => theme.spacing[3]};
+  background: ${({ theme }) => theme.colors.bgPage};
+  border: 1px solid ${({ theme }) => theme.colors.borderLight};
+  border-radius: ${({ theme }) => theme.radii.md};
 `
 
 export const Avatar = styled.div`
@@ -302,8 +312,7 @@ export const Avatar = styled.div`
   justify-content: center;
   font-size: ${({ theme }) => theme.fontSizes.sm};
   font-weight: ${({ theme }) => theme.fontWeights.bold};
-  border: 2px solid ${({ theme }) => theme.colors.bgCard};
-  box-shadow: ${({ theme }) => theme.shadows.sm};
+  flex-shrink: 0;
   overflow: hidden;
 
   img {
@@ -311,6 +320,24 @@ export const Avatar = styled.div`
     height: 100%;
     object-fit: cover;
   }
+`
+
+export const ParticipantName = styled.span`
+  font-size: ${({ theme }) => theme.fontSizes.sm};
+  font-weight: ${({ theme }) => theme.fontWeights.medium};
+  color: ${({ theme }) => theme.colors.textPrimary};
+`
+
+export const ParticipantNickname = styled.span`
+  font-size: ${({ theme }) => theme.fontSizes.xs};
+  color: ${({ theme }) => theme.colors.textMuted};
+  margin-left: 4px;
+`
+
+export const AvatarRow = styled.div`
+  display: flex;
+  flex-wrap: wrap;
+  gap: ${({ theme }) => theme.spacing[2]};
 `
 
 export const MapLink = styled.a`
