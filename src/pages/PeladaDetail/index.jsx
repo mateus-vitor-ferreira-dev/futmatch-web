@@ -14,7 +14,8 @@ import {
   ProgressBar, ProgressFill,
   PixBox, PixLabel, PixKey, CopyBtn,
   JoinBtn, OrganizerActions, ActionBtn, OrganizerTag,
-  ParticipantsSection, SectionTitle, AvatarRow, Avatar,
+  ParticipantsSection, SectionTitle,
+  ParticipantList, ParticipantItem, Avatar, ParticipantName, ParticipantNickname,
   MapLink, LoadingBox,
 } from './styles'
 
@@ -260,16 +261,27 @@ export default function PeladaDetail() {
             {participations.length > 0 && (
               <ParticipantsSection>
                 <SectionTitle>Participantes confirmados</SectionTitle>
-                <AvatarRow>
-                  {participations.map((p) => (
-                    <Avatar key={p.userId} title={p.user?.name ?? 'Jogador'}>
-                      {p.user?.avatarUrl
-                        ? <img src={p.user.avatarUrl} alt={p.user.name} />
-                        : (p.user?.name ?? '?')[0].toUpperCase()
-                      }
-                    </Avatar>
-                  ))}
-                </AvatarRow>
+                <ParticipantList>
+                  {participations.map((p) => {
+                    const name = p.user?.name ?? 'Jogador'
+                    return (
+                      <ParticipantItem key={p.userId}>
+                        <Avatar>
+                          {p.user?.avatarUrl
+                            ? <img src={p.user.avatarUrl} alt={name} />
+                            : name[0].toUpperCase()
+                          }
+                        </Avatar>
+                        <span>
+                          <ParticipantName>{name}</ParticipantName>
+                          {p.user?.nickname && (
+                            <ParticipantNickname>· {p.user.nickname}</ParticipantNickname>
+                          )}
+                        </span>
+                      </ParticipantItem>
+                    )
+                  })}
+                </ParticipantList>
               </ParticipantsSection>
             )}
           </Body>
