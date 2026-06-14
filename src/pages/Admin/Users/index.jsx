@@ -47,6 +47,7 @@ export default function AdminUsers() {
   const [showInvite, setShowInvite]       = useState(false)
   const [inviteEmail, setInviteEmail]     = useState('')
   const [inviteSending, setInviteSending] = useState(false)
+  const [inviteResult, setInviteResult]   = useState(null) // { email, inviteUrl }
 
   const fetchUsers = useCallback(async () => {
     setLoading(true)
@@ -69,9 +70,9 @@ export default function AdminUsers() {
     if (!inviteEmail) return
     setInviteSending(true)
     try {
-      await adminService.inviteOwner(inviteEmail)
-      toast.success(`Convite enviado para ${inviteEmail}`)
-      setShowInvite(false)
+      const res = await adminService.inviteOwner(inviteEmail)
+      const url = res.data?.data?.inviteUrl ?? res.data?.inviteUrl
+      setInviteResult({ email: inviteEmail, inviteUrl: url })
       setInviteEmail('')
     } catch (err) {
       toast.error(err.response?.data?.message || 'Erro ao enviar convite.')
@@ -198,30 +199,60 @@ export default function AdminUsers() {
       )}
       {showInvite && (
         <ModalWrap>
-          <ModalOverlay onClick={() => { setShowInvite(false); setInviteEmail('') }} />
+          <ModalOverlay onClick={() => { setShowInvite(false); setInviteEmail(''); setInviteResult(null) }} />
           <ModalBox>
-            <ModalTitle>Convidar novo Owner</ModalTitle>
-            <ModalText>
-              Informe o e-mail do proprietário do estabelecimento. Um link de convite único e válido por 7 dias será enviado automaticamente.
-            </ModalText>
-            <form onSubmit={handleSendInvite}>
-              <ModalInput
-                type="email"
-                placeholder="email@estabelecimento.com"
-                value={inviteEmail}
-                onChange={(e) => setInviteEmail(e.target.value)}
-                required
-                autoFocus
-              />
-              <ModalActions>
-                <ModalCancelBtn type="button" onClick={() => { setShowInvite(false); setInviteEmail('') }}>
-                  Cancelar
-                </ModalCancelBtn>
-                <ModalConfirmBtn type="submit" disabled={inviteSending}>
-                  {inviteSending ? 'Enviando…' : 'Enviar convite'}
-                </ModalConfirmBtn>
-              </ModalActions>
-            </form>
+            {inviteResult ? (
+              <>
+                <ModalTitle>Convite criado!</ModalTitle>
+                <ModalText>
+                  O email foi enviado para <strong>{inviteResult.email}</strong>. Se não chegar, compartilhe o link abaixo diretamente:
+                </ModalText>
+                <ModalInput
+                  readOnly
+                  value={inviteResult.inviteUrl ?? ''}
+                  onFocus={(e) => e.target.select()}
+                />
+                <ModalActions>
+                  <ModalConfirmBtn
+                    type="button"
+                    onClick={() => {
+                      navigator.clipboard.writeText(inviteResult.inviteUrl ?? '')
+                      toast.success('Link copiado!')
+                    }}
+                  >
+                    Copiar link
+                  </ModalConfirmBtn>
+                  <ModalCancelBtn type="button" onClick={() => { setShowInvite(false); setInviteResult(null) }}>
+                    Fechar
+                  </ModalCancelBtn>
+                </ModalActions>
+              </>
+            ) : (
+              <>
+                <ModalTitle>Convidar novo Owner</ModalTitle>
+                <ModalText>
+                  Informe o e-mail do proprietário do estabelecimento. Um link de convite único e válido por 7 dias será enviado automaticamente.
+                </ModalText>
+                <form onSubmit={handleSendInvite}>
+                  <ModalInput
+                    type="email"
+                    placeholder="email@estabelecimento.com"
+                    value={inviteEmail}
+                    onChange={(e) => setInviteEmail(e.target.value)}
+                    required
+                    autoFocus
+                  />
+                  <ModalActions>
+                    <ModalCancelBtn type="button" onClick={() => { setShowInvite(false); setInviteEmail('') }}>
+                      Cancelar
+                    </ModalCancelBtn>
+                    <ModalConfirmBtn type="submit" disabled={inviteSending}>
+                      {inviteSending ? 'Criando…' : 'Enviar convite'}
+                    </ModalConfirmBtn>
+                  </ModalActions>
+                </form>
+              </>
+            )}
           </ModalBox>
         </ModalWrap>
       )}
