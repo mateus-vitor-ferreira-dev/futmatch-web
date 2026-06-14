@@ -162,6 +162,100 @@ export const ActionBtn = styled.button`
   }
 `
 
+/* ── Modal compartilhado (convite + confirmação de role) ─────────────────────── */
+export const ModalWrap = styled.div`
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+`
+
+export const ModalOverlay = styled.div`
+  position: absolute;
+  inset: 0;
+  background: ${({ theme }) => theme.colors.bgOverlay};
+`
+
+export const ModalBox = styled.div`
+  position: relative;
+  background: ${({ theme }) => theme.colors.bgCard};
+  border: 1px solid ${({ theme }) => theme.colors.border};
+  border-radius: ${({ theme }) => theme.radii.xl};
+  padding: 28px 32px;
+  width: 100%;
+  max-width: 420px;
+  box-shadow: ${({ theme }) => theme.shadows.lg};
+`
+
+export const ModalTitle = styled.h3`
+  margin: 0 0 6px;
+  font-size: ${({ theme }) => theme.fontSizes.lg};
+  font-weight: ${({ theme }) => theme.fontWeights.bold};
+  color: ${({ theme }) => theme.colors.textPrimary};
+`
+
+export const ModalText = styled.p`
+  margin: 0 0 20px;
+  font-size: ${({ theme }) => theme.fontSizes.sm};
+  color: ${({ theme }) => theme.colors.textSecondary};
+  line-height: 1.6;
+`
+
+export const ModalInput = styled.input`
+  width: 100%;
+  height: 42px;
+  padding: 0 14px;
+  border: 1.5px solid ${({ theme }) => theme.colors.border};
+  border-radius: ${({ theme }) => theme.radii.md};
+  font-size: ${({ theme }) => theme.fontSizes.sm};
+  color: ${({ theme }) => theme.colors.textPrimary};
+  background: ${({ theme }) => theme.colors.bgInput};
+  outline: none;
+  box-sizing: border-box;
+  margin-bottom: 16px;
+  transition: border-color 0.15s;
+
+  &:focus { border-color: ${({ theme }) => theme.colors.primary}; }
+  &::placeholder { color: ${({ theme }) => theme.colors.textMuted}; }
+`
+
+export const ModalActions = styled.div`
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+`
+
+export const ModalCancelBtn = styled.button`
+  padding: 9px 18px;
+  border-radius: ${({ theme }) => theme.radii.md};
+  border: 1px solid ${({ theme }) => theme.colors.border};
+  background: transparent;
+  color: ${({ theme }) => theme.colors.textSecondary};
+  font-weight: ${({ theme }) => theme.fontWeights.semibold};
+  font-size: ${({ theme }) => theme.fontSizes.sm};
+  cursor: pointer;
+  transition: background 0.15s;
+
+  &:hover { background: ${({ theme }) => theme.colors.bgApp}; }
+`
+
+export const ModalConfirmBtn = styled.button`
+  padding: 9px 18px;
+  border-radius: ${({ theme }) => theme.radii.md};
+  border: none;
+  background: ${({ $danger, theme }) => $danger ? theme.colors.error : theme.colors.primary};
+  color: #fff;
+  font-weight: ${({ theme }) => theme.fontWeights.bold};
+  font-size: ${({ theme }) => theme.fontSizes.sm};
+  cursor: pointer;
+  transition: opacity 0.15s;
+
+  &:hover:not(:disabled) { opacity: 0.85; }
+  &:disabled { opacity: 0.6; cursor: not-allowed; }
+`
+
 export const EmptyState = styled.p`
   text-align: center;
   color: ${({ theme }) => theme.colors.textMuted};
