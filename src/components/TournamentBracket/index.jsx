@@ -136,7 +136,7 @@ export default function TournamentBracket({ tournamentId }) {
     if (!tournamentId) return
     setLoading(true)
     getTournamentDivisions(tournamentId)
-      .then((res) => setDivisions(res.data || []))
+      .then((res) => setDivisions(Array.isArray(res.data) ? res.data : []))
       .catch(() => setDivisions([]))
       .finally(() => setLoading(false))
   }, [tournamentId])
