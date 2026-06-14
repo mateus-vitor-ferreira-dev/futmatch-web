@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import { toast } from 'sonner'
-import { Users, ClipboardList, Building2, LayoutDashboard, Home, Store } from 'lucide-react'
+import { Users, ClipboardList, Building2, LayoutDashboard, Home, Store, Mail } from 'lucide-react'
 import DashboardLayout from '../../../components/DashboardLayout'
 import StatCard from '../../../components/StatCard'
 import RoleBadge from '../../../components/RoleBadge'
@@ -42,6 +42,9 @@ export default function AdminUsers() {
   const [error, setError]         = useState(null)
   const [updatingId, setUpdatingId] = useState(null)
   const [confirmTarget, setConfirmTarget] = useState(null)
+  const [showInvite, setShowInvite]       = useState(false)
+  const [inviteEmail, setInviteEmail]     = useState('')
+  const [inviteSending, setInviteSending] = useState(false)
 
   const fetchUsers = useCallback(async () => {
     setLoading(true)
@@ -58,6 +61,22 @@ export default function AdminUsers() {
   }, [roleFilter])
 
   useEffect(() => { fetchUsers() }, [fetchUsers])
+
+  const handleSendInvite = async (e) => {
+    e.preventDefault()
+    if (!inviteEmail) return
+    setInviteSending(true)
+    try {
+      await adminService.inviteOwner(inviteEmail)
+      toast.success(`Convite enviado para ${inviteEmail}`)
+      setShowInvite(false)
+      setInviteEmail('')
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Erro ao enviar convite.')
+    } finally {
+      setInviteSending(false)
+    }
+  }
 
   const handleRoleChange = async () => {
     if (!confirmTarget) return
@@ -115,6 +134,13 @@ export default function AdminUsers() {
             </RoleBtn>
           ))}
         </RoleFilters>
+        <button
+          onClick={() => setShowInvite(true)}
+          style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 14px', borderRadius: 8, border: 'none', background: '#22c55e', color: '#fff', fontWeight: 700, fontSize: 13, cursor: 'pointer', whiteSpace: 'nowrap' }}
+        >
+          <Mail size={14} />
+          Convidar Owner
+        </button>
       </FilterBar>
 
       {error && <ErrorMsg>{error}</ErrorMsg>}
@@ -168,6 +194,46 @@ export default function AdminUsers() {
           </tbody>
         </Table>
       )}
+      {showInvite && (
+        <div style={{ position: 'fixed', inset: 0, zIndex: 50, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.45)' }} onClick={() => setShowInvite(false)} />
+          <div style={{ position: 'relative', background: 'var(--bg-card, #fff)', borderRadius: 16, padding: '28px 32px', width: '100%', maxWidth: 420, boxShadow: '0 20px 60px rgba(0,0,0,0.2)' }}>
+            <h3 style={{ margin: '0 0 6px', fontSize: 18, fontWeight: 700, color: '#111827' }}>
+              Convidar novo Owner
+            </h3>
+            <p style={{ margin: '0 0 20px', fontSize: 14, color: '#6b7280', lineHeight: 1.6 }}>
+              Informe o e-mail do proprietário do estabelecimento. Um link de convite único e válido por 7 dias será enviado automaticamente.
+            </p>
+            <form onSubmit={handleSendInvite}>
+              <input
+                type="email"
+                placeholder="email@estabelecimento.com"
+                value={inviteEmail}
+                onChange={(e) => setInviteEmail(e.target.value)}
+                required
+                style={{ width: '100%', height: 42, padding: '0 14px', border: '1.5px solid #e5e7eb', borderRadius: 8, fontSize: 14, color: '#111827', outline: 'none', marginBottom: 16, boxSizing: 'border-box' }}
+              />
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10 }}>
+                <button
+                  type="button"
+                  onClick={() => { setShowInvite(false); setInviteEmail('') }}
+                  style={{ padding: '9px 18px', borderRadius: 8, border: '1px solid #e5e7eb', background: 'transparent', color: '#374151', fontWeight: 600, cursor: 'pointer', fontSize: 14 }}
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="submit"
+                  disabled={inviteSending}
+                  style={{ padding: '9px 18px', borderRadius: 8, border: 'none', background: '#22c55e', color: '#fff', fontWeight: 700, cursor: 'pointer', fontSize: 14, opacity: inviteSending ? 0.7 : 1 }}
+                >
+                  {inviteSending ? 'Enviando…' : 'Enviar convite'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
       {confirmTarget && (() => {
         const next = confirmTarget.role === 'USER' ? 'OWNER' : 'USER'
         const isPromo = next === 'OWNER'

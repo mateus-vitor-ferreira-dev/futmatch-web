@@ -32,6 +32,7 @@ const OwnerDashboard = lazyWithRetry(() => import('../pages/Owner/Dashboard'))
 const OwnerPlaces    = lazyWithRetry(() => import('../pages/Owner/Places'))
 const OwnerRequests  = lazyWithRetry(() => import('../pages/Owner/Requests'))
 const OwnerCourts    = lazyWithRetry(() => import('../pages/Owner/Courts'))
+const OwnerAccess    = lazyWithRetry(() => import('../pages/OwnerAccess'))
 
 function PageLoader() {
   return (
@@ -89,6 +90,7 @@ export default function AppRoutes() {
           <Route path="/register"        element={<PublicRoute><Register initialMode="register" /></PublicRoute>} />
           <Route path="/esqueci-senha"   element={<PublicRoute><ForgotPassword /></PublicRoute>} />
           <Route path="/redefinir-senha" element={<PublicRoute><ResetPassword  /></PublicRoute>} />
+          <Route path="/seja-parceiro"  element={<PublicRoute><OwnerAccess    /></PublicRoute>} />
 
           {/* Usuário autenticado (Jogador) */}
           <Route path="/home"           element={<PrivateRoute><Home          /></PrivateRoute>} />
