@@ -66,8 +66,8 @@ export const GoogleButton = styled.button`
   transition: background 0.15s, border-color 0.15s;
 
   &:hover:not(:disabled) {
-    background: #f8f8f8;
-    border-color: #bbb;
+    background: ${({ theme }) => theme.colors.borderLight};
+    border-color: ${({ theme }) => theme.colors.border};
   }
 
   &:disabled { opacity: 0.55; cursor: not-allowed; }
