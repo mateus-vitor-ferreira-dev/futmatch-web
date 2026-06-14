@@ -1,4 +1,8 @@
 import { useState, useEffect, useCallback } from 'react'
+import { useNavigate } from 'react-router-dom'
+import { useForm } from 'react-hook-form'
+import { yupResolver } from '@hookform/resolvers/yup'
+import * as yup from 'yup'
 import { toast } from 'sonner'
 import { Building2, ClipboardList, LayoutDashboard, Home, ShieldCheck } from 'lucide-react'
 import DashboardLayout from '../../../components/DashboardLayout'
@@ -11,7 +15,18 @@ import {
   StatsRow, PlaceGrid, PlaceCard, PlaceCardHeader, PlaceInfo,
   PlaceName, PlaceMeta, StatusBadge, PlaceDesc, PlaceActions,
   ActionBtn, EmptyState, ErrorMsg,
+  Modal, ModalOverlay, ModalBox, ModalHeader, ModalTitle,
+  Form, FormGroup, Label, Input, FieldError, ModalActions, CancelBtn, SubmitBtn,
 } from './styles'
+
+const editSchema = yup.object({
+  name:         yup.string().required('Nome obrigatório'),
+  city:         yup.string(),
+  neighborhood: yup.string(),
+  street:       yup.string(),
+  number:       yup.string(),
+  complement:   yup.string(),
+})
 
 function ownerNavItems(role) {
   return [
@@ -29,11 +44,18 @@ const STATUS_BG    = { OPEN: '#dcfce7', CLOSED: '#f3f4f6' }
 
 export default function OwnerPlaces() {
   const { user } = useAuth()
+  const navigate = useNavigate()
   const { isActive, loading: subLoading } = useSubscription()
   const [places, setPlaces]   = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError]     = useState(null)
-  const [toggling, setToggling] = useState(null)
+  const [toggling, setToggling]       = useState(null)
+  const [editingPlace, setEditingPlace] = useState(null)
+  const [saving, setSaving]             = useState(false)
+
+  const { register: regEdit, handleSubmit: handleEdit, reset: resetEdit, formState: { errors: editErrors } } = useForm({
+    resolver: yupResolver(editSchema),
+  })
 
   const fetchPlaces = useCallback(async () => {
     setLoading(true)
@@ -50,6 +72,37 @@ export default function OwnerPlaces() {
   }, [user?.id])
 
   useEffect(() => { fetchPlaces() }, [fetchPlaces])
+
+  function openEdit(place) {
+    setEditingPlace(place)
+    resetEdit({
+      name:         place.name         ?? '',
+      city:         place.city         ?? '',
+      neighborhood: place.neighborhood ?? '',
+      street:       place.street       ?? '',
+      number:       place.number       ?? '',
+      complement:   place.complement   ?? '',
+    })
+  }
+
+  function closeEdit() {
+    setEditingPlace(null)
+    resetEdit()
+  }
+
+  const onEditSubmit = async (data) => {
+    setSaving(true)
+    try {
+      await placesService.update(editingPlace.id, data)
+      toast.success('Estabelecimento atualizado!')
+      closeEdit()
+      await fetchPlaces()
+    } catch {
+      toast.error('Erro ao atualizar estabelecimento.')
+    } finally {
+      setSaving(false)
+    }
+  }
 
   const handleToggleStatus = async (place) => {
     const next = place.status === 'OPEN' ? 'CLOSED' : 'OPEN'
@@ -116,8 +169,11 @@ export default function OwnerPlaces() {
             {place.description && <PlaceDesc>{place.description}</PlaceDesc>}
 
             <PlaceActions>
-              <ActionBtn variant="secondary" as="a" href={`/owner/places/${place.id}/courts`}>
+              <ActionBtn variant="secondary" onClick={() => navigate(`/owner/places/${place.id}/courts`)}>
                 Quadras
+              </ActionBtn>
+              <ActionBtn variant="secondary" onClick={() => openEdit(place)}>
+                Editar
               </ActionBtn>
               <ActionBtn
                 variant={place.status === 'OPEN' ? 'danger' : 'success'}
@@ -125,7 +181,7 @@ export default function OwnerPlaces() {
                 disabled={toggling === place.id}
               >
                 {toggling === place.id
-                  ? 'Aguarde...'
+                  ? '...'
                   : place.status === 'OPEN' ? 'Fechar' : 'Abrir'}
               </ActionBtn>
             </PlaceActions>
@@ -133,6 +189,52 @@ export default function OwnerPlaces() {
         ))}
       </PlaceGrid>
       </SubscriptionGate>
+
+      {editingPlace && (
+        <Modal>
+          <ModalOverlay onClick={closeEdit} />
+          <ModalBox>
+            <ModalHeader>
+              <ModalTitle>Editar Estabelecimento</ModalTitle>
+            </ModalHeader>
+
+            <Form onSubmit={handleEdit(onEditSubmit)}>
+              <FormGroup>
+                <Label>Nome *</Label>
+                <Input {...regEdit('name')} placeholder="Nome do estabelecimento" />
+                {editErrors.name && <FieldError>{editErrors.name.message}</FieldError>}
+              </FormGroup>
+              <FormGroup>
+                <Label>Rua</Label>
+                <Input {...regEdit('street')} placeholder="Nome da rua" />
+              </FormGroup>
+              <FormGroup>
+                <Label>Número</Label>
+                <Input {...regEdit('number')} placeholder="Ex.: 123" />
+              </FormGroup>
+              <FormGroup>
+                <Label>Complemento</Label>
+                <Input {...regEdit('complement')} placeholder="Apto, sala, bloco..." />
+              </FormGroup>
+              <FormGroup>
+                <Label>Bairro</Label>
+                <Input {...regEdit('neighborhood')} placeholder="Nome do bairro" />
+              </FormGroup>
+              <FormGroup>
+                <Label>Cidade</Label>
+                <Input {...regEdit('city')} placeholder="Ex.: São Paulo" />
+              </FormGroup>
+
+              <ModalActions>
+                <CancelBtn type="button" onClick={closeEdit}>Cancelar</CancelBtn>
+                <SubmitBtn type="submit" disabled={saving}>
+                  {saving ? 'Salvando...' : 'Salvar Alterações'}
+                </SubmitBtn>
+              </ModalActions>
+            </Form>
+          </ModalBox>
+        </Modal>
+      )}
     </DashboardLayout>
   )
 }
