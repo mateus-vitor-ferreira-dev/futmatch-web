@@ -17,7 +17,7 @@ import {
 } from './styles'
 
 const NAV_ITEMS = [
-  { to: '/admin',          label: 'Visão Geral',        icon: LayoutDashboard },
+  { to: '/admin',          label: 'Visão Geral',        icon: LayoutDashboard, end: true },
   { to: '/admin/users',    label: 'Gestão de Usuários', icon: Users           },
   { to: '/admin/requests', label: 'Solicitações',       icon: ClipboardList   },
   { to: '/admin/places',   label: 'Estabelecimentos',   icon: Building2       },
