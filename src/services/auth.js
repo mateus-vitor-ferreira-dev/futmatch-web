@@ -36,3 +36,9 @@ export const forgotPassword = (email) =>
 
 export const resetPassword = (token, newPassword, confirmPassword) =>
   api.post('/auth/reset-password', { token, newPassword, confirmPassword }).then((r) => r.data)
+
+export const verifyInvite = (token) =>
+  api.get('/auth/verify-invite', { params: { token } }).then((r) => r.data)
+
+export const registerOwner = (data) =>
+  api.post('/auth/register-owner', data).then((r) => r.data)

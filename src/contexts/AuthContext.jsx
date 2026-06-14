@@ -40,6 +40,13 @@ export function AuthProvider({ children }) {
     return res
   }, [])
 
+  const registerOwner = useCallback(async (data) => {
+    const res = await authService.registerOwner(data)
+    saveToken(res.data.token)
+    setUser(res.data.user)
+    return res
+  }, [])
+
   /**
    * Autentica com e-mail e senha.
    * @param {{ email: string, password: string }} data
@@ -80,6 +87,7 @@ export function AuthProvider({ children }) {
       loading,
       isAuthenticated: !!user,
       register,
+      registerOwner,
       login,
       googleLogin,
       logout,
