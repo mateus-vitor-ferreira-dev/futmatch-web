@@ -223,8 +223,7 @@ export const ThemeToggleBtn = styled.button`
   display: flex;
   align-items: center;
   gap: 10px;
-  width: calc(100% - 16px);
-  margin: 0 8px 4px;
+  width: 100%;
   padding: 10px 12px;
   border: none;
   border-radius: ${({ theme }) => theme.radii.md};
@@ -235,6 +234,7 @@ export const ThemeToggleBtn = styled.button`
   cursor: pointer;
   transition: background 0.15s, color 0.15s;
   font-family: ${({ theme }) => theme.fonts.sans};
+  margin-bottom: 4px;
 
   &:hover { opacity: 0.85; }
 
@@ -268,9 +268,9 @@ export const LogoutBtn = styled.button`
   display: flex;
   align-items: center;
   gap: 8px;
-  width: calc(100% - 16px);
-  margin: 0 8px 4px;
-  padding: 8px 12px;
+  width: 100%;
+  margin-bottom: 4px;
+  padding: 10px 12px;
   border: none;
   border-radius: ${({ theme }) => theme.radii.md};
   background: transparent;

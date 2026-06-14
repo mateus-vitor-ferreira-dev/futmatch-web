@@ -40,6 +40,7 @@ function getDailyTip() {
 
 function normalizeList(result) {
   if (Array.isArray(result)) return result
+  if (result?.data?.events && Array.isArray(result.data.events)) return result.data.events
   if (result?.data && Array.isArray(result.data)) return result.data
   if (result?.events && Array.isArray(result.events)) return result.events
   if (result?.items && Array.isArray(result.items)) return result.items
