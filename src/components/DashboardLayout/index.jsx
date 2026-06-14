@@ -2,7 +2,7 @@ import { Sun, Moon, LogOut } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { useThemeMode } from '../../contexts/ThemeContext'
 import { useAuth } from '../../contexts/AuthContext'
-import logoUrl from '../../assets/logo-so-mais-um.svg'
+import LogoSvg from '../LogoSvg'
 import NotificationBell from '../NotificationBell'
 import {
   Shell, Sidebar, Logo, LogoIcon, LogoText, LogoName, LogoTagline,
@@ -54,12 +54,7 @@ export default function DashboardLayout({
       <Sidebar>
         <Logo>
           <LogoIcon>
-            <img
-              src={logoUrl}
-              alt="Só+1"
-              height="30"
-              style={{ display: 'block', filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.3))' }}
-            />
+            <LogoSvg height={30} />
           </LogoIcon>
           <LogoText>
             <LogoName>Só+1</LogoName>

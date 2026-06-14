@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Home, Search, ClipboardList, History, User, Plus, Trophy, Menu, Star, Sun, Moon, LayoutDashboard, Store, LogOut } from 'lucide-react'
 import iconUrl from '../../assets/icon-so-mais-um.svg'
-import logoUrl from '../../assets/logo-so-mais-um.svg'
+import LogoSvg from '../LogoSvg'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { useThemeMode } from '../../contexts/ThemeContext'
 import { useAuth } from '../../contexts/AuthContext'
@@ -67,12 +67,7 @@ export default function MainLayout({ children, user }) {
       <Sidebar $open={sidebarOpen}>
         <Logo>
           <LogoIcon>
-            <img
-              src={logoUrl}
-              alt="Só+1"
-              height="32"
-              style={{ display: 'block', filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.3))' }}
-            />
+            <LogoSvg height={32} />
           </LogoIcon>
           <LogoText>
             <LogoName>Só+1</LogoName>
