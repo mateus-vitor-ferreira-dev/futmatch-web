@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { LayoutDashboard, ClipboardList, Building2, Home, CreditCard, Loader2, MapPin, Shield, CalendarCheck, Bell } from 'lucide-react'
+import { LayoutDashboard, ClipboardList, Building2, Home, CreditCard, Loader2, MapPin, Shield, CalendarCheck, Bell, ShieldCheck } from 'lucide-react'
 import { useSearchParams } from 'react-router-dom'
 import { toast } from 'sonner'
 import { useAuth } from '../../../contexts/AuthContext'
@@ -8,12 +8,15 @@ import { ownerService } from '../../../services/ownerService'
 import DashboardLayout from '../../../components/DashboardLayout'
 import { Container, Grid, Card, PlanHighlight, RowList, PrimaryButton, Badge, StatsGrid, StatCard, StatIcon, StatInfo, StatValue, StatLabel } from './styles'
 
-const OWNER_NAV_ITEMS = [
-  { to: '/owner',          label: 'Visão Geral',      icon: LayoutDashboard, end: true },
-  { to: '/owner/requests', label: 'Solicitações',     icon: ClipboardList   },
-  { to: '/owner/places',   label: 'Estabelecimentos', icon: Building2       },
-  { to: '/home',           label: 'Área do Jogador',  icon: Home, divider: true },
-]
+function ownerNavItems(role) {
+  return [
+    { to: '/owner',          label: 'Visão Geral',      icon: LayoutDashboard, end: true },
+    { to: '/owner/requests', label: 'Solicitações',     icon: ClipboardList   },
+    { to: '/owner/places',   label: 'Estabelecimentos', icon: Building2       },
+    ...(role === 'ADMIN' ? [{ to: '/admin', label: 'Painel Admin', icon: ShieldCheck, divider: true }] : []),
+    { to: '/home',           label: 'Área do Jogador',  icon: Home, divider: role !== 'ADMIN' },
+  ]
+}
 
 const STATUS_LABEL = {
   active:    'Ativo',
@@ -63,7 +66,7 @@ export default function OwnerDashboard() {
   return (
     <DashboardLayout
       user={user}
-      navItems={OWNER_NAV_ITEMS}
+      navItems={ownerNavItems(user?.role)}
       tagline="Owner Panel"
       accent="#3b82f6"
       pageTitle="Minha Assinatura"
