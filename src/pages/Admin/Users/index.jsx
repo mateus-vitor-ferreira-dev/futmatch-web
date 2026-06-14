@@ -10,6 +10,8 @@ import {
   StatsRow, FilterBar, SearchInput, RoleFilters, RoleBtn,
   Table, Th, Tr, Td, AvatarCell, UserMeta, UserEmail,
   ActionBtn, EmptyState, ErrorMsg,
+  ModalWrap, ModalOverlay, ModalBox, ModalTitle, ModalText,
+  ModalInput, ModalActions, ModalCancelBtn, ModalConfirmBtn,
 } from './styles'
 
 const NAV_ITEMS = [
@@ -195,74 +197,54 @@ export default function AdminUsers() {
         </Table>
       )}
       {showInvite && (
-        <div style={{ position: 'fixed', inset: 0, zIndex: 50, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.45)' }} onClick={() => setShowInvite(false)} />
-          <div style={{ position: 'relative', background: 'var(--bg-card, #fff)', borderRadius: 16, padding: '28px 32px', width: '100%', maxWidth: 420, boxShadow: '0 20px 60px rgba(0,0,0,0.2)' }}>
-            <h3 style={{ margin: '0 0 6px', fontSize: 18, fontWeight: 700, color: '#111827' }}>
-              Convidar novo Owner
-            </h3>
-            <p style={{ margin: '0 0 20px', fontSize: 14, color: '#6b7280', lineHeight: 1.6 }}>
+        <ModalWrap>
+          <ModalOverlay onClick={() => { setShowInvite(false); setInviteEmail('') }} />
+          <ModalBox>
+            <ModalTitle>Convidar novo Owner</ModalTitle>
+            <ModalText>
               Informe o e-mail do proprietário do estabelecimento. Um link de convite único e válido por 7 dias será enviado automaticamente.
-            </p>
+            </ModalText>
             <form onSubmit={handleSendInvite}>
-              <input
+              <ModalInput
                 type="email"
                 placeholder="email@estabelecimento.com"
                 value={inviteEmail}
                 onChange={(e) => setInviteEmail(e.target.value)}
                 required
-                style={{ width: '100%', height: 42, padding: '0 14px', border: '1.5px solid #e5e7eb', borderRadius: 8, fontSize: 14, color: '#111827', outline: 'none', marginBottom: 16, boxSizing: 'border-box' }}
+                autoFocus
               />
-              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10 }}>
-                <button
-                  type="button"
-                  onClick={() => { setShowInvite(false); setInviteEmail('') }}
-                  style={{ padding: '9px 18px', borderRadius: 8, border: '1px solid #e5e7eb', background: 'transparent', color: '#374151', fontWeight: 600, cursor: 'pointer', fontSize: 14 }}
-                >
+              <ModalActions>
+                <ModalCancelBtn type="button" onClick={() => { setShowInvite(false); setInviteEmail('') }}>
                   Cancelar
-                </button>
-                <button
-                  type="submit"
-                  disabled={inviteSending}
-                  style={{ padding: '9px 18px', borderRadius: 8, border: 'none', background: '#22c55e', color: '#fff', fontWeight: 700, cursor: 'pointer', fontSize: 14, opacity: inviteSending ? 0.7 : 1 }}
-                >
+                </ModalCancelBtn>
+                <ModalConfirmBtn type="submit" disabled={inviteSending}>
                   {inviteSending ? 'Enviando…' : 'Enviar convite'}
-                </button>
-              </div>
+                </ModalConfirmBtn>
+              </ModalActions>
             </form>
-          </div>
-        </div>
+          </ModalBox>
+        </ModalWrap>
       )}
 
       {confirmTarget && (() => {
         const next = confirmTarget.role === 'USER' ? 'OWNER' : 'USER'
         const isPromo = next === 'OWNER'
         return (
-          <div style={{ position: 'fixed', inset: 0, zIndex: 50, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.45)' }} onClick={() => setConfirmTarget(null)} />
-            <div style={{ position: 'relative', background: 'var(--bg-card, #fff)', borderRadius: 16, padding: '28px 32px', width: '100%', maxWidth: 420, boxShadow: '0 20px 60px rgba(0,0,0,0.2)' }}>
-              <h3 style={{ margin: '0 0 8px', fontSize: 18, fontWeight: 700, color: '#111827' }}>
-                {isPromo ? 'Promover para Owner' : 'Rebaixar para Usuário'}
-              </h3>
-              <p style={{ margin: '0 0 20px', fontSize: 14, color: '#6b7280', lineHeight: 1.6 }}>
+          <ModalWrap>
+            <ModalOverlay onClick={() => setConfirmTarget(null)} />
+            <ModalBox>
+              <ModalTitle>{isPromo ? 'Promover para Owner' : 'Rebaixar para Usuário'}</ModalTitle>
+              <ModalText>
                 Você está prestes a {isPromo ? 'promover' : 'rebaixar'} <strong>{confirmTarget.name}</strong> ({confirmTarget.email}) de <strong>{confirmTarget.role}</strong> para <strong>{next}</strong>. Deseja continuar?
-              </p>
-              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10 }}>
-                <button
-                  onClick={() => setConfirmTarget(null)}
-                  style={{ padding: '9px 18px', borderRadius: 8, border: '1px solid #e5e7eb', background: 'transparent', color: '#374151', fontWeight: 600, cursor: 'pointer', fontSize: 14 }}
-                >
-                  Cancelar
-                </button>
-                <button
-                  onClick={handleRoleChange}
-                  style={{ padding: '9px 18px', borderRadius: 8, border: 'none', background: isPromo ? '#22c55e' : '#ef4444', color: '#fff', fontWeight: 700, cursor: 'pointer', fontSize: 14 }}
-                >
+              </ModalText>
+              <ModalActions>
+                <ModalCancelBtn onClick={() => setConfirmTarget(null)}>Cancelar</ModalCancelBtn>
+                <ModalConfirmBtn $danger={!isPromo} onClick={handleRoleChange}>
                   {isPromo ? 'Promover' : 'Rebaixar'}
-                </button>
-              </div>
-            </div>
-          </div>
+                </ModalConfirmBtn>
+              </ModalActions>
+            </ModalBox>
+          </ModalWrap>
         )
       })()}
     </DashboardLayout>
