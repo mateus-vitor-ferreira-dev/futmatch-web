@@ -150,6 +150,12 @@ export const Card = styled.div`
   border: 1px solid ${({ theme }) => theme.colors.borderLight};
   display: flex;
   flex-direction: column;
+  transition: box-shadow 0.15s, transform 0.15s;
+
+  &:hover {
+    box-shadow: ${({ theme }) => theme.shadows.md};
+    transform: translateY(-2px);
+  }
 `
 
 export const CardHeader = styled.div`
