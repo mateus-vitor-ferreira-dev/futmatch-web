@@ -23,12 +23,12 @@ const NAV_ITEMS = [
   { to: '/home',           label: 'Área do Jogador',    icon: Home },
 ]
 
-const ROLES = ['Todos', 'USER', 'OWNER', 'ADMIN']
+const ROLES = ['Todos', 'PLAYER', 'OWNER', 'ADMIN']
 
 const ROLE_COLORS = {
-  ADMIN: '#d97706',
-  OWNER: '#16a34a',
-  USER:  '#2563eb',
+  ADMIN:  '#d97706',
+  OWNER:  '#16a34a',
+  PLAYER: '#2563eb',
 }
 
 function getInitials(name = '') {
@@ -83,7 +83,7 @@ export default function AdminUsers() {
 
   const handleRoleChange = async () => {
     if (!confirmTarget) return
-    const next = confirmTarget.role === 'USER' ? 'OWNER' : 'USER'
+    const next = confirmTarget.role === 'PLAYER' ? 'OWNER' : 'PLAYER'
     setUpdatingId(confirmTarget.id)
     setConfirmTarget(null)
     try {
@@ -100,7 +100,7 @@ export default function AdminUsers() {
     total: users.length,
     owners: users.filter((u) => u.role === 'OWNER').length,
     admins: users.filter((u) => u.role === 'ADMIN').length,
-    regular: users.filter((u) => u.role === 'USER').length,
+    regular: users.filter((u) => u.role === 'PLAYER').length,
   }
 
   const filtered = users.filter((u) =>
@@ -188,7 +188,7 @@ export default function AdminUsers() {
                     >
                       {updatingId === u.id
                         ? 'Salvando...'
-                        : u.role === 'OWNER' ? 'Rebaixar → USER' : 'Promover → OWNER'}
+                        : u.role === 'OWNER' ? 'Rebaixar → Jogador' : 'Promover → OWNER'}
                     </ActionBtn>
                   )}
                 </Td>
@@ -258,7 +258,7 @@ export default function AdminUsers() {
       )}
 
       {confirmTarget && (() => {
-        const next = confirmTarget.role === 'USER' ? 'OWNER' : 'USER'
+        const next = confirmTarget.role === 'PLAYER' ? 'OWNER' : 'PLAYER'
         const isPromo = next === 'OWNER'
         return (
           <ModalWrap>
