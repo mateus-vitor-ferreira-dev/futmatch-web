@@ -24,10 +24,15 @@ const NAV_ITEMS = [
   { to: '/perfil',         label: 'Perfil',          icon: User          },
 ]
 
-function getPanelLink(role) {
-  if (role === 'ADMIN')  return { to: '/admin', label: 'Painel Admin',  icon: LayoutDashboard }
-  if (role === 'OWNER')  return { to: '/owner', label: 'Painel Owner',  icon: Store }
-  return null
+function getPanelLinks(role) {
+  if (role === 'ADMIN') return [
+    { to: '/admin', label: 'Painel Admin', icon: LayoutDashboard },
+    { to: '/owner', label: 'Painel Owner', icon: Store },
+  ]
+  if (role === 'OWNER') return [
+    { to: '/owner', label: 'Painel Owner', icon: Store },
+  ]
+  return []
 }
 
 function getInitials(name = '') {
@@ -83,18 +88,17 @@ export default function MainLayout({ children, user }) {
             </NavItem>
           ))}
 
-          {getPanelLink(user?.role) && (() => {
-            const { to, label, icon: Icon } = getPanelLink(user.role)
-            return (
-              <>
-                <NavDivider />
-                <NavItem to={to}>
+          {getPanelLinks(user?.role).length > 0 && (
+            <>
+              <NavDivider />
+              {getPanelLinks(user.role).map(({ to, label, icon: Icon }) => (
+                <NavItem key={to} to={to}>
                   <Icon />
                   {label}
                 </NavItem>
-              </>
-            )
-          })()}
+              ))}
+            </>
+          )}
         </Nav>
 
         <ThemeToggleBtn onClick={toggleTheme}>
