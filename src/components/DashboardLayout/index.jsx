@@ -1,5 +1,5 @@
-import { Sun, Moon, LayoutDashboard, Store, LogOut } from 'lucide-react'
-import { useLocation, useNavigate } from 'react-router-dom'
+import { Sun, Moon, LogOut } from 'lucide-react'
+import { useNavigate } from 'react-router-dom'
 import { useThemeMode } from '../../contexts/ThemeContext'
 import { useAuth } from '../../contexts/AuthContext'
 import logoUrl from '../../assets/logo-so-mais-um.svg'
@@ -30,14 +30,6 @@ function getInitials(name = '') {
  *   children: React.ReactNode,
  * }} props
  */
-function getCrossPanel(role, pathname) {
-  if (role === 'ADMIN' && pathname.startsWith('/owner'))
-    return { to: '/admin', label: 'Painel Admin', Icon: LayoutDashboard }
-  if (role === 'ADMIN' && pathname.startsWith('/admin'))
-    return { to: '/owner', label: 'Painel Owner', Icon: Store }
-  return null
-}
-
 export default function DashboardLayout({
   user,
   navItems,
@@ -49,10 +41,8 @@ export default function DashboardLayout({
   children,
 }) {
   const { isDark, toggleTheme } = useThemeMode()
-  const { pathname } = useLocation()
   const navigate = useNavigate()
   const { logout } = useAuth()
-  const crossPanel = getCrossPanel(user?.role, pathname)
 
   function handleLogout() {
     logout()
@@ -91,15 +81,6 @@ export default function DashboardLayout({
             </span>
           ))}
 
-          {crossPanel && (
-            <>
-              <Divider />
-              <NavItem to={crossPanel.to}>
-                <crossPanel.Icon size={18} />
-                {crossPanel.label}
-              </NavItem>
-            </>
-          )}
         </Nav>
 
         <ThemeToggleBtn onClick={toggleTheme} title={isDark ? 'Modo claro' : 'Modo escuro'}>

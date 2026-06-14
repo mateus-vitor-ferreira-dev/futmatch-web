@@ -119,26 +119,23 @@ export const NavBadge = styled.span`
 export const ThemeToggleBtn = styled.button`
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
   width: 100%;
-  padding: 8px 12px;
+  padding: 10px 12px;
   border: none;
   border-radius: ${({ theme }) => theme.radii.md};
-  background: transparent;
-  color: ${({ theme }) => theme.colors.textSecondary};
+  background: ${({ theme }) => theme.colors.primarySubtle};
+  color: ${({ theme }) => theme.colors.primary};
   font-size: ${({ theme }) => theme.fontSizes.sm};
-  font-weight: ${({ theme }) => theme.fontWeights.medium};
+  font-weight: ${({ theme }) => theme.fontWeights.semibold};
   cursor: pointer;
   transition: background 0.15s, color 0.15s;
   font-family: ${({ theme }) => theme.fonts.sans};
   margin-bottom: 4px;
 
-  &:hover {
-    background: ${({ theme }) => theme.colors.primarySubtle};
-    color: ${({ theme }) => theme.colors.primary};
-  }
+  &:hover { opacity: 0.85; }
 
-  svg { flex-shrink: 0; }
+  svg { flex-shrink: 0; width: 18px; height: 18px; }
 `
 
 export const LogoutBtn = styled.button`
