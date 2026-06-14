@@ -78,7 +78,7 @@ export default function OwnerDashboard() {
             { icon: MapPin,       color: '#3b82f6', label: 'Estabelecimentos', value: stats?.totalPlaces  ?? '—' },
             { icon: Shield,       color: '#22c55e', label: 'Quadras',          value: stats?.totalCourts  ?? '—' },
             { icon: CalendarCheck,color: '#f59e0b', label: 'Peladas ativas',   value: stats?.activeEvents ?? '—' },
-            { icon: Bell,         color: '#ef4444', label: 'Sol. pendentes',   value: stats?.pendingRequests ?? '—' },
+            { icon: Bell,         color: '#ef4444', label: 'Solicitações pendentes', value: stats?.pendingRequests ?? '—' },
           ].map(({ icon: Icon, color, label, value }) => (
             <StatCard key={label}>
               <StatIcon $color={color}><Icon size={20} /></StatIcon>
