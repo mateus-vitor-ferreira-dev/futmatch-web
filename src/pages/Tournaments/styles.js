@@ -373,6 +373,22 @@ export const FormatHint = styled.div`
   }
 `
 
+export const FormatPreview = styled.div`
+  margin-top: 6px;
+  padding: 10px;
+  background: ${({ theme }) => theme.colors.bgPage};
+  border: 1px solid ${({ theme }) => theme.colors.border};
+  border-radius: ${({ theme }) => theme.radii.sm};
+  overflow: hidden;
+  line-height: 0;
+
+  svg {
+    display: block;
+    width: 100%;
+    height: auto;
+  }
+`
+
 export const CategorySection = styled.div`
   display: flex;
   flex-direction: column;
