@@ -14,7 +14,7 @@ import {
 } from './styles'
 
 const NAV_ITEMS = [
-  { to: '/owner',          label: 'Visão Geral',           icon: LayoutDashboard },
+  { to: '/owner',          label: 'Visão Geral',           icon: LayoutDashboard, end: true },
   { to: '/owner/places',   label: 'Meus Estabelecimentos', icon: Building2       },
   { to: '/owner/requests', label: 'Solicitações',          icon: ClipboardList   },
   { to: '/home',           label: 'Área do Jogador',       icon: Home, divider: true },
