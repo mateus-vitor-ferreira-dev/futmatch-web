@@ -1,23 +1,31 @@
 <div align="center">
 
-<h1>🌐 Só+1 — Web App</h1>
+# 🌐 Só+1 — Web App
 
-<p><strong>Interface web da plataforma de organização de peladas amadoras</strong></p>
+### Descubra peladas perto de você, entre com um clique e sorteie os times na hora.
+
+Frontend da plataforma **Só+1** — do rachão da várzea ao torneio organizado, tudo em um lugar. Interface para **três perfis** (Jogador, Admin e Dono de quadra), com notificações em **tempo real** e reputação entre jogadores.
 
 <p>
-  <a href="https://app.so-mais-um.com" target="_blank">
-    <img src="https://img.shields.io/badge/Acessar_App-app.so--mais--um.com-22C55E?style=for-the-badge&logo=vercel&logoColor=white" alt="App"/>
-  </a>
+  <a href="https://app.so-mais-um.com"><img src="https://img.shields.io/badge/▶_Abrir_o_app-app.so--mais--um.com-22C55E?style=for-the-badge&logo=googlechrome&logoColor=white" alt="App"/></a>
+  <a href="https://so-mais-um.com"><img src="https://img.shields.io/badge/Landing-so--mais--um.com-3B82F6?style=for-the-badge&logo=vercel&logoColor=white" alt="Landing"/></a>
 </p>
 
 <p>
   <img src="https://github.com/mateus-vitor-ferreira-dev/so-mais-um-web/actions/workflows/ci-cd.yml/badge.svg" alt="CI/CD"/>
-  &nbsp;
-  <img src="https://img.shields.io/badge/React-19-61DAFB?style=flat-square&logo=react&logoColor=black" alt="React"/>
-  <img src="https://img.shields.io/badge/Vite-8-646CFF?style=flat-square&logo=vite&logoColor=white" alt="Vite"/>
-  <img src="https://img.shields.io/badge/Styled_Components-DB7093?style=flat-square&logo=styled-components&logoColor=white" alt="Styled Components"/>
+  <img src="https://img.shields.io/badge/React-19-61DAFB?style=flat-square&logo=react&logoColor=black" alt="React 19"/>
+  <img src="https://img.shields.io/badge/Vite-8-646CFF?style=flat-square&logo=vite&logoColor=white" alt="Vite 8"/>
+  <img src="https://img.shields.io/badge/styled--components-DB7093?style=flat-square&logo=styled-components&logoColor=white" alt="Styled Components"/>
   <img src="https://img.shields.io/badge/deploy-Vercel-000000?style=flat-square&logo=vercel&logoColor=white" alt="Vercel"/>
 </p>
+
+<sub>🟢 <strong>Em produção</strong> &nbsp;•&nbsp; 👥 <strong>3</strong> perfis (Jogador · Admin · Dono) &nbsp;•&nbsp; ✅ <strong>18</strong> requisitos funcionais &nbsp;•&nbsp; 🔔 tempo real (SSE)</sub>
+
+<br/><br/>
+
+![Só+1 Web App — navegação](docs/screenshots/app.webp)
+
+<sub><i>Navegação real do app (login → descobrir → criar pelada → histórico), rodando localmente com dados de demonstração.</i></sub>
 
 </div>
 
@@ -25,6 +33,7 @@
 
 ## 📋 Índice
 
+- [Destaques de engenharia](#-destaques-de-engenharia)
 - [Telas](#-telas)
 - [Stack](#-stack)
 - [Instalação local](#-instalação-local)
@@ -34,6 +43,17 @@
 - [Convenções](#-convenções)
 
 ---
+
+## ✨ Destaques de engenharia
+
+O que este frontend demonstra além de telas bonitas:
+
+- 🔔 **Notificações em tempo real** — `EventSource`/SSE alimentando o sino de notificações, sem polling.
+- 🔐 **Autenticação por papel** — JWT + Google OAuth, com **interceptors Axios** (injeção de token + **auto-logout em 401**) e **rotas protegidas por perfil** (Jogador · Admin · Owner) via `Suspense` + `PageLoader`.
+- 🎲 **Regras de produto ricas** — sorteio de times, **sistema de reputação** (nota média, tags e reviews entre jogadores) e **chaveamento de torneios** (`TournamentBracket`).
+- 🗺️ **Busca georreferenciada** — lista + **mapa Leaflet** de quadras em `/quero-jogar`, com filtros server-side por modalidade e localização.
+- 🎨 **Tema claro/escuro** e SVGs responsivos ao tema, styled-components + transições GSAP.
+- 🚀 **CI/CD** — GitHub Actions (lint + build) e deploy contínuo na Vercel (preview por PR, produção em `main`).
 
 ## 📸 Telas
 
@@ -72,35 +92,27 @@
   <tbody>
     <tr>
       <td><strong>UI</strong></td>
-      <td><img src="https://img.shields.io/badge/React-61DAFB?style=flat-square&logo=react&logoColor=black"/> <img src="https://img.shields.io/badge/Vite-646CFF?style=flat-square&logo=vite&logoColor=white"/> <img src="https://img.shields.io/badge/Styled_Components-DB7093?style=flat-square&logo=styled-components&logoColor=white"/></td>
+      <td><img src="https://img.shields.io/badge/React_19-61DAFB?style=flat-square&logo=react&logoColor=black"/> <img src="https://img.shields.io/badge/Vite_8-646CFF?style=flat-square&logo=vite&logoColor=white"/> <img src="https://img.shields.io/badge/styled--components-DB7093?style=flat-square&logo=styled-components&logoColor=white"/></td>
     </tr>
     <tr>
       <td><strong>Roteamento</strong></td>
-      <td><img src="https://img.shields.io/badge/React_Router_v7-CA4245?style=flat-square&logo=react-router&logoColor=white"/></td>
+      <td><img src="https://img.shields.io/badge/React_Router_v7-CA4245?style=flat-square&logo=react-router&logoColor=white"/> (proteção por papel)</td>
     </tr>
     <tr>
       <td><strong>Formulários</strong></td>
       <td><img src="https://img.shields.io/badge/react--hook--form-EC5990?style=flat-square&logo=react-hook-form&logoColor=white"/> <img src="https://img.shields.io/badge/Yup-222222?style=flat-square"/></td>
     </tr>
     <tr>
-      <td><strong>HTTP</strong></td>
-      <td><img src="https://img.shields.io/badge/Axios-5A29E4?style=flat-square&logo=axios&logoColor=white"/> (interceptors JWT + auto-logout em 401)</td>
+      <td><strong>HTTP / Tempo real</strong></td>
+      <td><img src="https://img.shields.io/badge/Axios-5A29E4?style=flat-square&logo=axios&logoColor=white"/> (interceptors JWT + auto-logout 401) · <img src="https://img.shields.io/badge/SSE-EventSource-FF6C37?style=flat-square"/></td>
     </tr>
     <tr>
       <td><strong>Mapas</strong></td>
-      <td><img src="https://img.shields.io/badge/Leaflet-199900?style=flat-square&logo=leaflet&logoColor=white"/> (mapa de quadras em <code>/quero-jogar</code>)</td>
-    </tr>
-    <tr>
-      <td><strong>Animações</strong></td>
-      <td><img src="https://img.shields.io/badge/GSAP-88CE02?style=flat-square&logo=greensock&logoColor=black"/> (intro e transições)</td>
+      <td><img src="https://img.shields.io/badge/Leaflet-199900?style=flat-square&logo=leaflet&logoColor=white"/> (mapa de quadras)</td>
     </tr>
     <tr>
       <td><strong>Auth social</strong></td>
       <td><img src="https://img.shields.io/badge/Google_OAuth-4285F4?style=flat-square&logo=google&logoColor=white"/></td>
-    </tr>
-    <tr>
-      <td><strong>Ícones</strong></td>
-      <td><img src="https://img.shields.io/badge/Lucide-222222?style=flat-square"/></td>
     </tr>
     <tr>
       <td><strong>Deploy</strong></td>
@@ -114,15 +126,11 @@
 ## 🚀 Instalação local
 
 ```bash
-# 1. Clonar
 git clone https://github.com/mateus-vitor-ferreira-dev/so-mais-um-web.git
 cd so-mais-um-web
-
-# 2. Instalar dependências
 npm install
-
-# 3. Configurar variáveis de ambiente
-cp .env.example .env
+cp .env.example .env      # defina VITE_API_URL e VITE_GOOGLE_CLIENT_ID
+npm run dev               # http://localhost:5173
 ```
 
 ```ini
@@ -131,14 +139,7 @@ VITE_API_URL=http://localhost:3000
 VITE_GOOGLE_CLIENT_ID=<seu_google_client_id>
 ```
 
-```bash
-# 4. Iniciar em desenvolvimento
-npm run dev
-```
-
-Interface disponível em `http://localhost:5173`
-
-> A [API do Só+1](https://github.com/mateus-vitor-ferreira-dev/so-mais-um-api) deve estar rodando em `http://localhost:3000`.
+> A [API do Só+1](https://github.com/mateus-vitor-ferreira-dev/so-mais-um-api) precisa estar rodando (padrão `http://localhost:3000`).
 
 ---
 
@@ -149,42 +150,27 @@ Interface disponível em `http://localhost:5173`
 | Rota | Descrição |
 |---|---|
 | `/` | Intro com animação GSAP |
-| `/login` | Login e cadastro |
-| `/register` | Cadastro direto |
-| `/esqueci-senha` | Solicitar reset de senha |
-| `/redefinir-senha` | Redefinir senha com token |
-| `/seja-parceiro` | Portal de parceiros — onboarding de OWNER via convite |
+| `/login` · `/register` | Login e cadastro |
+| `/esqueci-senha` · `/redefinir-senha` | Fluxo de reset de senha |
+| `/seja-parceiro` | Onboarding de OWNER via convite |
 
 ### Jogador autenticado (`PLAYER`)
 
 | Rota | Descrição |
 |---|---|
 | `/home` | Dashboard principal |
-| `/perfil` | Editar dados e chave Pix |
 | `/quero-jogar` | Buscar peladas (lista + mapa Leaflet) |
-| `/criar-pelada` | Wizard 3 etapas para criar pelada |
+| `/criar-pelada` | Wizard de 3 etapas |
 | `/minhas-peladas` | Jogos criados e participações + sorteio de times |
 | `/pelada/:eventId` | Detalhe completo da pelada |
 | `/historico` | Partidas finalizadas + avaliar jogadores |
-| `/avaliacoes` | Reputação recebida — nota média, tags e reviews |
+| `/avaliacoes` | Reputação recebida (nota, tags, reviews) |
 | `/torneios` | Campeonatos com chaveamento visual |
+| `/perfil` | Editar dados e chave Pix |
 
-### Admin (`/admin`)
+### Admin (`/admin/*`) e Owner (`/owner/*`)
 
-| Rota | Descrição |
-|---|---|
-| `/admin/dashboard` | Visão geral da plataforma |
-| `/admin/users` | Gestão de usuários, roles e convites de OWNER |
-| `/admin/requests` | Solicitações de parceria |
-| `/admin/places` | Gestão de espaços esportivos |
-
-### Owner (`/owner`)
-
-| Rota | Descrição |
-|---|---|
-| `/owner/dashboard` | Dashboard do proprietário |
-| `/owner/places` | Gerenciar próprios locais e quadras |
-| `/owner/requests` | Solicitações do local |
+Dashboards e gestão dedicados — usuários/roles/convites e solicitações de parceria (Admin); locais, quadras e solicitações (Owner).
 
 ---
 
@@ -192,99 +178,46 @@ Interface disponível em `http://localhost:5173`
 
 ```
 src/
-├── assets/
-│   └── sports/             # Imagens das 11 modalidades
-├── components/
-│   ├── MainLayout/         # Sidebar + navegação responsiva
-│   ├── AuthLayout/         # Layout de autenticação
-│   ├── EventCard/          # Card de pelada reutilizável
-│   ├── Map/                # Mapa Leaflet com marcadores
-│   ├── SportSelect/        # Seletor de modalidades com imagens
-│   ├── NotificationBell/   # Sino de notificações via SSE (EventSource)
-│   ├── LogoSvg/            # SVG inline responsivo ao tema claro/escuro
-│   └── ...
-├── contexts/
-│   └── AuthContext.jsx     # Estado global de autenticação (JWT + Google)
-├── hooks/
-│   ├── useCountries.js
-│   └── useSports.js
-├── pages/
-│   ├── Auth/               # Intro, Login, Register, ForgotPassword, ResetPassword
-│   ├── Home/               # Dashboard principal
-│   ├── QueroJogar/         # Busca de peladas (lista + mapa) — filtros server-side
-│   ├── CriarPelada/        # Wizard de criação (3 etapas)
-│   ├── PeladaDetail/       # Detalhe da pelada (/pelada/:eventId)
-│   ├── MinhasPeladas/      # Meus jogos + sorteio + finalizar/cancelar
-│   ├── Historico/          # Histórico + modal de avaliação
-│   ├── Avaliacoes/         # Reputação recebida
-│   ├── Tournaments/        # Campeonatos + TournamentBracket
-│   ├── OwnerAccess/        # Portal de parceiros (/seja-parceiro)
-│   ├── Admin/              # Dashboard, Users, Requests, Places
-│   └── Owner/              # Dashboard, Places, Requests
-├── routes/
-│   └── index.jsx           # Rotas com proteção por papel + Suspense com PageLoader
-├── services/
-│   ├── api.js              # Axios com interceptors JWT (auto-logout em 401)
-│   ├── auth.js             # Login, registro, Google OAuth, owner invite
-│   ├── events.js           # Peladas
-│   ├── courts.js           # Quadras
-│   ├── places.js           # Locais
-│   ├── users.js            # Usuários
-│   └── tournaments.js      # Campeonatos
-└── styles/
-    ├── theme.js            # Tema — cores, espaçamentos, tipografia (claro/escuro)
-    └── global.js           # Estilos globais
+├── components/     # MainLayout (sidebar), EventCard, Map (Leaflet), NotificationBell (SSE)…
+├── contexts/       # AuthContext (JWT + Google)
+├── pages/          # Home, QueroJogar, CriarPelada, PeladaDetail, MinhasPeladas,
+│                   # Historico, Avaliacoes, Tournaments, Admin/*, Owner/*
+├── routes/         # index.jsx — rotas com proteção por papel + Suspense
+├── services/       # api.js (Axios + interceptors), auth, events, courts, tournaments…
+└── styles/         # theme.js (claro/escuro) + global.js
 ```
 
 ---
 
-## ✅ Requisitos cobertos
+## ✅ Requisitos cobertos (18 RFs)
 
-| RF | Funcionalidade | Status |
-|---|---|---|
-| RF01 | Cadastro de usuário | ✅ |
-| RF02 | Login com JWT | ✅ |
-| RF03 | Proteção de rotas por papel | ✅ |
-| RF04 | Criar pelada | ✅ |
-| RF05 | Listar e filtrar peladas | ✅ |
-| RF06 | Entrar em uma pelada | ✅ |
-| RF07 | Detalhe com vagas e valor | ✅ |
-| RF08 | Histórico de participações | ✅ |
-| RF09 | Sorteio de times | ✅ |
-| RF10 | Avaliação de jogadores | ✅ |
-| RF11 | Gerenciamento Admin | ✅ |
-| RF12 | Login com Google OAuth | ✅ |
-| RF13 | Recuperação de senha | ✅ |
-| RF14 | Notificações em tempo real (SSE) | ✅ |
-| RF15 | Descadastro de marketing | ✅ |
-| RF16 | Módulo de Torneios | ✅ |
-| RF17 | Gestão de Places e Courts (OWNER) | ✅ |
-| RF18 | Portal de parceiros com convite por e-mail | ✅ |
+Cadastro/login (JWT + Google) · proteção de rotas por papel · criar/listar/filtrar/entrar em peladas · detalhe com vagas e valor · histórico · **sorteio de times** · **avaliação de jogadores** · gestão Admin · recuperação de senha · **notificações em tempo real (SSE)** · descadastro de marketing · **módulo de torneios** · gestão de Places/Courts (OWNER) · **portal de parceiros com convite por e-mail**.
 
----
+<details>
+<summary>Tabela completa (RF01–RF18)</summary>
 
-## 📜 Scripts
+| RF | Funcionalidade | RF | Funcionalidade |
+|----|----------------|----|----------------|
+| RF01 | Cadastro de usuário | RF10 | Avaliação de jogadores |
+| RF02 | Login com JWT | RF11 | Gerenciamento Admin |
+| RF03 | Proteção de rotas por papel | RF12 | Login com Google OAuth |
+| RF04 | Criar pelada | RF13 | Recuperação de senha |
+| RF05 | Listar e filtrar peladas | RF14 | Notificações em tempo real (SSE) |
+| RF06 | Entrar em uma pelada | RF15 | Descadastro de marketing |
+| RF07 | Detalhe com vagas e valor | RF16 | Módulo de Torneios |
+| RF08 | Histórico de participações | RF17 | Gestão de Places/Courts (OWNER) |
+| RF09 | Sorteio de times | RF18 | Portal de parceiros (convite e-mail) |
 
-```bash
-npm run dev       # Desenvolvimento com HMR
-npm run build     # Build de produção (output: dist/)
-npm run preview   # Preview do build local
-```
+</details>
 
 ---
 
 ## 🔧 Convenções
 
-| Item | Padrão |
-|---|---|
-| Branch principal | `main` — apenas releases estáveis |
-| Branch de integração | `develop` |
-| Branches de trabalho | `feature/<nome>` ou `fix/<nome>` a partir de `develop` |
-| Commits | Conventional Commits em português |
-| PRs | Build deve passar antes de abrir PR (`npm run build`) |
+`main` (produção) ← `develop` ← `feature/*` · `fix/*` · Conventional Commits (pt-BR) · build deve passar antes do PR.
 
 ---
 
 <div align="center">
-  <sub>Parte do projeto <a href="https://github.com/mateus-vitor-ferreira-dev/tpes-2026-1-so-mais-um">Só+1</a> · Engenharia de Software · UFLA 2026/1</sub>
+  <sub>Parte do produto <strong>Só+1</strong> · <a href="https://app.so-mais-um.com">app</a> · <a href="https://github.com/mateus-vitor-ferreira-dev/so-mais-um-api">API</a> · <a href="https://so-mais-um.com">landing</a> — Engenharia de Software, UFLA 2026/1</sub>
 </div>
