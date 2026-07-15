@@ -65,7 +65,7 @@ jobs:
 
       - name: Build project artifacts
         env:
-          VITE_API_URL: https://so-mais-um-api-production.up.railway.app
+          VITE_API_URL: https://api.so-mais-um.com
           VITE_GOOGLE_CLIENT_ID: 446784228326-i78g3nfnmdvpgoqt6bmdgr43hc756p13.apps.googleusercontent.com
         run: |
           if [ "${{ github.ref }}" = "refs/heads/main" ]; then
