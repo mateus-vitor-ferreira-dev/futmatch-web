@@ -25,12 +25,44 @@
 
 ## 📋 Índice
 
+- [Telas](#-telas)
 - [Stack](#-stack)
 - [Instalação local](#-instalação-local)
 - [Rotas](#-rotas)
 - [Estrutura do projeto](#-estrutura-do-projeto)
 - [Requisitos cobertos](#-requisitos-cobertos)
 - [Convenções](#-convenções)
+
+---
+
+## 📸 Telas
+
+<div align="center">
+
+**Descubra peladas abertas perto de você e entre com um clique**
+
+![Home](docs/screenshots/home.png)
+
+</div>
+
+|  Quero Jogar  |  Criar Pelada (wizard)  |
+| :-----------: | :---------------------: |
+| ![Quero Jogar](docs/screenshots/quero-jogar.png) | ![Criar Pelada](docs/screenshots/criar-pelada.png) |
+| **Minhas Peladas** | **Histórico** |
+| ![Minhas Peladas](docs/screenshots/minhas-peladas.png) | ![Histórico](docs/screenshots/historico.png) |
+
+<details>
+<summary><strong>Mais telas</strong> — torneios, avaliações, perfil e login</summary>
+
+<br/>
+
+|  Torneios  |  Avaliações  |
+| :--------: | :----------: |
+| ![Torneios](docs/screenshots/torneios.png) | ![Avaliações](docs/screenshots/avaliacoes.png) |
+| **Perfil** | **Login** |
+| ![Perfil](docs/screenshots/perfil.png) | ![Login](docs/screenshots/login.jpg) |
+
+</details>
 
 ---
 
