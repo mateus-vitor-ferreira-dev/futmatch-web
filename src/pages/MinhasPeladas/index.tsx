@@ -9,7 +9,8 @@ import { useAuth } from '../../contexts/AuthContext'
 import { playerService } from '../../services/playerService'
 import { MainLayout } from '../../components'
 import { Grid, Card, CardHeader, InfoRow, ProgressBarContainer, ProgressBar, SpotsInfo } from '../QueroJogar/styles'
-import type { Court, DrawResult, Pelada } from '../../types/api'
+import { mensagemDeErro } from '../../utils/apiError'
+import type { Court, DrawResult, Participation, Pelada, PeladaStatus } from '../../types/api'
 import {
   Container, PageHeader, CreateButton, Tabs, Tab, PixBox,
   ModalOverlay, ModalContent, Form, ButtonGroup,
@@ -29,12 +30,26 @@ const TEAM_COLORS = [
   '#ec4899', '#14b8a6', '#eab308', '#6366f1', '#06b6d4',
 ]
 
+interface FormularioPelada {
+  date: string
+  time: string
+  maxPlayers: string
+  totalValue: string
+  pixKey: string
+  courtId: string
+}
+
 export default function MinhasPeladas() {
   const { user } = useAuth()
   const navigate = useNavigate()
   const [searchParams, setSearchParams] = useSearchParams()
   const [activeTab, setActiveTab] = useState('participating')
-  const [events, setEvents] = useState<Pelada[]>([])
+  /**
+   * A aba "participating" devolve Participation[] (com a pelada aninhada) e a
+   * aba "created" devolve Pelada[] — o mesmo estado guarda as duas formas, e o
+   * render normaliza com `event.pelada || event`.
+   */
+  const [events, setEvents] = useState<Array<Pelada | Participation>>([])
   const [loading, setLoading] = useState(true)
 
   // Modal criar jogo — inicializa a partir da URL para evitar flash
@@ -49,12 +64,12 @@ export default function MinhasPeladas() {
 
   // Presença
   const [attendanceEvent, setAttendanceEvent]           = useState<Pelada | null>(null)
-  const [attendanceParticipants, setAttendanceParticipants] = useState([])
-  const [attendanceMap, setAttendanceMap]               = useState({})
+  const [attendanceParticipants, setAttendanceParticipants] = useState<Participation[]>([])
+  const [attendanceMap, setAttendanceMap]               = useState<Record<string, boolean>>({})
   const [loadingAttendance, setLoadingAttendance]       = useState(false)
   const [savingAttendance, setSavingAttendance]         = useState(false)
 
-  const { register, handleSubmit, reset } = useForm()
+  const { register, handleSubmit, reset } = useForm<FormularioPelada>()
 
   // Limpa o ?action=criar da URL após abrir o modal
   useEffect(() => {
@@ -89,7 +104,7 @@ export default function MinhasPeladas() {
   useEffect(() => { fetchData() }, [fetchData])
   useEffect(() => { if (isModalOpen) fetchCourts() }, [isModalOpen])
 
-  const onSubmit = async (data) => {
+  const onSubmit = async (data: FormularioPelada) => {
     try {
       const payload = {
         date: new Date(`${data.date}T${data.time}:00`).toISOString(),
@@ -103,16 +118,16 @@ export default function MinhasPeladas() {
       setActiveTab('created')
       fetchData()
     } catch (error) {
-      toast.error(error.response?.data?.message || 'Erro ao criar pelada')
+      toast.error(mensagemDeErro(error, 'Erro ao criar pelada'))
     }
   }
 
-  const copyPix = (key) => {
+  const copyPix = (key: string) => {
     navigator.clipboard.writeText(key)
     toast.success('Chave PIX copiada!')
   }
 
-  const openDraw = (ev) => {
+  const openDraw = (ev: Pelada) => {
     setDrawEvent(ev)
     setTeamCount(2)
     setDrawResult(null)
@@ -125,7 +140,7 @@ export default function MinhasPeladas() {
       const res = await playerService.drawTeams(drawEvent.courtId, drawEvent.id, teamCount)
       setDrawResult(res.data)
     } catch (error) {
-      toast.error(error.response?.data?.message || 'Erro ao realizar sorteio. Verifique se há jogadores suficientes.')
+      toast.error(mensagemDeErro(error, 'Erro ao realizar sorteio. Verifique se há jogadores suficientes.'))
     } finally {
       setDrawLoading(false)
     }
@@ -136,16 +151,17 @@ export default function MinhasPeladas() {
     setDrawResult(null)
   }
 
-  const openAttendance = async (ev) => {
+  const openAttendance = async (ev: Pelada) => {
     setAttendanceEvent(ev)
     setLoadingAttendance(true)
     try {
       const res = await playerService.getEventParticipants(ev.courtId, ev.id)
-      const participants = res.data ?? res ?? []
+      const participants = res.data ?? []
       setAttendanceParticipants(participants)
-      const initial = {}
-      participants.forEach((p) => {
-        initial[p.userId ?? p.user?.id] = p.attended !== false
+      const initial: Record<string, boolean> = {}
+      participants.forEach((p: Participation) => {
+        const id = p.userId ?? p.user?.id
+        if (id) initial[id] = p.attended !== false
       })
       setAttendanceMap(initial)
     } catch {
@@ -183,7 +199,7 @@ export default function MinhasPeladas() {
     }
   }
 
-  const handleUpdateStatus = async (ev, status) => {
+  const handleUpdateStatus = async (ev: Pelada, status: PeladaStatus) => {
     const label = status === 'FINISHED' ? 'finalizar' : 'cancelar'
     if (!window.confirm(`Tem certeza que deseja ${label} esta pelada?`)) return
     try {
@@ -191,7 +207,7 @@ export default function MinhasPeladas() {
       toast.success(`Pelada ${status === 'FINISHED' ? 'finalizada' : 'cancelada'}.`)
       fetchData()
     } catch (error) {
-      toast.error(error.response?.data?.message || 'Erro ao atualizar status.')
+      toast.error(mensagemDeErro(error, 'Erro ao atualizar status.'))
     }
   }
 
@@ -220,8 +236,8 @@ export default function MinhasPeladas() {
 
         {loading ? <SkeletonCard count={3} /> : (
           <Grid>
-            {events.map((event: Pelada) => {
-              const ev = event.pelada || event
+            {events.map((event) => {
+              const ev = ('pelada' in event && event.pelada ? event.pelada : event) as Pelada
               if (!ev || !ev.id) return null
 
               const currentPlayers = ev._count?.participations || 0
@@ -440,8 +456,10 @@ export default function MinhasPeladas() {
               ) : (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 20, maxHeight: 320, overflowY: 'auto' }}>
                   {attendanceParticipants.map((p) => {
-                    const uid = p.userId ?? p.user?.id
-                    const name = p.user?.name ?? p.name ?? uid
+                    const uid = p.userId ?? p.user?.id ?? ''
+                    // `p.name` não existe em Participation — o nome vem sempre
+                    // do usuário aninhado; o fallback antigo nunca resolvia.
+                    const name = p.user?.name ?? uid
                     const present = attendanceMap[uid] ?? true
                     return (
                       <div
