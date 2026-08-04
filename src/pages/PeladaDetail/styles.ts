@@ -214,7 +214,7 @@ export const CopyBtn = styled.button`
   &:hover { background: ${({ theme }) => theme.colors.primaryHover}; }
 `
 
-export const JoinBtn = styled.button<{ $full?: string; $joined?: string; }>`
+export const JoinBtn = styled.button<{ $full?: boolean; $joined?: boolean; }>`
   width: 100%;
   padding: ${({ theme }) => theme.spacing[4]};
   border-radius: ${({ theme }) => theme.radii.lg};

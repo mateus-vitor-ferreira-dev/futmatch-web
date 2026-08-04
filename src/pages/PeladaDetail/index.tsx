@@ -6,7 +6,7 @@ import { useAuth } from '../../contexts/AuthContext'
 import { MainLayout } from '../../components'
 import { playerService } from '../../services/playerService'
 import { getSportMeta } from '../../hooks/useSports'
-import type { Pelada } from '../../types/api'
+import type { CourtType, Pelada, PeladaStatus } from '../../types/api'
 import { mensagemDeErro } from '../../utils/apiError'
 import {
   Container, BackBtn, Card, CardHeader, SportIcon, HeaderInfo,
@@ -28,7 +28,7 @@ const STATUS_LABEL = {
   CANCELLED: { label: 'Cancelado',  emoji: '🔴' },
 }
 
-function buildMapsUrl(event) {
+function buildMapsUrl(event: Pelada): string | null {
   const parts = [
     event.court?.place?.name,
     event.court?.place?.neighborhood,
@@ -51,7 +51,7 @@ export default function PeladaDetail() {
 
   const load = useCallback(async () => {
     try {
-      const res = await playerService.getEvent(eventId)
+      const res = await playerService.getEvent(eventId!)
       setEvent(res.data)
     } catch {
       toast.error('Pelada não encontrada.')
@@ -77,7 +77,7 @@ export default function PeladaDetail() {
   const canJoin         = !isJoined && !isFull && (event.status === 'WAITING' || event.status === 'FULL')
   const canChangeStatus = isOrganizer && (event.status === 'WAITING' || event.status === 'FULL')
   const showPix         = (isJoined || isOrganizer) && event.pixKey
-  const sport           = getSportMeta(event.court?.type)
+  const sport           = getSportMeta(event.court?.type as CourtType)
   const status          = STATUS_LABEL[event.status] ?? { label: event.status, emoji: '⚪' }
   const mapsUrl         = buildMapsUrl(event)
 
@@ -89,7 +89,7 @@ export default function PeladaDetail() {
   async function handleJoin() {
     setJoining(true)
     try {
-      await playerService.joinEvent(event.courtId, event.id)
+      await playerService.joinEvent(event!.courtId, event!.id)
       toast.success('Você entrou na pelada!')
       load()
     } catch (err) {
@@ -99,12 +99,12 @@ export default function PeladaDetail() {
     }
   }
 
-  async function handleStatus(status) {
+  async function handleStatus(status: PeladaStatus) {
     const label = status === 'FINISHED' ? 'finalizar' : 'cancelar'
     if (!window.confirm(`Tem certeza que deseja ${label} esta pelada?`)) return
     setUpdatingStatus(true)
     try {
-      await playerService.updateEventStatus(event.courtId, event.id, status)
+      await playerService.updateEventStatus(event!.courtId, event!.id, status)
       toast.success(`Pelada ${status === 'FINISHED' ? 'finalizada' : 'cancelada'} com sucesso.`)
       load()
     } catch (err) {
@@ -115,7 +115,7 @@ export default function PeladaDetail() {
   }
 
   function copyPix() {
-    navigator.clipboard.writeText(event.pixKey)
+    navigator.clipboard.writeText(event!.pixKey)
     toast.success('Chave Pix copiada!')
   }
 

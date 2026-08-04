@@ -59,7 +59,7 @@ export default function AdminRequests() {
 
   useEffect(() => { fetchRequests() }, [fetchRequests])
 
-  const handleApprove = async (id) => {
+  const handleApprove = async (id: string) => {
     setActionId(id)
     try {
       await placeRequestsService.approve(id)
@@ -134,19 +134,22 @@ export default function AdminRequests() {
 
             <RequestHeader>
               <div>
-                <RequestTitle>{req.placeName ?? req.name ?? 'Estabelecimento'}</RequestTitle>
+                {/*
+                  * `placeName`, `ownerName` e `ownerEmail` não existem no
+                  * retorno da API — eram fallbacks mortos, e os campos reais
+                  * (name, owner.name, owner.email) já vinham primeiro.
+                  */}
+                <RequestTitle>{req.name ?? 'Estabelecimento'}</RequestTitle>
                 <RequestMeta>
-                  Owner: <strong>{req.owner?.name ?? req.ownerName ?? '—'}</strong>
+                  Owner: <strong>{req.owner?.name ?? '—'}</strong>
                   {' · '}
-                  {req.owner?.email ?? req.ownerEmail ?? '—'}
+                  {req.owner?.email ?? '—'}
                 </RequestMeta>
               </div>
               <StatusBadge bg={STATUS_BG[req.status]} color={STATUS_COLOR[req.status]}>
                 {STATUS_LABEL[req.status]}
               </StatusBadge>
             </RequestHeader>
-
-            {req.description && <RequestDesc>{req.description}</RequestDesc>}
 
             <RequestFooter>
               <RequestSentAt>

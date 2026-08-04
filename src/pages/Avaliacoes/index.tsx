@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { useAuth } from '../../contexts/AuthContext'
 import { playerService } from '../../services/playerService'
 import { MainLayout } from '../../components'
-import type { Review } from '../../types/api'
+import type { Review, ReviewTag, UserStats } from '../../types/api'
 import {
   Container, StatsCard, Section,
   TagsGrid, TagChip,
@@ -19,17 +19,17 @@ const TAG_LABELS: Record<string, string> = {
   BOA_COMUNICACAO:  'Boa Comunicação',
 }
 
-function renderStars(count) {
+function renderStars(count: number) {
   return '⭐'.repeat(Math.min(Math.max(count, 1), 5))
 }
 
-function formatDate(dateStr) {
+function formatDate(dateStr: string) {
   return dateStr ? new Date(dateStr).toLocaleDateString('pt-BR') : ''
 }
 
 export default function Avaliacoes() {
   const { user } = useAuth()
-  const [summary, setSummary]           = useState({})
+  const [summary, setSummary]           = useState<Partial<UserStats>>({})
   const [reviews, setReviews]           = useState<Review[]>([])
   const [reviewsGiven, setReviewsGiven] = useState<Review[]>([])
   const [loading, setLoading]           = useState(true)
@@ -83,11 +83,11 @@ export default function Avaliacoes() {
           <p>Carregando...</p>
         ) : (
           <>
-            {summary.tags?.length > 0 && (
+            {(summary.tags?.length ?? 0) > 0 && (
               <Section>
                 <h3>Tags Recebidas</h3>
                 <TagsGrid>
-                  {summary.tags.map(({ tag, count }) => (
+                  {(summary.tags ?? []).map(({ tag, count }: { tag: ReviewTag; count: number }) => (
                     <TagChip key={tag}>
                       <span className="label">{TAG_LABELS[tag] || tag}</span>
                       <span className="count">×{count}</span>

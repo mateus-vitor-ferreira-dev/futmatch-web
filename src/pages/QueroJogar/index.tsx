@@ -137,7 +137,7 @@ export default function QueroJogar() {
     setFilterVagas(false)
   }
 
-  const handleJoin = async (courtId, eventId) => {
+  const handleJoin = async (courtId: string, eventId: string) => {
     try {
       await playerService.joinEvent(courtId, eventId)
       fetchEvents(1)

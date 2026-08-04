@@ -11,6 +11,7 @@ import SubscriptionGate from '../../../components/SubscriptionGate'
 import { useAuth } from '../../../contexts/AuthContext'
 import { useSubscription } from '../../../hooks/useSubscription'
 import * as placesService from '../../../services/places'
+import type { PlaceInput } from '../../../services/places'
 import type { Place, UserRole } from '../../../types/api'
 import {
   StatsRow, PlaceGrid, PlaceCard, PlaceCardHeader, PlaceInfo,
@@ -51,7 +52,7 @@ export default function OwnerPlaces() {
   const [loading, setLoading] = useState(true)
   const [error, setError]     = useState<string | null>(null)
   const [toggling, setToggling]       = useState<string | null>(null)
-  const [editingPlace, setEditingPlace] = useState(null)
+  const [editingPlace, setEditingPlace] = useState<Place | null>(null)
   const [saving, setSaving]             = useState(false)
 
   const { register: regEdit, handleSubmit: handleEdit, reset: resetEdit, formState: { errors: editErrors } } = useForm({
@@ -74,7 +75,7 @@ export default function OwnerPlaces() {
 
   useEffect(() => { fetchPlaces() }, [fetchPlaces])
 
-  function openEdit(place) {
+  function openEdit(place: Place) {
     setEditingPlace(place)
     resetEdit({
       name:         place.name         ?? '',
@@ -94,7 +95,7 @@ export default function OwnerPlaces() {
   const onEditSubmit = async (data) => {
     setSaving(true)
     try {
-      await placesService.update(editingPlace.id, data)
+      await placesService.update(editingPlace!.id, data)
       toast.success('Estabelecimento atualizado!')
       closeEdit()
       await fetchPlaces()
@@ -105,7 +106,7 @@ export default function OwnerPlaces() {
     }
   }
 
-  const handleToggleStatus = async (place) => {
+  const handleToggleStatus = async (place: Place) => {
     const next = place.status === 'OPEN' ? 'CLOSED' : 'OPEN'
     setToggling(place.id)
     try {
@@ -119,9 +120,21 @@ export default function OwnerPlaces() {
   }
 
   const totalCourts = places.reduce((acc, p) => acc + (p._count?.courts ?? 0), 0)
-  const totalEvents = places.reduce((acc, p) => acc + (p._count?.events ?? 0), 0)
+
+  /*
+   * ⚠️ Estes dois indicadores nunca tiveram dado real:
+   *
+   * - `_count.events` não existe no retorno de GET /places — o include do
+   *   backend só conta `courts`. O total de peladas sempre soma 0.
+   * - `averageRating` não existe no modelo Place. A média sempre resulta
+   *   "0.0", nunca '—', porque places.length é > 0 quando há estabelecimentos.
+   *
+   * Mantidos como estão para não alterar a UI nesta migração; corrigir exige
+   * o backend passar a devolver os campos (ou remover os cards).
+   */
+  const totalEvents = places.reduce((acc, p) => acc + ((p._count as { events?: number })?.events ?? 0), 0)
   const avgRating   = places.length
-    ? (places.reduce((acc, p) => acc + (p.averageRating ?? 0), 0) / places.length).toFixed(1)
+    ? (places.reduce((acc, p) => acc + ((p as { averageRating?: number }).averageRating ?? 0), 0) / places.length).toFixed(1)
     : '—'
 
   return (
@@ -167,7 +180,10 @@ export default function OwnerPlaces() {
               </StatusBadge>
             </PlaceCardHeader>
 
-            {place.description && <PlaceDesc>{place.description}</PlaceDesc>}
+            {/* `description` não existe no modelo Place — nunca renderiza. */}
+            {(place as { description?: string }).description && (
+              <PlaceDesc>{(place as { description?: string }).description}</PlaceDesc>
+            )}
 
             <PlaceActions>
               <ActionBtn variant="secondary" onClick={() => navigate(`/owner/places/${place.id}/courts`)}>
