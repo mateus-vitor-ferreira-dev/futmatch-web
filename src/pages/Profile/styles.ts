@@ -32,7 +32,7 @@ export const AvatarUploadWrapper = styled.div`
   border-radius: 50%;
 `
 
-export const AvatarOverlay = styled.div`
+export const AvatarOverlay = styled.div<{ $visible?: boolean; }>`
   position: absolute;
   inset: 0;
   border-radius: 50%;
@@ -97,7 +97,7 @@ export const TabsRow = styled.div`
   margin-bottom: 24px;
 `
 
-export const TabBtn = styled.button`
+export const TabBtn = styled.button<{ $active?: boolean; }>`
   flex: 1;
   height: 36px;
   border: none;

@@ -63,7 +63,7 @@ export const PlaceName = styled.p`
   margin: 0;
 `
 
-export const StatusBadge = styled.span`
+export const StatusBadge = styled.span<{ $status?: string; }>`
   display: inline-flex;
   align-items: center;
   gap: 4px;
@@ -150,7 +150,7 @@ export const ProgressText = styled.span`
   color: ${({ theme }) => theme.colors.textSecondary};
 `
 
-export const VagasText = styled.span`
+export const VagasText = styled.span<{ $isFull?: boolean; }>`
   font-size: ${({ theme }) => theme.fontSizes.sm};
   font-weight: ${({ theme }) => theme.fontWeights.semibold};
   color: ${({ $isFull, theme }) => $isFull ? theme.colors.error : theme.colors.primary};
@@ -163,7 +163,7 @@ export const ProgressBar = styled.div`
   overflow: hidden;
 `
 
-export const ProgressFill = styled.div`
+export const ProgressFill = styled.div<{ $isFull?: boolean; $pct?: number; }>`
   height: 100%;
   width: ${({ $pct }) => $pct}%;
   background: ${({ $isFull, theme }) => $isFull ? theme.colors.error : theme.colors.primary};
@@ -214,7 +214,7 @@ export const CopyBtn = styled.button`
   &:hover { background: ${({ theme }) => theme.colors.primaryHover}; }
 `
 
-export const JoinBtn = styled.button`
+export const JoinBtn = styled.button<{ $full?: string; $joined?: string; }>`
   width: 100%;
   padding: ${({ theme }) => theme.spacing[4]};
   border-radius: ${({ theme }) => theme.radii.lg};
@@ -242,7 +242,7 @@ export const OrganizerActions = styled.div`
   gap: ${({ theme }) => theme.spacing[3]};
 `
 
-export const ActionBtn = styled.button`
+export const ActionBtn = styled.button<{ $variant?: string; }>`
   flex: 1;
   padding: ${({ theme }) => theme.spacing[3]};
   border-radius: ${({ theme }) => theme.radii.md};

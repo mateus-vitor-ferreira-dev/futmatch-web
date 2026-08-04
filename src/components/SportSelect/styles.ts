@@ -5,7 +5,7 @@ export const Wrapper = styled.div`
   width: 100%;
 `
 
-export const Trigger = styled.button.attrs({ type: 'button' })`
+export const Trigger = styled.button.attrs({ type: 'button' })<{ $open?: boolean }>`
   width: 100%;
   min-height: 40px;
   padding: 6px 10px;
@@ -49,7 +49,7 @@ export const TagRemove = styled.span`
   &:hover { opacity: 1; }
 `
 
-export const ChevronIcon = styled.span`
+export const ChevronIcon = styled.span<{ $open?: boolean; }>`
   margin-left: auto;
   font-size: 11px;
   color: ${({ theme }) => theme.colors.textMuted};
@@ -81,7 +81,7 @@ export const Dropdown = styled.div`
   }
 `
 
-export const Option = styled.div`
+export const Option = styled.div<{ $selected?: boolean; }>`
   display: flex;
   align-items: center;
   gap: 10px;
@@ -95,7 +95,7 @@ export const Option = styled.div`
   &:hover { background: ${({ theme }) => theme.colors.primarySubtle}; }
 `
 
-export const Checkbox = styled.span`
+export const Checkbox = styled.span<{ $checked?: boolean; }>`
   width: 16px;
   height: 16px;
   border-radius: 4px;

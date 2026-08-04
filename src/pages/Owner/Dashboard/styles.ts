@@ -111,7 +111,7 @@ export const StatCard = styled.div`
   box-shadow: ${({ theme }) => theme.shadows.sm};
 `
 
-export const StatIcon = styled.div`
+export const StatIcon = styled.div<{ $color?: string; }>`
   width: 44px;
   height: 44px;
   border-radius: 10px;
@@ -140,7 +140,7 @@ export const StatLabel = styled.div`
   margin-top: 4px;
 `
 
-export const Badge = styled.span`
+export const Badge = styled.span<{ $status?: string; }>`
   padding: 4px 12px;
   border-radius: 99px;
   font-size: 12px;

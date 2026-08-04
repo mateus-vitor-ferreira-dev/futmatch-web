@@ -141,7 +141,7 @@ export const TabsRow = styled.div`
   &::-webkit-scrollbar { display: none; }
 `
 
-export const Tab = styled.button`
+export const Tab = styled.button<{ $active?: boolean; }>`
   display: flex;
   align-items: center;
   gap: 6px;
@@ -347,7 +347,7 @@ export const ProgressBar = styled.div`
   overflow: hidden;
 `
 
-export const ProgressFill = styled.div`
+export const ProgressFill = styled.div<{ $pct?: number; }>`
   height: 100%;
   width: ${({ $pct }) => $pct}%;
   background: ${({ theme }) => theme.colors.primary};

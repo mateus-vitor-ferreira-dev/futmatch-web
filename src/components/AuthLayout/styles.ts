@@ -22,7 +22,7 @@ export const LeftPanel = styled.div`
 `
 
 /* Camada de imagem — duas divs absolutas fazem o crossfade */
-export const BgImage = styled.div`
+export const BgImage = styled.div<{ $url?: string; $visible?: boolean; }>`
   position: absolute;
   inset: 0;
   background: ${({ $url }) =>
@@ -100,7 +100,7 @@ export const WheelTrack = styled.div`
   );
 `
 
-export const WheelItem = styled.div`
+export const WheelItem = styled.div<{ $active?: boolean; }>`
   position: absolute;
   left: 0; right: 0;
   /* posição vertical calculada via style inline */
@@ -120,7 +120,7 @@ export const WheelItem = styled.div`
   cursor: ${({ $active }) => $active ? 'default' : 'pointer'};
 `
 
-export const WheelIcon = styled.span`
+export const WheelIcon = styled.span<{ $active?: boolean; }>`
   font-size: ${({ $active }) => $active ? '28px' : '20px'};
   line-height: 1;
   transition: font-size 0.4s ease;
@@ -129,7 +129,7 @@ export const WheelIcon = styled.span`
 
 export const WheelText = styled.div`display: flex; flex-direction: column; gap: 2px;`
 
-export const WheelName = styled.span`
+export const WheelName = styled.span<{ $active?: boolean; }>`
   font-size: ${({ $active, theme }) =>
     $active ? theme.fontSizes.md : theme.fontSizes.sm};
   font-weight: ${({ $active, theme }) =>

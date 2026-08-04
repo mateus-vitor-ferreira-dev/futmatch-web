@@ -6,7 +6,7 @@ export const Wrapper = styled.div`
   align-items: center;
 `
 
-export const StyledInput = styled.input`
+export const StyledInput = styled.input<{ $error?: boolean; }>`
   width: 100%;
   box-sizing: border-box;
   height: 40px;

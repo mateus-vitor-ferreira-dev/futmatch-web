@@ -9,7 +9,7 @@ export const Tabs = styled.div`
   margin-bottom: 24px;
 `
 
-export const Tab = styled.button`
+export const Tab = styled.button<{ $active?: boolean; }>`
   flex: 1;
   height: 36px;
   border: none;
@@ -115,7 +115,7 @@ export const Label = styled.label`
   color: ${({ theme }) => theme.colors.textSecondary};
 `
 
-export const Input = styled.input`
+export const Input = styled.input<{ $error?: boolean; }>`
   height: 40px;
   padding: 0 12px;
   border: 1.5px solid ${({ $error, theme }) => $error ? theme.colors.error : theme.colors.border};
@@ -145,7 +145,7 @@ export const ModalidadeGrid = styled.div`
   margin-top: 2px;
 `
 
-export const ModalidadeOption = styled.button.attrs({ type: 'button' })`
+export const ModalidadeOption = styled.button.attrs({ type: 'button' })<{ $active?: boolean }>`
   display: flex;
   align-items: center;
   gap: 5px;

@@ -1,4 +1,5 @@
 import styled from 'styled-components'
+import type { TournamentStatus } from '../../types/api'
 
 export const Container = styled.div`
   max-width: 1100px;
@@ -50,7 +51,7 @@ export const FiltersBar = styled.div`
   flex-wrap: wrap;
 `
 
-export const FilterChip = styled.button`
+export const FilterChip = styled.button<{ $active?: boolean; }>`
   padding: 8px 16px;
   min-width: 90px;
   text-align: center;
@@ -109,14 +110,14 @@ export const TournamentName = styled.h3`
   margin: 0;
 `
 
-export const StatusBadge = styled.span`
+export const StatusBadge = styled.span<{ $status?: TournamentStatus }>`
   font-size: ${({ theme }) => theme.fontSizes.xs};
   font-weight: ${({ theme }) => theme.fontWeights.semibold};
   padding: 3px 10px;
   border-radius: ${({ theme }) => theme.radii.full};
   white-space: nowrap;
   background: ${({ $status, theme }) => {
-    const map = {
+    const map: Record<TournamentStatus, string> = {
       DRAFT:               theme.colors.borderLight,
       OPEN:                theme.colors.infoLight,
       REGISTRATION_CLOSED: theme.colors.warningLight,
@@ -124,10 +125,10 @@ export const StatusBadge = styled.span`
       FINISHED:            theme.colors.successLight,
       CANCELLED:           theme.colors.errorLight,
     }
-    return map[$status] ?? theme.colors.borderLight
+    return ($status && map[$status]) || theme.colors.borderLight
   }};
   color: ${({ $status, theme }) => {
-    const map = {
+    const map: Record<TournamentStatus, string> = {
       DRAFT:               theme.colors.textMuted,
       OPEN:                theme.colors.info,
       REGISTRATION_CLOSED: theme.colors.warningText,
@@ -135,7 +136,7 @@ export const StatusBadge = styled.span`
       FINISHED:            theme.colors.success,
       CANCELLED:           theme.colors.error,
     }
-    return map[$status] ?? theme.colors.textMuted
+    return ($status && map[$status]) || theme.colors.textMuted
   }};
 `
 
@@ -259,7 +260,7 @@ export const Label = styled.label`
   color: ${({ theme }) => theme.colors.textPrimary};
 `
 
-export const Input = styled.input`
+export const Input = styled.input<{ $error?: boolean; }>`
   padding: 10px 12px;
   border: 1px solid ${({ $error, theme }) => $error ? theme.colors.error : theme.colors.border};
   border-radius: ${({ theme }) => theme.radii.md};
@@ -272,7 +273,7 @@ export const Input = styled.input`
   &::placeholder { color: ${({ theme }) => theme.colors.textMuted}; }
 `
 
-export const Select = styled.select`
+export const Select = styled.select<{ $error?: boolean; }>`
   padding: 10px 12px;
   border: 1px solid ${({ $error, theme }) => $error ? theme.colors.error : theme.colors.border};
   border-radius: ${({ theme }) => theme.radii.md};

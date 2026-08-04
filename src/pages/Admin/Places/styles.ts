@@ -17,7 +17,7 @@ export const Table = styled.table`
   box-shadow: ${({ theme }) => theme.shadows.sm};
 `
 
-export const Th = styled.th`
+export const Th = styled.th<{ center?: boolean; }>`
   text-align: ${({ center }) => center ? 'center' : 'left'};
   padding: 12px 16px;
   font-size: ${({ theme }) => theme.fontSizes.xs};
@@ -34,7 +34,7 @@ export const Tr = styled.tr`
   &:hover { background: ${({ theme }) => theme.colors.primarySubtle}; }
 `
 
-export const Td = styled.td`
+export const Td = styled.td<{ center?: boolean; }>`
   padding: 14px 16px;
   font-size: ${({ theme }) => theme.fontSizes.sm};
   color: ${({ theme }) => theme.colors.textPrimary};
@@ -53,7 +53,7 @@ export const NoOwner = styled.span`
   font-weight: ${({ theme }) => theme.fontWeights.medium};
 `
 
-export const StatusBadge = styled.span`
+export const StatusBadge = styled.span<{ bg?: string; }>`
   display: inline-flex;
   align-items: center;
   padding: 4px 12px;
@@ -70,13 +70,15 @@ export const ActionGroup = styled.div`
   gap: 8px;
 `
 
+type VariantKey = keyof typeof VARIANT
+
 const VARIANT = {
   secondary: { bg: '#f3f4f6', border: '#e5e7eb', color: '#374151' },
   success:   { bg: '#dcfce7', border: '#22c55e', color: '#15803d' },
   danger:    { bg: '#fee2e2', border: '#ef4444', color: '#b91c1c' },
-}
+} as const
 
-export const ActionBtn = styled.button`
+export const ActionBtn = styled.button<{ variant?: VariantKey }>`
   padding: 6px 12px;
   border-radius: ${({ theme }) => theme.radii.sm};
   font-size: ${({ theme }) => theme.fontSizes.xs};

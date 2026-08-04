@@ -3,7 +3,13 @@ import styled from 'styled-components'
 export const Page = styled.div`
   display: flex;
   min-height: 100vh;
-  background: ${({ theme }) => theme.colors.bg};
+  /*
+   * Era theme.colors.bg — token que não existe no tema (há bgApp, bgPage,
+   * bgCard, bgInput, bgSidebar e bgOverlay, nunca "bg"). O valor resolvia para
+   * undefined, a declaração era descartada e a página ficava sem cor de fundo,
+   * herdando o branco do body — quebrando o modo escuro nesta rota.
+   */
+  background: ${({ theme }) => theme.colors.bgApp};
 `
 
 /* ── Coluna esquerda (hero) ─────────────────────────────────────────────────── */
@@ -123,7 +129,7 @@ export const Tabs = styled.div`
   margin-bottom: 24px;
 `
 
-export const Tab = styled.button`
+export const Tab = styled.button<{ $active?: boolean; }>`
   flex: 1;
   height: 36px;
   border: none;
@@ -162,7 +168,7 @@ export const Label = styled.label`
   color: ${({ theme }) => theme.colors.textSecondary};
 `
 
-export const Input = styled.input`
+export const Input = styled.input<{ $error?: boolean; }>`
   height: 42px;
   padding: 0 14px;
   border: 1.5px solid ${({ $error, theme }) => $error ? theme.colors.error : theme.colors.border};

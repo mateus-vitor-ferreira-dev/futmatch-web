@@ -1,5 +1,8 @@
 import styled from 'styled-components'
 
+/** Tons semânticos aceitos pelo Badge desta página. */
+export type BadgeTone = 'info' | 'warning' | 'success' | 'error' | 'default'
+
 export const Container = styled.div`
   max-width: 720px;
 `
@@ -55,31 +58,31 @@ export const PlaceName = styled.p`
   margin: 0;
 `
 
-export const StatusBadge = styled.span`
+export const StatusBadge = styled.span<{ $color?: BadgeTone }>`
   flex-shrink: 0;
   font-size: ${({ theme }) => theme.fontSizes.xs};
   font-weight: ${({ theme }) => theme.fontWeights.semibold};
   padding: 4px 12px;
   border-radius: ${({ theme }) => theme.radii.full};
   background: ${({ $color, theme }) => {
-    const map = {
+    const map: Record<BadgeTone, string> = {
       info:    theme.colors.infoLight,
       warning: theme.colors.warningLight,
       success: theme.colors.successLight,
       error:   theme.colors.errorLight,
       default: theme.colors.borderLight,
     }
-    return map[$color] ?? theme.colors.borderLight
+    return ($color && map[$color]) || theme.colors.borderLight
   }};
   color: ${({ $color, theme }) => {
-    const map = {
+    const map: Record<BadgeTone, string> = {
       info:    theme.colors.info,
       warning: theme.colors.warningText,
       success: theme.colors.success,
       error:   theme.colors.error,
       default: theme.colors.textMuted,
     }
-    return map[$color] ?? theme.colors.textMuted
+    return ($color && map[$color]) || theme.colors.textMuted
   }};
 `
 

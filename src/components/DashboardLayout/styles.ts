@@ -49,7 +49,7 @@ export const LogoName = styled.span`
   line-height: 1.2;
 `
 
-export const LogoTagline = styled.span`
+export const LogoTagline = styled.span<{ accent?: string; }>`
   font-size: ${({ theme }) => theme.fontSizes.xs};
   font-weight: ${({ theme }) => theme.fontWeights.semibold};
   color: ${({ accent }) => accent};
@@ -210,7 +210,7 @@ export const UserName = styled.span`
   text-overflow: ellipsis;
 `
 
-export const UserRole = styled.span`
+export const UserRole = styled.span<{ accent?: string; }>`
   font-size: ${({ theme }) => theme.fontSizes.xs};
   font-weight: ${({ theme }) => theme.fontWeights.semibold};
   color: ${({ accent }) => accent};

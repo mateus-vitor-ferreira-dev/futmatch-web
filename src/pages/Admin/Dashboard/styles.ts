@@ -27,7 +27,7 @@ export const KpiGrid = styled.div`
   margin-bottom: ${({ theme }) => theme.spacing[8]};
 `
 
-export const KpiCard = styled.div`
+export const KpiCard = styled.div<{ $borderColor?: string; }>`
   background: ${({ theme }) => theme.colors.bgCard};
   border: 1px solid ${({ theme }) => theme.colors.borderLight};
   border-left: 4px solid ${({ $borderColor }) => $borderColor};
@@ -88,7 +88,7 @@ export const Table = styled.table`
   }
 `
 
-export const Badge = styled.span`
+export const Badge = styled.span<{ $status?: string; }>`
   padding: 4px 12px;
   border-radius: ${({ theme }) => theme.radii.full};
   font-size: ${({ theme }) => theme.fontSizes.xs};

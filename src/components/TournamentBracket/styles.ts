@@ -30,7 +30,7 @@ export const RoundLabel = styled.div`
   text-align: center;
 `
 
-export const MatchesColumn = styled.div`
+export const MatchesColumn = styled.div<{ $gap?: string; }>`
   display: flex;
   flex-direction: column;
   gap: ${({ $gap }) => $gap || '16px'};
@@ -46,7 +46,7 @@ export const MatchCard = styled.div`
   box-shadow: ${({ theme }) => theme.shadows.sm};
 `
 
-export const TeamRow = styled.div`
+export const TeamRow = styled.div<{ $winner?: string; }>`
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -61,7 +61,7 @@ export const TeamRow = styled.div`
   }
 `
 
-export const TeamName = styled.span`
+export const TeamName = styled.span<{ $empty?: string; $winner?: string; }>`
   font-size: ${({ theme }) => theme.fontSizes.sm};
   font-weight: ${({ $winner, theme }) =>
     $winner ? theme.fontWeights.semibold : theme.fontWeights.regular};

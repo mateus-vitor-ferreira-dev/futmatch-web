@@ -62,7 +62,7 @@ export const ChipsContainer = styled.div`
   }
 `
 
-export const Chip = styled.button`
+export const Chip = styled.button<{ $active?: boolean; }>`
   background: ${({ theme, $active }) =>
     $active ? theme.colors.primary : theme.colors.bgCard};
   color: ${({ theme, $active }) =>
@@ -100,7 +100,7 @@ export const ViewToggle = styled.div`
   height: fit-content;
 `
 
-export const ToggleBtn = styled.button`
+export const ToggleBtn = styled.button<{ $active?: boolean; }>`
   display: flex;
   align-items: center;
   gap: 6px;
@@ -205,7 +205,7 @@ export const ProgressBarContainer = styled.div`
   margin: ${({ theme }) => theme.spacing[4]} 0;
 `
 
-export const ProgressBar = styled.div`
+export const ProgressBar = styled.div<{ $isFull?: boolean; $progress?: string; }>`
   width: 100%;
   height: 8px;
   background: ${({ theme }) => theme.colors.borderLight};
@@ -238,7 +238,7 @@ export const PriceInfo = styled.div`
   margin-top: auto;
 `
 
-export const FiltersBtn = styled.button`
+export const FiltersBtn = styled.button<{ $active?: boolean; }>`
   display: flex;
   align-items: center;
   gap: 6px;
@@ -323,7 +323,7 @@ export const FilterSelect = styled.select`
   }
 `
 
-export const FilterToggle = styled.button`
+export const FilterToggle = styled.button<{ $active?: boolean; }>`
   display: flex;
   align-items: center;
   gap: ${({ theme }) => theme.spacing[2]};
@@ -359,7 +359,7 @@ export const FilterToggle = styled.button`
   }
 `
 
-export const PriceSliderWrapper = styled.div`
+export const PriceSliderWrapper = styled.div<{ $pct?: number; }>`
   display: flex;
   flex-direction: column;
   gap: 6px;
@@ -422,7 +422,7 @@ export const ClearBtn = styled.button`
   &:hover { text-decoration: underline; }
 `
 
-export const ActionButton = styled.button`
+export const ActionButton = styled.button<{ $isJoined?: boolean; }>`
   width: 100%;
   padding: ${({ theme }) => theme.spacing[3]};
   border-radius: ${({ theme }) => theme.radii.md};
@@ -464,7 +464,7 @@ export const SportBtnsRow = styled.div`
   gap: ${({ theme }) => theme.spacing[3]};
 `
 
-export const SportAllBtn = styled.button`
+export const SportAllBtn = styled.button<{ $active?: boolean; }>`
   display: flex;
   align-items: center;
   gap: 6px;
@@ -485,7 +485,7 @@ export const SportAllBtn = styled.button`
   }
 `
 
-export const SportSelectWrapper = styled.div`
+export const SportSelectWrapper = styled.div<{ $active?: boolean; }>`
   position: relative;
   display: flex;
   align-items: center;

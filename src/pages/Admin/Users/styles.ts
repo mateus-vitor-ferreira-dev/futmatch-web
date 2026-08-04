@@ -44,7 +44,7 @@ export const RoleFilters = styled.div`
   gap: 6px;
 `
 
-export const RoleBtn = styled.button`
+export const RoleBtn = styled.button<{ active?: boolean; }>`
   padding: 6px 14px;
   border-radius: ${({ theme }) => theme.radii.sm};
   font-size: ${({ theme }) => theme.fontSizes.xs};
@@ -73,7 +73,7 @@ export const Table = styled.table`
 
 export const Thead = styled.thead``
 
-export const Th = styled.th`
+export const Th = styled.th<{ center?: boolean; }>`
   text-align: ${({ center }) => center ? 'center' : 'left'};
   padding: 12px 16px;
   font-size: ${({ theme }) => theme.fontSizes.xs};
@@ -95,7 +95,7 @@ export const Tr = styled.tr`
   }
 `
 
-export const Td = styled.td`
+export const Td = styled.td<{ center?: boolean; }>`
   padding: 14px 16px;
   font-size: ${({ theme }) => theme.fontSizes.sm};
   color: ${({ theme }) => theme.colors.textPrimary};
@@ -241,7 +241,7 @@ export const ModalCancelBtn = styled.button`
   &:hover { background: ${({ theme }) => theme.colors.bgApp}; }
 `
 
-export const ModalConfirmBtn = styled.button`
+export const ModalConfirmBtn = styled.button<{ $danger?: string; }>`
   padding: 9px 18px;
   border-radius: ${({ theme }) => theme.radii.md};
   border: none;

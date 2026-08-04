@@ -40,7 +40,7 @@ export const Tabs = styled.div`
   margin-bottom: ${({ theme }) => theme.spacing[6]};
 `
 
-export const Tab = styled.button`
+export const Tab = styled.button<{ $active?: boolean; }>`
   background: none;
   border: none;
   padding: ${({ theme }) => theme.spacing[3]} 0;
@@ -220,13 +220,13 @@ export const TeamGrid = styled.div`
   gap: ${({ theme }) => theme.spacing[4]};
 `
 
-export const TeamCard = styled.div`
+export const TeamCard = styled.div<{ $color?: string; }>`
   border: 2px solid ${({ $color }) => $color};
   border-radius: ${({ theme }) => theme.radii.lg};
   overflow: hidden;
 `
 
-export const TeamHeader = styled.div`
+export const TeamHeader = styled.div<{ $color?: string; }>`
   background: ${({ $color }) => $color};
   color: white;
   padding: ${({ theme }) => theme.spacing[2]} ${({ theme }) => theme.spacing[3]};

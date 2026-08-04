@@ -28,7 +28,7 @@ export const StepIndicator = styled.div`
   margin-bottom: 28px;
 `
 
-export const Step = styled.div`
+export const Step = styled.div<{ $active?: boolean; $done?: string; }>`
   display: flex;
   align-items: center;
   gap: 6px;
@@ -40,7 +40,7 @@ export const Step = styled.div`
     theme.colors.textMuted};
 `
 
-export const StepDot = styled.div`
+export const StepDot = styled.div<{ $active?: boolean; $done?: string; }>`
   width: 24px;
   height: 24px;
   border-radius: 50%;
@@ -57,7 +57,7 @@ export const StepDot = styled.div`
     $done || $active ? '#fff' : theme.colors.textMuted};
 `
 
-export const StepLine = styled.div`
+export const StepLine = styled.div<{ $done?: string; }>`
   flex: 1;
   height: 2px;
   background: ${({ $done, theme }) =>
@@ -90,7 +90,7 @@ export const CourtsGrid = styled.div`
   padding-right: 4px;
 `
 
-export const CourtCard = styled.div`
+export const CourtCard = styled.div<{ $selected?: boolean; }>`
   border: 2px solid ${({ $selected, theme }) =>
     $selected ? theme.colors.primary : theme.colors.border};
   border-radius: ${({ theme }) => theme.radii.md};
@@ -134,7 +134,7 @@ export const Form = styled.form`
   gap: 20px;
 `
 
-export const Row = styled.div`
+export const Row = styled.div<{ $cols?: number; }>`
   display: grid;
   grid-template-columns: ${({ $cols }) => $cols === 2 ? '1fr 1fr' : '1fr'};
   gap: 16px;
@@ -152,7 +152,7 @@ export const Label = styled.label`
   color: ${({ theme }) => theme.colors.textPrimary};
 `
 
-export const Input = styled.input`
+export const Input = styled.input<{ $error?: boolean; }>`
   padding: 10px 12px;
   border: 1px solid ${({ $error, theme }) => $error ? theme.colors.error : theme.colors.border};
   border-radius: ${({ theme }) => theme.radii.md};

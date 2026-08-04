@@ -116,7 +116,7 @@ export const ProgressInfo = styled.div`
   }
 `
 
-export const ProgressBarWrap = styled.div`
+export const ProgressBarWrap = styled.div<{ $pct?: number; }>`
   height: 6px;
   background: ${({ theme }) => theme.colors.border};
   border-radius: ${({ theme }) => theme.radii.full};

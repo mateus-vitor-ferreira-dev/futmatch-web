@@ -7,7 +7,7 @@ export const Container = styled.div`
   position: relative;
 `
 
-export const InputWrapper = styled.div`
+export const InputWrapper = styled.div<{ $error?: boolean; }>`
   display: flex;
   align-items: center;
   width: 100%;
@@ -54,7 +54,7 @@ export const DialCode = styled.span`
   font-weight: ${({ theme }) => theme.fontWeights.medium};
 `
 
-export const Chevron = styled.span`
+export const Chevron = styled.span<{ $open?: boolean; }>`
   font-size: 9px;
   color: ${({ theme }) => theme.colors.textMuted};
   transition: transform 0.15s;
@@ -124,7 +124,7 @@ export const List = styled.ul`
   }
 `
 
-export const ListItem = styled.li`
+export const ListItem = styled.li<{ $selected?: boolean; }>`
   display: flex;
   align-items: center;
   gap: 8px;

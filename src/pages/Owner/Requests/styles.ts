@@ -7,29 +7,6 @@ export const StatsRow = styled.div`
   margin-bottom: 24px;
 `
 
-export const Tabs = styled.div`
-  display: flex;
-  gap: 8px;
-  margin-bottom: 20px;
-`
-
-export const Tab = styled.button`
-  padding: 8px 18px;
-  border-radius: ${({ theme }) => theme.radii.md};
-  font-size: ${({ theme }) => theme.fontSizes.sm};
-  font-weight: ${({ theme }) => theme.fontWeights.medium};
-  cursor: pointer;
-  border: 1px solid ${({ theme, active }) => active ? theme.colors.primary : theme.colors.border};
-  background: ${({ theme, active }) => active ? theme.colors.primary : theme.colors.bgCard};
-  color: ${({ theme, active }) => active ? theme.colors.textOnPrimary : theme.colors.textSecondary};
-  transition: all 0.15s;
-
-  &:hover {
-    border-color: ${({ theme }) => theme.colors.primary};
-    color: ${({ theme, active }) => active ? theme.colors.textOnPrimary : theme.colors.primary};
-  }
-`
-
 export const RequestList = styled.div`
   display: flex;
   flex-direction: column;
@@ -48,9 +25,7 @@ export const RequestCard = styled.div`
 
 export const RequestAccent = styled.div`
   position: absolute;
-  left: 0;
-  top: 0;
-  bottom: 0;
+  left: 0; top: 0; bottom: 0;
   width: 4px;
   background: ${({ color }) => color};
 `
@@ -74,16 +49,12 @@ export const RequestMeta = styled.p`
   font-size: ${({ theme }) => theme.fontSizes.xs};
   color: ${({ theme }) => theme.colors.textMuted};
   margin: 0;
-
-  strong {
-    color: ${({ theme }) => theme.colors.textSecondary};
-  }
 `
 
 export const RequestDesc = styled.p`
   font-size: ${({ theme }) => theme.fontSizes.sm};
   color: ${({ theme }) => theme.colors.textSecondary};
-  margin: 0 0 12px;
+  margin: 0 0 8px;
   line-height: 1.5;
 `
 
@@ -92,7 +63,7 @@ export const RequestFooter = styled.div`
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  margin-top: 12px;
+  margin-top: 10px;
 `
 
 export const RequestSentAt = styled.span`
@@ -100,7 +71,7 @@ export const RequestSentAt = styled.span`
   color: ${({ theme }) => theme.colors.textMuted};
 `
 
-export const StatusBadge = styled.span`
+export const StatusBadge = styled.span<{ bg?: string; }>`
   display: inline-flex;
   align-items: center;
   padding: 4px 12px;
@@ -113,54 +84,12 @@ export const StatusBadge = styled.span`
   flex-shrink: 0;
 `
 
-export const ActionGroup = styled.div`
-  display: flex;
-  gap: 8px;
-`
-
-export const ApproveBtn = styled.button`
-  padding: 8px 18px;
-  border-radius: ${({ theme }) => theme.radii.sm};
-  font-size: ${({ theme }) => theme.fontSizes.sm};
-  font-weight: ${({ theme }) => theme.fontWeights.semibold};
-  cursor: pointer;
-  border: 1px solid ${({ theme }) => theme.colors.success};
-  background: ${({ theme }) => theme.colors.successLight};
-  color: #15803d;
-  transition: all 0.15s;
-
-  &:hover:not(:disabled) {
-    background: ${({ theme }) => theme.colors.success};
-    color: #fff;
-  }
-
-  &:disabled { opacity: 0.5; cursor: not-allowed; }
-`
-
-export const RejectBtn = styled.button`
-  padding: 8px 18px;
-  border-radius: ${({ theme }) => theme.radii.sm};
-  font-size: ${({ theme }) => theme.fontSizes.sm};
-  font-weight: ${({ theme }) => theme.fontWeights.semibold};
-  cursor: pointer;
-  border: 1px solid ${({ theme }) => theme.colors.error};
-  background: ${({ theme }) => theme.colors.errorLight};
-  color: #b91c1c;
-  transition: all 0.15s;
-
-  &:hover:not(:disabled) {
-    background: ${({ theme }) => theme.colors.error};
-    color: #fff;
-  }
-
-  &:disabled { opacity: 0.5; cursor: not-allowed; }
-`
-
 export const EmptyState = styled.p`
   text-align: center;
   color: ${({ theme }) => theme.colors.textMuted};
   padding: 48px 0;
   font-size: ${({ theme }) => theme.fontSizes.md};
+  line-height: 1.7;
 `
 
 export const ErrorMsg = styled.p`
@@ -172,9 +101,23 @@ export const ErrorMsg = styled.p`
   margin-bottom: 16px;
 `
 
-// ── Reject Modal ──────────────────────────────────────────────────────────────
+export const NewBtn = styled.button`
+  padding: 9px 20px;
+  border-radius: ${({ theme }) => theme.radii.md};
+  font-size: ${({ theme }) => theme.fontSizes.sm};
+  font-weight: ${({ theme }) => theme.fontWeights.semibold};
+  cursor: pointer;
+  border: none;
+  background: ${({ theme }) => theme.colors.primary};
+  color: ${({ theme }) => theme.colors.textOnPrimary};
+  transition: background 0.15s;
 
-export const RejectModal = styled.div`
+  &:hover { background: ${({ theme }) => theme.colors.primaryHover}; }
+`
+
+// ── Modal ─────────────────────────────────────────────────────────────────────
+
+export const Modal = styled.div`
   position: fixed;
   inset: 0;
   z-index: 50;
@@ -195,43 +138,81 @@ export const ModalBox = styled.div`
   border-radius: ${({ theme }) => theme.radii.xl};
   padding: 28px 32px;
   width: 100%;
-  max-width: 440px;
+  max-width: 480px;
   box-shadow: ${({ theme }) => theme.shadows.lg};
+`
 
-  p {
-    font-size: ${({ theme }) => theme.fontSizes.sm};
-    color: ${({ theme }) => theme.colors.textSecondary};
-    margin: 0 0 12px;
-  }
+export const ModalHeader = styled.div`
+  margin-bottom: 20px;
 `
 
 export const ModalTitle = styled.h3`
   font-size: ${({ theme }) => theme.fontSizes.lg};
   font-weight: ${({ theme }) => theme.fontWeights.semibold};
   color: ${({ theme }) => theme.colors.textPrimary};
-  margin: 0 0 12px;
+  margin: 0;
 `
 
-export const ReasonInput = styled.textarea`
-  width: 100%;
+export const Form = styled.form`
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+`
+
+export const FormGroup = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+`
+
+export const Label = styled.label`
+  font-size: ${({ theme }) => theme.fontSizes.xs};
+  font-weight: ${({ theme }) => theme.fontWeights.semibold};
+  color: ${({ theme }) => theme.colors.textSecondary};
+`
+
+export const Input = styled.input`
   border: 1px solid ${({ theme }) => theme.colors.border};
-  border-radius: ${({ theme }) => theme.radii.md};
-  padding: 10px 12px;
+  border-radius: ${({ theme }) => theme.radii.sm};
+  padding: 9px 12px;
   font-size: ${({ theme }) => theme.fontSizes.sm};
   color: ${({ theme }) => theme.colors.textPrimary};
-  resize: vertical;
   outline: none;
-  font-family: inherit;
+  width: 100%;
   box-sizing: border-box;
+  background: ${({ theme }) => theme.colors.bgApp};
 
   &:focus { border-color: ${({ theme }) => theme.colors.primary}; }
+  &::placeholder { color: ${({ theme }) => theme.colors.textMuted}; }
+`
+
+export const Textarea = styled.textarea`
+  border: 1px solid ${({ theme }) => theme.colors.border};
+  border-radius: ${({ theme }) => theme.radii.sm};
+  padding: 9px 12px;
+  font-size: ${({ theme }) => theme.fontSizes.sm};
+  color: ${({ theme }) => theme.colors.textPrimary};
+  outline: none;
+  width: 100%;
+  box-sizing: border-box;
+  resize: vertical;
+  font-family: inherit;
+  background: ${({ theme }) => theme.colors.bgApp};
+
+  &:focus { border-color: ${({ theme }) => theme.colors.primary}; }
+  &::placeholder { color: ${({ theme }) => theme.colors.textMuted}; }
+`
+
+export const FieldError = styled.span`
+  font-size: ${({ theme }) => theme.fontSizes.xs};
+  color: ${({ theme }) => theme.colors.error};
 `
 
 export const ModalActions = styled.div`
   display: flex;
   justify-content: flex-end;
   gap: 10px;
-  margin-top: 16px;
+  margin-top: 4px;
 `
 
 export const CancelBtn = styled.button`
@@ -248,17 +229,17 @@ export const CancelBtn = styled.button`
   &:hover { background: ${({ theme }) => theme.colors.borderLight}; }
 `
 
-export const ConfirmBtn = styled.button`
-  padding: 9px 18px;
+export const SubmitBtn = styled.button`
+  padding: 9px 20px;
   border-radius: ${({ theme }) => theme.radii.md};
   font-size: ${({ theme }) => theme.fontSizes.sm};
   font-weight: ${({ theme }) => theme.fontWeights.semibold};
   cursor: pointer;
   border: none;
-  background: ${({ theme }) => theme.colors.error};
-  color: #fff;
-  transition: opacity 0.15s;
+  background: ${({ theme }) => theme.colors.primary};
+  color: ${({ theme }) => theme.colors.textOnPrimary};
+  transition: background 0.15s;
 
-  &:hover:not(:disabled) { opacity: 0.88; }
+  &:hover:not(:disabled) { background: ${({ theme }) => theme.colors.primaryHover}; }
   &:disabled { opacity: 0.5; cursor: not-allowed; }
 `

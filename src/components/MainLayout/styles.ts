@@ -10,7 +10,7 @@ export const AppShell = styled.div`
 
 // ── Overlay (mobile only) ─────────────────────────────────────────────────────
 
-export const Overlay = styled.div`
+export const Overlay = styled.div<{ $open?: boolean; }>`
   display: none;
 
   @media (max-width: 768px) {
@@ -24,7 +24,7 @@ export const Overlay = styled.div`
 
 // ── Sidebar ──────────────────────────────────────────────────────────────────
 
-export const Sidebar = styled.aside`
+export const Sidebar = styled.aside<{ $open?: boolean; }>`
   width: ${({ theme }) => theme.sidebar.width};
   min-width: ${({ theme }) => theme.sidebar.width};
   height: 100vh;

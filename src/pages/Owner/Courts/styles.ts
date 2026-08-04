@@ -1,60 +1,76 @@
 import styled from 'styled-components'
 
-export const StatsRow = styled.div`
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 16px;
-  margin-bottom: 24px;
+export const BackBtn = styled.button`
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 14px;
+  border-radius: ${({ theme }) => theme.radii.sm};
+  font-size: ${({ theme }) => theme.fontSizes.sm};
+  font-weight: ${({ theme }) => theme.fontWeights.medium};
+  cursor: pointer;
+  border: 1px solid ${({ theme }) => theme.colors.border};
+  background: ${({ theme }) => theme.colors.bgApp};
+  color: ${({ theme }) => theme.colors.textSecondary};
+  margin-bottom: 20px;
+  transition: background 0.15s;
+
+  &:hover { background: ${({ theme }) => theme.colors.borderLight}; }
 `
 
-export const PlaceGrid = styled.div`
+export const CourtsGrid = styled.div`
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
-  gap: 20px;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 18px;
+  margin-top: 8px;
 `
 
-export const PlaceCard = styled.div`
+export const CourtCard = styled.div`
   background: ${({ theme }) => theme.colors.bgCard};
   border: 1px solid ${({ theme }) => theme.colors.border};
   border-radius: ${({ theme }) => theme.radii.lg};
-  padding: 20px;
+  padding: 18px 20px;
   box-shadow: ${({ theme }) => theme.shadows.sm};
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 10px;
 `
 
-export const PlaceCardHeader = styled.div`
+export const CourtCardHeader = styled.div`
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  gap: 12px;
+  gap: 10px;
 `
 
-export const PlaceInfo = styled.div`
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
+export const CourtIconBox = styled.div`
+  font-size: 28px;
+  line-height: 1;
+  flex-shrink: 0;
+`
+
+export const CourtInfo = styled.div`
+  flex: 1;
   min-width: 0;
 `
 
-export const PlaceName = styled.h3`
+export const CourtName = styled.h3`
   font-size: ${({ theme }) => theme.fontSizes.md};
   font-weight: ${({ theme }) => theme.fontWeights.semibold};
   color: ${({ theme }) => theme.colors.textPrimary};
-  margin: 0;
+  margin: 0 0 4px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 `
 
-export const PlaceMeta = styled.p`
+export const CourtMeta = styled.p`
   font-size: ${({ theme }) => theme.fontSizes.xs};
   color: ${({ theme }) => theme.colors.textMuted};
   margin: 0;
 `
 
-export const StatusBadge = styled.span`
+export const StatusBadge = styled.span<{ bg?: string; }>`
   display: inline-flex;
   align-items: center;
   padding: 4px 12px;
@@ -67,34 +83,29 @@ export const StatusBadge = styled.span`
   flex-shrink: 0;
 `
 
-export const PlaceDesc = styled.p`
-  font-size: ${({ theme }) => theme.fontSizes.sm};
-  color: ${({ theme }) => theme.colors.textSecondary};
-  margin: 0;
-  line-height: 1.5;
-`
-
-export const PlaceActions = styled.div`
+export const CourtActions = styled.div`
   display: flex;
   gap: 8px;
-  margin-top: auto;
+  margin-top: 2px;
 `
+
+type VariantKey = keyof typeof VARIANT_STYLES
 
 const VARIANT_STYLES = {
   secondary: { bg: '#f3f4f6', border: '#e5e7eb', color: '#374151', hoverBg: '#e5e7eb' },
   success:   { bg: '#dcfce7', border: '#22c55e', color: '#15803d', hoverBg: '#22c55e' },
   danger:    { bg: '#fee2e2', border: '#ef4444', color: '#b91c1c', hoverBg: '#ef4444' },
-}
+  primary:   { bg: '#3baa34', border: '#3baa34', color: '#fff',    hoverBg: '#2d8a28' },
+} as const
 
-export const ActionBtn = styled.button`
+export const ActionBtn = styled.button<{ variant?: VariantKey }>`
   flex: 1;
-  padding: 9px 12px;
+  padding: 8px 10px;
   border-radius: ${({ theme }) => theme.radii.sm};
   font-size: ${({ theme }) => theme.fontSizes.xs};
   font-weight: ${({ theme }) => theme.fontWeights.semibold};
   cursor: pointer;
   text-align: center;
-  text-decoration: none;
   border: 1px solid ${({ variant = 'secondary' }) => VARIANT_STYLES[variant].border};
   background: ${({ variant = 'secondary' }) => VARIANT_STYLES[variant].bg};
   color: ${({ variant = 'secondary' }) => VARIANT_STYLES[variant].color};
@@ -123,6 +134,20 @@ export const ErrorMsg = styled.p`
   padding: 12px 16px;
   font-size: ${({ theme }) => theme.fontSizes.sm};
   margin-bottom: 16px;
+`
+
+export const NewBtn = styled.button`
+  padding: 9px 20px;
+  border-radius: ${({ theme }) => theme.radii.md};
+  font-size: ${({ theme }) => theme.fontSizes.sm};
+  font-weight: ${({ theme }) => theme.fontWeights.semibold};
+  cursor: pointer;
+  border: none;
+  background: ${({ theme }) => theme.colors.primary};
+  color: ${({ theme }) => theme.colors.textOnPrimary};
+  transition: background 0.15s;
+
+  &:hover { background: ${({ theme }) => theme.colors.primaryHover}; }
 `
 
 // ── Modal ─────────────────────────────────────────────────────────────────────
@@ -194,6 +219,21 @@ export const Input = styled.input`
 
   &:focus { border-color: ${({ theme }) => theme.colors.primary}; }
   &::placeholder { color: ${({ theme }) => theme.colors.textMuted}; }
+`
+
+export const Select = styled.select`
+  border: 1px solid ${({ theme }) => theme.colors.border};
+  border-radius: ${({ theme }) => theme.radii.sm};
+  padding: 9px 12px;
+  font-size: ${({ theme }) => theme.fontSizes.sm};
+  color: ${({ theme }) => theme.colors.textPrimary};
+  outline: none;
+  width: 100%;
+  box-sizing: border-box;
+  background: ${({ theme }) => theme.colors.bgApp};
+  cursor: pointer;
+
+  &:focus { border-color: ${({ theme }) => theme.colors.primary}; }
 `
 
 export const FieldError = styled.span`
