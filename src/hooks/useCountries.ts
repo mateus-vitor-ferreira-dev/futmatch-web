@@ -1,23 +1,36 @@
 import { useEffect, useState } from 'react'
 
+export interface CountryOption {
+  name: string
+  flag: string
+  dialCode: string
+}
+
+/** Formato relevante da resposta do restcountries.com. */
+interface RestCountry {
+  name?: { common?: string }
+  flags?: { emoji?: string }
+  idd?: { root?: string; suffixes?: string[] }
+}
+
 // Módulo-level cache: evita re-fetch entre remontagens do componente
-let _cache = null
+let _cache: CountryOption[] | null = null
 
 /**
  * Busca países com bandeira emoji e código discagem (DDI).
  * Brasil aparece primeiro na lista.
  */
-export function useCountries() {
-  const [countries, setCountries] = useState(_cache ?? [])
+export function useCountries(): { countries: CountryOption[]; loading: boolean } {
+  const [countries, setCountries] = useState<CountryOption[]>(_cache ?? [])
   const [loading, setLoading]     = useState(!_cache)
 
   useEffect(() => {
     if (_cache) return
 
     fetch('https://restcountries.com/v3.1/all?fields=name,flags,idd')
-      .then(r => r.json())
+      .then(r => r.json() as Promise<RestCountry[]>)
       .then(data => {
-        const list = data
+        const list: CountryOption[] = data
           .map(c => {
             const suffixes = c.idd?.suffixes ?? []
             const dialCode = (c.idd?.root ?? '') + (suffixes.length === 1 ? suffixes[0] : '')

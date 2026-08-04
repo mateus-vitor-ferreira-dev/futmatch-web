@@ -1,11 +1,17 @@
 import { createContext, useContext, useEffect, useState } from 'react'
+import type { ReactNode } from 'react'
 
 const STORAGE_KEY = 'só+1:theme'
 
-const ThemeContext = createContext({ isDark: false, toggleTheme: () => {} })
+export interface ThemeContextValue {
+  isDark: boolean
+  toggleTheme: () => void
+}
 
-export function ThemeContextProvider({ children }) {
-  const [isDark, setIsDark] = useState(() => {
+const ThemeContext = createContext<ThemeContextValue>({ isDark: false, toggleTheme: () => {} })
+
+export function ThemeContextProvider({ children }: { children: ReactNode }) {
+  const [isDark, setIsDark] = useState<boolean>(() => {
     const stored = localStorage.getItem(STORAGE_KEY)
     if (stored) return stored === 'dark'
     return window.matchMedia('(prefers-color-scheme: dark)').matches
@@ -25,6 +31,6 @@ export function ThemeContextProvider({ children }) {
 }
 
 // eslint-disable-next-line react-refresh/only-export-components
-export function useThemeMode() {
+export function useThemeMode(): ThemeContextValue {
   return useContext(ThemeContext)
 }

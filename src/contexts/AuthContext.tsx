@@ -1,68 +1,81 @@
 import { createContext, useContext, useState, useEffect, useCallback } from 'react'
+import type { ReactNode } from 'react'
 import * as authService from '../services/auth'
+import type {
+  LoginInput,
+  RegisterInput,
+  RegisterOwnerInput,
+} from '../services/auth'
+import { TOKEN_KEY } from '../services/api'
+import type { ApiEnvelope, AuthResult, UserMe } from '../types/api'
 
-const AuthContext = createContext(null)
+export interface AuthContextValue {
+  user: UserMe | null
+  loading: boolean
+  isAuthenticated: boolean
+  register: (data: RegisterInput) => Promise<ApiEnvelope<AuthResult>>
+  registerOwner: (data: RegisterOwnerInput) => Promise<ApiEnvelope<AuthResult>>
+  login: (data: LoginInput) => Promise<ApiEnvelope<AuthResult>>
+  googleLogin: (idToken: string) => Promise<ApiEnvelope<AuthResult>>
+  logout: () => void
+  refreshUser: () => Promise<void>
+}
+
+const AuthContext = createContext<AuthContextValue | null>(null)
 
 /**
  * Provedor de autenticação da aplicação.
  *
  * Restaura a sessão ao montar (via token no localStorage),
  * e expõe ações de registro, login, Google OAuth e logout.
- *
- * @param {{ children: React.ReactNode }} props
  */
-export function AuthProvider({ children }) {
-  const [user, setUser]       = useState(null)
+export function AuthProvider({ children }: { children: ReactNode }) {
+  const [user, setUser]       = useState<UserMe | null>(null)
   const [loading, setLoading] = useState(true)
 
   // Restaura sessão ao montar: verifica token salvo e busca dados do usuário
   useEffect(() => {
-    const token = localStorage.getItem('só+1:token')
+    const token = localStorage.getItem(TOKEN_KEY)
     if (!token) { setLoading(false); return }
 
     authService.getMe()
       .then((res) => setUser(res.data))
-      .catch(() => localStorage.removeItem('só+1:token'))
+      .catch(() => localStorage.removeItem(TOKEN_KEY))
       .finally(() => setLoading(false))
   }, [])
 
-  /** Persiste o JWT no localStorage */
-  const saveToken = (token) => localStorage.setItem('só+1:token', token)
-
   /**
-   * Cria conta com e-mail e senha.
-   * @param {{ name: string, email: string, password: string, confirmPassword: string, sports?: string[] }} data
+   * Persiste o JWT no localStorage.
+   *
+   * A chave vem de services/api: era o literal 'só+1:token' repetido aqui em
+   * três pontos e mais uma vez no interceptor. Uma divergência de digitação
+   * entre eles quebraria a sessão sem erro visível.
    */
-  const register = useCallback(async (data) => {
+  const saveToken = (token: string) => localStorage.setItem(TOKEN_KEY, token)
+
+  const register = useCallback(async (data: RegisterInput) => {
     const res = await authService.register(data)
     saveToken(res.data.token)
     setUser(res.data.user)
     return res
   }, [])
 
-  const registerOwner = useCallback(async (data) => {
+  const registerOwner = useCallback(async (data: RegisterOwnerInput) => {
     const res = await authService.registerOwner(data)
     saveToken(res.data.token)
     setUser(res.data.user)
     return res
   }, [])
 
-  /**
-   * Autentica com e-mail e senha.
-   * @param {{ email: string, password: string }} data
-   */
-  const login = useCallback(async (data) => {
+  const login = useCallback(async (data: LoginInput) => {
     const res = await authService.login(data)
     saveToken(res.data.token)
     setUser(res.data.user)
     return res
   }, [])
 
-  /**
-   * Autentica via Google OAuth.
-   * @param {string} idToken — Credential retornado pelo componente GoogleLogin
-   */
-  const googleLogin = useCallback(async (idToken) => {
+  /** `idToken` é o credential retornado pelo componente GoogleLogin. */
+  const googleLogin = useCallback(async (idToken: string) => {
     const res = await authService.googleAuth(idToken)
     saveToken(res.data.token)
     setUser(res.data.user)
@@ -77,7 +90,7 @@ export function AuthProvider({ children }) {
 
   /** Remove o token e limpa o estado do usuário */
   const logout = useCallback(() => {
-    localStorage.removeItem('só+1:token')
+    localStorage.removeItem(TOKEN_KEY)
     setUser(null)
   }, [])
 
@@ -101,11 +114,9 @@ export function AuthProvider({ children }) {
 /**
  * Hook para consumir o contexto de autenticação.
  * Deve ser usado dentro de um `AuthProvider`.
- *
- * @returns {{ user: object|null, loading: boolean, isAuthenticated: boolean, register: Function, login: Function, googleLogin: Function, logout: Function }}
  */
 // eslint-disable-next-line react-refresh/only-export-components
-export const useAuth = () => {
+export const useAuth = (): AuthContextValue => {
   const ctx = useContext(AuthContext)
   if (!ctx) throw new Error('useAuth must be used inside AuthProvider')
   return ctx
