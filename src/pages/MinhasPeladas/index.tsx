@@ -9,6 +9,7 @@ import { useAuth } from '../../contexts/AuthContext'
 import { playerService } from '../../services/playerService'
 import { MainLayout } from '../../components'
 import { Grid, Card, CardHeader, InfoRow, ProgressBarContainer, ProgressBar, SpotsInfo } from '../QueroJogar/styles'
+import type { Court, DrawResult, Pelada } from '../../types/api'
 import {
   Container, PageHeader, CreateButton, Tabs, Tab, PixBox,
   ModalOverlay, ModalContent, Form, ButtonGroup,
@@ -33,21 +34,21 @@ export default function MinhasPeladas() {
   const navigate = useNavigate()
   const [searchParams, setSearchParams] = useSearchParams()
   const [activeTab, setActiveTab] = useState('participating')
-  const [events, setEvents] = useState([])
+  const [events, setEvents] = useState<Pelada[]>([])
   const [loading, setLoading] = useState(true)
 
   // Modal criar jogo — inicializa a partir da URL para evitar flash
   const [isModalOpen, setIsModalOpen] = useState(() => searchParams.get('action') === 'criar')
-  const [courts, setCourts] = useState([])
+  const [courts, setCourts] = useState<Court[]>([])
 
   // Sorteio
-  const [drawEvent, setDrawEvent] = useState(null)
+  const [drawEvent, setDrawEvent] = useState<Pelada | null>(null)
   const [teamCount, setTeamCount] = useState(2)
-  const [drawResult, setDrawResult] = useState(null)
+  const [drawResult, setDrawResult] = useState<DrawResult | null>(null)
   const [drawLoading, setDrawLoading] = useState(false)
 
   // Presença
-  const [attendanceEvent, setAttendanceEvent]           = useState(null)
+  const [attendanceEvent, setAttendanceEvent]           = useState<Pelada | null>(null)
   const [attendanceParticipants, setAttendanceParticipants] = useState([])
   const [attendanceMap, setAttendanceMap]               = useState({})
   const [loadingAttendance, setLoadingAttendance]       = useState(false)
@@ -219,7 +220,7 @@ export default function MinhasPeladas() {
 
         {loading ? <SkeletonCard count={3} /> : (
           <Grid>
-            {events.map((event) => {
+            {events.map((event: Pelada) => {
               const ev = event.pelada || event
               if (!ev || !ev.id) return null
 
@@ -300,7 +301,7 @@ export default function MinhasPeladas() {
                   <label>Quadra / Local</label>
                   <select {...register('courtId', { required: true })}>
                     <option value="">Selecione a quadra</option>
-                    {courts.map(court => (
+                    {courts.map((court: Court) => (
                       <option key={court.id} value={court.id}>
                         {court.place?.name} - {court.name} ({getSportMeta(court.type).icon} {getSportMeta(court.type).label})
                       </option>

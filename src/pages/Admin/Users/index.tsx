@@ -6,6 +6,8 @@ import StatCard from '../../../components/StatCard'
 import RoleBadge from '../../../components/RoleBadge'
 import { useAuth } from '../../../contexts/AuthContext'
 import * as adminService from '../../../services/admin'
+import type { AdminUser, InviteResult } from '../../../services/admin'
+import { mensagemDeErro } from '../../../utils/apiError'
 import {
   StatsRow, FilterBar, SearchInput, RoleFilters, RoleBtn,
   Table, Th, Tr, Td, AvatarCell, UserMeta, UserEmail,
@@ -37,17 +39,17 @@ function getInitials(name = '') {
 
 export default function AdminUsers() {
   const { user } = useAuth()
-  const [users, setUsers]         = useState([])
+  const [users, setUsers]         = useState<AdminUser[]>([])
   const [search, setSearch]       = useState('')
   const [roleFilter, setRoleFilter] = useState('Todos')
   const [loading, setLoading]     = useState(true)
-  const [error, setError]         = useState(null)
-  const [updatingId, setUpdatingId] = useState(null)
-  const [confirmTarget, setConfirmTarget] = useState(null)
+  const [error, setError]         = useState<string | null>(null)
+  const [updatingId, setUpdatingId] = useState<string | null>(null)
+  const [confirmTarget, setConfirmTarget] = useState<AdminUser | null>(null)
   const [showInvite, setShowInvite]       = useState(false)
   const [inviteEmail, setInviteEmail]     = useState('')
   const [inviteSending, setInviteSending] = useState(false)
-  const [inviteResult, setInviteResult]   = useState(null) // { email, inviteUrl }
+  const [inviteResult, setInviteResult]   = useState<InviteResult | null>(null) // { email, inviteUrl }
 
   const fetchUsers = useCallback(async () => {
     setLoading(true)
@@ -75,7 +77,7 @@ export default function AdminUsers() {
       setInviteResult({ email: inviteEmail, inviteUrl: url })
       setInviteEmail('')
     } catch (err) {
-      toast.error(err.response?.data?.message || 'Erro ao enviar convite.')
+      toast.error(mensagemDeErro(err, 'Erro ao enviar convite.'))
     } finally {
       setInviteSending(false)
     }
@@ -98,12 +100,12 @@ export default function AdminUsers() {
 
   const counts = {
     total: users.length,
-    owners: users.filter((u) => u.role === 'OWNER').length,
-    admins: users.filter((u) => u.role === 'ADMIN').length,
-    regular: users.filter((u) => u.role === 'PLAYER').length,
+    owners: users.filter((u: AdminUser) => u.role === 'OWNER').length,
+    admins: users.filter((u: AdminUser) => u.role === 'ADMIN').length,
+    regular: users.filter((u: AdminUser) => u.role === 'PLAYER').length,
   }
 
-  const filtered = users.filter((u) =>
+  const filtered = users.filter((u: AdminUser) =>
     u.name.toLowerCase().includes(search.toLowerCase()) ||
     u.email.toLowerCase().includes(search.toLowerCase())
   )
@@ -165,7 +167,7 @@ export default function AdminUsers() {
             </tr>
           </thead>
           <tbody>
-            {filtered.map((u) => (
+            {filtered.map((u: AdminUser) => (
               <Tr key={u.id}>
                 <Td>
                   <AvatarCell color={ROLE_COLORS[u.role] ?? '#6b7280'}>

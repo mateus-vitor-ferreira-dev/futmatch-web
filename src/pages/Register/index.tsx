@@ -9,6 +9,8 @@ import { useSports } from '../../hooks/useSports'
 import { env } from '../../config/env'
 import AuthLayout from '../../components/AuthLayout'
 import { SportSelect, PhoneInput, PasswordInput } from '../../components'
+import type { CourtType } from '../../types/api'
+import { mensagemDeErro } from '../../utils/apiError'
 import {
   Tabs, Tab, FormTitle, FormSubtitle,
   GoogleWrapper, GoogleButton, Divider,
@@ -58,7 +60,7 @@ export default function Register({ initialMode = 'register' }) {
 
   const mode = initialMode
   /** Modalidades selecionadas no cadastro */
-  const [modalities, setModalities] = useState([])
+  const [modalities, setModalities] = useState<CourtType[]>([])
 
   const { sports, loading: loadingSports } = useSports()
 
@@ -95,7 +97,7 @@ export default function Register({ initialMode = 'register' }) {
       }
       redirectByRole(res.data.user.role)
     } catch (err) {
-      const msg = err.response?.data?.message || 'Algo deu errado. Tente novamente.'
+      const msg = mensagemDeErro(err, 'Algo deu errado. Tente novamente.')
       setError('root', { message: msg })
     }
   }

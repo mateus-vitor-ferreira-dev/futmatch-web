@@ -12,6 +12,7 @@ import SubscriptionGate from '../../../components/SubscriptionGate'
 import { getSportMeta } from '../../../hooks/useSports'
 import * as courtsService from '../../../services/courts'
 import * as placesService from '../../../services/places'
+import type { Court, Place } from '../../../types/api'
 import {
   BackBtn, CourtsGrid, CourtCard, CourtCardHeader, CourtIconBox,
   CourtInfo, CourtName, CourtMeta, StatusBadge, CourtActions, ActionBtn,
@@ -61,15 +62,15 @@ export default function OwnerCourts() {
   const { user } = useAuth()
   const { isActive, loading: subLoading } = useSubscription()
 
-  const [place, setPlace]       = useState(null)
-  const [courts, setCourts]     = useState([])
+  const [place, setPlace]       = useState<Place | null>(null)
+  const [courts, setCourts]     = useState<Court[]>([])
   const [loading, setLoading]   = useState(true)
-  const [error, setError]       = useState(null)
-  const [editingCourt, setEditingCourt] = useState(null)
+  const [error, setError]       = useState<string | null>(null)
+  const [editingCourt, setEditingCourt] = useState<Court | null>(null)
   const [showModal, setShowModal]       = useState(false)
   const [submitting, setSubmitting]     = useState(false)
-  const [toggling, setToggling]         = useState(null)
-  const [deleting, setDeleting]         = useState(null)
+  const [toggling, setToggling]         = useState<string | null>(null)
+  const [deleting, setDeleting]         = useState<string | null>(null)
 
   const { register, handleSubmit, reset, formState: { errors } } = useForm({
     resolver: yupResolver(schema),
@@ -199,7 +200,7 @@ export default function OwnerCourts() {
         )}
 
         <CourtsGrid>
-          {courts.map((court) => {
+          {courts.map((court: Court) => {
             const sport = getSportMeta(court.type)
             return (
               <CourtCard key={court.id}>

@@ -11,6 +11,7 @@ import SubscriptionGate from '../../../components/SubscriptionGate'
 import { useAuth } from '../../../contexts/AuthContext'
 import { useSubscription } from '../../../hooks/useSubscription'
 import * as placesService from '../../../services/places'
+import type { Place } from '../../../types/api'
 import {
   StatsRow, PlaceGrid, PlaceCard, PlaceCardHeader, PlaceInfo,
   PlaceName, PlaceMeta, StatusBadge, PlaceDesc, PlaceActions,
@@ -46,10 +47,10 @@ export default function OwnerPlaces() {
   const { user } = useAuth()
   const navigate = useNavigate()
   const { isActive, loading: subLoading } = useSubscription()
-  const [places, setPlaces]   = useState([])
+  const [places, setPlaces]   = useState<Place[]>([])
   const [loading, setLoading] = useState(true)
-  const [error, setError]     = useState(null)
-  const [toggling, setToggling]       = useState(null)
+  const [error, setError]     = useState<string | null>(null)
+  const [toggling, setToggling]       = useState<string | null>(null)
   const [editingPlace, setEditingPlace] = useState(null)
   const [saving, setSaving]             = useState(false)
 
@@ -151,7 +152,7 @@ export default function OwnerPlaces() {
       )}
 
       <PlaceGrid>
-        {places.map((place) => (
+        {places.map((place: Place) => (
           <PlaceCard key={place.id}>
             <PlaceCardHeader>
               <PlaceInfo>

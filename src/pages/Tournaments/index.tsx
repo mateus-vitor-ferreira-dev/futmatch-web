@@ -11,6 +11,8 @@ import { MainLayout } from '../../components'
 import TournamentBracket from '../../components/TournamentBracket'
 import { listTournaments, createTournament, createDivision } from '../../services/tournaments'
 import { list as listPlaces } from '../../services/places'
+import type { Place, Tournament } from '../../types/api'
+import { mensagemDeErro } from '../../utils/apiError'
 import {
   Container, PageHeader, Title, Subtitle, CreateButton,
   FiltersBar, FilterChip,
@@ -276,12 +278,12 @@ export default function Tournaments() {
     [sports]
   )
 
-  const [tournaments, setTournaments]   = useState([])
+  const [tournaments, setTournaments]   = useState<Tournament[]>([])
   const [loading, setLoading]           = useState(true)
   const [statusFilter, setStatusFilter] = useState('')
   const [selected, setSelected]         = useState(null)
   const [showModal, setShowModal]       = useState(false)
-  const [places, setPlaces]             = useState([])
+  const [places, setPlaces]             = useState<Place[]>([])
   const [submitting, setSubmitting]     = useState(false)
   const [apiError, setApiError]         = useState(null)
   const [categories, setCategories]     = useState([])
@@ -378,7 +380,7 @@ export default function Tournaments() {
       closeModal()
       fetchTournaments()
     } catch (err) {
-      setApiError(err.response?.data?.message || 'Erro ao criar torneio.')
+      setApiError(mensagemDeErro(err, 'Erro ao criar torneio.'))
     } finally {
       setSubmitting(false)
     }

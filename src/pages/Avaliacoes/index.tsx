@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useAuth } from '../../contexts/AuthContext'
 import { playerService } from '../../services/playerService'
 import { MainLayout } from '../../components'
+import type { Review } from '../../types/api'
 import {
   Container, StatsCard, Section,
   TagsGrid, TagChip,
@@ -29,8 +30,8 @@ function formatDate(dateStr) {
 export default function Avaliacoes() {
   const { user } = useAuth()
   const [summary, setSummary]           = useState({})
-  const [reviews, setReviews]           = useState([])
-  const [reviewsGiven, setReviewsGiven] = useState([])
+  const [reviews, setReviews]           = useState<Review[]>([])
+  const [reviewsGiven, setReviewsGiven] = useState<Review[]>([])
   const [loading, setLoading]           = useState(true)
 
   useEffect(() => {
@@ -107,7 +108,7 @@ export default function Avaliacoes() {
                 </EmptyState>
               ) : (
                 <ReviewList>
-                  {reviews.map(review => (
+                  {reviews.map((review: Review) => (
                     <ReviewCard key={review.id}>
                       <ReviewHeader>
                         <div className="avatar">
@@ -147,7 +148,7 @@ export default function Avaliacoes() {
                 </EmptyState>
               ) : (
                 <ReviewList>
-                  {reviewsGiven.map(review => (
+                  {reviewsGiven.map((review: Review) => (
                     <ReviewCard key={review.id}>
                       <ReviewHeader>
                         <div className="avatar">

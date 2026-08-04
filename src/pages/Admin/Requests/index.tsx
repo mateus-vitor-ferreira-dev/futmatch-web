@@ -5,6 +5,7 @@ import DashboardLayout from '../../../components/DashboardLayout'
 import StatCard from '../../../components/StatCard'
 import { useAuth } from '../../../contexts/AuthContext'
 import * as placeRequestsService from '../../../services/placeRequests'
+import type { PlaceRequest } from '../../../types/api'
 import {
   StatsRow, Tabs, Tab, RequestList, RequestCard, RequestAccent,
   RequestHeader, RequestTitle, RequestMeta, RequestDesc,
@@ -35,12 +36,12 @@ const STATUS_BG    = { PENDING: '#fef3c7', APPROVED: '#dcfce7', REJECTED: '#fee2
 
 export default function AdminRequests() {
   const { user } = useAuth()
-  const [requests, setRequests]   = useState([])
+  const [requests, setRequests]   = useState<PlaceRequest[]>([])
   const [tab, setTab]             = useState(undefined)
   const [loading, setLoading]     = useState(true)
-  const [error, setError]         = useState(null)
-  const [actionId, setActionId]   = useState(null)
-  const [rejectTarget, setRejectTarget] = useState(null)
+  const [error, setError]         = useState<string | null>(null)
+  const [actionId, setActionId]   = useState<string | null>(null)
+  const [rejectTarget, setRejectTarget] = useState<PlaceRequest | null>(null)
   const [rejectReason, setRejectReason] = useState('')
 
   const fetchRequests = useCallback(async () => {

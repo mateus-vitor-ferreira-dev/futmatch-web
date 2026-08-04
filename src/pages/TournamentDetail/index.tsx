@@ -7,6 +7,7 @@ import { MainLayout } from '../../components'
 import TournamentBracket from '../../components/TournamentBracket'
 import { getTournament, getTournamentDivisions } from '../../services/tournaments'
 import { getSportMeta } from '../../hooks/useSports'
+import type { Tournament, TournamentDivision } from '../../types/api'
 import {
   Container, BackBtn, Header, SportIcon, HeaderInfo,
   TournamentName, PlaceName, StatusBadge,
@@ -51,8 +52,8 @@ export default function TournamentDetail() {
   const navigate = useNavigate()
   const { user } = useAuth()
 
-  const [tournament, setTournament]   = useState(null)
-  const [divisions, setDivisions]     = useState([])
+  const [tournament, setTournament]   = useState<Tournament | null>(null)
+  const [divisions, setDivisions]     = useState<TournamentDivision[]>([])
   const [loading, setLoading]         = useState(true)
   const [showBracket, setShowBracket] = useState(false)
 

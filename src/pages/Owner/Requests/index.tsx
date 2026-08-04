@@ -10,6 +10,7 @@ import SubscriptionGate from '../../../components/SubscriptionGate'
 import { useAuth } from '../../../contexts/AuthContext'
 import { useSubscription } from '../../../hooks/useSubscription'
 import * as placeRequestsService from '../../../services/placeRequests'
+import type { PlaceRequest } from '../../../types/api'
 import {
   StatsRow, RequestList, RequestCard, RequestAccent, RequestHeader,
   RequestTitle, RequestMeta, RequestDesc, RequestFooter, RequestSentAt,
@@ -43,9 +44,9 @@ const schema = yup.object({
 export default function OwnerRequests() {
   const { user } = useAuth()
   const { isActive, loading: subLoading } = useSubscription()
-  const [requests, setRequests]   = useState([])
+  const [requests, setRequests]   = useState<PlaceRequest[]>([])
   const [loading, setLoading]     = useState(true)
-  const [error, setError]         = useState(null)
+  const [error, setError]         = useState<string | null>(null)
   const [showModal, setShowModal] = useState(false)
   const [submitting, setSubmitting] = useState(false)
 

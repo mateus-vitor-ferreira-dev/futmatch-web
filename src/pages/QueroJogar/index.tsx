@@ -7,6 +7,8 @@ import { playerService } from '../../services/playerService'
 import { useSports, getSportMeta } from '../../hooks/useSports'
 import { SkeletonCard } from '../../components/Skeleton'
 import { MainLayout } from '../../components'
+import type { Pelada } from '../../types/api'
+import type { SportOption } from '../../hooks/useSports'
 import {
   Container, Header, HeaderRow,
   FiltersArea, SearchInput, ChipsContainer, Chip, ResultsCount,
@@ -43,7 +45,7 @@ export default function QueroJogar() {
   const [searchParams] = useSearchParams()
   const navigate = useNavigate()
 
-  const [events, setEvents]             = useState([])
+  const [events, setEvents]             = useState<Pelada[]>([])
   const [loading, setLoading]           = useState(true)
   const [loadingMore, setLoadingMore]   = useState(false)
   const [page, setPage]                 = useState(1)
@@ -197,7 +199,7 @@ export default function QueroJogar() {
                 onChange={e => setSelectedSport(e.target.value)}
               >
                 <option value="">Selecionar modalidade</option>
-                {allSports.map(sport => (
+                {allSports.map((sport: SportOption) => (
                   <option key={sport.id} value={sport.id}>{sport.icon} {sport.label}</option>
                 ))}
               </select>
@@ -215,7 +217,7 @@ export default function QueroJogar() {
                     onChange={e => setSelectedSport(e.target.value)}
                   >
                     <option value="">Todas as modalidades</option>
-                    {allSports.map(sport => (
+                    {allSports.map((sport: SportOption) => (
                       <option key={sport.id} value={sport.id}>{sport.icon} {sport.label}</option>
                     ))}
                   </FilterSelect>
@@ -313,7 +315,7 @@ export default function QueroJogar() {
         </ResultsCount>
 
         <Grid>
-          {loading ? <SkeletonCard count={3} /> : filteredEvents.map((event) => {
+          {loading ? <SkeletonCard count={3} /> : filteredEvents.map((event: Pelada) => {
             const currentPlayers = event._count?.participations || 0
             const maxPlayers = event.maxPlayers
             const progress = (currentPlayers / maxPlayers) * 100

@@ -7,6 +7,7 @@ import { subscriptionService } from '../../../services/subscriptionService'
 import { ownerService } from '../../../services/ownerService'
 import DashboardLayout from '../../../components/DashboardLayout'
 import { Container, Grid, Card, PlanHighlight, RowList, PrimaryButton, Badge, StatsGrid, StatCard, StatIcon, StatInfo, StatValue, StatLabel } from './styles'
+import type { OwnerStats, SubscriptionStatus } from '../../../types/api'
 
 function ownerNavItems(role) {
   return [
@@ -29,10 +30,10 @@ const STATUS_LABEL = {
 export default function OwnerDashboard() {
   const { user } = useAuth()
   const [searchParams] = useSearchParams()
-  const [sub, setSub] = useState(null)
+  const [sub, setSub] = useState<SubscriptionStatus | null>(null)
   const [loading, setLoading] = useState(true)
   const [paying, setPaying] = useState(false)
-  const [stats, setStats] = useState(null)
+  const [stats, setStats] = useState<OwnerStats | null>(null)
 
   useEffect(() => {
     const payment = searchParams.get('payment')

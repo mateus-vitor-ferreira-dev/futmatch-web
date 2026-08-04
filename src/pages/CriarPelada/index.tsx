@@ -8,6 +8,8 @@ import { useSports } from '../../hooks/useSports'
 import { MainLayout } from '../../components'
 import { searchCourts } from '../../services/courts'
 import { createEvent } from '../../services/events'
+import type { Court, Place } from '../../types/api'
+import { mensagemDeErro } from '../../utils/apiError'
 import {
   Container, PageHeader, Title, Subtitle,
   StepIndicator, Step, StepDot, StepLine,
@@ -52,15 +54,15 @@ export default function CriarPelada() {
   const { sports } = useSports()
 
   const [step, setStep]                 = useState(0)
-  const [courts, setCourts]             = useState([])
+  const [courts, setCourts]             = useState<Court[]>([])
   const [loadingCourts, setLoadingCourts] = useState(true)
-  const [selectedCourt, setSelectedCourt] = useState(null)
+  const [selectedCourt, setSelectedCourt] = useState<Court | null>(null)
   const [submitting, setSubmitting]     = useState(false)
-  const [error, setError]               = useState(null)
+  const [error, setError]               = useState<string | null>(null)
 
   // Sub-etapas do step 0
   const [filterSport, setFilterSport]   = useState('')   // CourtType enum value
-  const [filterPlace, setFilterPlace]   = useState(null) // objeto place
+  const [filterPlace, setFilterPlace]   = useState<Place | null>(null) // objeto place
 
   const {
     register,
@@ -122,7 +124,7 @@ export default function CriarPelada() {
       await createEvent(selectedCourt.id, payload)
       setStep(2)
     } catch (err) {
-      setError(err.response?.data?.message || 'Erro ao criar pelada. Tente novamente.')
+      setError(mensagemDeErro(err, 'Erro ao criar pelada. Tente novamente.'))
     } finally {
       setSubmitting(false)
     }
@@ -218,7 +220,7 @@ export default function CriarPelada() {
                     </EmptyState>
                   ) : (
                     <PlacesGrid>
-                      {availablePlaces.map(place => {
+                      {availablePlaces.map((place: Place) => {
                         const count = sportCourts.filter(c => c.place?.id === place.id).length
                         return (
                           <PlaceCard key={place.id} onClick={() => handleSelectPlace(place)}>
@@ -239,7 +241,7 @@ export default function CriarPelada() {
                 {/* Sub-etapa C: Escolher Quadra */}
                 {filterSport && filterPlace && (
                   <CourtsGrid>
-                    {placeCourts.map((court) => (
+                    {placeCourts.map((court: Court) => (
                       <CourtCard
                         key={court.id}
                         $selected={selectedCourt?.id === court.id}

@@ -26,10 +26,10 @@ const STATUS_BG    = { active: '#dcfce7', trialing: '#dbeafe', past_due: '#fee2e
 export default function AdminDashboard() {
   const { user } = useAuth()
   const [stats, setStats] = useState({ totalArenas: 0, active: 0, revenue: 0, expiring: 0 })
-  const [contracts, setContracts] = useState([])
-  const [payments, setPayments] = useState([])
+  const [contracts, setContracts] = useState<unknown[]>([])
+  const [payments, setPayments] = useState<unknown[]>([])
   const [loading, setLoading] = useState(true)
-  const [detailContract, setDetailContract] = useState(null)
+  const [detailContract, setDetailContract] = useState<unknown | null>(null)
 
   useEffect(() => {
     const fetchData = async () => {

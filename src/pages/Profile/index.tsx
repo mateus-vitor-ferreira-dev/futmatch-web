@@ -11,6 +11,7 @@ import { useAuth } from '../../contexts/AuthContext'
 import * as usersService from '../../services/users'
 import { uploadImage } from '../../services/cloudinary'
 import { env } from '../../config/env'
+import { mensagemDeErro } from '../../utils/apiError'
 import {
   PageWrapper, TabsRow, TabBtn,
   SectionTitle, SectionDivider,
@@ -147,7 +148,7 @@ export default function Profile() {
       setPwdStep(1)
       toast.success('Senha alterada com sucesso!')
     } catch (err) {
-      const msg = err.response?.data?.message ?? 'Erro ao alterar senha.'
+      const msg = mensagemDeErro(err, 'Erro ao alterar senha.')
       setPwdStep(1)
       setCurrentPwdErr(msg)
     }

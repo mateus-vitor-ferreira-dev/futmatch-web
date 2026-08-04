@@ -5,6 +5,7 @@ import * as yup from 'yup'
 import AuthLayout from '../../components/AuthLayout'
 import { PasswordInput } from '../../components'
 import * as authService from '../../services/auth'
+import { mensagemDeErro } from '../../utils/apiError'
 import {
   FormTitle, FormSubtitle,
   Form, Field, Label, ErrorMsg,
@@ -34,7 +35,7 @@ export default function ResetPassword() {
     try {
       await authService.resetPassword(token, newPassword, confirmPassword)
     } catch (err) {
-      const msg = err.response?.data?.message || 'Link inválido ou expirado. Solicite um novo.'
+      const msg = mensagemDeErro(err, 'Link inválido ou expirado. Solicite um novo.')
       setError('root', { message: msg })
     }
   }

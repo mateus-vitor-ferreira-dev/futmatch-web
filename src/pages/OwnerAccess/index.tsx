@@ -5,6 +5,7 @@ import { yupResolver } from '@hookform/resolvers/yup'
 import * as yup from 'yup'
 import { useAuth } from '../../contexts/AuthContext'
 import * as authService from '../../services/auth'
+import { mensagemDeErro } from '../../utils/apiError'
 import {
   Page, HeroCol, HeroLogo, HeroTitle, HeroSub, BenefitsList, BenefitItem,
   FormCol, Card, CardHead, CardTitle, CardSub,
@@ -72,7 +73,7 @@ export default function OwnerAccess() {
       }
       navigate('/owner')
     } catch (err) {
-      const msg = err.response?.data?.message || 'Credenciais inválidas.'
+      const msg = mensagemDeErro(err, 'Credenciais inválidas.')
       loginForm.setError('root', { message: msg })
     }
   }
@@ -83,7 +84,7 @@ export default function OwnerAccess() {
       await registerOwner({ ...data, inviteToken })
       navigate('/owner')
     } catch (err) {
-      const msg = err.response?.data?.message || 'Erro ao criar conta. Tente novamente.'
+      const msg = mensagemDeErro(err, 'Erro ao criar conta. Tente novamente.')
       regForm.setError('root', { message: msg })
     }
   }

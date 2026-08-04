@@ -6,6 +6,8 @@ import { useAuth } from '../../contexts/AuthContext'
 import { MainLayout } from '../../components'
 import { playerService } from '../../services/playerService'
 import { getSportMeta } from '../../hooks/useSports'
+import type { Pelada } from '../../types/api'
+import { mensagemDeErro } from '../../utils/apiError'
 import {
   Container, BackBtn, Card, CardHeader, SportIcon, HeaderInfo,
   CourtName, PlaceName, StatusBadge,
@@ -42,7 +44,7 @@ export default function PeladaDetail() {
   const navigate = useNavigate()
   const { user } = useAuth()
 
-  const [event, setEvent]               = useState(null)
+  const [event, setEvent]               = useState<Pelada | null>(null)
   const [loading, setLoading]           = useState(true)
   const [joining, setJoining]           = useState(false)
   const [updatingStatus, setUpdatingStatus] = useState(false)
@@ -91,7 +93,7 @@ export default function PeladaDetail() {
       toast.success('Você entrou na pelada!')
       load()
     } catch (err) {
-      toast.error(err.response?.data?.message || 'Erro ao entrar na pelada.')
+      toast.error(mensagemDeErro(err, 'Erro ao entrar na pelada.'))
     } finally {
       setJoining(false)
     }
@@ -106,7 +108,7 @@ export default function PeladaDetail() {
       toast.success(`Pelada ${status === 'FINISHED' ? 'finalizada' : 'cancelada'} com sucesso.`)
       load()
     } catch (err) {
-      toast.error(err.response?.data?.message || 'Erro ao atualizar status.')
+      toast.error(mensagemDeErro(err, 'Erro ao atualizar status.'))
     } finally {
       setUpdatingStatus(false)
     }

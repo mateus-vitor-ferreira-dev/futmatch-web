@@ -6,6 +6,8 @@ import StatCard from '../../../components/StatCard'
 import { useAuth } from '../../../contexts/AuthContext'
 import * as placesService from '../../../services/places'
 import * as adminService from '../../../services/admin'
+import type { Place } from '../../../types/api'
+import type { AdminUser } from '../../../services/admin'
 import {
   StatsRow, Table, Th, Tr, Td, OwnerCell, NoOwner,
   StatusBadge, ActionGroup, ActionBtn,
@@ -31,16 +33,16 @@ const STATUS_BG    = { OPEN: '#dcfce7', CLOSED: '#f3f4f6' }
 
 export default function AdminPlaces() {
   const { user } = useAuth()
-  const [places, setPlaces]     = useState([])
-  const [owners, setOwners]     = useState([])
+  const [places, setPlaces]     = useState<Place[]>([])
+  const [owners, setOwners]     = useState<AdminUser[]>([])
   const [loading, setLoading]   = useState(true)
-  const [error, setError]       = useState(null)
-  const [togglingId, setTogglingId]   = useState(null)
-  const [assignTarget, setAssignTarget] = useState(null)
+  const [error, setError]       = useState<string | null>(null)
+  const [togglingId, setTogglingId]   = useState<string | null>(null)
+  const [assignTarget, setAssignTarget] = useState<Place | null>(null)
   const [selectedOwner, setSelectedOwner] = useState('')
   const [assigning, setAssigning] = useState(false)
   const [promoteMode, setPromoteMode] = useState(false)
-  const [allUsers, setAllUsers]       = useState([])
+  const [allUsers, setAllUsers]       = useState<AdminUser[]>([])
   const [selectedPromote, setSelectedPromote] = useState('')
   const [promoting, setPromoting] = useState(false)
 
@@ -94,7 +96,7 @@ export default function AdminPlaces() {
     if (allUsers.length === 0) {
       try {
         const res = await adminService.listUsers()
-        setAllUsers(res.data.data.filter((u) => u.role !== 'OWNER' && u.role !== 'ADMIN'))
+        setAllUsers(res.data.data.filter((u: AdminUser) => u.role !== 'OWNER' && u.role !== 'ADMIN'))
       } catch {
         // silencioso
       }
@@ -177,7 +179,7 @@ export default function AdminPlaces() {
             </tr>
           </thead>
           <tbody>
-            {places.map((place) => (
+            {places.map((place: Place) => (
               <Tr key={place.id}>
                 <Td><strong>{place.name}</strong></Td>
                 <Td>{place.city}, {place.state}</Td>
@@ -250,7 +252,7 @@ export default function AdminPlaces() {
                   onChange={(e) => setSelectedPromote(e.target.value)}
                 >
                   <option value="" disabled>Selecione um usuário...</option>
-                  {allUsers.map((u) => (
+                  {allUsers.map((u: AdminUser) => (
                     <OwnerOption key={u.id} value={u.id}>
                       {u.name} — {u.email} ({u.role})
                     </OwnerOption>

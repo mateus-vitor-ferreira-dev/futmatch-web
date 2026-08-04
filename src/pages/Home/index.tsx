@@ -5,6 +5,8 @@ import { useAuth } from '../../contexts/AuthContext'
 import { MainLayout } from '../../components'
 import { playerService } from '../../services/playerService'
 import { useSports, getSportMeta } from '../../hooks/useSports'
+import type { Pelada } from '../../types/api'
+import type { SportOption } from '../../hooks/useSports'
 import {
   PageWrapper,
   HeroBanner, HeroDecor1, HeroDecor2, HeroGreeting, HeroTitle, HeroSubtitle,
@@ -83,7 +85,7 @@ export default function Home() {
   const { sports: allSports } = useSports()
   const SPORT_TABS = [ALL_TAB, ...allSports]
 
-  const [events, setEvents] = useState([])
+  const [events, setEvents] = useState<Pelada[]>([])
   const [loadingEvents, setLoadingEvents] = useState(true)
   const [stats, setStats] = useState({ total: 0, thisMonth: 0 })
   const [activeSport, setActiveSport] = useState('ALL')
@@ -215,7 +217,7 @@ export default function Home() {
             <EmptyState>Nenhum jogo disponível no momento.</EmptyState>
           ) : (
             <GamesGrid>
-              {filteredEvents.slice(0, 4).map(event => {
+              {filteredEvents.slice(0, 4).map((event: Pelada) => {
                 const participations = getParticipationCount(event)
                 const maxPlayers = event.maxPlayers || 0
                 const vagas = maxPlayers - participations
@@ -289,7 +291,7 @@ export default function Home() {
             <SectionTitle>Explorar por modalidade</SectionTitle>
           </SectionHeader>
           <ModalityGrid>
-            {allSports.map(sport => {
+            {allSports.map((sport: SportOption) => {
               const count = sportCountMap[sport.id] ?? 0
               return (
                 <ModalityCard

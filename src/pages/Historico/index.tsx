@@ -5,6 +5,7 @@ import { getSportMeta } from '../../hooks/useSports'
 import { useAuth } from '../../contexts/AuthContext'
 import { playerService } from '../../services/playerService'
 import { MainLayout } from '../../components'
+import type { Participation, Pelada } from '../../types/api'
 import {
   Container, StatsCard, HistoryList, HistoryCard,
   EvalModalOverlay, EvalModalContent, ParticipantRow,
@@ -22,13 +23,13 @@ const TAG_OPTIONS = [
 
 export default function Historico() {
   const { user } = useAuth()
-  const [history, setHistory] = useState([])
+  const [history, setHistory] = useState<Pelada[]>([])
   const [reviewSummary, setReviewSummary] = useState({})
   const [loading, setLoading] = useState(true)
 
   // Modal de avaliação
   const [evalEvent, setEvalEvent] = useState(null)
-  const [participants, setParticipants] = useState([])
+  const [participants, setParticipants] = useState<Participation[]>([])
   const [evaluations, setEvaluations] = useState({})
   const [reviewProgress, setReviewProgress] = useState(null)
   const [submitting, setSubmitting] = useState(false)
@@ -134,7 +135,7 @@ export default function Historico() {
 
         <h3>Partidas Concluídas</h3>
         <HistoryList>
-          {loading ? <SkeletonList count={4} /> : history.map((event) => {
+          {loading ? <SkeletonList count={4} /> : history.map((event: Pelada) => {
             const ev = event.pelada
             return (
               <HistoryCard key={ev.id}>
