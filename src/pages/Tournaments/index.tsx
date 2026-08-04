@@ -11,7 +11,13 @@ import { MainLayout } from '../../components'
 import TournamentBracket from '../../components/TournamentBracket'
 import { listTournaments, createTournament, createDivision } from '../../services/tournaments'
 import { list as listPlaces } from '../../services/places'
-import type { Place, Tournament } from '../../types/api'
+import type { KeyboardEvent, ReactElement } from 'react'
+import type { Place, Tournament, TournamentStatus } from '../../types/api'
+import type { InferType } from 'yup'
+import type { CreateTournamentInput } from '../../services/tournaments'
+
+/** Campos do formulário, derivados do schema yup usado no resolver. */
+type FormularioTorneio = InferType<typeof schema>
 import { mensagemDeErro } from '../../utils/apiError'
 import {
   Container, PageHeader, Title, Subtitle, CreateButton,
@@ -59,7 +65,12 @@ const FORMAT_ICONS: Record<string, string> = {
   SWISS:               '♟️',
 }
 
-const FORMAT_INFO: Record<string, string> = {
+interface FormatInfo {
+  desc: string
+  hint: string
+}
+
+const FORMAT_INFO: Record<string, FormatInfo> = {
   KNOCKOUT:            { desc: 'Times se eliminam a cada rodada — perde, está fora.', hint: 'Funciona melhor com potência de 2: 4, 8, 16 ou 32 times.' },
   LEAGUE:              { desc: 'Todos jogam entre si e acumulam pontos na tabela.',    hint: 'Mínimo recomendado: 3 times.' },
   GROUPS_AND_KNOCKOUT: { desc: 'Fase de grupos seguida de eliminatória entre os melhores.', hint: 'Mínimo recomendado: 4 times.' },
@@ -75,7 +86,7 @@ const FORMAT_PLACEHOLDER: Record<string, string> = {
   SWISS:               'Ex: 8 (mínimo 4)',
 }
 
-const FORMAT_SVG: Record<string, string> = {
+const FORMAT_SVG: Record<string, ReactElement> = {
   KNOCKOUT: (
     <svg viewBox="0 0 210 88" width="210" height="88">
       <rect x="0" y="4" width="64" height="14" rx="2" fill="rgba(100,116,139,0.1)" stroke="rgba(100,116,139,0.4)" strokeWidth="0.8"/>
@@ -258,7 +269,7 @@ const schema = yup.object({
   description:     yup.string().nullable(),
 })
 
-function formatDate(dateStr) {
+function formatDate(dateStr: string | null | undefined): string {
   if (!dateStr) return '—'
   return new Date(dateStr).toLocaleDateString('pt-BR')
 }
@@ -281,12 +292,12 @@ export default function Tournaments() {
   const [tournaments, setTournaments]   = useState<Tournament[]>([])
   const [loading, setLoading]           = useState(true)
   const [statusFilter, setStatusFilter] = useState('')
-  const [selected, setSelected]         = useState(null)
+  const [selected, setSelected]         = useState<Tournament | null>(null)
   const [showModal, setShowModal]       = useState(false)
   const [places, setPlaces]             = useState<Place[]>([])
   const [submitting, setSubmitting]     = useState(false)
-  const [apiError, setApiError]         = useState(null)
-  const [categories, setCategories]     = useState([])
+  const [apiError, setApiError]         = useState<string | null>(null)
+  const [categories, setCategories]     = useState<string[]>([])
   const [catInput, setCatInput]         = useState('')
   const [multiCategory, setMultiCategory] = useState(false)
 
@@ -300,7 +311,7 @@ export default function Tournaments() {
   const fetchTournaments = useCallback(async () => {
     try {
       setLoading(true)
-      const res = await listTournaments(statusFilter ? { status: statusFilter } : {})
+      const res = await listTournaments(statusFilter ? { status: statusFilter as TournamentStatus } : {})
       setTournaments(Array.isArray(res.data) ? res.data : [])
     } catch {
       setTournaments([])
@@ -335,25 +346,25 @@ export default function Tournaments() {
     setApiError(null)
   }
 
-  function addCategory(name) {
+  function addCategory(name: string) {
     const trimmed = name.trim()
     if (!trimmed || categories.includes(trimmed)) return
     setCategories(prev => [...prev, trimmed])
     setCatInput('')
   }
 
-  function removeCategory(name) {
-    setCategories(prev => prev.filter(c => c !== name))
+  function removeCategory(name: string) {
+    setCategories(prev => prev.filter((c: string) => c !== name))
   }
 
-  function handleCatKeyDown(e) {
+  function handleCatKeyDown(e: KeyboardEvent<HTMLInputElement>) {
     if (e.key === 'Enter') {
       e.preventDefault()
       addCategory(catInput)
     }
   }
 
-  const onSubmit = async (data) => {
+  const onSubmit = async (data: FormularioTorneio) => {
     setSubmitting(true)
     setApiError(null)
     try {
@@ -367,8 +378,12 @@ export default function Tournaments() {
         maxParticipants:  data.maxParticipants ? Number(data.maxParticipants) : null,
         registrationFee:  data.registrationFee ? Number(data.registrationFee) : null,
       }
-      const res = await createTournament(payload)
-      const tournamentId = res.data?.id ?? res.id
+      // O schema yup valida format/sportType com oneOf sobre os enums, mas o
+      // InferType os entrega como string — daí o cast no ponto de envio.
+      const res = await createTournament(payload as unknown as CreateTournamentInput)
+      // O `?? res.id` anterior era código morto: createTournament devolve o
+      // envelope { success, data }, então o id nunca esteve na raiz.
+      const tournamentId = res.data?.id
 
       if (tournamentId && categories.length > 0) {
         await Promise.allSettled(
@@ -466,7 +481,7 @@ export default function Tournaments() {
                         {divCount} categoria{divCount !== 1 ? 's' : ''}
                       </MetaRow>
                     )}
-                    {t.registrationFee > 0 && (
+                    {Number(t.registrationFee) > 0 && (
                       <MetaRow>
                         <Trophy size={14} />
                         Taxa: R$ {Number(t.registrationFee).toFixed(2)}
