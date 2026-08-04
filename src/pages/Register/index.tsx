@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useForm, Controller } from 'react-hook-form'
+import type { Resolver } from 'react-hook-form'
 import { yupResolver } from '@hookform/resolvers/yup'
 import * as yup from 'yup'
 import { useGoogleLogin } from '@react-oauth/google'
@@ -9,7 +10,7 @@ import { useSports } from '../../hooks/useSports'
 import { env } from '../../config/env'
 import AuthLayout from '../../components/AuthLayout'
 import { SportSelect, PhoneInput, PasswordInput } from '../../components'
-import type { CourtType } from '../../types/api'
+import type { CourtType, UserRole } from '../../types/api'
 import { mensagemDeErro } from '../../utils/apiError'
 import {
   Tabs, Tab, FormTitle, FormSubtitle,
@@ -39,6 +40,13 @@ const loginSchema = yup.object({
   email:    yup.string().email('E-mail inválido').required('Obrigatório'),
   password: yup.string().required('Obrigatório'),
 })
+
+/**
+ * O resolver alterna entre registerSchema e loginSchema conforme o modo, então
+ * o tipo inferido seria o mais estreito dos dois (login). Usa-se o superconjunto
+ * — os campos exclusivos do cadastro ficam opcionais no modo login.
+ */
+type FormularioAuth = yup.InferType<typeof registerSchema>
 
 /**
  * Página unificada de login e cadastro.
@@ -73,21 +81,23 @@ export default function Register({ initialMode = 'register' }) {
     reset,
     control,
     formState: { errors, isSubmitting },
-  } = useForm({ resolver: yupResolver(isRegister ? registerSchema : loginSchema) })
+  } = useForm<FormularioAuth>({
+    resolver: yupResolver(isRegister ? registerSchema : loginSchema) as unknown as Resolver<FormularioAuth>,
+  })
 
   /** Troca de modo (login ↔ register) limpando o formulário */
-  function switchMode(next) {
+  function switchMode(next: 'login' | 'register') {
     reset()
     navigate(next === 'login' ? '/login' : '/register')
   }
 
-  function redirectByRole(role) {
+  function redirectByRole(role: UserRole) {
     if (role === 'ADMIN')  return navigate('/admin')
     if (role === 'OWNER')  return navigate('/owner')
     return navigate('/home')
   }
 
-  async function onSubmit(data) {
+  async function onSubmit(data: FormularioAuth) {
     try {
       let res
       if (isRegister) {
@@ -104,6 +114,8 @@ export default function Register({ initialMode = 'register' }) {
 
   const googleEnabled = !!env.googleClientId
 
+  // useGoogleLogin devolve uma função que aceita config opcional, não um
+  // MouseEventHandler — por isso o onClick usa um wrapper que descarta o evento.
   const handleGoogleClick = useGoogleLogin({
     flow: 'implicit',
     onSuccess: async ({ access_token }) => {
@@ -134,7 +146,7 @@ export default function Register({ initialMode = 'register' }) {
       <GoogleWrapper>
         <GoogleButton
           type="button"
-          onClick={handleGoogleClick}
+          onClick={() => handleGoogleClick()}
           disabled={!googleEnabled || isSubmitting}
         >
           <svg width="18" height="18" viewBox="0 0 18 18" xmlns="http://www.w3.org/2000/svg">
@@ -171,7 +183,7 @@ export default function Register({ initialMode = 'register' }) {
               name="phone"
               control={control}
               render={({ field }) => (
-                <PhoneInput {...field} error={!!errors.phone} />
+                <PhoneInput {...field} value={field.value ?? ''} error={!!errors.phone} />
               )}
             />
             {errors.phone && <ErrorMsg>{errors.phone.message}</ErrorMsg>}

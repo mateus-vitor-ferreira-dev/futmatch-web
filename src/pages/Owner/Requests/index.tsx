@@ -10,7 +10,8 @@ import SubscriptionGate from '../../../components/SubscriptionGate'
 import { useAuth } from '../../../contexts/AuthContext'
 import { useSubscription } from '../../../hooks/useSubscription'
 import * as placeRequestsService from '../../../services/placeRequests'
-import type { PlaceRequest } from '../../../types/api'
+import type { PlaceRequest, UserRole } from '../../../types/api'
+import type { PlaceRequestInput } from '../../../services/placeRequests'
 import {
   StatsRow, RequestList, RequestCard, RequestAccent, RequestHeader,
   RequestTitle, RequestMeta, RequestDesc, RequestFooter, RequestSentAt,
@@ -20,7 +21,7 @@ import {
   FieldError,
 } from './styles'
 
-function ownerNavItems(role) {
+function ownerNavItems(role: UserRole | undefined) {
   return [
     { to: '/owner',          label: 'Visão Geral',           icon: LayoutDashboard, end: true },
     { to: '/owner/places',   label: 'Meus Estabelecimentos', icon: Building2       },
@@ -34,12 +35,27 @@ const STATUS_LABEL = { PENDING: 'Aguardando', APPROVED: 'Aprovada', REJECTED: 'R
 const STATUS_COLOR = { PENDING: '#d97706', APPROVED: '#16a34a', REJECTED: '#dc2626' }
 const STATUS_BG    = { PENDING: '#fef3c7', APPROVED: '#dcfce7', REJECTED: '#fee2e2' }
 
+/**
+ * ⚠️ BUG CONHECIDO — este formulário nunca funcionou.
+ *
+ * Os campos abaixo (placeName, address, description) não correspondem ao
+ * createPlaceRequestSchema da API, que exige name, street, number,
+ * neighborhood, city, state e zipCode. Como o validate middleware roda com
+ * stripUnknown, o corpo enviado se reduz a { city } e a requisição sempre
+ * volta 422 com seis campos obrigatórios faltando — o owner só vê o toast
+ * genérico "Erro ao enviar solicitação.".
+ *
+ * Corrigir exige reescrever o formulário com os campos certos, o que é
+ * mudança de UI e ficou fora da migração para TypeScript.
+ */
 const schema = yup.object({
   placeName:   yup.string().required('Nome obrigatório'),
   city:        yup.string().required('Cidade obrigatória'),
   address:     yup.string().required('Endereço obrigatório'),
   description: yup.string(),
 })
+
+type FormularioSolicitacao = yup.InferType<typeof schema>
 
 export default function OwnerRequests() {
   const { user } = useAuth()
@@ -69,10 +85,10 @@ export default function OwnerRequests() {
 
   useEffect(() => { fetchRequests() }, [])
 
-  const onSubmit = async (data) => {
+  const onSubmit = async (data: FormularioSolicitacao) => {
     setSubmitting(true)
     try {
-      await placeRequestsService.create(data)
+      await placeRequestsService.create(data as unknown as PlaceRequestInput)
       reset()
       setShowModal(false)
       await fetchRequests()
@@ -127,10 +143,15 @@ export default function OwnerRequests() {
 
             <RequestHeader>
               <div>
-                <RequestTitle>{req.placeName ?? req.name ?? 'Estabelecimento'}</RequestTitle>
+                <RequestTitle>{req.name ?? 'Estabelecimento'}</RequestTitle>
                 <RequestMeta>
-                  {req.city && `${req.city}`}
-                  {req.address && ` · ${req.address}`}
+                  {/*
+                    * `req.address` não existe: a API devolve o endereço em
+                    * campos separados (street, number, neighborhood). O bloco
+                    * anterior nunca renderizava nada.
+                    */}
+                  {req.city}
+                  {req.street && ` · ${req.street}, ${req.number}`}
                 </RequestMeta>
               </div>
               <StatusBadge bg={STATUS_BG[req.status]} color={STATUS_COLOR[req.status]}>
@@ -138,11 +159,15 @@ export default function OwnerRequests() {
               </StatusBadge>
             </RequestHeader>
 
-            {req.description && <RequestDesc>{req.description}</RequestDesc>}
-
-            {req.status === 'REJECTED' && req.rejectionReason && (
+            {/*
+              * Era `req.rejectionReason` — campo inexistente na API, que grava
+              * a justificativa em `adminNote`. O motivo da recusa nunca era
+              * exibido ao owner. (O envio também estava errado: ver a correção
+              * em services/placeRequests.reject.)
+              */}
+            {req.status === 'REJECTED' && req.adminNote && (
               <RequestMeta style={{ color: '#b91c1c' }}>
-                Motivo: {req.rejectionReason}
+                Motivo: {req.adminNote}
               </RequestMeta>
             )}
 
