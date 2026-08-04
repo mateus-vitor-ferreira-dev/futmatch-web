@@ -1,10 +1,18 @@
+import type { CSSProperties } from 'react'
 import { Base, CardWrap, CardLine, ListWrap, ListItem, ListAvatar, ListLines, Line } from './styles'
 
-export function Skeleton({ width = '100%', height = 16, radius = 6, style }) {
+export interface SkeletonProps {
+  width?: CSSProperties['width']
+  height?: CSSProperties['height']
+  radius?: CSSProperties['borderRadius']
+  style?: CSSProperties
+}
+
+export function Skeleton({ width = '100%', height = 16, radius = 6, style }: SkeletonProps) {
   return <Base style={{ width, height, borderRadius: radius, ...style }} />
 }
 
-export function SkeletonCard({ count = 3 }) {
+export function SkeletonCard({ count = 3 }: { count?: number }) {
   return (
     <>
       {Array.from({ length: count }).map((_, i) => (
@@ -19,7 +27,7 @@ export function SkeletonCard({ count = 3 }) {
   )
 }
 
-export function SkeletonList({ count = 4 }) {
+export function SkeletonList({ count = 4 }: { count?: number }) {
   return (
     <ListWrap>
       {Array.from({ length: count }).map((_, i) => (

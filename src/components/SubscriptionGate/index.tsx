@@ -1,11 +1,18 @@
+import type { ReactNode } from 'react'
 import { CreditCard, Loader2 } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { Overlay, Box, Icon, Title, Desc, Btn } from './styles'
 
-export default function SubscriptionGate({ isActive, loading, children }) {
+export interface SubscriptionGateProps {
+  isActive: boolean
+  loading: boolean
+  children: ReactNode
+}
+
+export default function SubscriptionGate({ isActive, loading, children }: SubscriptionGateProps) {
   const navigate = useNavigate()
 
-  if (loading) return children
+  if (loading) return <>{children}</>
 
   if (!isActive) {
     return (
@@ -28,5 +35,5 @@ export default function SubscriptionGate({ isActive, loading, children }) {
     )
   }
 
-  return children
+  return <>{children}</>
 }

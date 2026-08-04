@@ -1,6 +1,13 @@
 import { useTheme } from 'styled-components'
 
-export default function LogoSvg({ width = 80, height, className }) {
+export interface LogoSvgProps {
+  width?: number
+  /** Se omitido, é derivado de `width` mantendo a proporção 395x243 do viewBox. */
+  height?: number
+  className?: string
+}
+
+export default function LogoSvg({ width = 80, height, className }: LogoSvgProps) {
   const theme = useTheme()
   const oneColor = theme.colors.textPrimary
 

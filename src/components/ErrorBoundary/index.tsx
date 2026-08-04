@@ -1,8 +1,21 @@
 import { Component } from 'react'
+import type { ErrorInfo, ReactNode } from 'react'
 import logoSoMaisUm from '../../assets/logo-so-mais-um.svg'
 
-function isChunkError(error) {
-  const msg = error?.message ?? ''
+interface ErrorBoundaryProps {
+  children: ReactNode
+}
+
+interface ErrorBoundaryState {
+  hasError: boolean
+}
+
+/**
+ * Falha de carregamento de chunk após um deploy novo: o HTML em cache aponta
+ * para um bundle que não existe mais. O tratamento é recarregar a página.
+ */
+function isChunkError(error: unknown): boolean {
+  const msg = error instanceof Error ? error.message : ''
   return (
     msg.includes('Failed to fetch dynamically imported module') ||
     msg.includes('Importing a module script failed') ||
@@ -11,10 +24,10 @@ function isChunkError(error) {
   )
 }
 
-export default class ErrorBoundary extends Component {
-  state = { hasError: false }
+export default class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
+  state: ErrorBoundaryState = { hasError: false }
 
-  static getDerivedStateFromError(error) {
+  static getDerivedStateFromError(error: unknown): ErrorBoundaryState {
     if (isChunkError(error)) {
       window.location.reload()
       return { hasError: false }
@@ -22,7 +35,7 @@ export default class ErrorBoundary extends Component {
     return { hasError: true }
   }
 
-  componentDidCatch(error, info) {
+  componentDidCatch(error: unknown, info: ErrorInfo) {
     console.error('[ErrorBoundary]', error, info.componentStack)
   }
 
