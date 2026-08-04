@@ -1,3 +1,5 @@
+import type { FormEvent } from 'react'
+import type { UserRole } from '../../../types/api'
 import { useState, useEffect, useCallback } from 'react'
 import { toast } from 'sonner'
 import { Users, ClipboardList, Building2, LayoutDashboard, Home, Store, Mail } from 'lucide-react'
@@ -55,7 +57,7 @@ export default function AdminUsers() {
     setLoading(true)
     setError(null)
     try {
-      const role = roleFilter === 'Todos' ? undefined : roleFilter
+      const role = roleFilter === 'Todos' ? undefined : (roleFilter as UserRole)
       const res = await adminService.listUsers(role)
       setUsers(res.data.data)
     } catch {
@@ -67,14 +69,16 @@ export default function AdminUsers() {
 
   useEffect(() => { fetchUsers() }, [fetchUsers])
 
-  const handleSendInvite = async (e) => {
+  const handleSendInvite = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     if (!inviteEmail) return
     setInviteSending(true)
     try {
       const res = await adminService.inviteOwner(inviteEmail)
-      const url = res.data?.data?.inviteUrl ?? res.data?.inviteUrl
-      setInviteResult({ email: inviteEmail, inviteUrl: url })
+      // O `?? res.data?.inviteUrl` era código morto: inviteOwner devolve a
+      // resposta axios, então a URL vive sempre em data.data.
+      const url = res.data.data.inviteUrl
+      setInviteResult({ email: inviteEmail, inviteUrl: url, expiresAt: res.data.data.expiresAt })
       setInviteEmail('')
     } catch (err) {
       toast.error(mensagemDeErro(err, 'Erro ao enviar convite.'))

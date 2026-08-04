@@ -19,7 +19,7 @@ function ownerNavItems(role: UserRole | undefined) {
   ]
 }
 
-const STATUS_LABEL = {
+const STATUS_LABEL: Record<string, string> = {
   active:    'Ativo',
   trialing:  'Trial',
   past_due:  'Vencida',
@@ -43,7 +43,7 @@ export default function OwnerDashboard() {
 
   useEffect(() => {
     Promise.all([
-      subscriptionService.getStatus().catch(() => ({ status: 'inactive' })),
+      subscriptionService.getStatus().catch(() => ({ status: 'inactive', currentPeriodEnd: null })),
       ownerService.getStats().catch(() => null),
     ]).then(([subData, statsData]) => {
       setSub(subData)
@@ -55,7 +55,7 @@ export default function OwnerDashboard() {
     try {
       setPaying(true)
       const { url } = await subscriptionService.createCheckout()
-      window.location.href = url
+      if (url) window.location.href = url
     } catch {
       toast.error('Erro ao iniciar pagamento. Tente novamente.')
       setPaying(false)
@@ -104,7 +104,7 @@ export default function OwnerDashboard() {
                   <div className="header">
                     <h3>Só+1 Pro</h3>
                     <Badge $status={sub?.status || 'inactive'}>
-                      {STATUS_LABEL[sub?.status] || 'Inativo'}
+                      {(sub?.status && STATUS_LABEL[sub.status]) || 'Inativo'}
                     </Badge>
                   </div>
                   <div className="price">R$ 79,90 / mês</div>

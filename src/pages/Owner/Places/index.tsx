@@ -92,7 +92,7 @@ export default function OwnerPlaces() {
     resetEdit()
   }
 
-  const onEditSubmit = async (data) => {
+  const onEditSubmit = async (data: Partial<PlaceInput>) => {
     setSaving(true)
     try {
       await placesService.update(editingPlace!.id, data)

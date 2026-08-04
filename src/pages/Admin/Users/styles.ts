@@ -241,7 +241,7 @@ export const ModalCancelBtn = styled.button`
   &:hover { background: ${({ theme }) => theme.colors.bgApp}; }
 `
 
-export const ModalConfirmBtn = styled.button<{ $danger?: string; }>`
+export const ModalConfirmBtn = styled.button<{ $danger?: boolean; }>`
   padding: 9px 18px;
   border-radius: ${({ theme }) => theme.radii.md};
   border: none;

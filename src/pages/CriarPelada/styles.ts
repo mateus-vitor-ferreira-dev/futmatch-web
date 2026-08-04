@@ -28,7 +28,7 @@ export const StepIndicator = styled.div`
   margin-bottom: 28px;
 `
 
-export const Step = styled.div<{ $active?: boolean; $done?: string; }>`
+export const Step = styled.div<{ $active?: boolean; $done?: boolean; }>`
   display: flex;
   align-items: center;
   gap: 6px;
@@ -40,7 +40,7 @@ export const Step = styled.div<{ $active?: boolean; $done?: string; }>`
     theme.colors.textMuted};
 `
 
-export const StepDot = styled.div<{ $active?: boolean; $done?: string; }>`
+export const StepDot = styled.div<{ $active?: boolean; $done?: boolean; }>`
   width: 24px;
   height: 24px;
   border-radius: 50%;
@@ -57,7 +57,7 @@ export const StepDot = styled.div<{ $active?: boolean; $done?: string; }>`
     $done || $active ? '#fff' : theme.colors.textMuted};
 `
 
-export const StepLine = styled.div<{ $done?: string; }>`
+export const StepLine = styled.div<{ $done?: boolean; }>`
   flex: 1;
   height: 2px;
   background: ${({ $done, theme }) =>

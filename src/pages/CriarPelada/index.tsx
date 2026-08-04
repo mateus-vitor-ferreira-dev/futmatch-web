@@ -103,7 +103,7 @@ export default function CriarPelada() {
   )
 
   // Auto-seleciona quadra se só há 1 opção
-  const handleSelectPlace = (place) => {
+  const handleSelectPlace = (place: Place) => {
     setFilterPlace(place)
     const courts = sportCourts.filter(c => c.place?.id === place.id)
     if (courts.length === 1) {
