@@ -17,7 +17,7 @@ import {
   TeamGrid, TeamCard, TeamHeader, PlayerItem,
 } from './styles'
 
-const STATUS_LABELS = {
+const STATUS_LABELS: Record<string, string> = {
   WAITING:   'Aguardando',
   FULL:      'Lotado',
   FINISHED:  'Finalizado',

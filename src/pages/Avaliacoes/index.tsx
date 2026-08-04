@@ -10,7 +10,7 @@ import {
   EmptyState,
 } from './styles'
 
-const TAG_LABELS = {
+const TAG_LABELS: Record<string, string> = {
   CRAQUE_DA_PELADA: 'Craque da Pelada',
   JOGA_FACIL:       'Joga Fácil',
   PASSA_DE_ANO:     'Passa de Ano',

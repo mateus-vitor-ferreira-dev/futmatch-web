@@ -34,7 +34,7 @@ const STATUS_FILTERS = [
   { label: 'Encerrados',      value: 'FINISHED' },
 ]
 
-const STATUS_LABELS = {
+const STATUS_LABELS: Record<string, string> = {
   DRAFT:               'Rascunho',
   OPEN:                'Inscrições abertas',
   REGISTRATION_CLOSED: 'Inscrições encerradas',
@@ -51,7 +51,7 @@ const FORMATS = [
   { value: 'SWISS',               label: 'Sistema Suíço' },
 ]
 
-const FORMAT_ICONS = {
+const FORMAT_ICONS: Record<string, string> = {
   KNOCKOUT:            '⚡',
   LEAGUE:              '📊',
   GROUPS_AND_KNOCKOUT: '🎯',
@@ -59,7 +59,7 @@ const FORMAT_ICONS = {
   SWISS:               '♟️',
 }
 
-const FORMAT_INFO = {
+const FORMAT_INFO: Record<string, string> = {
   KNOCKOUT:            { desc: 'Times se eliminam a cada rodada — perde, está fora.', hint: 'Funciona melhor com potência de 2: 4, 8, 16 ou 32 times.' },
   LEAGUE:              { desc: 'Todos jogam entre si e acumulam pontos na tabela.',    hint: 'Mínimo recomendado: 3 times.' },
   GROUPS_AND_KNOCKOUT: { desc: 'Fase de grupos seguida de eliminatória entre os melhores.', hint: 'Mínimo recomendado: 4 times.' },
@@ -67,7 +67,7 @@ const FORMAT_INFO = {
   SWISS:               { desc: 'Rodadas pareadas por desempenho — ninguém é eliminado até o fim.', hint: 'Flexível, mínimo 4 times.' },
 }
 
-const FORMAT_PLACEHOLDER = {
+const FORMAT_PLACEHOLDER: Record<string, string> = {
   KNOCKOUT:            'Ex: 8 (potência de 2: 4, 8, 16, 32)',
   LEAGUE:              'Ex: 6 (mínimo 3)',
   GROUPS_AND_KNOCKOUT: 'Ex: 8 (mínimo 4)',
@@ -75,7 +75,7 @@ const FORMAT_PLACEHOLDER = {
   SWISS:               'Ex: 8 (mínimo 4)',
 }
 
-const FORMAT_SVG = {
+const FORMAT_SVG: Record<string, string> = {
   KNOCKOUT: (
     <svg viewBox="0 0 210 88" width="210" height="88">
       <rect x="0" y="4" width="64" height="14" rx="2" fill="rgba(100,116,139,0.1)" stroke="rgba(100,116,139,0.4)" strokeWidth="0.8"/>

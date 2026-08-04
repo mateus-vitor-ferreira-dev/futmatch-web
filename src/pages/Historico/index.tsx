@@ -5,7 +5,9 @@ import { getSportMeta } from '../../hooks/useSports'
 import { useAuth } from '../../contexts/AuthContext'
 import { playerService } from '../../services/playerService'
 import { MainLayout } from '../../components'
-import type { Participation, Pelada } from '../../types/api'
+import { mensagemDeErro } from '../../utils/apiError'
+import type { ReviewProgress } from '../../services/playerService'
+import type { Participation, Pelada, ReviewTag, UserStats } from '../../types/api'
 import {
   Container, StatsCard, HistoryList, HistoryCard,
   EvalModalOverlay, EvalModalContent, ParticipantRow,
@@ -21,17 +23,28 @@ const TAG_OPTIONS = [
   { label: 'Boa Comunicação',  value: 'BOA_COMUNICACAO'  },
 ]
 
+interface AvaliacaoEmEdicao {
+  /**
+   * number | string de propósito: o valor inicial é o número 5, mas o <select>
+   * de estrelas entrega string no onChange. A conversão é feita no envio.
+   */
+  stars: number | string
+  tag: ReviewTag
+  comment: string
+}
+
 export default function Historico() {
   const { user } = useAuth()
-  const [history, setHistory] = useState<Pelada[]>([])
-  const [reviewSummary, setReviewSummary] = useState({})
+  const [history, setHistory] = useState<Participation[]>([])
+  const [reviewSummary, setReviewSummary] = useState<Partial<UserStats>>({})
   const [loading, setLoading] = useState(true)
 
   // Modal de avaliação
-  const [evalEvent, setEvalEvent] = useState(null)
+  const [evalEvent, setEvalEvent] = useState<Pelada | null>(null)
   const [participants, setParticipants] = useState<Participation[]>([])
-  const [evaluations, setEvaluations] = useState({})
-  const [reviewProgress, setReviewProgress] = useState(null)
+  /** Avaliação em edição, indexada por userId do avaliado. */
+  const [evaluations, setEvaluations] = useState<Record<string, AvaliacaoEmEdicao>>({})
+  const [reviewProgress, setReviewProgress] = useState<ReviewProgress | null>(null)
   const [submitting, setSubmitting] = useState(false)
 
   useEffect(() => {
@@ -41,8 +54,8 @@ export default function Historico() {
         const partRes = await playerService.getMyParticipatingEvents({ status: 'FINISHED' })
         setHistory(partRes.data || [])
 
-        const revRes = await playerService.getUserReviews(user.id)
-        setReviewSummary(revRes.data?.summary || {})
+        const revRes = await playerService.getUserReviews(user!.id)
+        setReviewSummary(revRes.data?.summary ?? {})
       } catch (error) {
         console.error(error)
       } finally {
@@ -52,21 +65,21 @@ export default function Historico() {
     if (user?.id) fetchHistoric()
   }, [user])
 
-  const openEvaluation = async (event) => {
+  const openEvaluation = async (event: Participation) => {
     try {
-      const pelada = event.pelada
+      const pelada = event.pelada!
       const [participantsRes, progressRes] = await Promise.all([
         playerService.getEventParticipants(pelada.courtId, pelada.id),
         playerService.getReviewProgress(pelada.courtId, pelada.id).catch(() => null),
       ])
 
-      const others = (participantsRes.data || []).filter(p => p.userId !== user.id)
+      const others = (participantsRes.data || []).filter((p: Participation) => p.userId !== user?.id)
       setParticipants(others)
       setEvalEvent(pelada)
       setReviewProgress(progressRes?.data || null)
 
-      const initialEvals = {}
-      others.forEach(p => {
+      const initialEvals: Record<string, AvaliacaoEmEdicao> = {}
+      others.forEach((p: Participation) => {
         initialEvals[p.userId] = { stars: 5, tag: 'JOGA_FACIL', comment: '' }
       })
       setEvaluations(initialEvals)
@@ -76,10 +89,10 @@ export default function Historico() {
     }
   }
 
-  const handleReviewChange = (userId, field, value) => {
+  const handleReviewChange = (userId: string, field: keyof AvaliacaoEmEdicao, value: string | number) => {
     setEvaluations(prev => ({
       ...prev,
-      [userId]: { ...prev[userId], [field]: value },
+      [userId]: { ...(prev[userId] as AvaliacaoEmEdicao), [field]: value },
     }))
   }
 
@@ -88,18 +101,18 @@ export default function Historico() {
       setSubmitting(true)
       for (const p of participants) {
         const review = evaluations[p.userId]
-        await playerService.submitReview(evalEvent.courtId, evalEvent.id, {
+        await playerService.submitReview(evalEvent!.courtId, evalEvent!.id, {
           reviewedId: p.userId,
-          stars: parseInt(review.stars),
-          tag: review.tag,
-          comment: review.comment || null,
+          stars: Number(review!.stars),
+          tag: review!.tag,
+          comment: review!.comment || null,
         })
       }
       toast.success('Avaliações enviadas com sucesso!')
       setEvalEvent(null)
     } catch (error) {
       console.error(error)
-      toast.error(error.response?.data?.message || 'Erro ao enviar avaliações')
+      toast.error(mensagemDeErro(error, 'Erro ao enviar avaliações'))
     } finally {
       setSubmitting(false)
     }
@@ -135,12 +148,16 @@ export default function Historico() {
 
         <h3>Partidas Concluídas</h3>
         <HistoryList>
-          {loading ? <SkeletonList count={4} /> : history.map((event: Pelada) => {
+          {loading ? <SkeletonList count={4} /> : history.map((event: Participation) => {
+            // A API sempre inclui `pelada` neste endpoint, mas o tipo a marca
+            // opcional (o include varia por consulta) — daí a guarda.
             const ev = event.pelada
+            if (!ev) return null
+            const sport = ev.court ? getSportMeta(ev.court.type) : { icon: '⚽', label: '—' }
             return (
               <HistoryCard key={ev.id}>
                 <div className="info">
-                  <h4>{ev.court?.place?.name} — {getSportMeta(ev.court?.type).icon} {getSportMeta(ev.court?.type).label}</h4>
+                  <h4>{ev.court?.place?.name} — {sport.icon} {sport.label}</h4>
                   <p>
                     {new Date(ev.date).toLocaleDateString('pt-BR')} às{' '}
                     {new Date(ev.date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}

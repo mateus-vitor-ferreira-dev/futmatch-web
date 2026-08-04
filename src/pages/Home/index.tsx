@@ -21,7 +21,7 @@ import {
   TipCard, TipIcon, TipContent, TipTitle, TipText,
 } from './styles'
 
-const ALL_TAB = { id: 'ALL', label: 'Todos', icon: '🎯', types: null }
+const ALL_TAB: Record<string, string> = { id: 'ALL', label: 'Todos', icon: '🎯', types: null }
 
 const TIPS = [
   { title: 'Dica de craque', text: 'Avalie seus colegas após cada jogo e ajude a construir uma comunidade confiável — seja no campo, na areia ou na mesa!' },

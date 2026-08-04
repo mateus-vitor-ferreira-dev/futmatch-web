@@ -19,17 +19,51 @@ const NAV_ITEMS = [
   { to: '/home',           label: 'Área do Jogador',    icon: Home },
 ]
 
-const STATUS_LABEL = { active: 'Ativo', trialing: 'Trial', past_due: 'Vencida', canceled: 'Cancelada', inactive: 'Inativo' }
-const STATUS_COLOR = { active: '#15803d', trialing: '#1d4ed8', past_due: '#dc2626', canceled: '#6b7280', inactive: '#6b7280' }
-const STATUS_BG    = { active: '#dcfce7', trialing: '#dbeafe', past_due: '#fee2e2', canceled: '#f3f4f6', inactive: '#f3f4f6' }
+const STATUS_LABEL: Record<string, string> = { active: 'Ativo', trialing: 'Trial', past_due: 'Vencida', canceled: 'Cancelada', inactive: 'Inativo' }
+const STATUS_COLOR: Record<string, string> = { active: '#15803d', trialing: '#1d4ed8', past_due: '#dc2626', canceled: '#6b7280', inactive: '#6b7280' }
+const STATUS_BG: Record<string, string> = { active: '#dcfce7', trialing: '#dbeafe', past_due: '#fee2e2', canceled: '#f3f4f6', inactive: '#f3f4f6' }
+
+/** Contrato como o /admin/subscriptions o devolve (ver admin.service.listSubscriptions). */
+interface Contract {
+  id: string
+  owner: { name: string; email: string }
+  place: { name: string } | null
+  planName: string
+  monthlyValue: string
+  status: string
+  currentPeriodEnd: string | null
+}
+
+/**
+ * ⚠️ Forma que a tabela de pagamentos espera. O endpoint /admin/payments é um
+ * stub no backend (admin.controller.listPayments devolve sempre []), então
+ * nada produz estes campos hoje — a tabela nunca renderiza uma linha.
+ * Declarado para documentar o contrato pretendido.
+ */
+interface Payment {
+  id: string
+  date: string
+  place: { name: string } | null
+  amount: string | number
+  method: string
+  status: string
+}
+
+interface DashboardStats {
+  totalArenas: number
+  active: number
+  /** String formatada ("79,90"), não número — é o que a API devolve. */
+  revenue: string
+  expiring: number
+}
 
 export default function AdminDashboard() {
   const { user } = useAuth()
-  const [stats, setStats] = useState({ totalArenas: 0, active: 0, revenue: 0, expiring: 0 })
-  const [contracts, setContracts] = useState<unknown[]>([])
-  const [payments, setPayments] = useState<unknown[]>([])
+  const [stats, setStats] = useState<DashboardStats>({ totalArenas: 0, active: 0, revenue: '0,00', expiring: 0 })
+  const [contracts, setContracts] = useState<Contract[]>([])
+  const [payments, setPayments] = useState<Payment[]>([])
   const [loading, setLoading] = useState(true)
-  const [detailContract, setDetailContract] = useState<unknown | null>(null)
+  const [detailContract, setDetailContract] = useState<Contract | null>(null)
 
   useEffect(() => {
     const fetchData = async () => {
@@ -40,9 +74,11 @@ export default function AdminDashboard() {
           api.get('/admin/subscriptions').catch(() => ({ data: [] })),
           api.get('/admin/payments').catch(() => ({ data: [] }))
         ])
-        setStats(statsRes.data?.data ?? statsRes.data ?? {})
-        setContracts(contractsRes.data?.data ?? contractsRes.data ?? [])
-        setPayments(paymentsRes.data?.data ?? paymentsRes.data ?? [])
+        // O `?? statsRes.data` cobre o fallback do .catch acima, que devolve o
+        // objeto cru em vez do envelope { success, data } da API.
+        setStats((statsRes.data?.data ?? statsRes.data) as DashboardStats)
+        setContracts((contractsRes.data?.data ?? contractsRes.data ?? []) as Contract[])
+        setPayments((paymentsRes.data?.data ?? paymentsRes.data ?? []) as Payment[])
       } finally {
         setLoading(false)
       }
@@ -81,7 +117,7 @@ export default function AdminDashboard() {
               </tr>
             </thead>
             <tbody>
-              {contracts.map(contract => (
+              {contracts.map((contract: Contract) => (
                 <tr key={contract.id}>
                   <td><strong>{contract.place?.name}</strong></td>
                   <td>{contract.owner?.name}</td>
@@ -91,7 +127,7 @@ export default function AdminDashboard() {
                   <td><ActionButton onClick={() => setDetailContract(contract)}>Ver Detalhes</ActionButton></td>
                 </tr>
               ))}
-              {contracts.length === 0 && !loading && <tr><td colSpan="6" style={{textAlign:'center'}}>Nenhum contrato encontrado.</td></tr>}
+              {contracts.length === 0 && !loading && <tr><td colSpan={6} style={{textAlign:'center'}}>Nenhum contrato encontrado.</td></tr>}
             </tbody>
           </Table>
         </Section>
@@ -109,7 +145,7 @@ export default function AdminDashboard() {
               </tr>
             </thead>
             <tbody>
-              {payments.map(payment => (
+              {payments.map((payment: Payment) => (
                 <tr key={payment.id}>
                   <td>{new Date(payment.date).toLocaleDateString('pt-BR')}</td>
                   <td>{payment.place?.name}</td>
@@ -118,7 +154,7 @@ export default function AdminDashboard() {
                   <td><Badge $status={payment.status}>{payment.status}</Badge></td>
                 </tr>
               ))}
-              {payments.length === 0 && !loading && <tr><td colSpan="5" style={{textAlign:'center'}}>Nenhum pagamento registrado.</td></tr>}
+              {payments.length === 0 && !loading && <tr><td colSpan={5} style={{textAlign:'center'}}>Nenhum pagamento registrado.</td></tr>}
             </tbody>
           </Table>
         </Section>
