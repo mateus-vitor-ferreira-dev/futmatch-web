@@ -1,0 +1,29 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+
+    // Quem compila é o Vite; o tsc aqui serve só como type-checker.
+    "noEmit": true,
+    "jsx": "react-jsx",
+
+    // Migração incremental: o .jsx remanescente continua importável, mas não é
+    // checado (evita ruído de arquivo ainda não migrado). Ambos saem no fim.
+    "allowJs": true,
+    "checkJs": false,
+
+    "strict": true,
+    "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true,
+    "resolveJsonModule": true,
+    "skipLibCheck": true,
+    "isolatedModules": true,
+    "allowImportingTsExtensions": true,
+
+    "types": ["vite/client"]
+  },
+  "include": ["src"],
+  "exclude": ["node_modules", "dist"]
+}

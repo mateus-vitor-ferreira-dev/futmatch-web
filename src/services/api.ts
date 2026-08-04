@@ -1,5 +1,8 @@
-import axios from 'axios'
+import axios, { AxiosError } from 'axios'
 import { env } from '../config/env'
+
+/** Chave do token no localStorage — usada aqui e no AuthContext. */
+export const TOKEN_KEY = 'só+1:token'
 
 /**
  * Instância Axios compartilhada por todos os serviços.
@@ -14,17 +17,17 @@ const api = axios.create({
 })
 
 api.interceptors.request.use((config) => {
-  const token = localStorage.getItem('só+1:token')
+  const token = localStorage.getItem(TOKEN_KEY)
   if (token) config.headers.Authorization = `Bearer ${token}`
   return config
 })
 
 api.interceptors.response.use(
   (res) => res,
-  (err) => {
+  (err: AxiosError) => {
     // Token expirado ou inválido — desloga automaticamente
     if (err.response?.status === 401) {
-      localStorage.removeItem('só+1:token')
+      localStorage.removeItem(TOKEN_KEY)
       window.location.href = '/login'
     }
     return Promise.reject(err)

@@ -3,7 +3,7 @@
  * Celular (11 dígitos): (XX) XXXXX-XXXX
  * Fixo   (10 dígitos): (XX) XXXX-XXXX
  */
-export function formatPhoneBR(value) {
+export function formatPhoneBR(value: string | number | null | undefined): string {
   const d = String(value ?? '').replace(/\D/g, '').slice(0, 11)
   if (d.length === 0) return ''
   if (d.length <= 2)  return `(${d}`
@@ -13,7 +13,7 @@ export function formatPhoneBR(value) {
 }
 
 /** @deprecated use formatPhoneBR para números brasileiros */
-export function maskPhone(raw) {
+export function maskPhone(raw: string): string {
   const d = raw.replace(/\D/g, '').slice(0, 9)
   if (d.length <= 1) return d
   if (d.length <= 5) return `${d[0]} ${d.slice(1)}`

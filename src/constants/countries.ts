@@ -1,5 +1,15 @@
+export interface Country {
+  /** ISO 3166-1 alpha-2 */
+  code: string
+  /** DDI no formato "+55" */
+  dialCode: string
+  /** Emoji de bandeira derivado do código ISO */
+  flag: string
+  name: string
+}
+
 // ITU-T E.164 — código ISO 3166-1 alpha-2 → DDI
-const DIAL_CODES = {
+const DIAL_CODES: Record<string, string> = {
   AC: "+247", AD: "+376", AE: "+971", AF: "+93",  AG: "+1",   AI: "+1",
   AL: "+355", AM: "+374", AO: "+244", AR: "+54",  AS: "+1",   AT: "+43",
   AU: "+61",  AW: "+297", AZ: "+994", BA: "+387", BB: "+1",   BD: "+880",
@@ -44,14 +54,14 @@ const DIAL_CODES = {
 }
 
 // Converte código ISO em emoji de bandeira via Unicode regional indicators
-function isoToFlag(code) {
+function isoToFlag(code: string): string {
   return [...code.toUpperCase()]
     .map(c => String.fromCodePoint(0x1f1a5 + c.charCodeAt(0)))
     .join('')
 }
 
-function buildCountries() {
-  let displayNames = null
+function buildCountries(): Country[] {
+  let displayNames: Intl.DisplayNames | null = null
   try {
     displayNames = new Intl.DisplayNames(['pt-BR'], { type: 'region' })
   } catch {
@@ -72,5 +82,8 @@ function buildCountries() {
     })
 }
 
-export const COUNTRIES = buildCountries()
-export const DEFAULT_COUNTRY = COUNTRIES[0] // Brasil sempre primeiro
+export const COUNTRIES: Country[] = buildCountries()
+
+// Brasil sempre primeiro — garantido pelo sort em buildCountries. A asserção
+// evita propagar `| undefined` para todo consumidor por causa do índice.
+export const DEFAULT_COUNTRY: Country = COUNTRIES[0]!

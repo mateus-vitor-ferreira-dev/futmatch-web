@@ -137,7 +137,17 @@ export const darkTheme = {
     white:         '#ffffff',
     black:         '#000000',
   },
-}
+} satisfies AppTheme
+
+/**
+ * O tipo do tema é DERIVADO do lightTheme, e o darkTheme é obrigado a
+ * satisfazê-lo (ver `satisfies` acima). Assim as duas variantes não podem
+ * divergir: uma cor presente em uma e ausente na outra vira erro de compilação
+ * em vez de `undefined` no CSS em runtime.
+ *
+ * É este tipo que styled.d.ts injeta em DefaultTheme.
+ */
+export type AppTheme = typeof lightTheme
 
 // backward compat — componentes que importam { theme } continuam funcionando
 export const theme = lightTheme

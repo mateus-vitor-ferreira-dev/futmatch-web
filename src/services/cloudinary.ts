@@ -1,6 +1,10 @@
 import { env } from '../config/env'
 
-export async function uploadImage(file) {
+interface CloudinaryUploadResponse {
+  secure_url: string
+}
+
+export async function uploadImage(file: File): Promise<string> {
   if (!env.cloudinaryCloud || !env.cloudinaryPreset) {
     throw new Error('Cloudinary não configurado')
   }
@@ -13,6 +17,6 @@ export async function uploadImage(file) {
     { method: 'POST', body: form }
   )
   if (!res.ok) throw new Error('Falha no upload da imagem')
-  const data = await res.json()
+  const data = (await res.json()) as CloudinaryUploadResponse
   return data.secure_url
 }
