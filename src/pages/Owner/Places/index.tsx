@@ -11,7 +11,7 @@ import SubscriptionGate from '../../../components/SubscriptionGate'
 import { useAuth } from '../../../contexts/AuthContext'
 import { useSubscription } from '../../../hooks/useSubscription'
 import * as placesService from '../../../services/places'
-import type { Place } from '../../../types/api'
+import type { Place, UserRole } from '../../../types/api'
 import {
   StatsRow, PlaceGrid, PlaceCard, PlaceCardHeader, PlaceInfo,
   PlaceName, PlaceMeta, StatusBadge, PlaceDesc, PlaceActions,
@@ -29,7 +29,7 @@ const editSchema = yup.object({
   complement:   yup.string(),
 })
 
-function ownerNavItems(role) {
+function ownerNavItems(role: UserRole | undefined) {
   return [
     { to: '/owner',          label: 'Visão Geral',           icon: LayoutDashboard, end: true },
     { to: '/owner/places',   label: 'Meus Estabelecimentos', icon: Building2       },

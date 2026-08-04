@@ -48,7 +48,7 @@ function fmtDate(d) {
 }
 
 export default function TournamentDetail() {
-  const { id } = useParams()
+  const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
   const { user } = useAuth()
 

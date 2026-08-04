@@ -12,7 +12,7 @@ import SubscriptionGate from '../../../components/SubscriptionGate'
 import { getSportMeta } from '../../../hooks/useSports'
 import * as courtsService from '../../../services/courts'
 import * as placesService from '../../../services/places'
-import type { Court, Place } from '../../../types/api'
+import type { Court, CourtType, Place, UserRole } from '../../../types/api'
 import {
   BackBtn, CourtsGrid, CourtCard, CourtCardHeader, CourtIconBox,
   CourtInfo, CourtName, CourtMeta, StatusBadge, CourtActions, ActionBtn,
@@ -36,7 +36,7 @@ const COURT_TYPES = [
   { value: 'POKER',        label: 'Poker' },
 ]
 
-function ownerNavItems(role) {
+function ownerNavItems(role: UserRole | undefined) {
   return [
     { to: '/owner',          label: 'Visão Geral',           icon: LayoutDashboard, end: true },
     { to: '/owner/places',   label: 'Meus Estabelecimentos', icon: Building2       },
@@ -56,8 +56,10 @@ const schema = yup.object({
   pricePerHour: yup.number().typeError('Valor inválido').min(0).nullable().transform((v, o) => (o === '' ? null : v)),
 })
 
+type FormValues = yup.InferType<typeof schema>
+
 export default function OwnerCourts() {
-  const { placeId } = useParams()
+  const { placeId } = useParams<{ placeId: string }>()
   const navigate = useNavigate()
   const { user } = useAuth()
   const { isActive, loading: subLoading } = useSubscription()
@@ -81,8 +83,8 @@ export default function OwnerCourts() {
     setError(null)
     try {
       const [placeRes, courtsRes] = await Promise.all([
-        placesService.getOne(placeId),
-        courtsService.getCourtsByPlace(placeId),
+        placesService.getOne(placeId!),
+        courtsService.getCourtsByPlace(placeId!),
       ])
       setPlace(placeRes.data?.data ?? placeRes.data)
       const raw = courtsRes?.data ?? courtsRes
@@ -98,16 +100,19 @@ export default function OwnerCourts() {
 
   function openCreate() {
     setEditingCourt(null)
-    reset({ name: '', type: 'SOCIETY', pricePerHour: '' })
+    // pricePerHour usa null (não '') porque o schema o transforma de '' para
+    // null e o tipo inferido é number | null | undefined.
+    reset({ name: '', type: 'SOCIETY', pricePerHour: null })
     setShowModal(true)
   }
 
-  function openEdit(court) {
+  function openEdit(court: Court) {
     setEditingCourt(court)
     reset({
       name: court.name,
       type: court.type,
-      pricePerHour: court.pricePerHour ?? '',
+      // Decimal do Prisma chega como string no JSON; o campo do form é number.
+      pricePerHour: court.pricePerHour != null ? Number(court.pricePerHour) : null,
     })
     setShowModal(true)
   }
@@ -118,19 +123,19 @@ export default function OwnerCourts() {
     reset()
   }
 
-  const onSubmit = async (data) => {
+  const onSubmit = async (data: FormValues) => {
     setSubmitting(true)
     try {
       const payload = {
         name: data.name,
-        type: data.type,
+        type: data.type as CourtType,
         ...(data.pricePerHour != null ? { pricePerHour: data.pricePerHour } : {}),
       }
       if (editingCourt) {
-        await courtsService.updateCourt(placeId, editingCourt.id, payload)
+        await courtsService.updateCourt(placeId!, editingCourt.id, payload)
         toast.success('Quadra atualizada!')
       } else {
-        await courtsService.createCourt(placeId, payload)
+        await courtsService.createCourt(placeId!, payload)
         toast.success('Quadra criada!')
       }
       closeModal()
@@ -142,11 +147,11 @@ export default function OwnerCourts() {
     }
   }
 
-  const handleToggleStatus = async (court) => {
+  const handleToggleStatus = async (court: Court) => {
     const next = court.status === 'OPEN' ? 'CLOSED' : 'OPEN'
     setToggling(court.id)
     try {
-      await courtsService.updateCourtStatus(placeId, court.id, next)
+      await courtsService.updateCourtStatus(placeId!, court.id, next)
       await fetchData()
     } catch {
       toast.error('Erro ao alterar status.')
@@ -155,11 +160,11 @@ export default function OwnerCourts() {
     }
   }
 
-  const handleDelete = async (court) => {
+  const handleDelete = async (court: Court) => {
     if (!window.confirm(`Excluir a quadra "${court.name}"? Esta ação não pode ser desfeita.`)) return
     setDeleting(court.id)
     try {
-      await courtsService.deleteCourt(placeId, court.id)
+      await courtsService.deleteCourt(placeId!, court.id)
       toast.success('Quadra excluída.')
       await fetchData()
     } catch {

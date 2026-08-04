@@ -7,9 +7,9 @@ import { subscriptionService } from '../../../services/subscriptionService'
 import { ownerService } from '../../../services/ownerService'
 import DashboardLayout from '../../../components/DashboardLayout'
 import { Container, Grid, Card, PlanHighlight, RowList, PrimaryButton, Badge, StatsGrid, StatCard, StatIcon, StatInfo, StatValue, StatLabel } from './styles'
-import type { OwnerStats, SubscriptionStatus } from '../../../types/api'
+import type { OwnerStats, SubscriptionStatus, UserRole } from '../../../types/api'
 
-function ownerNavItems(role) {
+function ownerNavItems(role: UserRole | undefined) {
   return [
     { to: '/owner',          label: 'Visão Geral',      icon: LayoutDashboard, end: true },
     { to: '/owner/requests', label: 'Solicitações',     icon: ClipboardList   },

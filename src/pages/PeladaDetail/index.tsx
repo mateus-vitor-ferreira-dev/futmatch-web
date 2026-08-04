@@ -40,7 +40,7 @@ function buildMapsUrl(event) {
 }
 
 export default function PeladaDetail() {
-  const { eventId } = useParams()
+  const { eventId } = useParams<{ eventId: string }>()
   const navigate = useNavigate()
   const { user } = useAuth()
 

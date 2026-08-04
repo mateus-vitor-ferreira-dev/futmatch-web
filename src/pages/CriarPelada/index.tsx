@@ -45,6 +45,8 @@ const schema = yup.object({
     .required('Informe a chave Pix para pagamento'),
 })
 
+type FormValues = yup.InferType<typeof schema>
+
 const STEPS = ['Escolher Quadra', 'Detalhes da Pelada', 'Confirmação']
 const MIN_DATE = new Date(Date.now() + 60000).toISOString().slice(0, 16)
 
@@ -110,7 +112,7 @@ export default function CriarPelada() {
     }
   }
 
-  const onSubmit = async (data) => {
+  const onSubmit = async (data: FormValues) => {
     if (!selectedCourt) return
     setSubmitting(true)
     setError(null)
