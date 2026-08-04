@@ -1,5 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
+import type { ChangeEvent } from 'react'
 import { COUNTRIES, DEFAULT_COUNTRY } from '../../constants/countries'
+import type { Country } from '../../constants/countries'
 import { formatPhoneBR } from '../../utils/masks'
 import {
   Container, InputWrapper, CountryButton,
@@ -18,13 +20,28 @@ import {
  *   value  → string combinada, ex: "+55 (11) 99999-9999"
  *   onChange → recebe a nova string combinada
  */
-export default function PhoneInput({ value = '', onChange, error, disabled, name }) {
+export interface PhoneInputProps {
+  /** String combinada, ex: "+55 (11) 99999-9999". */
+  value?: string
+  onChange?: (value: string) => void
+  error?: boolean
+  disabled?: boolean
+  name?: string
+}
+
+export default function PhoneInput({
+  value = '',
+  onChange,
+  error,
+  disabled,
+  name,
+}: PhoneInputProps) {
   const [country, setCountry]         = useState(DEFAULT_COUNTRY)
   const [localNumber, setLocalNumber] = useState('')
   const [isOpen, setIsOpen]           = useState(false)
   const [search, setSearch]           = useState('')
-  const containerRef = useRef(null)
-  const searchRef    = useRef(null)
+  const containerRef = useRef<HTMLDivElement>(null)
+  const searchRef    = useRef<HTMLInputElement>(null)
 
   // Sincroniza quando o form faz reset (ex: carregar dados do usuário)
   useEffect(() => {
@@ -41,8 +58,8 @@ export default function PhoneInput({ value = '', onChange, error, disabled, name
     if (!isOpen) return
     searchRef.current?.focus()
 
-    function onClickOutside(e) {
-      if (containerRef.current && !containerRef.current.contains(e.target)) {
+    function onClickOutside(e: globalThis.MouseEvent) {
+      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
         setIsOpen(false)
         setSearch('')
       }
@@ -51,14 +68,14 @@ export default function PhoneInput({ value = '', onChange, error, disabled, name
     return () => document.removeEventListener('mousedown', onClickOutside)
   }, [isOpen])
 
-  function selectCountry(selected) {
+  function selectCountry(selected: Country) {
     setCountry(selected)
     setIsOpen(false)
     setSearch('')
     onChange?.(`${selected.dialCode} ${localNumber}`)
   }
 
-  function handleNumberChange(e) {
+  function handleNumberChange(e: ChangeEvent<HTMLInputElement>) {
     const formatted = country.code === 'BR'
       ? formatPhoneBR(e.target.value)
       : e.target.value.replace(/[^\d\s\-()+]/g, '').slice(0, 20)

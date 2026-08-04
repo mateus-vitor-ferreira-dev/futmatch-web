@@ -46,7 +46,7 @@ export const MatchCard = styled.div`
   box-shadow: ${({ theme }) => theme.shadows.sm};
 `
 
-export const TeamRow = styled.div<{ $winner?: string; }>`
+export const TeamRow = styled.div<{ $winner?: boolean; }>`
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -61,7 +61,7 @@ export const TeamRow = styled.div<{ $winner?: string; }>`
   }
 `
 
-export const TeamName = styled.span<{ $empty?: string; $winner?: string; }>`
+export const TeamName = styled.span<{ $empty?: boolean; $winner?: boolean; }>`
   font-size: ${({ theme }) => theme.fontSizes.sm};
   font-weight: ${({ $winner, theme }) =>
     $winner ? theme.fontWeights.semibold : theme.fontWeights.regular};

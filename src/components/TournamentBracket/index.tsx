@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import type { CompetitionLevel, TournamentDivision } from '../../types/api'
 import { getTournamentDivisions } from '../../services/tournaments'
 import {
   Wrapper, BracketGrid, Round, RoundLabel, MatchesColumn,
@@ -7,7 +8,7 @@ import {
   EmptyBracket, LoadingBracket,
 } from './styles'
 
-const LEVEL_LABELS = {
+const LEVEL_LABELS: Record<CompetitionLevel, string> = {
   BEGINNER:     'Iniciante',
   INTERMEDIATE: 'Intermediário',
   AMATEUR:      'Amador',
@@ -15,11 +16,28 @@ const LEVEL_LABELS = {
   PROFESSIONAL: 'Profissional',
 }
 
+interface BracketTeam {
+  id: string
+  name: string
+}
+
+interface BracketMatch {
+  id: string
+  teamA: BracketTeam
+  teamB: BracketTeam
+}
+
+interface BracketRound {
+  id: string
+  label: string
+  matches: BracketMatch[]
+}
+
 /**
  * Gera um bracket visual simulado a partir das divisões do torneio.
  * Quando a API tiver partidas reais, substitua essa função pelos dados da API.
  */
-function buildSimulatedBracket(division) {
+function buildSimulatedBracket(division: TournamentDivision): BracketRound[] {
   const max = division.maxParticipants || 8
   const teamCount = Math.min(max, 8)
   const teams = Array.from({ length: teamCount }, (_, i) => ({
@@ -27,7 +45,7 @@ function buildSimulatedBracket(division) {
     name: `Time ${i + 1}`,
   }))
 
-  const rounds = []
+  const rounds: BracketRound[] = []
 
   // Quartas de final (4 jogos = 8 times)
   if (teamCount >= 8) {
@@ -35,10 +53,10 @@ function buildSimulatedBracket(division) {
       id:    'qf',
       label: 'Quartas de Final',
       matches: [
-        { id: 'qf1', teamA: teams[0], teamB: teams[7] },
-        { id: 'qf2', teamA: teams[3], teamB: teams[4] },
-        { id: 'qf3', teamA: teams[1], teamB: teams[6] },
-        { id: 'qf4', teamA: teams[2], teamB: teams[5] },
+        { id: 'qf1', teamA: teams[0]!, teamB: teams[7]! },
+        { id: 'qf2', teamA: teams[3]!, teamB: teams[4]! },
+        { id: 'qf3', teamA: teams[1]!, teamB: teams[6]! },
+        { id: 'qf4', teamA: teams[2]!, teamB: teams[5]! },
       ],
     })
   }
@@ -69,17 +87,17 @@ function buildSimulatedBracket(division) {
 
 const GAP_BY_ROUND = ['16px', '80px', '176px', '360px']
 
-function BracketRounds({ rounds }) {
+function BracketRounds({ rounds }: { rounds: BracketRound[] }) {
   if (!rounds || rounds.length === 0) return null
 
   return (
     <BracketGrid>
-      {rounds.map((round, roundIndex) => (
+      {rounds.map((round: BracketRound, roundIndex: number) => (
         <div key={round.id} style={{ display: 'flex', alignItems: 'center' }}>
           <Round>
             <RoundLabel>{round.label}</RoundLabel>
             <MatchesColumn $gap={GAP_BY_ROUND[roundIndex] ?? '16px'}>
-              {round.matches.map((match) => (
+              {round.matches.map((match: BracketMatch) => (
                 <MatchCard key={match.id}>
                   <TeamRow $winner={false}>
                     <TeamName $empty={match.teamA?.name === 'A definir'}>
@@ -125,11 +143,9 @@ function BracketRounds({ rounds }) {
 /**
  * Componente de chaveamento de torneio.
  * Busca as divisões do torneio pela API e gera o bracket visual.
- *
- * @param {{ tournamentId: string }} props
  */
-export default function TournamentBracket({ tournamentId }) {
-  const [divisions, setDivisions] = useState([])
+export default function TournamentBracket({ tournamentId }: { tournamentId: string }) {
+  const [divisions, setDivisions] = useState<TournamentDivision[]>([])
   const [loading, setLoading]     = useState(true)
 
   useEffect(() => {

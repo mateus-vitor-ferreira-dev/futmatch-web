@@ -2,8 +2,37 @@ import { useEffect, useRef } from 'react'
 import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet'
 import 'leaflet/dist/leaflet.css'
 import L from 'leaflet'
+import type { CourtType } from '../../types/api'
 
-delete L.Icon.Default.prototype._getIconUrl
+/**
+ * Evento como este mapa o consome: forma achatada, com lat/lng no próprio
+ * evento — não é o `Pelada` da API, que aninha o endereço sob court.place.
+ */
+export interface MapEvent {
+  id: string
+  lat: number
+  lng: number
+  place?: string
+  courtName?: string
+  city?: string
+  type: CourtType
+  maxPlayers: number
+  /** Contagem de participantes, não a lista. */
+  participations: number
+  totalValue: string | number
+  date?: string
+  status?: string
+}
+
+interface MapLocation {
+  lat: number
+  lng: number
+  events: MapEvent[]
+}
+
+// O Leaflet resolve os ícones por caminho relativo ao bundle, o que quebra com
+// o hashing do Vite; a remoção força o uso das URLs absolutas abaixo.
+delete (L.Icon.Default.prototype as unknown as { _getIconUrl?: unknown })._getIconUrl
 L.Icon.Default.mergeOptions({
   iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
   iconUrl:       'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
@@ -25,7 +54,7 @@ const SPORT_LABELS = {
   POKER:        'Poker',
 }
 
-const MOCK_EVENTS = [
+const MOCK_EVENTS: MapEvent[] = [
   {
     id: '1', courtName: 'Quadra Futsal A', type: 'FUTSAL',
     place: 'Arena SportZone', city: 'São Paulo',
@@ -46,7 +75,7 @@ const MOCK_EVENTS = [
   },
 ]
 
-function AutoFit({ locations }) {
+function AutoFit({ locations }: { locations: MapLocation[] }) {
   const map = useMap()
   const fittedRef = useRef(false)
 
@@ -54,9 +83,9 @@ function AutoFit({ locations }) {
     if (locations.length === 0 || fittedRef.current) return
 
     if (locations.length === 1) {
-      map.setView([locations[0].lat, locations[0].lng], 14)
+      map.setView([locations[0]!.lat, locations[0]!.lng], 14)
     } else {
-      const bounds = L.latLngBounds(locations.map(l => [l.lat, l.lng]))
+      const bounds = L.latLngBounds(locations.map((l): [number, number] => [l.lat, l.lng]))
       map.fitBounds(bounds, { padding: [48, 48] })
     }
 
@@ -66,8 +95,8 @@ function AutoFit({ locations }) {
   return null
 }
 
-function LocationPopup({ locEvents }) {
-  const primeira = locEvents[0]
+function LocationPopup({ locEvents }: { locEvents: MapEvent[] }) {
+  const primeira = locEvents[0]!
 
   return (
     <div style={{ fontFamily: 'Inter, Segoe UI, sans-serif', minWidth: 220 }}>
@@ -127,15 +156,15 @@ function LocationPopup({ locEvents }) {
   )
 }
 
-export function Map({ events = MOCK_EVENTS }) {
-  const grouped = events.reduce((acc, event) => {
+export function Map({ events = MOCK_EVENTS }: { events?: MapEvent[] }) {
+  const grouped = events.reduce<Record<string, MapLocation>>((acc, event) => {
     const key = `${event.lat},${event.lng}`
     if (!acc[key]) acc[key] = { lat: event.lat, lng: event.lng, events: [] }
-    acc[key].events.push(event)
+    acc[key]!.events.push(event)
     return acc
   }, {})
 
-  const locations = Object.values(grouped)
+  const locations: MapLocation[] = Object.values(grouped)
 
   return (
     <MapContainer

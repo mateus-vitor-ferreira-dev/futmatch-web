@@ -1,14 +1,16 @@
 import { useState, useEffect, useRef } from 'react'
 import { Bell } from 'lucide-react'
 import { notificationService } from '../../services/notificationService'
+import { TOKEN_KEY } from '../../services/api'
 import { env } from '../../config/env'
+import type { Notification } from '../../types/api'
 import {
   Wrapper, BellBtn, Badge, Dropdown, DropHeader, DropTitle,
   MarkAllBtn, NotifList, NotifItem, NotifDot, NotifText,
   NotifTime, EmptyMsg,
 } from './styles'
 
-function timeAgo(dateStr) {
+function timeAgo(dateStr: string): string {
   const diff = Date.now() - new Date(dateStr).getTime()
   const m = Math.floor(diff / 60000)
   if (m < 1) return 'agora'
@@ -19,10 +21,10 @@ function timeAgo(dateStr) {
 }
 
 export default function NotificationBell() {
-  const [notifs, setNotifs] = useState([])
+  const [notifs, setNotifs] = useState<Notification[]>([])
   const [open, setOpen]     = useState(false)
-  const ref                 = useRef(null)
-  const esRef               = useRef(null)
+  const ref                 = useRef<HTMLDivElement>(null)
+  const esRef               = useRef<EventSource | null>(null)
 
   async function load() {
     try {
@@ -36,7 +38,7 @@ export default function NotificationBell() {
   useEffect(() => {
     load()
 
-    const token = localStorage.getItem('só+1:token')
+    const token = localStorage.getItem(TOKEN_KEY)
     if (!token) return
 
     const url = `${env.apiUrl}/notifications/stream?token=${encodeURIComponent(token)}`
@@ -45,7 +47,7 @@ export default function NotificationBell() {
 
     es.onmessage = (e) => {
       try {
-        const notification = JSON.parse(e.data)
+        const notification = JSON.parse(e.data as string) as Notification
         setNotifs(prev => [notification, ...prev])
       } catch {
         // ignora payloads malformados
@@ -59,8 +61,8 @@ export default function NotificationBell() {
   }, [])
 
   useEffect(() => {
-    function handleClick(e) {
-      if (ref.current && !ref.current.contains(e.target)) setOpen(false)
+    function handleClick(e: globalThis.MouseEvent) {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false)
     }
     document.addEventListener('mousedown', handleClick)
     return () => document.removeEventListener('mousedown', handleClick)
@@ -71,7 +73,7 @@ export default function NotificationBell() {
     setNotifs(prev => prev.map(n => ({ ...n, read: true })))
   }
 
-  async function handleRead(id) {
+  async function handleRead(id: string) {
     await notificationService.readOne(id)
     setNotifs(prev => prev.map(n => n.id === id ? { ...n, read: true } : n))
   }
@@ -101,7 +103,14 @@ export default function NotificationBell() {
                 <NotifItem key={n.id} $read={n.read} onClick={() => handleRead(n.id)}>
                   {!n.read && <NotifDot />}
                   <div style={{ flex: 1 }}>
-                    <NotifText>{n.title || n.message}</NotifText>
+                    {/*
+                      * Era `n.title || n.message`: `message` não existe no
+                      * payload da API (os campos são `title` e `body`), então o
+                      * fallback nunca resolvia para nada. Como `title` é sempre
+                      * preenchido, o efeito era nenhum — mas o campo era resquício
+                      * de um formato antigo.
+                      */}
+                    <NotifText>{n.title}</NotifText>
                     <NotifTime>{timeAgo(n.createdAt)}</NotifTime>
                   </div>
                 </NotifItem>

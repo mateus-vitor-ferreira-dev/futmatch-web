@@ -1,4 +1,7 @@
 import { useState, useEffect } from 'react'
+import type { ReactNode } from 'react'
+import type { LucideIcon } from 'lucide-react'
+import type { UserMe, UserRole } from '../../types/api'
 import { Home, Search, ClipboardList, History, User, Plus, Trophy, Menu, Star, Sun, Moon, LayoutDashboard, Store, LogOut } from 'lucide-react'
 import iconUrl from '../../assets/icon-so-mais-um.svg'
 import LogoSvg from '../LogoSvg'
@@ -24,7 +27,13 @@ const NAV_ITEMS = [
   { to: '/perfil',         label: 'Perfil',          icon: User          },
 ]
 
-function getPanelLinks(role) {
+interface PanelLink {
+  to: string
+  label: string
+  icon: LucideIcon
+}
+
+function getPanelLinks(role: UserRole | undefined): PanelLink[] {
   if (role === 'ADMIN') return [
     { to: '/admin', label: 'Painel Admin', icon: LayoutDashboard },
     { to: '/owner', label: 'Painel Owner', icon: Store },
@@ -35,7 +44,7 @@ function getPanelLinks(role) {
   return []
 }
 
-function getInitials(name = '') {
+function getInitials(name = ''): string {
   return name
     .split(' ')
     .slice(0, 2)
@@ -43,7 +52,12 @@ function getInitials(name = '') {
     .join('')
 }
 
-export default function MainLayout({ children, user }) {
+export interface MainLayoutProps {
+  children: ReactNode
+  user?: UserMe | null
+}
+
+export default function MainLayout({ children, user }: MainLayoutProps) {
   const navigate = useNavigate()
   const location = useLocation()
   const initials = getInitials(user?.name)
@@ -86,7 +100,7 @@ export default function MainLayout({ children, user }) {
           {getPanelLinks(user?.role).length > 0 && (
             <>
               <NavDivider />
-              {getPanelLinks(user.role).map(({ to, label, icon: Icon }) => (
+              {getPanelLinks(user?.role).map(({ to, label, icon: Icon }) => (
                 <NavItem key={to} to={to}>
                   <Icon />
                   {label}
@@ -111,7 +125,17 @@ export default function MainLayout({ children, user }) {
             <Avatar>{initials}</Avatar>
             <UserInfo>
               <UserName>{user.name}</UserName>
-              <UserBadge>⭐ {user.rating ?? '—'} · {user.badge ?? 'Jogador'}</UserBadge>
+              {/*
+                * Era `user.rating` — campo que a API não devolve em nenhum
+                * endpoint. O `?? '—'` sempre vencia, então a nota nunca
+                * aparecia. O valor real vive em stats.averageStars.
+                *
+                * ATENÇÃO: o AuthContext popula o usuário via /auth/me, que NÃO
+                * inclui `stats` (só /users/:id e /users/me incluem). Então isto
+                * continua exibindo '—' até o contexto passar a buscar o perfil
+                * completo, ou /auth/me passar a devolver stats.
+                */}
+              <UserBadge>⭐ {user.stats?.averageStars ?? '—'} · {user.badge ?? 'Jogador'}</UserBadge>
             </UserInfo>
           </UserCard>
         )}

@@ -22,7 +22,7 @@ export const LeftPanel = styled.div`
 `
 
 /* Camada de imagem — duas divs absolutas fazem o crossfade */
-export const BgImage = styled.div<{ $url?: string; $visible?: boolean; }>`
+export const BgImage = styled.div<{ $url?: string | null; $visible?: boolean }>`
   position: absolute;
   inset: 0;
   background: ${({ $url }) =>

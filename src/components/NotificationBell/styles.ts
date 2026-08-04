@@ -88,7 +88,7 @@ export const NotifList = styled.div`
   overflow-y: auto;
 `
 
-export const NotifItem = styled.div<{ $read?: string; }>`
+export const NotifItem = styled.div<{ $read?: boolean; }>`
   display: flex;
   align-items: flex-start;
   gap: 10px;

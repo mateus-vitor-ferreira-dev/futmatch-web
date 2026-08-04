@@ -1,4 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
+import type { ReactNode } from 'react'
+import type { CourtType } from '../../types/api'
 import { useSports } from '../../hooks/useSports'
 import {
   Wrapper, LeftPanel, BgImage, BgOverlay,
@@ -24,7 +26,7 @@ import imgTenis       from '../../assets/sports/tenis.jpg'
 import imgPoker       from '../../assets/sports/poker.jpg'
 
 /** Mapa de id do esporte → imagem de fundo correspondente */
-const SPORT_IMAGES = {
+const SPORT_IMAGES: Partial<Record<CourtType, string>> = {
   SOCIETY:      imgSociety,
   CAMPO:        imgCampo,
   FUTSAL:       imgFutsal,
@@ -55,13 +57,21 @@ const STATS = [
  * Configuração visual dos 5 slots visíveis da roda de modalidades.
  * offset 0 = item ativo (centro), ±1 e ±2 ficam menores e mais transparentes.
  */
-const SLOTS = [
-  { offset: -2, scale: 0.72, opacity: 0.30 },
-  { offset: -1, scale: 0.86, opacity: 0.60 },
-  { offset:  0, scale: 1.00, opacity: 1.00 },
-  { offset:  1, scale: 0.86, opacity: 0.60 },
-  { offset:  2, scale: 0.72, opacity: 0.30 },
-]
+interface Slot {
+  scale: number
+  opacity: number
+}
+
+/** Indexado pelo offset (-2..2) — a busca linear anterior podia não achar nada. */
+const SLOTS: Record<number, Slot> = {
+  [-2]: { scale: 0.72, opacity: 0.30 },
+  [-1]: { scale: 0.86, opacity: 0.60 },
+  [0]:  { scale: 1.00, opacity: 1.00 },
+  [1]:  { scale: 0.86, opacity: 0.60 },
+  [2]:  { scale: 0.72, opacity: 0.30 },
+}
+
+const SLOT_PADRAO: Slot = { scale: 0.72, opacity: 0.30 }
 
 /**
  * Layout split-screen para as telas de autenticação.
@@ -74,9 +84,8 @@ const SLOTS = [
  * Painel direito:
  *  - Card branco com o conteúdo passado via `children` (formulário de login/registro).
  *
- * @param {{ children: React.ReactNode }} props
  */
-export default function AuthLayout({ children }) {
+export default function AuthLayout({ children }: { children: ReactNode }) {
   const { sports } = useSports()
 
   /** Índice do esporte ativo na roda */
@@ -87,7 +96,12 @@ export default function AuthLayout({ children }) {
    * o efeito de crossfade: enquanto uma aparece (front), a outra carrega
    * a próxima imagem por baixo.
    */
-  const [layers, setLayers] = useState({ a: null, b: null, front: 'a' })
+  interface Layers {
+    a: string | null
+    b: string | null
+    front: 'a' | 'b'
+  }
+  const [layers, setLayers] = useState<Layers>({ a: null, b: null, front: 'a' })
 
   /** Controla se o crossfade já foi aplicado para o índice atual */
   const prevIdxRef = useRef(-1)
@@ -126,10 +140,8 @@ export default function AuthLayout({ children }) {
   /**
    * Calcula a distância cíclica entre o item i e o item ativo,
    * garantindo que a distância máxima seja sempre ≤ n/2 (caminho mais curto na roda).
-   * @param {number} i
-   * @returns {number} distância de -n/2 a n/2
    */
-  function cyclicDist(i) {
+  function cyclicDist(i: number): number {
     const n = sports.length
     if (!n) return 0
     const d = ((i - activeIdx) % n + n) % n
@@ -170,7 +182,7 @@ export default function AuthLayout({ children }) {
             {sports.map((sport, i) => {
               const d = cyclicDist(i)
               if (Math.abs(d) > 2) return null // fora da janela visível
-              const slot     = SLOTS.find((s) => s.offset === d)
+              const slot     = SLOTS[d] ?? SLOT_PADRAO
               const isActive = d === 0
               const top      = trackCenter + d * ITEM_HEIGHT - ITEM_HEIGHT / 2
 

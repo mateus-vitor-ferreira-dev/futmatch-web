@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import type { CourtType, PeladaStatus } from '../../types/api'
 import styled, { keyframes } from 'styled-components'
 import { getSportMeta } from '../../hooks/useSports'
 
@@ -20,7 +21,7 @@ const Scene = styled.div`
   cursor: pointer;
 `
 
-const Card = styled.div`
+const Card = styled.div<{ $flipped?: boolean }>`
   width: 100%;
   height: 100%;
   position: relative;
@@ -139,7 +140,7 @@ const InfoRow = styled.div`
   padding-bottom: 8px;
 `
 
-const StatusBadge = styled.span`
+const StatusBadge = styled.span<{ $status?: PeladaStatus }>`
   font-size: 0.65rem;
   font-weight: 700;
   padding: 3px 8px;
@@ -161,8 +162,31 @@ const StatusBadge = styled.span`
     'rgba(255,255,255,0.3)'};
 `
 
+/**
+ * Forma que este card espera — ACHATADA, diferente do `Pelada` que a API
+ * devolve: aqui `place`/`courtName`/`city` são strings soltas e `participations`
+ * é um número, enquanto a API aninha tudo sob `court.place` e devolve
+ * `participations` como array.
+ *
+ * ⚠️ Nenhuma tela importa este componente (só o barrel components/index.ts o
+ * reexporta), então não existe hoje nada que produza esta forma. Mantido como
+ * está; se voltar a ser usado, o adaptador precisa ser escrito.
+ */
+export interface EventCardData {
+  place: string
+  courtName: string
+  city: string
+  type: CourtType
+  status: PeladaStatus
+  date: string
+  maxPlayers: number
+  /** Contagem de participantes, não a lista. */
+  participations: number
+  totalValue: string | number
+}
+
 // ---- Componente ----
-export function EventCard({ event }) {
+export function EventCard({ event }: { event: EventCardData }) {
   const [flipped, setFlipped] = useState(false)
 
   const vagas = event.maxPlayers - event.participations
