@@ -19,6 +19,8 @@ const schema = yup.object({
     .required('Obrigatório'),
 })
 
+type FormularioValores = yup.InferType<typeof schema>
+
 export default function ResetPassword() {
   const navigate = useNavigate()
   const [params] = useSearchParams()
@@ -29,11 +31,11 @@ export default function ResetPassword() {
     handleSubmit,
     setError,
     formState: { errors, isSubmitting, isSubmitSuccessful },
-  } = useForm({ resolver: yupResolver(schema) })
+  } = useForm<FormularioValores>({ resolver: yupResolver(schema) })
 
-  async function onSubmit({ newPassword, confirmPassword }) {
+  async function onSubmit({ newPassword, confirmPassword }: FormularioValores) {
     try {
-      await authService.resetPassword(token, newPassword, confirmPassword)
+      await authService.resetPassword(token ?? '', newPassword, confirmPassword)
     } catch (err) {
       const msg = mensagemDeErro(err, 'Link inválido ou expirado. Solicite um novo.')
       setError('root', { message: msg })

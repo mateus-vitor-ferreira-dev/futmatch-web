@@ -70,7 +70,7 @@ export default function AdminPlaces() {
 
   useEffect(() => { fetchPlaces() }, [fetchPlaces])
 
-  const handleToggleStatus = async (place) => {
+  const handleToggleStatus = async (place: Place) => {
     const next = place.status === 'OPEN' ? 'CLOSED' : 'OPEN'
     setTogglingId(place.id)
     try {
@@ -83,7 +83,7 @@ export default function AdminPlaces() {
     }
   }
 
-  const openAssignModal = async (place) => {
+  const openAssignModal = async (place: Place) => {
     setAssignTarget(place)
     setSelectedOwner(place.ownerId ?? '')
     setPromoteMode(false)

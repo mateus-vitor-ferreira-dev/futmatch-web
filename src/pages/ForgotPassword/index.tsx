@@ -16,6 +16,8 @@ const schema = yup.object({
   email: yup.string().email('E-mail inválido').required('Obrigatório'),
 })
 
+type FormularioValores = yup.InferType<typeof schema>
+
 export default function ForgotPassword() {
   const navigate = useNavigate()
   const [sent, setSent] = useState(false)
@@ -25,9 +27,9 @@ export default function ForgotPassword() {
     handleSubmit,
     setError,
     formState: { errors, isSubmitting },
-  } = useForm({ resolver: yupResolver(schema) })
+  } = useForm<FormularioValores>({ resolver: yupResolver(schema) })
 
-  async function onSubmit({ email }) {
+  async function onSubmit({ email }: FormularioValores) {
     try {
       await authService.forgotPassword(email)
       setSent(true)

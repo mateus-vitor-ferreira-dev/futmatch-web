@@ -1,12 +1,17 @@
 import { lazy, Suspense } from 'react'
+import type { ComponentType, ReactNode } from 'react'
 import { BrowserRouter, Routes, Route, Navigate, useNavigate } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
 
 // Recarrega a página automaticamente quando um chunk antigo não é encontrado após um novo deploy
-function lazyWithRetry(fn) {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function lazyWithRetry<T extends ComponentType<any>>(
+  fn: () => Promise<{ default: T }>,
+) {
   return lazy(() => fn().catch(() => {
     window.location.reload()
-    return new Promise(() => {})
+    // Promise que nunca resolve: a página está recarregando de qualquer forma.
+    return new Promise<{ default: T }>(() => {})
   }))
 }
 
@@ -48,35 +53,35 @@ function IntroRoute() {
   return <Intro onComplete={() => navigate('/login')} />
 }
 
-function PublicRoute({ children }) {
+function PublicRoute({ children }: { children: ReactNode }) {
   const { user, loading } = useAuth()
   if (loading) return null
-  if (!user) return children
+  if (!user) return <>{children}</>
   if (user.role === 'ADMIN') return <Navigate to="/admin" replace />
   if (user.role === 'OWNER') return <Navigate to="/owner" replace />
   return <Navigate to="/home" replace />
 }
 
-function PrivateRoute({ children }) {
+function PrivateRoute({ children }: { children: ReactNode }) {
   const { isAuthenticated, loading } = useAuth()
   if (loading) return null
-  return isAuthenticated ? children : <Navigate to="/login" replace />
+  return isAuthenticated ? <>{children}</> : <Navigate to="/login" replace />
 }
 
-function AdminRoute({ children }) {
+function AdminRoute({ children }: { children: ReactNode }) {
   const { user, loading } = useAuth()
   if (loading) return null
   if (!user) return <Navigate to="/login" replace />
   if (user.role !== 'ADMIN') return <Navigate to="/home" replace />
-  return children
+  return <>{children}</>
 }
 
-function OwnerRoute({ children }) {
+function OwnerRoute({ children }: { children: ReactNode }) {
   const { user, loading } = useAuth()
   if (loading) return null
   if (!user) return <Navigate to="/login" replace />
   if (user.role !== 'OWNER' && user.role !== 'ADMIN') return <Navigate to="/home" replace />
-  return children
+  return <>{children}</>
 }
 
 export default function AppRoutes() {
