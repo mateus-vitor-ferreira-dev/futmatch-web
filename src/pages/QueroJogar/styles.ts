@@ -205,7 +205,7 @@ export const ProgressBarContainer = styled.div`
   margin: ${({ theme }) => theme.spacing[4]} 0;
 `
 
-export const ProgressBar = styled.div<{ $isFull?: boolean; $progress?: string; }>`
+export const ProgressBar = styled.div<{ $isFull?: boolean; $progress?: number; }>`
   width: 100%;
   height: 8px;
   background: ${({ theme }) => theme.colors.borderLight};
