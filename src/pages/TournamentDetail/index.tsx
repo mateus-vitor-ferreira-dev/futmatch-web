@@ -16,6 +16,7 @@ import {
   DivisionsSection, SectionTitle, DivisionList, DivisionTag,
   BracketSection, LoadingBox,
 } from './styles'
+import type { BadgeTone } from './styles'
 
 const STATUS_LABEL = {
   DRAFT:               { label: 'Rascunho',              color: 'default' },
@@ -42,7 +43,7 @@ const LEVEL_LABEL = {
   PROFESSIONAL: 'Profissional',
 }
 
-function fmtDate(d) {
+function fmtDate(d: string | null | undefined): string {
   if (!d) return '—'
   return new Date(d).toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' })
 }
@@ -60,10 +61,11 @@ export default function TournamentDetail() {
   const load = useCallback(async () => {
     try {
       const [tRes, dRes] = await Promise.all([
-        getTournament(id),
-        getTournamentDivisions(id),
+        getTournament(id!),
+        getTournamentDivisions(id!),
       ])
-      setTournament(tRes.data ?? tRes)
+      // O `?? tRes` era código morto: getTournament devolve o envelope.
+      setTournament(tRes.data)
       setDivisions(dRes.data ?? dRes ?? [])
     } catch {
       toast.error('Torneio não encontrado.')
@@ -99,7 +101,7 @@ export default function TournamentDetail() {
               {tournament.place?.city  ? `, ${tournament.place.city}`  : ''}
             </PlaceName>
           </HeaderInfo>
-          <StatusBadge $color={status.color}>{status.label}</StatusBadge>
+          <StatusBadge $color={status.color as BadgeTone}>{status.label}</StatusBadge>
         </Header>
 
         <Body>
@@ -151,7 +153,7 @@ export default function TournamentDetail() {
               </InfoItem>
             )}
 
-            {tournament.registrationFee > 0 && (
+            {Number(tournament.registrationFee) > 0 && (
               <InfoItem>
                 <InfoIcon><Tag size={16} /></InfoIcon>
                 <div>
@@ -207,7 +209,7 @@ export default function TournamentDetail() {
             >
               🏆 Chaveamento {showBracket ? '▲' : '▼'}
             </SectionTitle>
-            {showBracket && <TournamentBracket tournamentId={id} />}
+            {showBracket && id && <TournamentBracket tournamentId={id} />}
           </BracketSection>
         </Body>
       </Container>

@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import type { ChangeEvent } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useForm, Controller, useWatch } from 'react-hook-form'
 import { yupResolver } from '@hookform/resolvers/yup'
@@ -50,7 +51,7 @@ export default function Profile() {
   const navigate = useNavigate()
 
   // ── Upload de avatar ───────────────────────────────────────────────────────
-  const fileInputRef = useRef(null)
+  const fileInputRef = useRef<HTMLInputElement>(null)
   const [uploading, setUploading]     = useState(false)
   const [uploadError, setUploadError] = useState('')
   const cloudinaryReady = Boolean(env.cloudinaryCloud && env.cloudinaryPreset)
@@ -63,7 +64,7 @@ export default function Profile() {
   const [currentPwd, setCurrentPwd]     = useState('')
   const [currentPwdErr, setCurrentPwdErr] = useState('')
 
-  function switchTab(tab) {
+  function switchTab(tab: string) {
     setActiveTab(tab)
     if (tab !== 'password') {
       setPwdStep(1)
@@ -99,14 +100,19 @@ export default function Profile() {
     if (user) {
       resetProfile({
         name:      user.name      ?? '',
-        phone:     user.phone     ?? '',
+        /*
+         * ⚠️ `phone` não existe no modelo User nem no updateProfileSchema da
+         * API. O campo é preenchido, enviado no PATCH /users/me, descartado
+         * pelo stripUnknown e nunca salvo — o telefone jamais persistiu.
+         */
+        phone:     (user as { phone?: string }).phone ?? '',
         pixKey:    user.pixKey    ?? '',
         avatarUrl: user.avatarUrl ?? '',
       })
     }
   }, [user, resetProfile])
 
-  const handleAvatarFileChange = async (e) => {
+  const handleAvatarFileChange = async (e: ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (!file) return
     setUploading(true)
@@ -122,7 +128,7 @@ export default function Profile() {
     }
   }
 
-  const onSaveProfile = async (data) => {
+  const onSaveProfile = async (data: Record<string, unknown>) => {
     await usersService.updateMe(data)
     await refreshUser()
     toast.success('Perfil atualizado com sucesso!')
@@ -136,12 +142,12 @@ export default function Profile() {
     formState: { errors: errPwd, isSubmitting: savingPwd },
   } = useForm({ resolver: yupResolver(newPasswordSchema) })
 
-  const onSavePassword = async (data) => {
+  const onSavePassword = async (data: Record<string, unknown>) => {
     try {
       await usersService.updateMe({
         currentPassword:    currentPwd,
-        newPassword:        data.newPassword,
-        confirmNewPassword: data.confirmNewPassword,
+        newPassword:        data.newPassword as string,
+        confirmNewPassword: data.confirmNewPassword as string,
       })
       resetPwd()
       setCurrentPwd('')
@@ -169,7 +175,7 @@ export default function Profile() {
           <AvatarUploadWrapper onClick={() => cloudinaryReady && fileInputRef.current?.click()}>
             <AvatarCircle>
               {(avatarUrlValue || user?.avatarUrl)
-                ? <img src={avatarUrlValue || user?.avatarUrl} alt={user?.name} />
+                ? <img src={(avatarUrlValue || user?.avatarUrl) ?? undefined} alt={user?.name} />
                 : <AvatarInitials>{getInitials(user?.name)}</AvatarInitials>
               }
             </AvatarCircle>
@@ -229,7 +235,7 @@ export default function Profile() {
                   name="phone"
                   control={profileControl}
                   render={({ field }) => (
-                    <PhoneInput {...field} error={!!errP.phone} />
+                    <PhoneInput {...field} value={field.value ?? ''} error={!!errP.phone} />
                   )}
                 />
                 {errP.phone && <FieldError>{errP.phone.message}</FieldError>}

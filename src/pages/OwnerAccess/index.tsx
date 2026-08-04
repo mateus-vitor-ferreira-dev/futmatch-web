@@ -61,7 +61,7 @@ export default function OwnerAccess() {
       .catch(() => setStatus('invalid'))
   }, [inviteToken])
 
-  async function onLogin(data) {
+  async function onLogin(data: { email: string; password: string }) {
     loginForm.clearErrors()
     try {
       const res = await login(data)
@@ -78,10 +78,10 @@ export default function OwnerAccess() {
     }
   }
 
-  async function onRegister(data) {
+  async function onRegister(data: { name: string; password: string; confirmPassword: string }) {
     regForm.clearErrors()
     try {
-      await registerOwner({ ...data, inviteToken })
+      await registerOwner({ ...data, inviteToken: inviteToken ?? '' })
       navigate('/owner')
     } catch (err) {
       const msg = mensagemDeErro(err, 'Erro ao criar conta. Tente novamente.')

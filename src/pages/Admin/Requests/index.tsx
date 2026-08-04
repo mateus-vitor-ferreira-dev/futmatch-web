@@ -5,7 +5,7 @@ import DashboardLayout from '../../../components/DashboardLayout'
 import StatCard from '../../../components/StatCard'
 import { useAuth } from '../../../contexts/AuthContext'
 import * as placeRequestsService from '../../../services/placeRequests'
-import type { PlaceRequest } from '../../../types/api'
+import type { PlaceRequest, PlaceRequestStatus } from '../../../types/api'
 import {
   StatsRow, Tabs, Tab, RequestList, RequestCard, RequestAccent,
   RequestHeader, RequestTitle, RequestMeta, RequestDesc,
@@ -23,7 +23,7 @@ const NAV_ITEMS = [
   { to: '/home',           label: 'Área do Jogador',    icon: Home },
 ]
 
-const STATUS_TABS = [
+const STATUS_TABS: Array<{ key: PlaceRequestStatus | undefined; label: string }> = [
   { key: undefined,    label: 'Todas'      },
   { key: 'PENDING',    label: 'Pendentes'  },
   { key: 'APPROVED',   label: 'Aprovadas'  },
@@ -37,7 +37,7 @@ const STATUS_BG    = { PENDING: '#fef3c7', APPROVED: '#dcfce7', REJECTED: '#fee2
 export default function AdminRequests() {
   const { user } = useAuth()
   const [requests, setRequests]   = useState<PlaceRequest[]>([])
-  const [tab, setTab]             = useState(undefined)
+  const [tab, setTab] = useState<PlaceRequestStatus | undefined>(undefined)
   const [loading, setLoading]     = useState(true)
   const [error, setError]         = useState<string | null>(null)
   const [actionId, setActionId]   = useState<string | null>(null)

@@ -7,7 +7,9 @@ import { playerService } from '../../services/playerService'
 import { useSports, getSportMeta } from '../../hooks/useSports'
 import { SkeletonCard } from '../../components/Skeleton'
 import { MainLayout } from '../../components'
-import type { Pelada } from '../../types/api'
+import { mensagemDeErro } from '../../utils/apiError'
+import type { EventFilters } from '../../services/events'
+import type { CourtType, Pelada } from '../../types/api'
 import type { SportOption } from '../../hooks/useSports'
 import {
   Container, Header, HeaderRow,
@@ -20,9 +22,10 @@ import {
   PriceSliderWrapper,
 } from './styles'
 
-function buildGoogleMapsUrl(event) {
+function buildGoogleMapsUrl(event: Pelada): string | null {
   const parts = [
-    event.court?.place?.street,
+    // `street` não vem no select de place deste endpoint.
+    event.court?.place?.name,
     event.court?.place?.neighborhood,
     event.court?.place?.city,
     'Brasil',
@@ -64,8 +67,8 @@ export default function QueroJogar() {
     try {
       if (pageNum === 1) setLoading(true)
       else setLoadingMore(true)
-      const params = { status: 'WAITING', page: pageNum, limit: 20 }
-      if (selectedSport) params.courtType = selectedSport
+      const params: EventFilters = { status: 'WAITING', page: pageNum, limit: 20 }
+      if (selectedSport) params.courtType = selectedSport as CourtType
       if (filterCity)    params.city      = filterCity
       const res = await playerService.searchEvents(params)
       const incoming = res.data?.events ?? res.data ?? []
@@ -142,7 +145,7 @@ export default function QueroJogar() {
       await playerService.joinEvent(courtId, eventId)
       fetchEvents(1)
     } catch (error) {
-      toast.error(error.response?.data?.message || 'Erro ao entrar no jogo')
+      toast.error(mensagemDeErro(error, 'Erro ao entrar no jogo'))
     }
   }
 
@@ -330,10 +333,11 @@ export default function QueroJogar() {
                   <div>
                     <h3>{event.court?.place?.name || 'Local'}</h3>
                     <span className="address">
-                      {event.court?.place?.street}, {event.court?.place?.neighborhood}
+                      {/* `street` não vem no select de place — renderizava "undefined, Bairro". */}
+                      {event.court?.place?.neighborhood}, {event.court?.place?.city}
                     </span>
                   </div>
-                  <span className="badge">{getSportMeta(event.court?.type).icon} {getSportMeta(event.court?.type).label}</span>
+                  <span className="badge">{getSportMeta(event.court?.type as CourtType).icon} {getSportMeta(event.court?.type as CourtType).label}</span>
                 </CardHeader>
 
                 <InfoRow><Calendar size={14} /> {new Date(event.date).toLocaleDateString('pt-BR')}</InfoRow>
