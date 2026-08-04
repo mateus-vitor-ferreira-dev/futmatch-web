@@ -5,7 +5,7 @@ import { useAuth } from '../../contexts/AuthContext'
 import { MainLayout } from '../../components'
 import { playerService } from '../../services/playerService'
 import { useSports, getSportMeta } from '../../hooks/useSports'
-import type { Pelada } from '../../types/api'
+import type { CourtType } from '../../types/api'
 import type { SportOption } from '../../hooks/useSports'
 import {
   PageWrapper,
@@ -21,7 +21,15 @@ import {
   TipCard, TipIcon, TipContent, TipTitle, TipText,
 } from './styles'
 
-const ALL_TAB: Record<string, string> = { id: 'ALL', label: 'Todos', icon: '🎯', types: null }
+interface FiltroTab {
+  id: string
+  label: string
+  icon: string
+  /** null = sem restrição de modalidade. */
+  types: CourtType[] | null
+}
+
+const ALL_TAB: FiltroTab = { id: 'ALL', label: 'Todos', icon: '🎯', types: null }
 
 const TIPS = [
   { title: 'Dica de craque', text: 'Avalie seus colegas após cada jogo e ajude a construir uma comunidade confiável — seja no campo, na areia ou na mesa!' },
@@ -40,24 +48,38 @@ function getDailyTip() {
   return TIPS[Math.floor(Date.now() / 86400000) % TIPS.length]
 }
 
-function normalizeList(result) {
-  if (Array.isArray(result)) return result
-  if (result?.data?.events && Array.isArray(result.data.events)) return result.data.events
-  if (result?.data && Array.isArray(result.data)) return result.data
-  if (result?.events && Array.isArray(result.events)) return result.events
-  if (result?.items && Array.isArray(result.items)) return result.items
+/**
+ * Estes helpers testam vários nomes de campo alternativos (scheduledAt,
+ * startTime, startsAt, court.address, price...). A maioria não existe no
+ * contrato atual da API — são resquícios de formatos anteriores. Tipados de
+ * forma permissiva para preservar exatamente o comportamento defensivo.
+ */
+type EventoSolto = Record<string, unknown> & {
+  participations?: unknown
+  _count?: { participations?: number }
+  court?: Record<string, unknown> & { place?: Record<string, unknown> }
+}
+
+function normalizeList(result: unknown): EventoSolto[] {
+  if (Array.isArray(result)) return result as EventoSolto[]
+  const r = result as { data?: { events?: unknown } | unknown; events?: unknown; items?: unknown } | null
+  const data = (r as { data?: { events?: unknown } })?.data
+  if (data && Array.isArray((data as { events?: unknown }).events)) return (data as { events: EventoSolto[] }).events
+  if (Array.isArray(data)) return data as EventoSolto[]
+  if (Array.isArray(r?.events)) return r!.events as EventoSolto[]
+  if (Array.isArray(r?.items)) return r!.items as EventoSolto[]
   return []
 }
 
-function getParticipationCount(event) {
+function getParticipationCount(event: EventoSolto): number {
   if (typeof event.participations === 'number') return event.participations
   if (Array.isArray(event.participations)) return event.participations.length
   if (typeof event._count?.participations === 'number') return event._count.participations
   return 0
 }
 
-function getEventDateStr(event) {
-  const raw = event.scheduledAt || event.startTime || event.date || event.startsAt
+function getEventDateStr(event: EventoSolto): string {
+  const raw = (event.scheduledAt || event.startTime || event.date || event.startsAt) as string | undefined
   if (!raw) return ''
   const d = new Date(raw)
   const datePart = d.toLocaleDateString('pt-BR', { weekday: 'short', day: '2-digit', month: 'short' }).replace(/\.$/, '')
@@ -65,17 +87,17 @@ function getEventDateStr(event) {
   return `${datePart} · ${timePart}`
 }
 
-function getCourtName(event) {
-  return event.courtName || event.court?.name || event.name || 'Quadra'
+function getCourtName(event: EventoSolto): string {
+  return (event.courtName || event.court?.name || event.name || 'Quadra') as string
 }
 
-function getAddress(event) {
-  return event.address || event.court?.address || event.court?.place?.address || event.place || event.city || ''
+function getAddress(event: EventoSolto): string {
+  return (event.address || event.court?.address || event.court?.place?.address || event.place || event.city || '') as string
 }
 
-function getPricePerPlayer(event) {
-  const total = parseFloat(event.totalValue || event.price || 0)
-  const players = event.maxPlayers || 1
+function getPricePerPlayer(event: EventoSolto): string {
+  const total = parseFloat(String(event.totalValue ?? event.price ?? 0))
+  const players = Number(event.maxPlayers) || 1
   return (total / players).toFixed(0)
 }
 
@@ -85,7 +107,7 @@ export default function Home() {
   const { sports: allSports } = useSports()
   const SPORT_TABS = [ALL_TAB, ...allSports]
 
-  const [events, setEvents] = useState<Pelada[]>([])
+  const [events, setEvents] = useState<EventoSolto[]>([])
   const [loadingEvents, setLoadingEvents] = useState(true)
   const [stats, setStats] = useState({ total: 0, thisMonth: 0 })
   const [activeSport, setActiveSport] = useState('ALL')
@@ -93,11 +115,24 @@ export default function Home() {
   const fetchFeaturedEvents = useCallback(async () => {
     try {
       setLoadingEvents(true)
-      const today = new Date().toISOString().split('T')[0]
+      /*
+       * ⚠️ Dois filtros aqui eram no-op e foram removidos:
+       *
+       * 1. `date: today` — o searchEventsQuerySchema da API aceita `from` e
+       *    `to`, não `date`. Com stripUnknown o campo era descartado, então
+       *    este bloco NUNCA restringiu a busca ao dia de hoje. O efeito real
+       *    sempre foi "peladas futuras", que é o default do backend quando
+       *    nenhuma faixa é informada.
+       *
+       * 2. `city: user.city` — o model User não tem coluna `city`, então
+       *    user.city era sempre undefined e o spread condicional jamais
+       *    adicionava o filtro.
+       *
+       * Comportamento preservado de propósito: restringir a hoje mudaria o que
+       * a home exibe. Para filtrar por hoje de fato, usar { from, to }.
+       */
       const result = await playerService.searchEvents({
-        date: today,
         status: 'WAITING',
-        ...(user?.city ? { city: user.city } : {}),
       })
       setEvents(normalizeList(result))
     } catch {
@@ -113,7 +148,7 @@ export default function Home() {
       const arr = normalizeList(result)
       const now = new Date()
       const thisMonth = arr.filter(e => {
-        const raw = e.scheduledAt || e.startTime || e.date || e.startsAt || e.createdAt
+        const raw = (e.scheduledAt || e.startTime || e.date || e.startsAt || e.createdAt) as string | undefined
         if (!raw) return false
         const d = new Date(raw)
         return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear()
@@ -133,7 +168,7 @@ export default function Home() {
     ? events
     : events.filter(e => e.court?.type === activeSport)
 
-  const sportCountMap = allSports.reduce((acc, sport) => {
+  const sportCountMap = allSports.reduce<Record<string, number>>((acc, sport) => {
     acc[sport.id] = events.filter(e => e.court?.type === sport.id).length
     return acc
   }, {})
@@ -170,7 +205,12 @@ export default function Home() {
           <StatBox>
             <StatIconBox>⭐</StatIconBox>
             <StatInfo>
-              <StatValue>{user?.rating != null ? Number(user.rating).toFixed(1) : '—'}</StatValue>
+              {/*
+                * Era user.rating — campo inexistente na API, então o ternário
+                * sempre caía no '—'. O valor real é stats.averageStars, que
+                * /auth/me não devolve (ver nota em MainLayout).
+                */}
+              <StatValue>{user?.stats?.averageStars != null ? Number(user.stats.averageStars).toFixed(1) : '—'}</StatValue>
               <StatLabel>Nota</StatLabel>
             </StatInfo>
           </StatBox>
@@ -217,20 +257,20 @@ export default function Home() {
             <EmptyState>Nenhum jogo disponível no momento.</EmptyState>
           ) : (
             <GamesGrid>
-              {filteredEvents.slice(0, 4).map((event: Pelada) => {
+              {filteredEvents.slice(0, 4).map((event: EventoSolto) => {
                 const participations = getParticipationCount(event)
-                const maxPlayers = event.maxPlayers || 0
+                const maxPlayers = Number(event.maxPlayers) || 0
                 const vagas = maxPlayers - participations
                 const pct = maxPlayers > 0 ? Math.round((participations / maxPlayers) * 100) : 0
                 const courtName = getCourtName(event)
-                const sport = getSportMeta(event.court?.type)
+                const sport = getSportMeta(event.court?.type as CourtType)
                 const sportLabel = sport.label
                 const address = getAddress(event)
                 const dateStr = getEventDateStr(event)
                 const pricePerPlayer = getPricePerPlayer(event)
 
                 return (
-                  <GameCardWrapper key={event.id} onClick={() => navigate(`/pelada/${event.id}`)}>
+                  <GameCardWrapper key={String(event.id)} onClick={() => navigate(`/pelada/${String(event.id)}`)}>
                     <CardTop>
                       <CardCourtIcon>{sport.icon}</CardCourtIcon>
                       <CardCourtInfo>
