@@ -319,6 +319,12 @@ npm run dev
 
 ---
 
+## 🧭 Como a equipe trabalha
+
+Áreas e responsabilidades, ritmo de sprint, fluxo de issue até deploy, Definition of Ready e Definition of Done: **[manual da equipe](https://github.com/mateus-vitor-ferreira-dev/so-mais-um-api/blob/main/docs/EQUIPE.md)** — vale para os três repositórios do Só+1.
+
+---
+
 <div align="center">
 <sub><strong>Só+1</strong> · <a href="https://app.so-mais-um.com">app</a> · <a href="https://so-mais-um.com">landing</a> · <a href="https://github.com/mateus-vitor-ferreira-dev/so-mais-um-landing">repo da landing</a></sub>
 </div>

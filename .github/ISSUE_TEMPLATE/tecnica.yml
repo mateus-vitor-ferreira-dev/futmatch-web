@@ -1,0 +1,53 @@
+name: 🔧 Tarefa técnica
+description: Refactor, teste, documentação, CI, infra — coisas que o usuário não vê
+labels: ["tipo:técnica"]
+body:
+  - type: textarea
+    id: oque
+    attributes:
+      label: O que precisa ser feito
+    validations:
+      required: true
+
+  - type: textarea
+    id: porque
+    attributes:
+      label: Por que isso importa
+      description: Qual dor evita ou qual risco reduz. Se não der para responder, provavelmente não é prioridade.
+    validations:
+      required: true
+
+  - type: textarea
+    id: aceite
+    attributes:
+      label: Como saber que acabou
+      value: |
+        - [ ]
+        - [ ]
+    validations:
+      required: true
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: Área principal
+      options:
+        - Back
+        - Front
+        - Design
+        - Teste
+        - Marketing
+    validations:
+      required: true
+
+  - type: dropdown
+    id: estimativa
+    attributes:
+      label: Estimativa
+      options:
+        - P
+        - M
+        - G
+        - GG
+    validations:
+      required: false
