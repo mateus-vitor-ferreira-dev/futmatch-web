@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: 🧭 Manual da equipe
+    url: https://github.com/mateus-vitor-ferreira-dev/so-mais-um-api/blob/main/docs/EQUIPE.md
+    about: Áreas, ritmo de sprint, fluxo de trabalho, Definition of Ready e Definition of Done
+  - name: 📋 Board do Só+1
+    url: https://github.com/users/mateus-vitor-ferreira-dev/projects
+    about: Onde as tarefas são priorizadas e acompanhadas

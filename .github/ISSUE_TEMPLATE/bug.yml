@@ -1,0 +1,64 @@
+name: 🐛 Bug
+description: Algo que deveria funcionar e não funciona
+labels: ["tipo:bug"]
+body:
+  - type: textarea
+    id: esperado
+    attributes:
+      label: O que deveria acontecer
+    validations:
+      required: true
+
+  - type: textarea
+    id: aconteceu
+    attributes:
+      label: O que aconteceu
+      description: Cole a mensagem de erro ou o print, se tiver.
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduzir
+    attributes:
+      label: Como reproduzir
+      value: |
+        1.
+        2.
+        3.
+    validations:
+      required: true
+
+  - type: dropdown
+    id: ambiente
+    attributes:
+      label: Onde acontece
+      options:
+        - Produção
+        - Preview
+        - Local
+    validations:
+      required: true
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: Área principal
+      options:
+        - Back
+        - Front
+        - Design
+        - Teste
+        - Marketing
+    validations:
+      required: true
+
+  - type: dropdown
+    id: gravidade
+    attributes:
+      label: Gravidade
+      options:
+        - Alta — bloqueia o uso ou afeta dinheiro/dados
+        - Média — atrapalha, mas tem contorno
+        - Baixa — cosmético
+    validations:
+      required: true
