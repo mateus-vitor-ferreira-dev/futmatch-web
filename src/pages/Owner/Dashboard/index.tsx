@@ -1,23 +1,14 @@
 import { useState, useEffect } from 'react'
-import { LayoutDashboard, ClipboardList, Building2, Home, CreditCard, Loader2, MapPin, Shield, CalendarCheck, Bell, ShieldCheck } from 'lucide-react'
+import { CreditCard, Loader2, MapPin, Shield, CalendarCheck, Bell } from 'lucide-react'
 import { useSearchParams } from 'react-router-dom'
 import { toast } from 'sonner'
 import { useAuth } from '../../../contexts/AuthContext'
 import { subscriptionService } from '../../../services/subscriptionService'
 import { ownerService } from '../../../services/ownerService'
 import DashboardLayout from '../../../components/DashboardLayout'
+import { ownerNavItems } from '../../../constants/navItems'
 import { Container, Grid, Card, PlanHighlight, RowList, PrimaryButton, Badge, StatsGrid, StatCard, StatIcon, StatInfo, StatValue, StatLabel } from './styles'
-import type { OwnerStats, SubscriptionStatus, UserRole } from '../../../types/api'
-
-function ownerNavItems(role: UserRole | undefined) {
-  return [
-    { to: '/owner',          label: 'Visão Geral',      icon: LayoutDashboard, end: true },
-    { to: '/owner/requests', label: 'Solicitações',     icon: ClipboardList   },
-    { to: '/owner/places',   label: 'Estabelecimentos', icon: Building2       },
-    ...(role === 'ADMIN' ? [{ to: '/admin', label: 'Painel Admin', icon: ShieldCheck, divider: true }] : []),
-    { to: '/home',           label: 'Área do Jogador',  icon: Home, divider: role !== 'ADMIN' },
-  ]
-}
+import type { OwnerStats, SubscriptionStatus } from '../../../types/api'
 
 const STATUS_LABEL: Record<string, string> = {
   active:    'Ativo',
