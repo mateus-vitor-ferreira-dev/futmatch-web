@@ -3,14 +3,14 @@ import { useForm } from 'react-hook-form'
 import { yupResolver } from '@hookform/resolvers/yup'
 import * as yup from 'yup'
 import { toast } from 'sonner'
-import { Building2, ClipboardList, LayoutDashboard, Home, ShieldCheck } from 'lucide-react'
 import DashboardLayout from '../../../components/DashboardLayout'
+import { ownerNavItems } from '../../../constants/navItems'
 import StatCard from '../../../components/StatCard'
 import SubscriptionGate from '../../../components/SubscriptionGate'
 import { useAuth } from '../../../contexts/AuthContext'
 import { useSubscription } from '../../../hooks/useSubscription'
 import * as placeRequestsService from '../../../services/placeRequests'
-import type { PlaceRequest, UserRole } from '../../../types/api'
+import type { PlaceRequest } from '../../../types/api'
 import type { PlaceRequestInput } from '../../../services/placeRequests'
 import {
   StatsRow, RequestList, RequestCard, RequestAccent, RequestHeader,
@@ -20,16 +20,6 @@ import {
   Form, FormGroup, Label, Input, Textarea, ModalActions, CancelBtn, SubmitBtn,
   FieldError,
 } from './styles'
-
-function ownerNavItems(role: UserRole | undefined) {
-  return [
-    { to: '/owner',          label: 'Visão Geral',           icon: LayoutDashboard, end: true },
-    { to: '/owner/places',   label: 'Meus Estabelecimentos', icon: Building2       },
-    { to: '/owner/requests', label: 'Solicitações',          icon: ClipboardList   },
-    ...(role === 'ADMIN' ? [{ to: '/admin', label: 'Painel Admin', icon: ShieldCheck, divider: true }] : []),
-    { to: '/home',           label: 'Área do Jogador',       icon: Home, divider: role !== 'ADMIN' },
-  ]
-}
 
 const STATUS_LABEL = { PENDING: 'Aguardando', APPROVED: 'Aprovada', REJECTED: 'Rejeitada' }
 const STATUS_COLOR = { PENDING: '#d97706', APPROVED: '#16a34a', REJECTED: '#dc2626' }
