@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { toast } from 'sonner'
-import { Users, ClipboardList, Building2, LayoutDashboard, Home, Store } from 'lucide-react'
 import DashboardLayout from '../../../components/DashboardLayout'
+import { adminNavItems } from '../../../constants/navItems'
 import StatCard from '../../../components/StatCard'
 import { useAuth } from '../../../contexts/AuthContext'
 import * as placeRequestsService from '../../../services/placeRequests'
@@ -13,15 +13,6 @@ import {
   ApproveBtn, RejectBtn, EmptyState, ErrorMsg, RejectModal, ModalOverlay,
   ModalBox, ModalTitle, ReasonInput, ModalActions, CancelBtn, ConfirmBtn,
 } from './styles'
-
-const NAV_ITEMS = [
-  { to: '/admin',          label: 'Visão Geral',        icon: LayoutDashboard, end: true },
-  { to: '/admin/users',    label: 'Gestão de Usuários', icon: Users           },
-  { to: '/admin/requests', label: 'Solicitações',       icon: ClipboardList   },
-  { to: '/admin/places',   label: 'Estabelecimentos',   icon: Building2       },
-  { to: '/owner',          label: 'Painel do Owner',    icon: Store, divider: true },
-  { to: '/home',           label: 'Área do Jogador',    icon: Home },
-]
 
 const STATUS_TABS: Array<{ key: PlaceRequestStatus | undefined; label: string }> = [
   { key: undefined,    label: 'Todas'      },
@@ -98,7 +89,7 @@ export default function AdminRequests() {
   return (
     <DashboardLayout
       user={user}
-      navItems={NAV_ITEMS.map((n) =>
+      navItems={adminNavItems.map((n) =>
         n.to === '/admin/requests' ? { ...n, badge: pendingCount } : n
       )}
       tagline="Admin Panel"

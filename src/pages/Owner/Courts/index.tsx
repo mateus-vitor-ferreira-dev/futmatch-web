@@ -4,15 +4,16 @@ import { useForm } from 'react-hook-form'
 import { yupResolver } from '@hookform/resolvers/yup'
 import * as yup from 'yup'
 import { toast } from 'sonner'
-import { ArrowLeft, Building2, ClipboardList, Home, LayoutDashboard, ShieldCheck } from 'lucide-react'
+import { ArrowLeft } from 'lucide-react'
 import DashboardLayout from '../../../components/DashboardLayout'
+import { ownerNavItems } from '../../../constants/navItems'
 import { useAuth } from '../../../contexts/AuthContext'
 import { useSubscription } from '../../../hooks/useSubscription'
 import SubscriptionGate from '../../../components/SubscriptionGate'
 import { getSportMeta } from '../../../hooks/useSports'
 import * as courtsService from '../../../services/courts'
 import * as placesService from '../../../services/places'
-import type { Court, CourtType, Place, UserRole } from '../../../types/api'
+import type { Court, CourtType, Place } from '../../../types/api'
 import {
   BackBtn, CourtsGrid, CourtCard, CourtCardHeader, CourtIconBox,
   CourtInfo, CourtName, CourtMeta, StatusBadge, CourtActions, ActionBtn,
@@ -35,16 +36,6 @@ const COURT_TYPES = [
   { value: 'TENIS',        label: 'Tênis' },
   { value: 'POKER',        label: 'Poker' },
 ]
-
-function ownerNavItems(role: UserRole | undefined) {
-  return [
-    { to: '/owner',          label: 'Visão Geral',           icon: LayoutDashboard, end: true },
-    { to: '/owner/places',   label: 'Meus Estabelecimentos', icon: Building2       },
-    { to: '/owner/requests', label: 'Solicitações',          icon: ClipboardList   },
-    ...(role === 'ADMIN' ? [{ to: '/admin', label: 'Painel Admin', icon: ShieldCheck, divider: true }] : []),
-    { to: '/home',           label: 'Área do Jogador',       icon: Home, divider: role !== 'ADMIN' },
-  ]
-}
 
 const STATUS_LABEL = { OPEN: 'Aberta', CLOSED: 'Fechada' }
 const STATUS_COLOR = { OPEN: '#16a34a', CLOSED: '#6b7280' }

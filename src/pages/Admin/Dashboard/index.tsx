@@ -1,23 +1,13 @@
 import { useState, useEffect } from 'react'
-import { LayoutDashboard, Users, ClipboardList, Building2, Home, Store } from 'lucide-react'
 import { useAuth } from '../../../contexts/AuthContext'
 import api from '../../../services/api'
 import DashboardLayout from '../../../components/DashboardLayout'
+import { adminNavItems } from '../../../constants/navItems'
 import {
   Container, KpiGrid, KpiCard, Section, Table, Badge, ActionButton,
   DetailModal, DetailOverlay, DetailBox, DetailHeader, DetailTitle, CloseBtn,
   DetailRow, DetailLabel, DetailValue,
 } from './styles'
-
-// Navegação exata do Admin
-const NAV_ITEMS = [
-  { to: '/admin',          label: 'Visão Geral',        icon: LayoutDashboard, end: true },
-  { to: '/admin/users',    label: 'Gestão de Usuários', icon: Users           },
-  { to: '/admin/requests', label: 'Solicitações',       icon: ClipboardList   },
-  { to: '/admin/places',   label: 'Estabelecimentos',   icon: Building2       },
-  { to: '/owner',          label: 'Painel do Owner',    icon: Store, divider: true },
-  { to: '/home',           label: 'Área do Jogador',    icon: Home },
-]
 
 const STATUS_LABEL: Record<string, string> = { active: 'Ativo', trialing: 'Trial', past_due: 'Vencida', canceled: 'Cancelada', inactive: 'Inativo' }
 const STATUS_COLOR: Record<string, string> = { active: '#15803d', trialing: '#1d4ed8', past_due: '#dc2626', canceled: '#6b7280', inactive: '#6b7280' }
@@ -89,7 +79,7 @@ export default function AdminDashboard() {
   return (
     <DashboardLayout
       user={user}
-      navItems={NAV_ITEMS}
+      navItems={adminNavItems}
       tagline="Admin Panel"
       accent="#16a34a"
       pageTitle="Visão Geral (Assinaturas)"
