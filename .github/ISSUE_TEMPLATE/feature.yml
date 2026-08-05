@@ -1,0 +1,72 @@
+name: ✨ Funcionalidade
+description: Algo novo que o usuário vai conseguir fazer
+labels: ["tipo:feature"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Descreva pelo **resultado para o usuário**, não pela tarefa técnica.
+        Antes de puxar para a sprint, confira a [Definition of Ready](https://github.com/mateus-vitor-ferreira-dev/so-mais-um-api/blob/main/docs/EQUIPE.md#-definition-of-ready--a-issue-pode-entrar-na-sprint).
+
+  - type: textarea
+    id: problema
+    attributes:
+      label: Qual o problema?
+      description: O que hoje é ruim, manual ou impossível. Sem falar de solução ainda.
+      placeholder: Hoje o jogador não consegue saber se a pelada tem vaga sem abrir a tela e contar na mão.
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposta
+    attributes:
+      label: O que a gente quer fazer
+      description: A solução proposta, em uma ou duas frases.
+    validations:
+      required: true
+
+  - type: textarea
+    id: aceite
+    attributes:
+      label: Critérios de aceite
+      description: Cada linha precisa dar para responder sim ou não.
+      value: |
+        - [ ]
+        - [ ]
+        - [ ]
+    validations:
+      required: true
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: Área principal
+      options:
+        - Back
+        - Front
+        - Design
+        - Teste
+        - Marketing
+    validations:
+      required: true
+
+  - type: dropdown
+    id: estimativa
+    attributes:
+      label: Estimativa
+      description: "P: até meio dia · M: 1–2 dias · G: 3+ dias · GG: precisa ser quebrada"
+      options:
+        - P
+        - M
+        - G
+        - GG
+    validations:
+      required: false
+
+  - type: textarea
+    id: contexto
+    attributes:
+      label: Contexto extra
+      description: Print, link do Figma, issue relacionada, rota afetada. Opcional.
+    validations:
+      required: false
