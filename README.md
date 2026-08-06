@@ -164,7 +164,7 @@ flowchart TB
     </tr>
     <tr>
       <td><strong>Qualidade</strong></td>
-      <td><img src="https://img.shields.io/badge/ESLint_10-4B32C3?style=flat-square&logo=eslint&logoColor=white"/> <img src="https://img.shields.io/badge/Vitest_4-6E9F18?style=flat-square&logo=vitest&logoColor=white"/> <img src="https://img.shields.io/badge/Testing_Library-E33332?style=flat-square&logo=testinglibrary&logoColor=white"/> <img src="https://img.shields.io/badge/GitHub_Actions-2088FF?style=flat-square&logo=githubactions&logoColor=white"/> — lint + typecheck + teste + build a cada push e PR em <code>main</code> e <code>develop</code></td>
+      <td><img src="https://img.shields.io/badge/ESLint_10-4B32C3?style=flat-square&logo=eslint&logoColor=white"/> <img src="https://img.shields.io/badge/typescript--eslint_8-3178C6?style=flat-square&logo=typescript&logoColor=white"/> <img src="https://img.shields.io/badge/Vitest_4-6E9F18?style=flat-square&logo=vitest&logoColor=white"/> <img src="https://img.shields.io/badge/Testing_Library-E33332?style=flat-square&logo=testinglibrary&logoColor=white"/> <img src="https://img.shields.io/badge/GitHub_Actions-2088FF?style=flat-square&logo=githubactions&logoColor=white"/> — lint + typecheck + teste + build a cada push e PR em <code>main</code> e <code>develop</code></td>
     </tr>
     <tr>
       <td><strong>Deploy</strong></td>
@@ -315,7 +315,7 @@ npm run dev
 | `npm run dev` | Dev server do Vite com HMR em `http://localhost:5173` |
 | `npm run build` | Build de produção em `dist/` |
 | `npm run preview` | Serve o `dist/` em `http://localhost:4173` — use para reproduzir bug que só aparece em build |
-| `npm run lint` | ESLint 10 (flat config) em todo o projeto |
+| `npm run lint` | ESLint 10 (flat config) + typescript-eslint em todo o projeto, `.js` e `.ts`/`.tsx` |
 | `npm run typecheck` | `tsc --noEmit` — checa os tipos sem gerar arquivo |
 | `npm test` | Roda a suíte uma vez e sai — é o que o CI executa |
 | `npm run test:watch` | Modo interativo: reexecuta só o que você mexeu. É o que você usa escrevendo teste |

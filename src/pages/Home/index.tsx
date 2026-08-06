@@ -140,7 +140,12 @@ export default function Home() {
     } finally {
       setLoadingEvents(false)
     }
-  }, [user])
+    // `user` saiu das dependências junto com o filtro `city: user.city`
+    // descrito acima: o callback não lê mais nada de `user`, e mantê-lo aqui
+    // só recriava a função — e refazia a busca — a cada nova identidade do
+    // objeto. A Home fica atrás de PrivateRoute, então o usuário já está
+    // carregado na montagem. Mesmo critério do fetchStats logo abaixo.
+  }, [])
 
   const fetchStats = useCallback(async () => {
     try {

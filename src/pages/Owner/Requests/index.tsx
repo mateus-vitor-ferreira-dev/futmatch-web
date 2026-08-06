@@ -14,7 +14,7 @@ import type { PlaceRequest } from '../../../types/api'
 import type { PlaceRequestInput } from '../../../services/placeRequests'
 import {
   StatsRow, RequestList, RequestCard, RequestAccent, RequestHeader,
-  RequestTitle, RequestMeta, RequestDesc, RequestFooter, RequestSentAt,
+  RequestTitle, RequestMeta, RequestFooter, RequestSentAt,
   StatusBadge, EmptyState, ErrorMsg,
   NewBtn, Modal, ModalOverlay, ModalBox, ModalHeader, ModalTitle,
   Form, FormGroup, Label, Input, Textarea, ModalActions, CancelBtn, SubmitBtn,
