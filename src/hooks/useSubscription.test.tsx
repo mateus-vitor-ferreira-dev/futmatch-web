@@ -7,7 +7,7 @@
  * tem direito, sem explicação. Cortar depois abre a tela para uma ação que vai
  * falhar com 402 — o dono preenche o formulário para levar um não no fim.
  */
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
+import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { renderHook, waitFor } from '../test/render'
 import { useSubscription } from './useSubscription'
 
@@ -16,24 +16,29 @@ import { subscriptionService } from '../services/subscriptionService'
 
 const buscaStatus = vi.mocked(subscriptionService.getStatus)
 
-const AGORA = new Date('2026-08-06T12:00:00.000Z')
+const HORA_MS = 60 * 60 * 1000
 
-/** Data deslocada em dias a partir de um "agora" fixo. */
-function emDias(dias: number): string {
-  return new Date(AGORA.getTime() + dias * 24 * 60 * 60 * 1000).toISOString()
+/**
+ * Data deslocada a partir de agora, em horas.
+ *
+ * Em horas e não em dias porque os casos que importam são as bordas da janela
+ * de tolerância, e uma borda de "exatamente 7 dias" não se testa com relógio
+ * real: entre montar a data e o hook compará-la passam alguns milissegundos, e
+ * o teste falharia por causa do relógio, não da regra. Com 6h59 e 7h01 de cada
+ * lado, a borda é exercitada sem depender do instante exato.
+ *
+ * O relógio aqui é o de verdade, de propósito. `vi.useFakeTimers` congela os
+ * timers de que o `waitFor` da Testing Library depende para fazer polling —
+ * mesmo com `shouldAdvanceTime`, todo teste deste arquivo estourava em timeout.
+ */
+function emHoras(horas: number): string {
+  return new Date(Date.now() + horas * HORA_MS).toISOString()
 }
+
+const emDias = (dias: number) => emHoras(dias * 24)
 
 beforeEach(() => {
   vi.clearAllMocks()
-  // `shouldAdvanceTime` é o que torna o relógio fixo compatível com o
-  // `waitFor`: sem ele os timers ficam congelados, o polling da Testing
-  // Library nunca roda e todo teste deste arquivo estoura em timeout.
-  vi.useFakeTimers({ shouldAdvanceTime: true })
-  vi.setSystemTime(AGORA)
-})
-
-afterEach(() => {
-  vi.useRealTimers()
 })
 
 /** Monta o hook e espera o carregamento terminar. */
@@ -86,16 +91,16 @@ describe('useSubscription — tolerância de past_due', () => {
     expect(result.current.isActive).toBe(true)
   })
 
-  it('ainda libera no sétimo dia', async () => {
-    buscaStatus.mockResolvedValue({ status: 'past_due', currentPeriodEnd: emDias(-7) })
+  it('ainda libera uma hora antes de fechar a janela', async () => {
+    buscaStatus.mockResolvedValue({ status: 'past_due', currentPeriodEnd: emHoras(-7 * 24 + 1) })
 
     const result = await montaHook()
 
     expect(result.current.isActive).toBe(true)
   })
 
-  it('bloqueia depois da janela de 7 dias', async () => {
-    buscaStatus.mockResolvedValue({ status: 'past_due', currentPeriodEnd: emDias(-8) })
+  it('bloqueia uma hora depois de a janela fechar', async () => {
+    buscaStatus.mockResolvedValue({ status: 'past_due', currentPeriodEnd: emHoras(-7 * 24 - 1) })
 
     const result = await montaHook()
 
