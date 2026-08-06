@@ -345,6 +345,7 @@ Nada de pasta `__tests__` separada: teste longe do código é teste que ninguém
 | `src/test/setup.ts` | Roda antes de cada arquivo de teste: matchers do jest-dom, stub de `matchMedia` e limpeza de DOM + `localStorage` |
 | `src/test/render.tsx` | O helper `renderWithProviders` e o reexport da Testing Library |
 | `src/test/render.test.tsx` | O teste do próprio helper — helper quebrado falha no teste de quem só estava usando ele |
+| `src/test/factories.ts` | Fábricas de `Pelada`, `UserMe` e afins. Passe só o que o teste afirma: `criaPelada({ maxPlayers: 10 })` |
 
 ### O padrão
 
@@ -393,9 +394,20 @@ expect(await screen.findByText(/você está dentro/i)).toBeInTheDocument()
 import { renderWithProviders, screen, waitFor } from '../../test/render'
 ```
 
-### O ponto de partida
+### O que já está coberto
 
-Hoje a cobertura é de **~2%** — só os dois exemplos acima. Não é meta, é o marco zero: esta configuração é a fundação, e cobrir os fluxos críticos do jogador é a próxima issue. **Todo PR novo entra com teste do comportamento que ele muda** — é o que a [Definition of Done](https://github.com/mateus-vitor-ferreira-dev/so-mais-um-api/blob/main/docs/EQUIPE.md) pede.
+Os fluxos críticos do jogador, o que dá mais prejuízo quando quebra:
+
+| Fluxo | Onde | O que garante |
+|---|---|---|
+| Login e sessão | `contexts/AuthContext.test.tsx` | Restaura a sessão ao montar, descarta token expirado, guarda e limpa no login/logout |
+| Sessão expirada | `services/api.test.ts` | No 401 o interceptor desloga e manda para `/login` — e **não** desloga em 403 ou 500 |
+| Entrar na conta | `pages/Register/index.test.tsx` | Validação, mensagem da API na tela, e o destino certo por papel (jogador, dono, admin) |
+| Buscar pelada | `pages/QueroJogar/index.test.tsx` | Filtro de modalidade e cidade refaz a busca na API; horário, arena e texto recortam sem nova ida |
+| Entrar na pelada | `pages/PeladaDetail/index.test.tsx` | Contagem de vagas, botão bloqueado quando lotado ou já confirmado, Pix só para quem está dentro |
+| Criar pelada | `pages/CriarPelada/index.test.tsx` | Validação dos quatro campos, conversão do payload e erro da API renderizado |
+
+**72 testes, ~2,8s.** A cobertura de linhas está em **~22%**, e o número não é meta: o critério é cobrir o que dói quando quebra, não perseguir porcentagem. **Todo PR novo entra com teste do comportamento que ele muda** — é o que a [Definition of Done](https://github.com/mateus-vitor-ferreira-dev/so-mais-um-api/blob/main/docs/EQUIPE.md) pede.
 
 ---
 
