@@ -1,10 +1,10 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { toast } from 'sonner'
-import { ArrowLeft, Calendar, Clock, MapPin, Users, DollarSign, Copy, CheckCircle, Crown, Flag, XCircle, ExternalLink } from 'lucide-react'
+import { ArrowLeft, Calendar, Clock, MapPin, Users, DollarSign, Copy, CheckCircle, Crown, Flag, XCircle, ExternalLink, LogOut } from 'lucide-react'
 import { useAuth } from '../../contexts/AuthContext'
 import { MainLayout } from '../../components'
-import { playerService } from '../../services/playerService'
+import { playerService, MAX_MOTIVO_SAIDA } from '../../services/playerService'
 import { getSportMeta } from '../../hooks/useSports'
 import type { CourtType, Pelada, PeladaStatus } from '../../types/api'
 import { mensagemDeErro } from '../../utils/apiError'
@@ -19,6 +19,8 @@ import {
   ParticipantsSection, SectionTitle,
   ParticipantList, ParticipantItem, Avatar, ParticipantName, ParticipantNickname,
   MapLink, LoadingBox,
+  LeaveBtn, Modal, ModalOverlay, ModalBox, ModalTitle,
+  ReasonInput, ReasonCounter, ModalActions, ModalCancelBtn, ModalConfirmBtn,
 } from './styles'
 
 const STATUS_LABEL = {
@@ -48,6 +50,9 @@ export default function PeladaDetail() {
   const [loading, setLoading]           = useState(true)
   const [joining, setJoining]           = useState(false)
   const [updatingStatus, setUpdatingStatus] = useState(false)
+  const [confirmandoSaida, setConfirmandoSaida] = useState(false)
+  const [motivoSaida, setMotivoSaida]   = useState('')
+  const [saindo, setSaindo]             = useState(false)
 
   const load = useCallback(async () => {
     try {
@@ -75,6 +80,10 @@ export default function PeladaDetail() {
   const isJoined        = participations.some(p => p.userId === user?.id)
   const isOrganizer     = event.organizer?.id === user?.id
   const canJoin         = !isJoined && !isFull && (event.status === 'WAITING' || event.status === 'FULL')
+  // O organizador não sai da própria pelada — para ele a saída é cancelar ou
+  // finalizar, que já estão nas ações abaixo. A API também recusa sair de
+  // pelada finalizada ou cancelada, e a tela não oferece o que ela recusaria.
+  const canLeave        = isJoined && !isOrganizer && (event.status === 'WAITING' || event.status === 'FULL')
   const canChangeStatus = isOrganizer && (event.status === 'WAITING' || event.status === 'FULL')
   const showPix         = (isJoined || isOrganizer) && event.pixKey
   const sport           = getSportMeta(event.court?.type as CourtType)
@@ -96,6 +105,27 @@ export default function PeladaDetail() {
       toast.error(mensagemDeErro(err, 'Erro ao entrar na pelada.'))
     } finally {
       setJoining(false)
+    }
+  }
+
+  function abreConfirmacaoDeSaida() {
+    setMotivoSaida('')
+    setConfirmandoSaida(true)
+  }
+
+  async function handleLeave() {
+    setSaindo(true)
+    try {
+      // Motivo em branco não vai no corpo: a API o trata como ausente, e
+      // mandar string vazia só polui a notificação do organizador.
+      await playerService.leaveEvent(event!.courtId, event!.id, motivoSaida.trim() || undefined)
+      toast.success('Você saiu da pelada. Sua vaga foi liberada.')
+      setConfirmandoSaida(false)
+      load()
+    } catch (err) {
+      toast.error(mensagemDeErro(err, 'Erro ao sair da pelada.'))
+    } finally {
+      setSaindo(false)
     }
   }
 
@@ -233,6 +263,14 @@ export default function PeladaDetail() {
               </JoinBtn>
             )}
 
+            {/* Sair da pelada */}
+            {canLeave && (
+              <LeaveBtn onClick={abreConfirmacaoDeSaida} disabled={saindo}>
+                <LogOut size={16} />
+                {saindo ? 'Saindo...' : 'Sair da pelada'}
+              </LeaveBtn>
+            )}
+
             {/* Tag de organizador */}
             {isOrganizer && (
               <OrganizerTag>
@@ -289,6 +327,50 @@ export default function PeladaDetail() {
           </Body>
         </Card>
       </Container>
+
+      {/* Confirmação de saída — sair por clique errado libera uma vaga que o
+          jogador queria manter, e a pelada pode encher enquanto isso. */}
+      {confirmandoSaida && (
+        <Modal role="dialog" aria-modal="true" aria-label="Sair da pelada">
+          <ModalOverlay onClick={() => !saindo && setConfirmandoSaida(false)} />
+          <ModalBox>
+            <ModalTitle>Sair desta pelada?</ModalTitle>
+            <p>
+              Sua vaga volta para a busca na hora e o organizador é avisado.
+              Para voltar depois, você precisa entrar de novo — e pode ser que
+              não sobre vaga.
+            </p>
+
+            <label htmlFor="motivo-saida">
+              <p>Quer dizer o motivo? (opcional)</p>
+            </label>
+            <ReasonInput
+              id="motivo-saida"
+              rows={3}
+              maxLength={MAX_MOTIVO_SAIDA}
+              value={motivoSaida}
+              onChange={e => setMotivoSaida(e.target.value)}
+              placeholder="Ex: me machuquei no treino"
+            />
+            <ReasonCounter>
+              {motivoSaida.length} / {MAX_MOTIVO_SAIDA}
+            </ReasonCounter>
+
+            <ModalActions>
+              <ModalCancelBtn
+                type="button"
+                onClick={() => setConfirmandoSaida(false)}
+                disabled={saindo}
+              >
+                Continuar na pelada
+              </ModalCancelBtn>
+              <ModalConfirmBtn type="button" onClick={handleLeave} disabled={saindo}>
+                {saindo ? 'Saindo...' : 'Confirmar saída'}
+              </ModalConfirmBtn>
+            </ModalActions>
+          </ModalBox>
+        </Modal>
+      )}
     </MainLayout>
   )
 }
