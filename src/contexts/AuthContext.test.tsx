@@ -28,7 +28,11 @@ function Sonda() {
       <p>carregando: {String(loading)}</p>
       <p>autenticado: {String(isAuthenticated)}</p>
       <p>usuário: {user?.name ?? 'nenhum'}</p>
-      <button onClick={() => login({ email: 'a@b.com', password: '123456' })}>entrar</button>
+      {/* O .catch existe porque um dos testes faz o login falhar de propósito,
+          e a rejeição solta viraria ruído de unhandled rejection. */}
+      <button onClick={() => { void login({ email: 'a@b.com', password: '123456' }).catch(() => {}) }}>
+        entrar
+      </button>
       <button onClick={logout}>sair</button>
     </div>
   )
@@ -77,9 +81,16 @@ describe('AuthContext — restauração de sessão', () => {
 })
 
 describe('AuthContext — entrar e sair', () => {
-  it('login guarda o token e passa a expor o usuário', async () => {
+  it('login guarda o token e popula o usuário pelo GET /auth/me', async () => {
+    // Os dois nomes são diferentes de propósito. O payload do login traz só os
+    // campos públicos da conta — sem o pixKey que o formulário de perfil lê —
+    // então o contexto tem que ficar com o que veio do /auth/me. Enquanto ele
+    // se populava pelo payload, o perfil abria com o PIX em branco.
     login.mockResolvedValue(
-      envelope({ token: 'token-novo', user: criaUsuario({ name: 'Mateus Ferreira' }) }),
+      envelope({ token: 'token-novo', user: criaUsuario({ name: 'Veio Do Payload' }) }),
+    )
+    getMe.mockResolvedValue(
+      envelope(criaUsuario({ name: 'Mateus Ferreira', pixKey: 'mateus@pix.com' })),
     )
 
     const { user: usuario } = renderWithProviders(<Sonda />)
@@ -90,6 +101,22 @@ describe('AuthContext — entrar e sair', () => {
     expect(await screen.findByText('usuário: Mateus Ferreira')).toBeInTheDocument()
     expect(localStorage.getItem(TOKEN_KEY)).toBe('token-novo')
     expect(screen.getByText('autenticado: true')).toBeInTheDocument()
+    expect(getMe).toHaveBeenCalledTimes(1)
+  })
+
+  it('se o perfil não carregar depois do login, não deixa sessão pela metade', async () => {
+    login.mockResolvedValue(envelope({ token: 'token-novo', user: criaUsuario() }))
+    getMe.mockRejectedValue(erroDaApi('Erro interno', 500))
+
+    const { user: usuario } = renderWithProviders(<Sonda />)
+    await waitFor(() => expect(screen.getByText('carregando: false')).toBeInTheDocument())
+
+    await usuario.click(screen.getByRole('button', { name: 'entrar' }))
+
+    // Token guardado e usuário vazio seria o pior dos mundos: a aplicação se
+    // acharia deslogada e ainda mandaria o Bearer em toda requisição.
+    await waitFor(() => expect(localStorage.getItem(TOKEN_KEY)).toBeNull())
+    expect(screen.getByText('autenticado: false')).toBeInTheDocument()
   })
 
   it('logout apaga o token e o usuário', async () => {
