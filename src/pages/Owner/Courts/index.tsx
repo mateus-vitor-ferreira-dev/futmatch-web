@@ -4,6 +4,7 @@ import { useForm } from 'react-hook-form'
 import { yupResolver } from '@hookform/resolvers/yup'
 import * as yup from 'yup'
 import { toast } from 'sonner'
+import { toastErroDeApi } from '../../../utils/toastErro'
 import { ArrowLeft } from 'lucide-react'
 import DashboardLayout from '../../../components/DashboardLayout'
 import { ownerNavItems } from '../../../constants/navItems'
@@ -131,8 +132,8 @@ export default function OwnerCourts() {
       }
       closeModal()
       await fetchData()
-    } catch {
-      toast.error('Erro ao salvar quadra.')
+    } catch (err) {
+      toastErroDeApi(err, 'Erro ao salvar quadra.')
     } finally {
       setSubmitting(false)
     }
@@ -144,8 +145,8 @@ export default function OwnerCourts() {
     try {
       await courtsService.updateCourtStatus(placeId!, court.id, next)
       await fetchData()
-    } catch {
-      toast.error('Erro ao alterar status.')
+    } catch (err) {
+      toastErroDeApi(err, 'Erro ao alterar status.')
     } finally {
       setToggling(null)
     }
@@ -158,8 +159,8 @@ export default function OwnerCourts() {
       await courtsService.deleteCourt(placeId!, court.id)
       toast.success('Quadra excluída.')
       await fetchData()
-    } catch {
-      toast.error('Erro ao excluir quadra.')
+    } catch (err) {
+      toastErroDeApi(err, 'Erro ao excluir quadra.')
     } finally {
       setDeleting(null)
     }

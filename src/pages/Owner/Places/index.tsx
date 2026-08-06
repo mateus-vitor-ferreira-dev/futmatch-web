@@ -4,6 +4,7 @@ import { useForm } from 'react-hook-form'
 import { yupResolver } from '@hookform/resolvers/yup'
 import * as yup from 'yup'
 import { toast } from 'sonner'
+import { toastErroDeApi } from '../../../utils/toastErro'
 import DashboardLayout from '../../../components/DashboardLayout'
 import { ownerNavItems } from '../../../constants/navItems'
 import StatCard from '../../../components/StatCard'
@@ -89,8 +90,8 @@ export default function OwnerPlaces() {
       toast.success('Estabelecimento atualizado!')
       closeEdit()
       await fetchPlaces()
-    } catch {
-      toast.error('Erro ao atualizar estabelecimento.')
+    } catch (err) {
+      toastErroDeApi(err, 'Erro ao atualizar estabelecimento.')
     } finally {
       setSaving(false)
     }
@@ -102,8 +103,8 @@ export default function OwnerPlaces() {
     try {
       await placesService.updateStatus(place.id, next)
       await fetchPlaces()
-    } catch {
-      toast.error('Erro ao alterar status.')
+    } catch (err) {
+      toastErroDeApi(err, 'Erro ao alterar status.')
     } finally {
       setToggling(null)
     }

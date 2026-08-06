@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { useForm } from 'react-hook-form'
 import { yupResolver } from '@hookform/resolvers/yup'
 import * as yup from 'yup'
-import { toast } from 'sonner'
+import { toastErroDeApi } from '../../../utils/toastErro'
 import DashboardLayout from '../../../components/DashboardLayout'
 import { ownerNavItems } from '../../../constants/navItems'
 import StatCard from '../../../components/StatCard'
@@ -82,8 +82,8 @@ export default function OwnerRequests() {
       reset()
       setShowModal(false)
       await fetchRequests()
-    } catch {
-      toast.error('Erro ao enviar solicitação.')
+    } catch (err) {
+      toastErroDeApi(err, 'Erro ao enviar solicitação.')
     } finally {
       setSubmitting(false)
     }
