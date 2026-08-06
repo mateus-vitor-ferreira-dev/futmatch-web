@@ -30,6 +30,27 @@ function estaEmDia(sub: SubscriptionStatus | null): boolean {
   return Date.now() <= new Date(sub.currentPeriodEnd).getTime() + TOLERANCIA_PAST_DUE_DIAS * DIA_MS
 }
 
+/**
+ * Dias que ainda restam da tolerância de `past_due`, ou `null` quando não é o
+ * caso — assinatura em dia, sem assinatura, ou tolerância já vencida.
+ *
+ * Existe porque `past_due` dentro da janela é um estado que a tela precisa
+ * mostrar e não bloquear: a pessoa **consegue** agir, mas o pagamento falhou.
+ * Sem aviso, ela só descobre quando a tolerância acaba e a tela fecha do nada.
+ */
+export function diasDeToleranciaRestantes(sub: SubscriptionStatus | null): number | null {
+  if (sub?.status !== 'past_due' || !sub.currentPeriodEnd) return null
+
+  const fimDaTolerancia = new Date(sub.currentPeriodEnd).getTime() + TOLERANCIA_PAST_DUE_DIAS * DIA_MS
+  const restante = fimDaTolerancia - Date.now()
+
+  if (restante <= 0) return null
+
+  // Arredonda para cima: faltando algumas horas, "1 dia" é mais honesto com o
+  // usuário do que "0 dias" numa tela que ainda está funcionando.
+  return Math.ceil(restante / DIA_MS)
+}
+
 export function useSubscription(): {
   sub: SubscriptionStatus | null
   isActive: boolean

@@ -54,7 +54,7 @@ export default function OwnerCourts() {
   const { placeId } = useParams<{ placeId: string }>()
   const navigate = useNavigate()
   const { user } = useAuth()
-  const { isActive, loading: subLoading } = useSubscription()
+  const { sub, isActive, loading: subLoading } = useSubscription()
 
   const [place, setPlace]       = useState<Place | null>(null)
   const [courts, setCourts]     = useState<Court[]>([])
@@ -180,7 +180,7 @@ export default function OwnerCourts() {
         <NewBtn onClick={openCreate}>+ Nova Quadra</NewBtn>
       }
     >
-      <SubscriptionGate isActive={isActive} loading={subLoading}>
+      <SubscriptionGate isActive={isActive} loading={subLoading} sub={sub}>
         <BackBtn onClick={() => navigate('/owner/places')}>
           <ArrowLeft size={15} />
           Voltar

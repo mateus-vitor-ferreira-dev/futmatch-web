@@ -49,7 +49,7 @@ type FormularioSolicitacao = yup.InferType<typeof schema>
 
 export default function OwnerRequests() {
   const { user } = useAuth()
-  const { isActive, loading: subLoading } = useSubscription()
+  const { sub, isActive, loading: subLoading } = useSubscription()
   const [requests, setRequests]   = useState<PlaceRequest[]>([])
   const [loading, setLoading]     = useState(true)
   const [error, setError]         = useState<string | null>(null)
@@ -108,7 +108,7 @@ export default function OwnerRequests() {
         <NewBtn onClick={() => setShowModal(true)}>+ Nova Solicitação</NewBtn>
       }
     >
-      <SubscriptionGate isActive={isActive} loading={subLoading}>
+      <SubscriptionGate isActive={isActive} loading={subLoading} sub={sub}>
       <StatsRow>
         <StatCard label="Total Enviadas" value={counts.total}    accent="#3b82f6" />
         <StatCard label="Aprovadas"      value={counts.approved} accent="#22c55e" />

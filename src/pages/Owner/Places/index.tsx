@@ -38,7 +38,7 @@ const STATUS_BG    = { OPEN: '#dcfce7', CLOSED: '#f3f4f6' }
 export default function OwnerPlaces() {
   const { user } = useAuth()
   const navigate = useNavigate()
-  const { isActive, loading: subLoading } = useSubscription()
+  const { sub, isActive, loading: subLoading } = useSubscription()
   const [places, setPlaces]   = useState<Place[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError]     = useState<string | null>(null)
@@ -137,7 +137,7 @@ export default function OwnerPlaces() {
       pageTitle="Meus Estabelecimentos"
       pageSub="Gerencie seus locais, quadras e status de cada estabelecimento"
     >
-      <SubscriptionGate isActive={isActive} loading={subLoading}>
+      <SubscriptionGate isActive={isActive} loading={subLoading} sub={sub}>
       <StatsRow>
         <StatCard label="Estabelecimentos" value={places.length} accent="#f59e0b" />
         <StatCard label="Quadras"          value={totalCourts}   accent="#22c55e" />
