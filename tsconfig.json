@@ -23,6 +23,8 @@
 
     "types": ["vite/client"]
   },
-  "include": ["src"],
+  // O vite.config.ts entra junto: sem ele no include, o config do build e dos
+  // testes seria o único arquivo TypeScript do projeto sem type-check.
+  "include": ["src", "vite.config.ts"],
   "exclude": ["node_modules", "dist"]
 }
