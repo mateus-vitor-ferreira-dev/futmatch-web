@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { useForm } from 'react-hook-form'
 import { yupResolver } from '@hookform/resolvers/yup'
 import * as yup from 'yup'
-import { toast } from 'sonner'
+import { toastErroDeApi } from '../../../utils/toastErro'
 import DashboardLayout from '../../../components/DashboardLayout'
 import { ownerNavItems } from '../../../constants/navItems'
 import StatCard from '../../../components/StatCard'
@@ -49,7 +49,7 @@ type FormularioSolicitacao = yup.InferType<typeof schema>
 
 export default function OwnerRequests() {
   const { user } = useAuth()
-  const { isActive, loading: subLoading } = useSubscription()
+  const { sub, isActive, loading: subLoading } = useSubscription()
   const [requests, setRequests]   = useState<PlaceRequest[]>([])
   const [loading, setLoading]     = useState(true)
   const [error, setError]         = useState<string | null>(null)
@@ -82,8 +82,8 @@ export default function OwnerRequests() {
       reset()
       setShowModal(false)
       await fetchRequests()
-    } catch {
-      toast.error('Erro ao enviar solicitação.')
+    } catch (err) {
+      toastErroDeApi(err, 'Erro ao enviar solicitação.')
     } finally {
       setSubmitting(false)
     }
@@ -108,7 +108,7 @@ export default function OwnerRequests() {
         <NewBtn onClick={() => setShowModal(true)}>+ Nova Solicitação</NewBtn>
       }
     >
-      <SubscriptionGate isActive={isActive} loading={subLoading}>
+      <SubscriptionGate isActive={isActive} loading={subLoading} sub={sub}>
       <StatsRow>
         <StatCard label="Total Enviadas" value={counts.total}    accent="#3b82f6" />
         <StatCard label="Aprovadas"      value={counts.approved} accent="#22c55e" />

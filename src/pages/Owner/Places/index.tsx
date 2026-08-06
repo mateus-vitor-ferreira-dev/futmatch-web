@@ -4,6 +4,7 @@ import { useForm } from 'react-hook-form'
 import { yupResolver } from '@hookform/resolvers/yup'
 import * as yup from 'yup'
 import { toast } from 'sonner'
+import { toastErroDeApi } from '../../../utils/toastErro'
 import DashboardLayout from '../../../components/DashboardLayout'
 import { ownerNavItems } from '../../../constants/navItems'
 import StatCard from '../../../components/StatCard'
@@ -37,7 +38,7 @@ const STATUS_BG    = { OPEN: '#dcfce7', CLOSED: '#f3f4f6' }
 export default function OwnerPlaces() {
   const { user } = useAuth()
   const navigate = useNavigate()
-  const { isActive, loading: subLoading } = useSubscription()
+  const { sub, isActive, loading: subLoading } = useSubscription()
   const [places, setPlaces]   = useState<Place[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError]     = useState<string | null>(null)
@@ -89,8 +90,8 @@ export default function OwnerPlaces() {
       toast.success('Estabelecimento atualizado!')
       closeEdit()
       await fetchPlaces()
-    } catch {
-      toast.error('Erro ao atualizar estabelecimento.')
+    } catch (err) {
+      toastErroDeApi(err, 'Erro ao atualizar estabelecimento.')
     } finally {
       setSaving(false)
     }
@@ -102,8 +103,8 @@ export default function OwnerPlaces() {
     try {
       await placesService.updateStatus(place.id, next)
       await fetchPlaces()
-    } catch {
-      toast.error('Erro ao alterar status.')
+    } catch (err) {
+      toastErroDeApi(err, 'Erro ao alterar status.')
     } finally {
       setToggling(null)
     }
@@ -136,7 +137,7 @@ export default function OwnerPlaces() {
       pageTitle="Meus Estabelecimentos"
       pageSub="Gerencie seus locais, quadras e status de cada estabelecimento"
     >
-      <SubscriptionGate isActive={isActive} loading={subLoading}>
+      <SubscriptionGate isActive={isActive} loading={subLoading} sub={sub}>
       <StatsRow>
         <StatCard label="Estabelecimentos" value={places.length} accent="#f59e0b" />
         <StatCard label="Quadras"          value={totalCourts}   accent="#22c55e" />
