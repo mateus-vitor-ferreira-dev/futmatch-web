@@ -164,7 +164,7 @@ flowchart TB
     </tr>
     <tr>
       <td><strong>Qualidade</strong></td>
-      <td><img src="https://img.shields.io/badge/ESLint_10-4B32C3?style=flat-square&logo=eslint&logoColor=white"/> <img src="https://img.shields.io/badge/GitHub_Actions-2088FF?style=flat-square&logo=githubactions&logoColor=white"/> — lint + build a cada push e PR em <code>main</code> e <code>develop</code></td>
+      <td><img src="https://img.shields.io/badge/ESLint_10-4B32C3?style=flat-square&logo=eslint&logoColor=white"/> <img src="https://img.shields.io/badge/Vitest_4-6E9F18?style=flat-square&logo=vitest&logoColor=white"/> <img src="https://img.shields.io/badge/Testing_Library-E33332?style=flat-square&logo=testinglibrary&logoColor=white"/> <img src="https://img.shields.io/badge/GitHub_Actions-2088FF?style=flat-square&logo=githubactions&logoColor=white"/> — lint + typecheck + teste + build a cada push e PR em <code>main</code> e <code>develop</code></td>
     </tr>
     <tr>
       <td><strong>Deploy</strong></td>
@@ -315,7 +315,87 @@ npm run dev
 | `npm run dev` | Dev server do Vite com HMR em `http://localhost:5173` |
 | `npm run build` | Build de produção em `dist/` |
 | `npm run preview` | Serve o `dist/` em `http://localhost:4173` — use para reproduzir bug que só aparece em build |
-| `npm run lint` | ESLint 10 (flat config) em todo o projeto — é o que o CI roda antes do build |
+| `npm run lint` | ESLint 10 (flat config) em todo o projeto |
+| `npm run typecheck` | `tsc --noEmit` — checa os tipos sem gerar arquivo |
+| `npm test` | Roda a suíte uma vez e sai — é o que o CI executa |
+| `npm run test:watch` | Modo interativo: reexecuta só o que você mexeu. É o que você usa escrevendo teste |
+| `npm run test:coverage` | Suíte + relatório de cobertura no terminal e em `coverage/index.html` |
+
+> O CI roda, nesta ordem, `lint` → `typecheck` → `test` → `build`. Qualquer um vermelho barra o merge.
+
+---
+
+## 🧪 Testes
+
+**Vitest + Testing Library + jsdom.** O Vitest reaproveita o `vite.config.ts`, então o teste enxerga exatamente as mesmas resoluções de import e plugins que o app — não existe um segundo build para manter em pé.
+
+### Onde o teste mora
+
+Ao lado do código que ele testa, com sufixo `.test.ts` / `.test.tsx`:
+
+```
+src/utils/masks.ts                    →  src/utils/masks.test.ts
+src/components/RoleBadge/index.tsx    →  src/components/RoleBadge/index.test.tsx
+```
+
+Nada de pasta `__tests__` separada: teste longe do código é teste que ninguém lembra de atualizar quando o componente muda.
+
+| Arquivo | Para quê |
+|---|---|
+| `src/test/setup.ts` | Roda antes de cada arquivo de teste: matchers do jest-dom, stub de `matchMedia` e limpeza de DOM + `localStorage` |
+| `src/test/render.tsx` | O helper `renderWithProviders` e o reexport da Testing Library |
+| `src/test/render.test.tsx` | O teste do próprio helper — helper quebrado falha no teste de quem só estava usando ele |
+
+### O padrão
+
+Componente do Só+1 quase nunca renderiza sozinho — ele depende de tema, rota ou sessão. Por isso **use sempre `renderWithProviders`**, que monta a mesma pilha de providers do `App.tsx` (Google OAuth → tema → rota → auth):
+
+```tsx
+import { describe, it, expect } from 'vitest'
+import { renderWithProviders, screen } from '../../test/render'
+import RoleBadge from './index'
+
+describe('<RoleBadge />', () => {
+  it('mostra "Admin" para o papel ADMIN', () => {
+    renderWithProviders(<RoleBadge role="ADMIN" />)
+    expect(screen.getByText('Admin')).toBeInTheDocument()
+  })
+})
+```
+
+Ele devolve junto uma instância de `user-event` já configurada, e aceita `route`, `path` e `theme`:
+
+```tsx
+const { user } = renderWithProviders(<PeladaDetail />, {
+  route: '/pelada/42',        // onde o MemoryRouter começa
+  path:  '/pelada/:eventId',  // padrão da rota — é o que faz useParams funcionar
+  theme: 'dark',
+})
+await user.click(screen.getByRole('button', { name: /entrar na pelada/i }))
+expect(await screen.findByText(/você está dentro/i)).toBeInTheDocument()
+```
+
+> **Componente que lê `useParams` precisa dos dois.** Só `route` coloca a URL no lugar, mas quem extrai `:eventId` é o casamento com o `path` — sem ele, `useParams()` volta `{}` e o componente quebra num erro que não parece ter relação nenhuma com rota.
+
+### Cinco regras que o time segue
+
+1. **Consulte a tela como o usuário consulta.** `getByRole` e `getByText` primeiro; `getByTestId` é último recurso, não atalho. Teste que procura classe do styled-components quebra no próximo refactor sem que nada tenha parado de funcionar.
+2. **Descreva comportamento, não implementação.** `it('mostra "Admin" para o papel ADMIN')` — não `it('renderiza o Badge com ROLE_MAP')`.
+3. **`user-event` em vez de `fireEvent`.** Ele dispara a sequência real do navegador e já envolve tudo em `act`. É sempre `await`.
+4. **Nada de rede no teste.** Mocke o módulo de serviço com `vi.mock('../../services/events')` — o teste não pode depender da API estar de pé.
+5. **Espere com `findBy*` / `waitFor`, nunca com `setTimeout`.** Teste que dorme é teste que fica lento e falha sozinho no CI.
+
+### Import só de `src/test/render`
+
+`renderWithProviders`, `screen`, `waitFor`, `within` — tudo sai do mesmo lugar, porque `src/test/render.tsx` reexporta a Testing Library inteira:
+
+```tsx
+import { renderWithProviders, screen, waitFor } from '../../test/render'
+```
+
+### O ponto de partida
+
+Hoje a cobertura é de **~2%** — só os dois exemplos acima. Não é meta, é o marco zero: esta configuração é a fundação, e cobrir os fluxos críticos do jogador é a próxima issue. **Todo PR novo entra com teste do comportamento que ele muda** — é o que a [Definition of Done](https://github.com/mateus-vitor-ferreira-dev/so-mais-um-api/blob/main/docs/EQUIPE.md) pede.
 
 ---
 
