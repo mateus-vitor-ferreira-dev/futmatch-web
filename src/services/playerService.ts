@@ -33,6 +33,17 @@ export interface ReviewProgress {
   completed: boolean
 }
 
+/** Retorno de `DELETE .../participations` — o que a API devolve ao sair. */
+export interface LeaveResult {
+  pelada: { id: string; date: string; maxPlayers: number }
+  remainingPlayers: number
+  leftAt: string
+  reason?: string
+}
+
+/** Limite do motivo aceito pela API (`leavePeladaSchema`). */
+export const MAX_MOTIVO_SAIDA = 200
+
 export const playerService = {
   // --- QUERO JOGAR ---
   searchEvents: async (params?: EventFilters): Promise<ApiEnvelope<PeladaSearchResult>> => {
@@ -43,6 +54,26 @@ export const playerService = {
   joinEvent: async (courtId: string, eventId: string): Promise<ApiEnvelope<Participation>> => {
     const { data } = await api.post(
       `/courts/${courtId}/events/${eventId}/participations`
+    )
+    return data
+  },
+
+  /**
+   * Sai de uma pelada em que o usuário está confirmado.
+   *
+   * O `reason` é opcional e vai no corpo — a API aceita até 200 caracteres e
+   * o devolve na resposta. Quem trata o resto é o backend: recusa sair de
+   * pelada finalizada ou cancelada, devolve o evento de FULL para WAITING (é
+   * o que faz a vaga voltar para a busca) e notifica o organizador.
+   */
+  leaveEvent: async (
+    courtId: string,
+    eventId: string,
+    reason?: string,
+  ): Promise<ApiEnvelope<LeaveResult>> => {
+    const { data } = await api.delete(
+      `/courts/${courtId}/events/${eventId}/participations`,
+      { data: reason ? { reason } : {} }
     )
     return data
   },
