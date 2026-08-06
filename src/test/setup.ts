@@ -27,6 +27,39 @@ Object.defineProperty(window, 'matchMedia', {
   }),
 })
 
+// O jsdom também não implementa EventSource, e o NotificationBell — que vive
+// dentro do MainLayout, ou seja, em toda página logada — abre um stream SSE
+// assim que encontra token no localStorage. Sem o stub, qualquer teste de
+// página logada quebra com "EventSource is not defined".
+//
+// O stub não entrega mensagem nenhuma de propósito: teste que precise de
+// notificação chegando deve mockar o serviço, não depender deste boneco.
+class EventSourceStub {
+  static readonly CONNECTING = 0
+  static readonly OPEN = 1
+  static readonly CLOSED = 2
+
+  readyState = EventSourceStub.CONNECTING
+  onmessage: ((event: MessageEvent) => void) | null = null
+  onerror: ((event: Event) => void) | null = null
+  onopen: ((event: Event) => void) | null = null
+
+  constructor(public url: string) {}
+
+  close() {
+    this.readyState = EventSourceStub.CLOSED
+  }
+  addEventListener() {}
+  removeEventListener() {}
+  dispatchEvent() {
+    return false
+  }
+}
+Object.defineProperty(window, 'EventSource', {
+  writable: true,
+  value: EventSourceStub,
+})
+
 afterEach(() => {
   // Desmonta o que ficou na tela. Com `globals: false` a Testing Library não
   // registra a limpeza automática, então ela é feita à mão.
