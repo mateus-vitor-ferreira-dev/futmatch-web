@@ -116,7 +116,7 @@ export const NavBadge = styled.span`
 
 // ── Theme toggle ──────────────────────────────────────────────────────────────
 
-export const ThemeToggleBtn = styled.button`
+export const ThemeToggleBtn = styled.button<{ $flash?: boolean; }>`
   display: flex;
   align-items: center;
   gap: 10px;
@@ -124,8 +124,8 @@ export const ThemeToggleBtn = styled.button`
   padding: 10px 12px;
   border: none;
   border-radius: ${({ theme }) => theme.radii.md};
-  background: ${({ theme }) => theme.colors.primarySubtle};
-  color: ${({ theme }) => theme.colors.primary};
+  background: ${({ $flash, theme }) => $flash ? theme.colors.primarySubtle : theme.colors.bgCard};
+  color: ${({ $flash, theme }) => $flash ? theme.colors.primary : theme.colors.textSecondary};
   font-size: ${({ theme }) => theme.fontSizes.sm};
   font-weight: ${({ theme }) => theme.fontWeights.semibold};
   cursor: pointer;
@@ -133,7 +133,10 @@ export const ThemeToggleBtn = styled.button`
   font-family: ${({ theme }) => theme.fonts.sans};
   margin-bottom: 4px;
 
-  &:hover { opacity: 0.85; }
+  &:hover {
+    background: ${({ theme }) => theme.colors.primarySubtle};
+    color: ${({ theme }) => theme.colors.primary};
+  }
 
   svg { flex-shrink: 0; width: 18px; height: 18px; }
 `

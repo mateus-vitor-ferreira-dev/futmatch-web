@@ -1,6 +1,7 @@
 import { Sun, Moon, LogOut } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import type { ReactNode } from 'react'
+import { useState, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import type { UserMe } from '../../types/api'
 import { useThemeMode } from '../../contexts/ThemeContext'
@@ -57,6 +58,22 @@ export default function DashboardLayout({
   const { isDark, toggleTheme } = useThemeMode()
   const navigate = useNavigate()
   const { logout } = useAuth()
+  const [themeFlash, setThemeFlash] = useState(false)
+  const themeFlashTimer = useRef<number | null>(null)
+
+  function handleToggleTheme() {
+    if (themeFlashTimer.current) {
+      window.clearTimeout(themeFlashTimer.current)
+    }
+
+    setThemeFlash(true)
+    toggleTheme()
+
+    themeFlashTimer.current = window.setTimeout(() => {
+      setThemeFlash(false)
+      themeFlashTimer.current = null
+    }, 180)
+  }
 
   function handleLogout() {
     logout()
@@ -92,7 +109,7 @@ export default function DashboardLayout({
 
         </Nav>
 
-        <ThemeToggleBtn onClick={toggleTheme} title={isDark ? 'Modo claro' : 'Modo escuro'}>
+        <ThemeToggleBtn onClick={handleToggleTheme} title={isDark ? 'Modo claro' : 'Modo escuro'} $flash={themeFlash}>
           {isDark ? <Sun size={16} /> : <Moon size={16} />}
           {isDark ? 'Modo claro' : 'Modo escuro'}
         </ThemeToggleBtn>

@@ -219,7 +219,7 @@ export const TopbarLogoName = styled.span`
   color: ${({ theme }) => theme.colors.textPrimary};
 `
 
-export const ThemeToggleBtn = styled.button`
+export const ThemeToggleBtn = styled.button<{ $flash?: boolean; }>`
   display: flex;
   align-items: center;
   gap: 10px;
@@ -227,8 +227,8 @@ export const ThemeToggleBtn = styled.button`
   padding: 10px 12px;
   border: none;
   border-radius: ${({ theme }) => theme.radii.md};
-  background: ${({ theme }) => theme.colors.primarySubtle};
-  color: ${({ theme }) => theme.colors.primary};
+  background: ${({ $flash, theme }) => $flash ? theme.colors.primarySubtle : 'transparent'};
+  color: ${({ $flash, theme }) => $flash ? theme.colors.primary : theme.colors.textSecondary};
   font-size: ${({ theme }) => theme.fontSizes.sm};
   font-weight: ${({ theme }) => theme.fontWeights.semibold};
   cursor: pointer;
@@ -236,12 +236,15 @@ export const ThemeToggleBtn = styled.button`
   font-family: ${({ theme }) => theme.fonts.sans};
   margin-bottom: 4px;
 
-  &:hover { opacity: 0.85; }
+  &:hover {
+    background: ${({ theme }) => theme.colors.primarySubtle};
+    color: ${({ theme }) => theme.colors.primary};
+  }
 
   svg { flex-shrink: 0; width: 18px; height: 18px; }
 `
 
-export const ThemeToggleBtnCompact = styled.button`
+export const ThemeToggleBtnCompact = styled.button<{ $flash?: boolean; }>`
   display: flex;
   align-items: center;
   justify-content: center;
@@ -249,13 +252,16 @@ export const ThemeToggleBtnCompact = styled.button`
   height: 36px;
   border: none;
   border-radius: ${({ theme }) => theme.radii.md};
-  background: ${({ theme }) => theme.colors.primarySubtle};
-  color: ${({ theme }) => theme.colors.primary};
+  background: ${({ $flash, theme }) => $flash ? theme.colors.primarySubtle : 'transparent'};
+  color: ${({ $flash, theme }) => $flash ? theme.colors.primary : theme.colors.textSecondary};
   cursor: pointer;
-  transition: opacity 0.15s;
+  transition: background 0.15s, color 0.15s;
   flex-shrink: 0;
 
-  &:hover { opacity: 0.85; }
+  &:hover {
+    background: ${({ theme }) => theme.colors.primarySubtle};
+    color: ${({ theme }) => theme.colors.primary};
+  }
 `
 
 export const NavDivider = styled.div`
