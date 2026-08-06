@@ -6,7 +6,7 @@ import type { SubscriptionStatus } from '../../types/api'
 import { Overlay, Box, Icon, Title, Desc, Btn, Aviso, AvisoTexto, AvisoBtn, Carregando } from './styles'
 
 /** Onde o dono assina ou gerencia a assinatura. */
-const ROTA_ASSINATURA = '/owner/dashboard'
+const ROTA_ASSINATURA = '/owner/plans'
 
 export interface SubscriptionGateProps {
   isActive: boolean
