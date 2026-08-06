@@ -114,20 +114,24 @@ describe('CriarPelada — validação do formulário', () => {
 
     expect(await screen.findByText('Informe a data e horário')).toBeInTheDocument()
     expect(screen.getByText('Informe a chave Pix para pagamento')).toBeInTheDocument()
-    // Campo numérico vazio vira NaN na conversão do yup, então quem responde é
-    // o typeError — não o `.required()`. Ver a nota no fim deste arquivo.
-    expect(screen.getByText('Informe um número válido')).toBeInTheDocument()
-    expect(screen.getByText('Informe um valor válido')).toBeInTheDocument()
+    // As duas de baixo eram `Informe um número válido` e `Informe um valor
+    // válido`: campo numérico vazio virava NaN e o typeError respondia antes do
+    // `.required()`. O transform do schema devolve a vez para estas.
+    expect(screen.getByText('Informe o número de vagas')).toBeInTheDocument()
+    expect(screen.getByText('Informe o valor total da pelada')).toBeInTheDocument()
     expect(criaEvento).not.toHaveBeenCalled()
   })
 
   /**
-   * Os três casos abaixo são barrados ANTES do yup, pela validação nativa do
-   * HTML: os inputs carregam `min`/`max`, o navegador recusa o envio e o
-   * `handleSubmit` nunca roda. O que o teste garante é o que de fato protege o
-   * usuário — nada sai para a API. Ver a nota no fim deste arquivo.
+   * Os quatro casos abaixo eram barrados ANTES do yup, pela validação nativa do
+   * HTML — o navegador recusava o envio pelos `min`/`max` e o `handleSubmit`
+   * nunca rodava. Com `noValidate` no formulário, quem responde é o schema, e a
+   * mensagem que aparece é a que o time escreveu.
+   *
+   * Os `min`/`max` seguem nos inputs de propósito: sem bloquear o envio, ainda
+   * limitam as setas e o seletor de data.
    */
-  it('barra data no passado — nada é enviado', async () => {
+  it('barra data no passado com a mensagem do time', async () => {
     const { container, user } = await vaiAteOFormulario()
     const campos = preenche(container)
 
@@ -137,7 +141,7 @@ describe('CriarPelada — validação do formulário', () => {
     await user.type(campos.pix, 'pix@exemplo.com')
     await user.click(campos.enviar)
 
-    expect(campos.data.validity.rangeUnderflow).toBe(true)
+    expect(await screen.findByText('A data deve ser no futuro')).toBeInTheDocument()
     expect(criaEvento).not.toHaveBeenCalled()
     expect(screen.queryByText('Pelada criada com sucesso!')).not.toBeInTheDocument()
   })
@@ -152,7 +156,7 @@ describe('CriarPelada — validação do formulário', () => {
     await user.type(campos.pix, 'pix@exemplo.com')
     await user.click(campos.enviar)
 
-    expect((campos.vagas as HTMLInputElement).validity.rangeUnderflow).toBe(true)
+    expect(await screen.findByText('Mínimo 2 jogadores')).toBeInTheDocument()
     expect(criaEvento).not.toHaveBeenCalled()
   })
 
@@ -166,7 +170,7 @@ describe('CriarPelada — validação do formulário', () => {
     await user.type(campos.pix, 'pix@exemplo.com')
     await user.click(campos.enviar)
 
-    expect((campos.vagas as HTMLInputElement).validity.rangeOverflow).toBe(true)
+    expect(await screen.findByText('Máximo 50 jogadores')).toBeInTheDocument()
     expect(criaEvento).not.toHaveBeenCalled()
   })
 
@@ -180,7 +184,7 @@ describe('CriarPelada — validação do formulário', () => {
     await user.type(campos.pix, 'pix@exemplo.com')
     await user.click(campos.enviar)
 
-    expect((campos.valor as HTMLInputElement).validity.rangeUnderflow).toBe(true)
+    expect(await screen.findByText('Valor não pode ser negativo')).toBeInTheDocument()
     expect(criaEvento).not.toHaveBeenCalled()
   })
 
@@ -255,29 +259,3 @@ describe('CriarPelada — envio', () => {
     expect(await screen.findByText(/erro ao criar pelada/i)).toBeInTheDocument()
   })
 })
-
-/**
- * ── Duas descobertas que estes testes documentam ──────────────────────────
- *
- * 1. Quatro mensagens do schema yup são inalcançáveis pela interface, porque a
- *    validação nativa do HTML barra o envio antes:
- *
- *      'A data deve ser no futuro'   — o input tem `min={MIN_DATE}`
- *      'Mínimo 2 jogadores'          — o input tem `min={2}`
- *      'Máximo 50 jogadores'         — o input tem `max={50}`
- *      'Valor não pode ser negativo' — o input tem `min={0}`
- *
- *    Quem digita fora da faixa vê o balão do navegador, no idioma do
- *    navegador e fora do estilo do app — nunca a mensagem que o time escreveu.
- *    O yup segue valendo como rede de segurança contra envio programático,
- *    então nada aqui está errado; só não é o que se pensava estar entregando.
- *
- * 2. `.required('Informe o número de vagas')` e
- *    `.required('Informe o valor total da pelada')` também nunca aparecem:
- *    campo numérico vazio vira NaN na conversão, e NaN não é nulo — quem
- *    responde é o `typeError`.
- *
- * Os dois casos estão registrados como issue. Os testes acima afirmam o
- * comportamento REAL, não o pretendido: teste que afirma a intenção passa a
- * mentir no dia em que alguém "consertar" o formulário.
- */
