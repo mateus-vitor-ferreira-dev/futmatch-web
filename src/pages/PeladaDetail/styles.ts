@@ -359,3 +359,129 @@ export const LoadingBox = styled.div`
   color: ${({ theme }) => theme.colors.textMuted};
   font-size: ${({ theme }) => theme.fontSizes.sm};
 `
+
+/* ── Sair da pelada ─────────────────────────────────────────────────────── */
+
+export const LeaveBtn = styled.button`
+  width: 100%;
+  margin-top: ${({ theme }) => theme.spacing[3]};
+  padding: ${({ theme }) => theme.spacing[3]};
+  border-radius: ${({ theme }) => theme.radii.lg};
+  border: 1px solid ${({ theme }) => theme.colors.border};
+  background: transparent;
+  color: ${({ theme }) => theme.colors.textSecondary};
+  font-size: ${({ theme }) => theme.fontSizes.sm};
+  font-weight: ${({ theme }) => theme.fontWeights.medium};
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: ${({ theme }) => theme.spacing[2]};
+  transition: color 0.15s, border-color 0.15s;
+
+  /* Discreto de propósito: sair é uma saída, não uma ação que se promove
+     ao lado do "Você está confirmado". Só ganha a cor de perigo no hover. */
+  &:hover:not(:disabled) {
+    color: ${({ theme }) => theme.colors.error};
+    border-color: ${({ theme }) => theme.colors.error};
+  }
+  &:disabled { opacity: 0.6; cursor: not-allowed; }
+`
+
+export const Modal = styled.div`
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+`
+
+export const ModalOverlay = styled.div`
+  position: absolute;
+  inset: 0;
+  background: ${({ theme }) => theme.colors.bgOverlay};
+`
+
+export const ModalBox = styled.div`
+  position: relative;
+  background: ${({ theme }) => theme.colors.bgCard};
+  border-radius: ${({ theme }) => theme.radii.xl};
+  padding: 28px 32px;
+  width: calc(100% - 32px);
+  max-width: 440px;
+  box-shadow: ${({ theme }) => theme.shadows.lg};
+
+  p {
+    font-size: ${({ theme }) => theme.fontSizes.sm};
+    color: ${({ theme }) => theme.colors.textSecondary};
+    margin: 0 0 12px;
+  }
+`
+
+export const ModalTitle = styled.h3`
+  font-size: ${({ theme }) => theme.fontSizes.lg};
+  font-weight: ${({ theme }) => theme.fontWeights.semibold};
+  color: ${({ theme }) => theme.colors.textPrimary};
+  margin: 0 0 12px;
+`
+
+export const ReasonInput = styled.textarea`
+  width: 100%;
+  border: 1px solid ${({ theme }) => theme.colors.border};
+  border-radius: ${({ theme }) => theme.radii.md};
+  padding: 10px 12px;
+  font-size: ${({ theme }) => theme.fontSizes.sm};
+  color: ${({ theme }) => theme.colors.textPrimary};
+  background: ${({ theme }) => theme.colors.bgApp};
+  resize: vertical;
+  outline: none;
+  font-family: inherit;
+  box-sizing: border-box;
+
+  &:focus { border-color: ${({ theme }) => theme.colors.primary}; }
+`
+
+export const ReasonCounter = styled.span`
+  display: block;
+  margin-top: 6px;
+  text-align: right;
+  font-size: ${({ theme }) => theme.fontSizes.xs};
+  color: ${({ theme }) => theme.colors.textMuted};
+`
+
+export const ModalActions = styled.div`
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 16px;
+`
+
+export const ModalCancelBtn = styled.button`
+  padding: 9px 18px;
+  border-radius: ${({ theme }) => theme.radii.md};
+  font-size: ${({ theme }) => theme.fontSizes.sm};
+  font-weight: ${({ theme }) => theme.fontWeights.medium};
+  cursor: pointer;
+  border: 1px solid ${({ theme }) => theme.colors.border};
+  background: ${({ theme }) => theme.colors.bgApp};
+  color: ${({ theme }) => theme.colors.textSecondary};
+  transition: background 0.15s;
+
+  &:hover { background: ${({ theme }) => theme.colors.borderLight}; }
+`
+
+export const ModalConfirmBtn = styled.button`
+  padding: 9px 18px;
+  border-radius: ${({ theme }) => theme.radii.md};
+  font-size: ${({ theme }) => theme.fontSizes.sm};
+  font-weight: ${({ theme }) => theme.fontWeights.semibold};
+  cursor: pointer;
+  border: none;
+  background: ${({ theme }) => theme.colors.error};
+  color: #fff;
+  transition: opacity 0.15s;
+
+  &:hover:not(:disabled) { opacity: 0.88; }
+  &:disabled { opacity: 0.5; cursor: not-allowed; }
+`

@@ -27,6 +27,7 @@ import { toast } from 'sonner'
 
 const buscaPelada = vi.mocked(playerService.getEvent)
 const entraNaPelada = vi.mocked(playerService.joinEvent)
+const saiDaPelada = vi.mocked(playerService.leaveEvent)
 
 const USUARIO = criaUsuario({ id: 'user-1', name: 'Mateus' })
 
@@ -36,6 +37,7 @@ beforeEach(() => {
   vi.mocked(authService.getMe).mockResolvedValue(envelope(USUARIO))
   vi.mocked(notificationService.list).mockResolvedValue([])
   entraNaPelada.mockResolvedValue(envelope({ userId: 'user-1' } as never))
+  saiDaPelada.mockResolvedValue(envelope({ remainingPlayers: 0 } as never))
 })
 
 /** Renderiza já na rota da pelada, com o padrão que alimenta o useParams. */
@@ -210,5 +212,163 @@ describe('PeladaDetail — ação de entrar', () => {
     abrePelada()
 
     expect(await screen.findByText('pix@arena.com')).toBeInTheDocument()
+  })
+})
+
+describe('PeladaDetail — sair da pelada', () => {
+  /** Pelada com o usuário confirmado, que é quando o botão de sair existe. */
+  function peladaComOUsuarioDentro(over = {}) {
+    return envelope(criaPelada({
+      maxPlayers: 10,
+      participations: [criaParticipante({ userId: 'user-1' })],
+      _count: { participations: 4 },
+      ...over,
+    }))
+  }
+
+  it('oferece sair para quem está confirmado', async () => {
+    buscaPelada.mockResolvedValue(peladaComOUsuarioDentro())
+
+    abrePelada()
+
+    expect(await screen.findByRole('button', { name: /sair da pelada/i })).toBeEnabled()
+  })
+
+  it('não oferece sair para quem está de fora', async () => {
+    buscaPelada.mockResolvedValue(
+      envelope(criaPelada({ maxPlayers: 10, _count: { participations: 3 } })),
+    )
+
+    abrePelada()
+    await screen.findByRole('button', { name: /entrar na pelada/i })
+
+    expect(screen.queryByRole('button', { name: /sair da pelada/i })).not.toBeInTheDocument()
+  })
+
+  it('não oferece sair para o organizador — para ele existe cancelar', async () => {
+    buscaPelada.mockResolvedValue(
+      envelope(criaPelada({
+        organizerId: 'user-1',
+        organizer: { id: 'user-1', name: 'Mateus', avatarUrl: null },
+        participations: [criaParticipante({ userId: 'user-1' })],
+      })),
+    )
+
+    abrePelada()
+    await screen.findByText(/você é o organizador desta pelada/i)
+
+    expect(screen.queryByRole('button', { name: /sair da pelada/i })).not.toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /cancelar/i })).toBeInTheDocument()
+  })
+
+  it.each(['FINISHED', 'CANCELLED'] as const)(
+    'não oferece sair em pelada %s — a API recusaria',
+    async (status) => {
+      buscaPelada.mockResolvedValue(peladaComOUsuarioDentro({ status }))
+
+      abrePelada()
+      await screen.findByText(/\d+ \/ \d+ confirmados/)
+
+      expect(screen.queryByRole('button', { name: /sair da pelada/i })).not.toBeInTheDocument()
+    },
+  )
+
+  it('pede confirmação antes de sair — o clique sozinho não chama a API', async () => {
+    buscaPelada.mockResolvedValue(peladaComOUsuarioDentro())
+    const { user } = abrePelada()
+
+    await user.click(await screen.findByRole('button', { name: /sair da pelada/i }))
+
+    expect(screen.getByRole('dialog')).toBeInTheDocument()
+    expect(screen.getByText('Sair desta pelada?')).toBeInTheDocument()
+    expect(saiDaPelada).not.toHaveBeenCalled()
+  })
+
+  it('desistir da confirmação não chama a API', async () => {
+    buscaPelada.mockResolvedValue(peladaComOUsuarioDentro())
+    const { user } = abrePelada()
+
+    await user.click(await screen.findByRole('button', { name: /sair da pelada/i }))
+    await user.click(screen.getByRole('button', { name: /continuar na pelada/i }))
+
+    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument())
+    expect(saiDaPelada).not.toHaveBeenCalled()
+  })
+
+  it('confirmar chama a API e a contagem de vagas cai na tela', async () => {
+    buscaPelada
+      .mockResolvedValueOnce(peladaComOUsuarioDentro())
+      .mockResolvedValue(envelope(criaPelada({
+        maxPlayers: 10,
+        _count: { participations: 3 },
+      })))
+    const { user } = abrePelada()
+    expect(await screen.findByText('4 / 10 confirmados')).toBeInTheDocument()
+
+    await user.click(screen.getByRole('button', { name: /sair da pelada/i }))
+    await user.click(screen.getByRole('button', { name: /confirmar saída/i }))
+
+    await waitFor(() => {
+      expect(saiDaPelada).toHaveBeenCalledWith('quadra-1', 'pelada-1', undefined)
+    })
+    // A vaga liberada tem que aparecer: é o efeito que o jogador foi buscar.
+    expect(await screen.findByText('3 / 10 confirmados')).toBeInTheDocument()
+    expect(await screen.findByRole('button', { name: /entrar na pelada/i })).toBeEnabled()
+  })
+
+  it('envia o motivo quando o jogador escreve um', async () => {
+    buscaPelada.mockResolvedValue(peladaComOUsuarioDentro())
+    const { user } = abrePelada()
+
+    await user.click(await screen.findByRole('button', { name: /sair da pelada/i }))
+    await user.type(screen.getByLabelText(/quer dizer o motivo/i), 'me machuquei no treino')
+    await user.click(screen.getByRole('button', { name: /confirmar saída/i }))
+
+    await waitFor(() => {
+      expect(saiDaPelada).toHaveBeenCalledWith('quadra-1', 'pelada-1', 'me machuquei no treino')
+    })
+  })
+
+  it('motivo só com espaços não vira corpo da requisição', async () => {
+    buscaPelada.mockResolvedValue(peladaComOUsuarioDentro())
+    const { user } = abrePelada()
+
+    await user.click(await screen.findByRole('button', { name: /sair da pelada/i }))
+    await user.type(screen.getByLabelText(/quer dizer o motivo/i), '   ')
+    await user.click(screen.getByRole('button', { name: /confirmar saída/i }))
+
+    await waitFor(() => {
+      expect(saiDaPelada).toHaveBeenCalledWith('quadra-1', 'pelada-1', undefined)
+    })
+  })
+
+  it('limita o motivo ao que a API aceita', async () => {
+    buscaPelada.mockResolvedValue(peladaComOUsuarioDentro())
+    const { user } = abrePelada()
+
+    await user.click(await screen.findByRole('button', { name: /sair da pelada/i }))
+    const campo = screen.getByLabelText(/quer dizer o motivo/i)
+
+    // 200 é o limite do leavePeladaSchema no backend. Cortar aqui evita um
+    // 422 que o jogador não teria como prever.
+    expect(campo).toHaveAttribute('maxLength', '200')
+    await user.type(campo, 'motivo')
+    expect(screen.getByText('6 / 200')).toBeInTheDocument()
+  })
+
+  it('mostra a mensagem da API quando sair falha, e mantém o modal aberto', async () => {
+    buscaPelada.mockResolvedValue(peladaComOUsuarioDentro())
+    saiDaPelada.mockRejectedValue(erroDaApi('A pelada já foi finalizada', 422))
+    const { user } = abrePelada()
+
+    await user.click(await screen.findByRole('button', { name: /sair da pelada/i }))
+    await user.click(screen.getByRole('button', { name: /confirmar saída/i }))
+
+    await waitFor(() => {
+      expect(toast.error).toHaveBeenCalledWith('A pelada já foi finalizada')
+    })
+    // Falhou: o jogador continua dentro, e o modal segue ali para ele tentar
+    // de novo em vez de ficar sem saber o que aconteceu.
+    expect(screen.getByRole('dialog')).toBeInTheDocument()
   })
 })

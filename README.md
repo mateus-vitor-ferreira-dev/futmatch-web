@@ -405,9 +405,14 @@ Os fluxos críticos do jogador, o que dá mais prejuízo quando quebra:
 | Entrar na conta | `pages/Register/index.test.tsx` | Validação, mensagem da API na tela, e o destino certo por papel (jogador, dono, admin) |
 | Buscar pelada | `pages/QueroJogar/index.test.tsx` | Filtro de modalidade e cidade refaz a busca na API; horário, arena e texto recortam sem nova ida |
 | Entrar na pelada | `pages/PeladaDetail/index.test.tsx` | Contagem de vagas, botão bloqueado quando lotado ou já confirmado, Pix só para quem está dentro |
+| Sair da pelada | `pages/PeladaDetail/index.test.tsx` | Quem pode sair, confirmação obrigatória, motivo opcional e a vaga voltando na tela |
 | Criar pelada | `pages/CriarPelada/index.test.tsx` | Validação dos quatro campos, conversão do payload e erro da API renderizado |
+| Minhas peladas | `pages/MinhasPeladas/index.test.tsx` | As duas abas com formatos de resposta diferentes, ações do organizador por status e sorteio de times |
+| Contrato com a API | `services/playerService.test.ts` | Método, caminho e onde cada coisa vai — inclusive o corpo do `DELETE`, que no axios não é o segundo argumento |
+| Mensagem de erro | `utils/apiError.test.ts` | O que o usuário lê quando algo falha, para qualquer coisa que caia no `catch` |
+| Catálogo de modalidades | `hooks/useSports.test.tsx` | O fallback local que sustenta busca, cadastro e criação quando a API não responde |
 
-**72 testes, ~2,8s.** A cobertura de linhas está em **~22%**, e o número não é meta: o critério é cobrir o que dói quando quebra, não perseguir porcentagem. **Todo PR novo entra com teste do comportamento que ele muda** — é o que a [Definition of Done](https://github.com/mateus-vitor-ferreira-dev/so-mais-um-api/blob/main/docs/EQUIPE.md) pede.
+**119 testes, ~3s.** A cobertura de linhas está em **~27%**, e o número não é meta: o critério é cobrir o que dói quando quebra, não perseguir porcentagem. **Todo PR novo entra com teste do comportamento que ele muda** — é o que a [Definition of Done](https://github.com/mateus-vitor-ferreira-dev/so-mais-um-api/blob/main/docs/EQUIPE.md) pede.
 
 ---
 
