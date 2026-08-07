@@ -399,10 +399,39 @@ export interface DrawResult {
     teams: DrawTeam[];
 }
 
+export interface Plan {
+    id: string;
+    nome: string;
+    precoCentavos: number;
+    /** Nulo é sem limite, não zero — ver plan-limit.service.ts na API. */
+    maxQuadras: number | null;
+    maxEstabelecimentos: number | null;
+    maxModalidades: number | null;
+}
+
+export interface SubscriptionUsage {
+    quadras: number;
+    estabelecimentos: number;
+}
+
 export interface SubscriptionStatus {
     status: string;
     currentPeriodEnd: IsoDate | null;
     stripeSubscriptionId?: string | null;
+    plan?: Plan | null;
+    usage?: SubscriptionUsage;
+}
+
+export type SwitchPlanEffectType = "upgrade" | "downgrade" | "mesmo_preco";
+
+export interface SwitchPlanPreview {
+    planoAtual: Pick<Plan, "id" | "nome" | "precoCentavos"> | null;
+    planoNovo: Pick<Plan, "id" | "nome" | "precoCentavos">;
+    tipo: SwitchPlanEffectType;
+    /** Aproximada — o valor exato vai para a fatura seguinte na Stripe. */
+    estimativaCobrancaCentavos: number;
+    efetivaImediatamente: boolean;
+    usoExcederiaNovoPlano: { quadras: boolean; estabelecimentos: boolean } | null;
 }
 
 export type InventoryUnit = 'UNIDADE' | 'GARRAFA' | 'LATA' | 'PACOTE' | 'CAIXA' | 'QUILOGRAMA';

@@ -11,7 +11,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { AxiosError } from 'axios'
 import { erroDaApi } from '../test/factories'
 import { toastErroDeApi } from './toastErro'
-import { ehErroDeAssinatura } from './apiError'
+import { ehErroDeAssinatura, ehErroDeLimiteDePlano } from './apiError'
 
 vi.mock('sonner', () => ({
   toast: { error: vi.fn(), success: vi.fn() },
@@ -61,6 +61,13 @@ describe('ehErroDeAssinatura', () => {
   })
 })
 
+describe('ehErroDeLimiteDePlano', () => {
+  it('reconhece apenas o código específico devolvido pela API', () => {
+    expect(ehErroDeLimiteDePlano(erroComCodigo('PLAN_LIMIT_REACHED', 403))).toBe(true)
+    expect(ehErroDeLimiteDePlano(erroComCodigo('FORBIDDEN', 403))).toBe(false)
+  })
+})
+
 describe('toastErroDeApi', () => {
   it('oferece o caminho da assinatura quando o erro é 402', () => {
     toastErroDeApi(erroComCodigo('SUBSCRIPTION_REQUIRED', 402, 'É preciso ter uma assinatura ativa'))
@@ -96,7 +103,18 @@ describe('toastErroDeApi', () => {
     const opcoes = toastDeErro.mock.calls[0][1] as unknown as { action: { onClick: () => void } }
     opcoes.action.onClick()
 
-    expect(assign).toHaveBeenCalledWith('/owner/dashboard')
+    expect(assign).toHaveBeenCalledWith('/owner/plans')
+  })
+
+  it('explica o limite atingido e oferece a troca de plano', () => {
+    toastErroDeApi(erroComCodigo('PLAN_LIMIT_REACHED', 403, 'Limite de 3 quadras atingido'))
+
+    expect(toastDeErro).toHaveBeenCalledWith(
+      'Limite de 3 quadras atingido',
+      expect.objectContaining({
+        action: expect.objectContaining({ label: 'Ver planos' }),
+      }),
+    )
   })
 
   it('erro comum segue como toast simples, sem botão', () => {

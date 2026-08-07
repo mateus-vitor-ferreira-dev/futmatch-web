@@ -40,3 +40,10 @@ export function ehErroDeAssinatura(err: unknown): boolean {
   if (codigoDeErro(err) === 'SUBSCRIPTION_REQUIRED') return true
   return err.response?.status === 402
 }
+
+/** O dono tentou criar um recurso além do permitido pelo plano atual? */
+export function ehErroDeLimiteDePlano(err: unknown): boolean {
+  if (!(err instanceof AxiosError)) return false
+  const corpo = err.response?.data as ApiErrorBody | undefined
+  return corpo?.code === 'PLAN_LIMIT_REACHED'
+}

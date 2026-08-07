@@ -34,6 +34,7 @@ const AdminUsers     = lazyWithRetry(() => import('../pages/Admin/Users'))
 const AdminRequests  = lazyWithRetry(() => import('../pages/Admin/Requests'))
 const AdminPlaces    = lazyWithRetry(() => import('../pages/Admin/Places'))
 const OwnerDashboard = lazyWithRetry(() => import('../pages/Owner/Dashboard'))
+const OwnerPlans     = lazyWithRetry(() => import('../pages/Owner/Plans'))
 const OwnerPlaces    = lazyWithRetry(() => import('../pages/Owner/Places'))
 const OwnerRequests  = lazyWithRetry(() => import('../pages/Owner/Requests'))
 const OwnerCourts    = lazyWithRetry(() => import('../pages/Owner/Courts'))
@@ -120,6 +121,7 @@ export default function AppRoutes() {
 
           {/* Painel Owner */}
           <Route path="/owner/dashboard"              element={<OwnerRoute><OwnerDashboard /></OwnerRoute>} />
+          <Route path="/owner/plans"                  element={<OwnerRoute><OwnerPlans     /></OwnerRoute>} />
           <Route path="/owner/places"               element={<OwnerRoute><OwnerPlaces    /></OwnerRoute>} />
           <Route path="/owner/places/:placeId/courts" element={<OwnerRoute><OwnerCourts  /></OwnerRoute>} />
           <Route path="/owner/inventory"              element={<OwnerRoute><OwnerInventory /></OwnerRoute>} />

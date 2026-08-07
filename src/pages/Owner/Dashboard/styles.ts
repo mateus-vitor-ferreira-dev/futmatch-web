@@ -1,7 +1,6 @@
 import styled from 'styled-components'
 
 export const Container = styled.div`
-  padding: ${({ theme }) => theme.spacing[6]};
   max-width: 1200px;
   margin: 0 auto;
 `
@@ -146,11 +145,11 @@ export const Badge = styled.span<{ $status?: string; }>`
   font-size: 12px;
   font-weight: bold;
   background: ${({ $status, theme }) =>
-    $status === 'Ativo' || $status === 'Pago'
+    $status === 'active' || $status === 'trialing'
       ? theme.colors.successLight
       : theme.colors.warningLight};
   color: ${({ $status, theme }) =>
-    $status === 'Ativo' || $status === 'Pago'
+    $status === 'active' || $status === 'trialing'
       ? theme.colors.success
       : theme.colors.warning};
 `
