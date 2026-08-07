@@ -405,6 +405,38 @@ export interface SubscriptionStatus {
     stripeSubscriptionId?: string | null;
 }
 
+export type InventoryUnit = 'UNIDADE' | 'GARRAFA' | 'LATA' | 'PACOTE' | 'CAIXA' | 'QUILOGRAMA';
+export type InventoryMovementType = 'ENTRADA' | 'SAIDA';
+export type InventoryMovementReason = 'COMPRA' | 'REPOSICAO' | 'VENDA' | 'PERDA' | 'AJUSTE';
+
+export interface InventoryProduct {
+    id: string;
+    placeId: string;
+    nome: string;
+    unidade: InventoryUnit;
+    precoVendaCentavos: number;
+    estoqueMinimo: number;
+    ativo: boolean;
+    saldoAtual: number;
+    estoqueBaixo: boolean;
+    createdAt: IsoDate;
+    updatedAt: IsoDate;
+}
+
+export interface InventoryMovement {
+    id: string;
+    productId: string;
+    tipo: InventoryMovementType;
+    motivo: InventoryMovementReason;
+    quantidade: number;
+    observacao: string | null;
+    createdAt: IsoDate;
+    saldoAtual?: number;
+    estoqueBaixo?: boolean;
+    actor: Pick<UserPublic, 'id' | 'name' | 'role'>;
+    product: Pick<InventoryProduct, 'id' | 'nome' | 'unidade'>;
+}
+
 export interface OwnerStats {
     totalPlaces: number;
     totalCourts: number;
