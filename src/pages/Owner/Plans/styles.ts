@@ -133,23 +133,29 @@ export const PlanFeatures = styled.ul`
   svg { flex-shrink: 0; color: ${({ theme }) => theme.colors.primary}; }
 `
 
-export const PlanButton = styled.button<{ $variant?: 'primary' | 'secondary'; }>`
+export const PlanButton = styled.button<{ $variant?: 'primary' | 'secondary' | 'current'; }>`
   padding: 12px;
   border-radius: 8px;
   font-weight: ${({ theme }) => theme.fontWeights.semibold};
   font-size: 14px;
   cursor: pointer;
-  border: ${({ $variant, theme }) => $variant === 'secondary' ? `1px solid ${theme.colors.border}` : 'none'};
-  background: ${({ $variant, theme }) => $variant === 'secondary' ? 'transparent' : theme.colors.primary};
-  color: ${({ $variant, theme }) => $variant === 'secondary' ? theme.colors.textSecondary : theme.colors.textOnPrimary};
+  border: ${({ $variant, theme }) => $variant === 'secondary'
+    ? `1px solid ${theme.colors.border}`
+    : $variant === 'current' ? `1px solid ${theme.colors.primaryLight}` : 'none'};
+  background: ${({ $variant, theme }) => $variant === 'secondary'
+    ? 'transparent'
+    : $variant === 'current' ? theme.colors.primaryLight : theme.colors.primary};
+  color: ${({ $variant, theme }) => $variant === 'secondary'
+    ? theme.colors.textSecondary
+    : $variant === 'current' ? theme.colors.primaryDark : theme.colors.textOnPrimary};
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
 
   &:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
+    opacity: ${({ $variant }) => $variant === 'current' ? 1 : 0.6};
+    cursor: ${({ $variant }) => $variant === 'current' ? 'default' : 'not-allowed'};
   }
 `
 
