@@ -76,6 +76,7 @@ export const PlaceDesc = styled.p`
 
 export const PlaceActions = styled.div`
   display: flex;
+  flex-wrap: wrap;
   gap: 8px;
   margin-top: auto;
 `
@@ -89,7 +90,7 @@ const VARIANT_STYLES = {
 } as const
 
 export const ActionBtn = styled.button<{ variant?: VariantKey }>`
-  flex: 1;
+  flex: 1 1 90px;
   padding: 9px 12px;
   border-radius: ${({ theme }) => theme.radii.sm};
   font-size: ${({ theme }) => theme.fontSizes.xs};
