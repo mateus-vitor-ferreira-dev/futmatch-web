@@ -37,6 +37,7 @@ const OwnerDashboard = lazyWithRetry(() => import('../pages/Owner/Dashboard'))
 const OwnerPlaces    = lazyWithRetry(() => import('../pages/Owner/Places'))
 const OwnerRequests  = lazyWithRetry(() => import('../pages/Owner/Requests'))
 const OwnerCourts    = lazyWithRetry(() => import('../pages/Owner/Courts'))
+const OwnerEquipment = lazyWithRetry(() => import('../pages/Owner/Equipment'))
 const OwnerAccess    = lazyWithRetry(() => import('../pages/OwnerAccess'))
 
 function PageLoader() {
@@ -120,6 +121,7 @@ export default function AppRoutes() {
           <Route path="/owner/dashboard"              element={<OwnerRoute><OwnerDashboard /></OwnerRoute>} />
           <Route path="/owner/places"               element={<OwnerRoute><OwnerPlaces    /></OwnerRoute>} />
           <Route path="/owner/places/:placeId/courts" element={<OwnerRoute><OwnerCourts  /></OwnerRoute>} />
+          <Route path="/owner/equipment"             element={<OwnerRoute><OwnerEquipment /></OwnerRoute>} />
           <Route path="/owner/requests"             element={<OwnerRoute><OwnerRequests  /></OwnerRoute>} />
           <Route path="/owner"                      element={<Navigate to="/owner/dashboard" replace />} />
 
