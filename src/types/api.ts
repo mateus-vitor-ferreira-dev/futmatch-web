@@ -71,6 +71,8 @@ export type CompetitionLevel =
 export type OrganizerType = "PLACE" | "USER" | "COMPANY" | "OTHER";
 export type ParticipantType = "TEAM" | "INDIVIDUAL";
 export type RegistrationMode = "OPEN" | "APPROVAL_REQUIRED";
+export type EquipmentCondition = "BOM" | "DESGASTADO" | "MANUTENCAO" | "INATIVO";
+export type EquipmentSettlementType = "DEVOLUCAO" | "PERDA" | "QUEBRA";
 
 // ─── Envelope ────────────────────────────────────────────────────────────────
 
@@ -124,8 +126,23 @@ export interface UserStats {
     tags: Array<{ tag: ReviewTag; count: number }>;
 }
 
+/**
+ * O usuário que sai de /auth/login, /auth/google, /auth/register e
+ * /auth/register-owner: os campos públicos da conta mais o e-mail, e nada além
+ * disso.
+ *
+ * Não é um `UserMe` — falta o `pixKey`, que só sai no GET /auth/me. Os dois
+ * tipos ficam separados de propósito: enquanto o payload de autenticação era
+ * tipado como `UserMe`, dava para jogá-lo direto no estado do AuthContext e o
+ * compilador não via problema nenhum — o formulário de perfil é que descobria,
+ * em produção, que o `pixKey` nunca tinha chegado.
+ */
+export interface UserSessao extends UserPublic {
+    email: string;
+}
+
 export interface AuthResult {
-    user: UserMe;
+    user: UserSessao;
     token: string;
 }
 
@@ -186,6 +203,62 @@ export interface Pelada {
     _count?: { participations: number };
     createdAt: IsoDate;
     updatedAt: IsoDate;
+}
+
+export interface Equipment {
+    id: string;
+    placeId: string;
+    nome: string;
+    modalidade: CourtType | null;
+    quantidadeTotal: number;
+    quantidadeFora: number;
+    quantidadeDisponivel: number;
+    estado: EquipmentCondition;
+    createdAt: IsoDate;
+    updatedAt: IsoDate;
+}
+
+export interface EquipmentBorrower {
+    id: string;
+    name: string;
+    nickname: string | null;
+    avatarUrl: string | null;
+}
+
+export interface EquipmentPelada {
+    id: string;
+    date: IsoDate;
+    status: PeladaStatus;
+    court: { id: string; name: string };
+    organizer: EquipmentBorrower;
+}
+
+export interface EquipmentSettlement {
+    id: string;
+    tipo: EquipmentSettlementType;
+    quantidade: number;
+    observacao: string | null;
+    createdAt: IsoDate;
+    actor: EquipmentBorrower;
+}
+
+export interface EquipmentLoan {
+    id: string;
+    equipmentId: string;
+    borrowerId: string;
+    peladaId: string | null;
+    quantidadeEmprestada: number;
+    quantidadeDevolvida: number;
+    quantidadeBaixada: number;
+    quantidadePendente: number;
+    emprestadoEm: IsoDate;
+    encerradoEm: IsoDate | null;
+    observacao: string | null;
+    equipment: Equipment;
+    borrower: EquipmentBorrower;
+    createdBy: EquipmentBorrower;
+    pelada: { id: string; date: IsoDate; court?: { id: string; name: string } } | null;
+    settlements: EquipmentSettlement[];
 }
 
 /** Resposta paginada de GET /events. */

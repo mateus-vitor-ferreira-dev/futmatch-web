@@ -1,5 +1,5 @@
 import {
-  LayoutDashboard, Users, ClipboardList, Building2, Home, Store, ShieldCheck, Package,
+  LayoutDashboard, Users, ClipboardList, Building2, Home, Store, ShieldCheck, Package, Dumbbell,
 } from 'lucide-react'
 import type { NavItemDef } from '../components/DashboardLayout'
 import type { UserRole } from '../types/api'
@@ -34,6 +34,7 @@ export function ownerNavItems(role: UserRole | undefined): NavItemDef[] {
     { to: '/owner/dashboard', label: 'Visão Geral',           icon: LayoutDashboard, end: true },
     { to: '/owner/places',    label: 'Meus Estabelecimentos', icon: Building2       },
     { to: '/owner/inventory', label: 'Estoque',                icon: Package         },
+    { to: '/owner/equipment', label: 'Equipamentos',          icon: Dumbbell        },
     { to: '/owner/requests',  label: 'Solicitações',          icon: ClipboardList   },
     ...(role === 'ADMIN'
       ? [{ to: '/admin', label: 'Painel Admin', icon: ShieldCheck, divider: true }]

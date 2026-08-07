@@ -53,34 +53,53 @@ export function AuthProvider({ children }: { children: ReactNode }) {
    */
   const saveToken = (token: string) => localStorage.setItem(TOKEN_KEY, token)
 
+  /**
+   * Fecha a autenticação: guarda o token e popula o usuário pelo GET /auth/me.
+   *
+   * O payload de login traz só os campos públicos da conta (`UserSessao`), sem
+   * o `pixKey` que o formulário de perfil precisa. Buscar o perfil aqui deixa
+   * uma forma só de `user` no app — a mesma que a restauração de sessão ali em
+   * cima já usa. Custa uma requisição a mais num evento que acontece uma vez
+   * por sessão, e em troca não existe mais um `user` pela metade circulando.
+   */
+  const concluirAutenticacao = useCallback(async (token: string) => {
+    saveToken(token)
+
+    try {
+      const me = await authService.getMe()
+      setUser(me.data)
+    } catch (err) {
+      // Sem o perfil não há sessão utilizável. Falhar visível, e deixar a
+      // pessoa tentar de novo, é melhor do que ficar autenticado pela metade.
+      localStorage.removeItem(TOKEN_KEY)
+      throw err
+    }
+  }, [])
+
   const register = useCallback(async (data: RegisterInput) => {
     const res = await authService.register(data)
-    saveToken(res.data.token)
-    setUser(res.data.user)
+    await concluirAutenticacao(res.data.token)
     return res
-  }, [])
+  }, [concluirAutenticacao])
 
   const registerOwner = useCallback(async (data: RegisterOwnerInput) => {
     const res = await authService.registerOwner(data)
-    saveToken(res.data.token)
-    setUser(res.data.user)
+    await concluirAutenticacao(res.data.token)
     return res
-  }, [])
+  }, [concluirAutenticacao])
 
   const login = useCallback(async (data: LoginInput) => {
     const res = await authService.login(data)
-    saveToken(res.data.token)
-    setUser(res.data.user)
+    await concluirAutenticacao(res.data.token)
     return res
-  }, [])
+  }, [concluirAutenticacao])
 
   /** `idToken` é o credential retornado pelo componente GoogleLogin. */
   const googleLogin = useCallback(async (idToken: string) => {
     const res = await authService.googleAuth(idToken)
-    saveToken(res.data.token)
-    setUser(res.data.user)
+    await concluirAutenticacao(res.data.token)
     return res
-  }, [])
+  }, [concluirAutenticacao])
 
   /** Recarrega os dados do usuário autenticado (uso após editar perfil) */
   const refreshUser = useCallback(async () => {
