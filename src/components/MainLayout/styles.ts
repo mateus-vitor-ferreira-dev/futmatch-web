@@ -219,7 +219,7 @@ export const TopbarLogoName = styled.span`
   color: ${({ theme }) => theme.colors.textPrimary};
 `
 
-export const ThemeToggleBtn = styled.button<{ $flash?: boolean; }>`
+export const ThemeToggleBtn = styled.button`
   display: flex;
   align-items: center;
   gap: 10px;
@@ -227,8 +227,8 @@ export const ThemeToggleBtn = styled.button<{ $flash?: boolean; }>`
   padding: 10px 12px;
   border: none;
   border-radius: ${({ theme }) => theme.radii.md};
-  background: ${({ $flash, theme }) => $flash ? theme.colors.primarySubtle : 'transparent'};
-  color: ${({ $flash, theme }) => $flash ? theme.colors.primary : theme.colors.textSecondary};
+  background: transparent;
+  color: ${({ theme }) => theme.colors.textSecondary};
   font-size: ${({ theme }) => theme.fontSizes.sm};
   font-weight: ${({ theme }) => theme.fontWeights.semibold};
   cursor: pointer;
@@ -236,15 +236,21 @@ export const ThemeToggleBtn = styled.button<{ $flash?: boolean; }>`
   font-family: ${({ theme }) => theme.fonts.sans};
   margin-bottom: 4px;
 
-  &:hover {
+  &:hover,
+  &:active {
     background: ${({ theme }) => theme.colors.primarySubtle};
     color: ${({ theme }) => theme.colors.primary};
+  }
+
+  &:focus-visible {
+    outline: 2px solid ${({ theme }) => theme.colors.primary};
+    outline-offset: 2px;
   }
 
   svg { flex-shrink: 0; width: 18px; height: 18px; }
 `
 
-export const ThemeToggleBtnCompact = styled.button<{ $flash?: boolean; }>`
+export const ThemeToggleBtnCompact = styled.button`
   display: flex;
   align-items: center;
   justify-content: center;
@@ -252,15 +258,21 @@ export const ThemeToggleBtnCompact = styled.button<{ $flash?: boolean; }>`
   height: 36px;
   border: none;
   border-radius: ${({ theme }) => theme.radii.md};
-  background: ${({ $flash, theme }) => $flash ? theme.colors.primarySubtle : 'transparent'};
-  color: ${({ $flash, theme }) => $flash ? theme.colors.primary : theme.colors.textSecondary};
+  background: transparent;
+  color: ${({ theme }) => theme.colors.textSecondary};
   cursor: pointer;
   transition: background 0.15s, color 0.15s;
   flex-shrink: 0;
 
-  &:hover {
+  &:hover,
+  &:active {
     background: ${({ theme }) => theme.colors.primarySubtle};
     color: ${({ theme }) => theme.colors.primary};
+  }
+
+  &:focus-visible {
+    outline: 2px solid ${({ theme }) => theme.colors.primary};
+    outline-offset: 2px;
   }
 `
 

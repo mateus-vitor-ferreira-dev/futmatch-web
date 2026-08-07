@@ -116,7 +116,7 @@ export const NavBadge = styled.span`
 
 // ── Theme toggle ──────────────────────────────────────────────────────────────
 
-export const ThemeToggleBtn = styled.button<{ $flash?: boolean; }>`
+export const ThemeToggleBtn = styled.button`
   display: flex;
   align-items: center;
   gap: 10px;
@@ -124,8 +124,8 @@ export const ThemeToggleBtn = styled.button<{ $flash?: boolean; }>`
   padding: 10px 12px;
   border: none;
   border-radius: ${({ theme }) => theme.radii.md};
-  background: ${({ $flash, theme }) => $flash ? theme.colors.primarySubtle : theme.colors.bgCard};
-  color: ${({ $flash, theme }) => $flash ? theme.colors.primary : theme.colors.textSecondary};
+  background: ${({ theme }) => theme.colors.bgCard};
+  color: ${({ theme }) => theme.colors.textSecondary};
   font-size: ${({ theme }) => theme.fontSizes.sm};
   font-weight: ${({ theme }) => theme.fontWeights.semibold};
   cursor: pointer;
@@ -133,9 +133,15 @@ export const ThemeToggleBtn = styled.button<{ $flash?: boolean; }>`
   font-family: ${({ theme }) => theme.fonts.sans};
   margin-bottom: 4px;
 
-  &:hover {
+  &:hover,
+  &:active {
     background: ${({ theme }) => theme.colors.primarySubtle};
     color: ${({ theme }) => theme.colors.primary};
+  }
+
+  &:focus-visible {
+    outline: 2px solid ${({ theme }) => theme.colors.primary};
+    outline-offset: 2px;
   }
 
   svg { flex-shrink: 0; width: 18px; height: 18px; }

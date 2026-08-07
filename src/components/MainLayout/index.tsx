@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect } from 'react'
 import type { ReactNode } from 'react'
 import type { LucideIcon } from 'lucide-react'
 import type { UserMe, UserRole } from '../../types/api'
@@ -62,24 +62,8 @@ export default function MainLayout({ children, user }: MainLayoutProps) {
   const location = useLocation()
   const initials = getInitials(user?.name)
   const [sidebarOpen, setSidebarOpen] = useState(false)
-  const [themeFlash, setThemeFlash] = useState(false)
-  const themeFlashTimer = useRef<number | null>(null)
   const { isDark, toggleTheme } = useThemeMode()
   const { logout } = useAuth()
-
-  function handleToggleTheme() {
-    if (themeFlashTimer.current) {
-      window.clearTimeout(themeFlashTimer.current)
-    }
-
-    setThemeFlash(true)
-    toggleTheme()
-
-    themeFlashTimer.current = window.setTimeout(() => {
-      setThemeFlash(false)
-      themeFlashTimer.current = null
-    }, 180)
-  }
 
   function handleLogout() {
     logout()
@@ -126,7 +110,7 @@ export default function MainLayout({ children, user }: MainLayoutProps) {
           )}
         </Nav>
 
-        <ThemeToggleBtn onClick={handleToggleTheme} $flash={themeFlash}>
+        <ThemeToggleBtn type="button" onClick={toggleTheme} title={isDark ? 'Modo claro' : 'Modo escuro'}>
           {isDark ? <Sun size={18} /> : <Moon size={18} />}
           {isDark ? 'Modo claro' : 'Modo escuro'}
         </ThemeToggleBtn>
@@ -170,7 +154,7 @@ export default function MainLayout({ children, user }: MainLayoutProps) {
           </TopbarLogoName>
           <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 8 }}>
             <NotificationBell />
-            <ThemeToggleBtnCompact onClick={handleToggleTheme} title={isDark ? 'Modo claro' : 'Modo escuro'} $flash={themeFlash}>
+            <ThemeToggleBtnCompact type="button" onClick={toggleTheme} title={isDark ? 'Modo claro' : 'Modo escuro'}>
               {isDark ? <Sun size={18} /> : <Moon size={18} />}
             </ThemeToggleBtnCompact>
           </div>
