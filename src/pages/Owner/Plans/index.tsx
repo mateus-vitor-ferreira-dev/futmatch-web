@@ -159,7 +159,7 @@ export default function OwnerPlans() {
                   </PlanFeatures>
 
                   {éAtual ? (
-                    <PlanButton $variant="secondary" disabled>Plano atual</PlanButton>
+                    <PlanButton $variant="current" disabled>Plano atual</PlanButton>
                   ) : podeTrocar ? (
                     <PlanButton onClick={() => abrirTroca(plano)} disabled={previewLoading || confirmando}>
                       Trocar para este plano
