@@ -126,8 +126,23 @@ export interface UserStats {
     tags: Array<{ tag: ReviewTag; count: number }>;
 }
 
+/**
+ * O usuário que sai de /auth/login, /auth/google, /auth/register e
+ * /auth/register-owner: os campos públicos da conta mais o e-mail, e nada além
+ * disso.
+ *
+ * Não é um `UserMe` — falta o `pixKey`, que só sai no GET /auth/me. Os dois
+ * tipos ficam separados de propósito: enquanto o payload de autenticação era
+ * tipado como `UserMe`, dava para jogá-lo direto no estado do AuthContext e o
+ * compilador não via problema nenhum — o formulário de perfil é que descobria,
+ * em produção, que o `pixKey` nunca tinha chegado.
+ */
+export interface UserSessao extends UserPublic {
+    email: string;
+}
+
 export interface AuthResult {
-    user: UserMe;
+    user: UserSessao;
     token: string;
 }
 
