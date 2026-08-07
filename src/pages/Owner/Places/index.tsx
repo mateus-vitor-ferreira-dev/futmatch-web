@@ -177,6 +177,12 @@ export default function OwnerPlaces() {
             )}
 
             <PlaceActions>
+              <ActionBtn variant="secondary" onClick={() => navigate(`/owner/inventory?placeId=${place.id}`)}>
+                Estoque
+              </ActionBtn>
+              <ActionBtn variant="secondary" onClick={() => navigate(`/owner/equipment?placeId=${place.id}`)}>
+                Equipamentos
+              </ActionBtn>
               <ActionBtn variant="secondary" onClick={() => navigate(`/owner/places/${place.id}/courts`)}>
                 Quadras
               </ActionBtn>

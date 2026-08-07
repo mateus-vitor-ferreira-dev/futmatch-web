@@ -10,7 +10,7 @@ export const Shell = styled.div`
 
 // ── Sidebar ───────────────────────────────────────────────────────────────────
 
-export const Sidebar = styled.aside`
+export const Sidebar = styled.aside<{ $open?: boolean }>`
   width: 240px;
   min-width: 240px;
   height: 100vh;
@@ -21,6 +21,28 @@ export const Sidebar = styled.aside`
   padding: 24px 12px;
   position: sticky;
   top: 0;
+  z-index: 80;
+
+  @media (max-width: 768px) {
+    position: fixed;
+    left: 0;
+    transform: translateX(${({ $open }) => $open ? '0' : '-100%'});
+    transition: transform 0.2s ease;
+    box-shadow: ${({ theme }) => theme.shadows.lg};
+  }
+`
+
+export const MobileOverlay = styled.button`
+  display: none;
+
+  @media (max-width: 768px) {
+    display: block;
+    position: fixed;
+    inset: 0;
+    z-index: 70;
+    border: 0;
+    background: ${({ theme }) => theme.colors.bgOverlay};
+  }
 `
 
 export const Logo = styled.div`
@@ -124,8 +146,8 @@ export const ThemeToggleBtn = styled.button`
   padding: 10px 12px;
   border: none;
   border-radius: ${({ theme }) => theme.radii.md};
-  background: ${({ theme }) => theme.colors.primarySubtle};
-  color: ${({ theme }) => theme.colors.primary};
+  background: ${({ theme }) => theme.colors.bgCard};
+  color: ${({ theme }) => theme.colors.textSecondary};
   font-size: ${({ theme }) => theme.fontSizes.sm};
   font-weight: ${({ theme }) => theme.fontWeights.semibold};
   cursor: pointer;
@@ -133,7 +155,16 @@ export const ThemeToggleBtn = styled.button`
   font-family: ${({ theme }) => theme.fonts.sans};
   margin-bottom: 4px;
 
-  &:hover { opacity: 0.85; }
+  &:hover,
+  &:active {
+    background: ${({ theme }) => theme.colors.primarySubtle};
+    color: ${({ theme }) => theme.colors.primary};
+  }
+
+  &:focus-visible {
+    outline: 2px solid ${({ theme }) => theme.colors.primary};
+    outline-offset: 2px;
+  }
 
   svg { flex-shrink: 0; width: 18px; height: 18px; }
 `
@@ -230,6 +261,28 @@ export const Topbar = styled.header`
   background: ${({ theme }) => theme.colors.bgSidebar};
   border-bottom: 1px solid ${({ theme }) => theme.colors.border};
   padding: 16px 32px;
+
+  @media (max-width: 768px) {
+    padding: 12px 16px;
+  }
+`
+
+export const MobileMenuBtn = styled.button`
+  display: none;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  flex-shrink: 0;
+  border-radius: ${({ theme }) => theme.radii.md};
+  border: 1px solid ${({ theme }) => theme.colors.border};
+  color: ${({ theme }) => theme.colors.textPrimary};
+  background: ${({ theme }) => theme.colors.bgCard};
+  cursor: pointer;
+
+  @media (max-width: 768px) {
+    display: flex;
+  }
 `
 
 export const TopbarTitle = styled.h1`
@@ -255,10 +308,24 @@ export const TopbarRow = styled.div`
   display: flex;
   align-items: center;
   justify-content: space-between;
+
+  @media (max-width: 768px) {
+    justify-content: flex-start;
+    gap: 12px;
+
+    .page-heading {
+      min-width: 0;
+      flex: 1;
+    }
+  }
 `
 
 export const Content = styled.main`
   flex: 1;
   overflow-y: auto;
   padding: 28px 32px;
+
+  @media (max-width: 768px) {
+    padding: 20px 16px;
+  }
 `

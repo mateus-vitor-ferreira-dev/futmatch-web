@@ -28,10 +28,15 @@ import * as authService from '../../services/auth'
 import { getSports } from '../../services/sports'
 
 const login = vi.mocked(authService.login)
+const getMe = vi.mocked(authService.getMe)
 
 beforeEach(() => {
   vi.clearAllMocks()
   vi.mocked(getSports).mockRejectedValue(erroDaApi('sem sports', 503))
+  // O AuthContext busca o perfil completo depois de autenticar — o payload do
+  // login traz só os campos públicos da conta. Sem esta resposta, todo login
+  // destes testes falharia no passo seguinte ao acerto da senha.
+  getMe.mockResolvedValue(envelope(criaUsuario()))
 })
 
 /**

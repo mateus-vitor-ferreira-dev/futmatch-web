@@ -24,6 +24,20 @@ import {
   BreadcrumbBar, BreadcrumbTag, BreadcrumbSep,
 } from './styles'
 
+/**
+ * Campo numérico vazio chega como `''` e a conversão do yup vira `NaN` — que
+ * não é nulo, então o `typeError` respondia antes do `.required()` e o usuário
+ * lia "Informe um número válido" onde o time tinha escrito "Informe o número de
+ * vagas".
+ *
+ * Transformando em `undefined`, quem responde é o `.required()`. Some junto a
+ * necessidade do `typeError`: com `type="number"`, o navegador já entrega `''`
+ * para qualquer coisa que não seja número, então não existe caminho pela
+ * interface que produza `NaN` — a mensagem dele seria mais uma que ninguém vê.
+ */
+const numeroOuIndefinido = (convertido: number, original: unknown) =>
+  original === '' || original === null || Number.isNaN(convertido) ? undefined : convertido
+
 const schema = yup.object({
   date: yup
     .string()
@@ -31,13 +45,13 @@ const schema = yup.object({
     .test('future', 'A data deve ser no futuro', v => !v || new Date(v) > new Date()),
   maxPlayers: yup
     .number()
-    .typeError('Informe um número válido')
+    .transform(numeroOuIndefinido)
     .min(2, 'Mínimo 2 jogadores')
     .max(50, 'Máximo 50 jogadores')
     .required('Informe o número de vagas'),
   totalValue: yup
     .number()
-    .typeError('Informe um valor válido')
+    .transform(numeroOuIndefinido)
     .min(0, 'Valor não pode ser negativo')
     .required('Informe o valor total da pelada'),
   pixKey: yup
@@ -281,7 +295,17 @@ export default function CriarPelada() {
               Detalhes da pelada em {selectedCourt?.name}
             </SectionTitle>
 
-            <Form onSubmit={handleSubmit(onSubmit)}>
+            {/*
+              noValidate como no Register, no ForgotPassword, no ResetPassword e
+              no OwnerAccess: sem ele o navegador barra o envio pelos min/max dos
+              inputs, o handleSubmit nunca roda e as mensagens escritas aqui do
+              lado nunca aparecem — o usuário lê o balão nativo, no idioma do
+              navegador e fora do estilo do app.
+
+              Os min/max continuam nos inputs: sem bloquear o envio, eles ainda
+              limitam as setas e o seletor de data, que é affordance boa.
+            */}
+            <Form onSubmit={handleSubmit(onSubmit)} noValidate>
               <Field>
                 <Label>Data e horário *</Label>
                 <Input

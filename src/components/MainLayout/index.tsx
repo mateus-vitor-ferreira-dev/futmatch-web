@@ -110,7 +110,7 @@ export default function MainLayout({ children, user }: MainLayoutProps) {
           )}
         </Nav>
 
-        <ThemeToggleBtn onClick={toggleTheme}>
+        <ThemeToggleBtn type="button" onClick={toggleTheme} title={isDark ? 'Modo claro' : 'Modo escuro'}>
           {isDark ? <Sun size={18} /> : <Moon size={18} />}
           {isDark ? 'Modo claro' : 'Modo escuro'}
         </ThemeToggleBtn>
@@ -154,7 +154,7 @@ export default function MainLayout({ children, user }: MainLayoutProps) {
           </TopbarLogoName>
           <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 8 }}>
             <NotificationBell />
-            <ThemeToggleBtnCompact onClick={toggleTheme} title={isDark ? 'Modo claro' : 'Modo escuro'}>
+            <ThemeToggleBtnCompact type="button" onClick={toggleTheme} title={isDark ? 'Modo claro' : 'Modo escuro'}>
               {isDark ? <Sun size={18} /> : <Moon size={18} />}
             </ThemeToggleBtnCompact>
           </div>

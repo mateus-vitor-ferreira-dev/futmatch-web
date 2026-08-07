@@ -1,6 +1,7 @@
-import { Sun, Moon, LogOut } from 'lucide-react'
+import { Sun, Moon, LogOut, Menu, X } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import type { ReactNode } from 'react'
+import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import type { UserMe } from '../../types/api'
 import { useThemeMode } from '../../contexts/ThemeContext'
@@ -13,6 +14,7 @@ import {
   UserCard, Avatar, UserInfo, UserName, UserRole,
   ThemeToggleBtn, LogoutBtn,
   Main, Topbar, TopbarRow, TopbarTitle, TopbarSub, TopbarActions, Content,
+  MobileMenuBtn, MobileOverlay,
 } from './styles'
 
 function getInitials(name = ''): string {
@@ -57,6 +59,7 @@ export default function DashboardLayout({
   const { isDark, toggleTheme } = useThemeMode()
   const navigate = useNavigate()
   const { logout } = useAuth()
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
 
   function handleLogout() {
     logout()
@@ -65,7 +68,8 @@ export default function DashboardLayout({
 
   return (
     <Shell>
-      <Sidebar>
+      {mobileMenuOpen && <MobileOverlay onClick={() => setMobileMenuOpen(false)} />}
+      <Sidebar $open={mobileMenuOpen}>
         <Logo>
           <LogoIcon>
             <LogoSvg height={30} />
@@ -82,7 +86,7 @@ export default function DashboardLayout({
           {navItems.map(({ to, label, icon: Icon, badge, divider, end }) => (
             <span key={to}>
               {divider && <Divider />}
-              <NavItem to={to} end={!!end}>
+              <NavItem to={to} end={!!end} onClick={() => setMobileMenuOpen(false)}>
                 <Icon size={18} />
                 {label}
                 {badge != null && badge > 0 && <NavBadge>{badge}</NavBadge>}
@@ -92,7 +96,7 @@ export default function DashboardLayout({
 
         </Nav>
 
-        <ThemeToggleBtn onClick={toggleTheme} title={isDark ? 'Modo claro' : 'Modo escuro'}>
+        <ThemeToggleBtn type="button" onClick={toggleTheme} title={isDark ? 'Modo claro' : 'Modo escuro'}>
           {isDark ? <Sun size={16} /> : <Moon size={16} />}
           {isDark ? 'Modo claro' : 'Modo escuro'}
         </ThemeToggleBtn>
@@ -116,7 +120,15 @@ export default function DashboardLayout({
       <Main>
         <Topbar>
           <TopbarRow>
-            <div>
+            <MobileMenuBtn
+              type="button"
+              aria-label={mobileMenuOpen ? 'Fechar menu' : 'Abrir menu'}
+              aria-expanded={mobileMenuOpen}
+              onClick={() => setMobileMenuOpen((aberto) => !aberto)}
+            >
+              {mobileMenuOpen ? <X size={22} /> : <Menu size={22} />}
+            </MobileMenuBtn>
+            <div className="page-heading">
               <TopbarTitle>{pageTitle}</TopbarTitle>
               {pageSub && <TopbarSub>{pageSub}</TopbarSub>}
             </div>

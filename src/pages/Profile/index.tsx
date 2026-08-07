@@ -91,7 +91,7 @@ export default function Profile() {
     setValue: setProfileValue,
 
     control: profileControl,
-    formState: { errors: errP, isSubmitting: savingProfile },
+    formState: { errors: errP, isSubmitting: savingProfile, dirtyFields },
   } = useForm({ resolver: yupResolver(profileSchema) })
 
   const avatarUrlValue = useWatch({ control: profileControl, name: 'avatarUrl' })
@@ -119,7 +119,10 @@ export default function Profile() {
     setUploadError('')
     try {
       const url = await uploadImage(file)
-      setProfileValue('avatarUrl', url, { shouldValidate: true })
+      // `shouldDirty` é obrigatório aqui: o onSaveProfile só manda campo
+      // sujo, e o upload preenche a URL por fora do input — sem isto, a foto
+      // aparecia na tela e nunca chegava ao PATCH.
+      setProfileValue('avatarUrl', url, { shouldValidate: true, shouldDirty: true })
     } catch {
       setUploadError('Erro ao fazer upload. Tente novamente.')
     } finally {
@@ -128,8 +131,29 @@ export default function Profile() {
     }
   }
 
+  /**
+   * Manda só o que a pessoa mexeu.
+   *
+   * O formulário inteiro ia no PATCH a cada salvamento, e um campo que o
+   * formulário não conseguiu preencher viajava vazio — indistinguível de "quero
+   * apagar isto". Foi assim que trocar o avatar podia levar junto a chave PIX.
+   * Campo que ninguém tocou agora nem sai daqui, e o problema deixa de depender
+   * de o objeto de usuário estar completo.
+   *
+   * O vazio deliberado — a pessoa apagou o conteúdo do campo e salvou — vira
+   * `null`, que é como a API escreve "remova este valor".
+   */
   const onSaveProfile = async (data: Record<string, unknown>) => {
-    await usersService.updateMe(data)
+    const alterado = Object.entries(data)
+      .filter(([campo]) => Boolean(dirtyFields[campo as keyof typeof dirtyFields]))
+      .map(([campo, valor]) => [campo, valor === '' ? null : valor])
+
+    if (alterado.length === 0) {
+      toast.success('Nada para salvar.')
+      return
+    }
+
+    await usersService.updateMe(Object.fromEntries(alterado))
     await refreshUser()
     toast.success('Perfil atualizado com sucesso!')
   }

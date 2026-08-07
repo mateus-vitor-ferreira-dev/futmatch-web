@@ -18,6 +18,12 @@ export function mensagemDeErro(err: unknown, padrao = 'Algo deu errado. Tente no
   return padrao
 }
 
+/** Devolve o código estável enviado pela API, quando houver. */
+export function codigoDeErro(err: unknown): string | undefined {
+  if (!(err instanceof AxiosError)) return undefined
+  return (err.response?.data as ApiErrorBody | undefined)?.code
+}
+
 /**
  * O erro é "assine", e não "faça login" nem "não é seu"?
  *
@@ -31,7 +37,13 @@ export function mensagemDeErro(err: unknown, padrao = 'Algo deu errado. Tente no
  */
 export function ehErroDeAssinatura(err: unknown): boolean {
   if (!(err instanceof AxiosError)) return false
-  const corpo = err.response?.data as ApiErrorBody | undefined
-  if (corpo?.code === 'SUBSCRIPTION_REQUIRED') return true
+  if (codigoDeErro(err) === 'SUBSCRIPTION_REQUIRED') return true
   return err.response?.status === 402
+}
+
+/** O dono tentou criar um recurso além do permitido pelo plano atual? */
+export function ehErroDeLimiteDePlano(err: unknown): boolean {
+  if (!(err instanceof AxiosError)) return false
+  const corpo = err.response?.data as ApiErrorBody | undefined
+  return corpo?.code === 'PLAN_LIMIT_REACHED'
 }

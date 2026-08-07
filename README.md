@@ -413,7 +413,7 @@ Os fluxos críticos do jogador, o que dá mais prejuízo quando quebra:
 | Catálogo de modalidades | `hooks/useSports.test.tsx` | O fallback local que sustenta busca, cadastro e criação quando a API não responde |
 | Gate de assinatura | `hooks/useSubscription.test.tsx` · `utils/toastErro.test.ts` | O `isActive` concordando com o middleware da API, inclusive na tolerância de `past_due`, e o erro 402 mostrando o caminho do pagamento |
 
-**143 testes, ~3s.** A cobertura de linhas está em **~28%**, e o número não é meta: o critério é cobrir o que dói quando quebra, não perseguir porcentagem. **Todo PR novo entra com teste do comportamento que ele muda** — é o que a [Definition of Done](https://github.com/mateus-vitor-ferreira-dev/so-mais-um-api/blob/main/docs/EQUIPE.md) pede.
+**150 testes, ~3s.** A cobertura de linhas está em **~28%**, e o número não é meta: o critério é cobrir o que dói quando quebra, não perseguir porcentagem. **Todo PR novo entra com teste do comportamento que ele muda** — é o que a [Definition of Done](https://github.com/mateus-vitor-ferreira-dev/so-mais-um-api/blob/main/docs/EQUIPE.md) pede.
 
 ---
 

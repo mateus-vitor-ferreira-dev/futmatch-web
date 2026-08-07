@@ -1,12 +1,13 @@
 import { useState, useEffect } from 'react'
 import { CreditCard, Loader2, MapPin, Shield, CalendarCheck, Bell } from 'lucide-react'
-import { useSearchParams } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { toast } from 'sonner'
 import { useAuth } from '../../../contexts/AuthContext'
 import { subscriptionService } from '../../../services/subscriptionService'
 import { ownerService } from '../../../services/ownerService'
 import DashboardLayout from '../../../components/DashboardLayout'
 import { ownerNavItems } from '../../../constants/navItems'
+import { formatarPrecoCentavos } from '../../../utils/formatCurrency'
 import { Container, Grid, Card, PlanHighlight, RowList, PrimaryButton, Badge, StatsGrid, StatCard, StatIcon, StatInfo, StatValue, StatLabel } from './styles'
 import type { OwnerStats, SubscriptionStatus } from '../../../types/api'
 
@@ -20,10 +21,10 @@ const STATUS_LABEL: Record<string, string> = {
 
 export default function OwnerDashboard() {
   const { user } = useAuth()
+  const navigate = useNavigate()
   const [searchParams] = useSearchParams()
   const [sub, setSub] = useState<SubscriptionStatus | null>(null)
   const [loading, setLoading] = useState(true)
-  const [paying, setPaying] = useState(false)
   const [stats, setStats] = useState<OwnerStats | null>(null)
 
   useEffect(() => {
@@ -42,18 +43,8 @@ export default function OwnerDashboard() {
     }).finally(() => setLoading(false))
   }, [])
 
-  const handlePay = async () => {
-    try {
-      setPaying(true)
-      const { url } = await subscriptionService.createCheckout()
-      if (url) window.location.href = url
-    } catch {
-      toast.error('Erro ao iniciar pagamento. Tente novamente.')
-      setPaying(false)
-    }
-  }
-
   const isActive = sub?.status === 'active' || sub?.status === 'trialing'
+  const nomePlano = sub?.plan?.nome ?? 'Nenhum plano ativo'
 
   return (
     <DashboardLayout
@@ -62,7 +53,7 @@ export default function OwnerDashboard() {
       tagline="Owner Panel"
       accent="#3b82f6"
       pageTitle="Minha Assinatura"
-      pageSub="Gerencie sua assinatura Só+1 Pro."
+      pageSub="Acompanhe seu uso e gerencie sua assinatura."
     >
       <Container>
         <StatsGrid>
@@ -93,12 +84,14 @@ export default function OwnerDashboard() {
               <>
                 <PlanHighlight>
                   <div className="header">
-                    <h3>Só+1 Pro</h3>
+                    <h3>{nomePlano}</h3>
                     <Badge $status={sub?.status || 'inactive'}>
                       {(sub?.status && STATUS_LABEL[sub.status]) || 'Inativo'}
                     </Badge>
                   </div>
-                  <div className="price">R$ 79,90 / mês</div>
+                  {sub?.plan && (
+                    <div className="price">{formatarPrecoCentavos(sub.plan.precoCentavos)} / mês</div>
+                  )}
                 </PlanHighlight>
                 <RowList>
                   {sub?.currentPeriodEnd && (
@@ -110,36 +103,43 @@ export default function OwnerDashboard() {
                     </div>
                   )}
                   <div className="row">
-                    <span className="label">Métodos aceitos</span>
-                    <span className="value">Cartão · Boleto</span>
+                    <span className="label">Quadras</span>
+                    <span className="value">
+                      {sub?.plan
+                        ? `${sub.usage?.quadras ?? 0} de ${sub.plan.maxQuadras ?? 'ilimitadas'}`
+                        : `${sub?.usage?.quadras ?? 0} cadastradas`}
+                    </span>
+                  </div>
+                  <div className="row">
+                    <span className="label">Estabelecimentos</span>
+                    <span className="value">
+                      {sub?.plan
+                        ? `${sub.usage?.estabelecimentos ?? 0} de ${sub.plan.maxEstabelecimentos ?? 'ilimitados'}`
+                        : `${sub?.usage?.estabelecimentos ?? 0} cadastrados`}
+                    </span>
                   </div>
                 </RowList>
-                <PrimaryButton onClick={handlePay} disabled={paying}>
-                  {paying
-                    ? <><Loader2 size={16} style={{ animation: 'spin 1s linear infinite' }} /> Aguarde...</>
-                    : <><CreditCard size={16} /> {isActive ? 'Gerenciar Assinatura' : 'Assinar Só+1 Pro'}</>
-                  }
+                <PrimaryButton onClick={() => navigate('/owner/plans')}>
+                  <CreditCard size={16} /> {isActive ? 'Comparar ou trocar plano' : 'Ver planos e assinar'}
                 </PrimaryButton>
               </>
             )}
           </Card>
 
           <Card>
-            <h2>Incluso no plano</h2>
-            <RowList>
+            <h2>{sub?.plan ? 'Limites do plano' : 'Escolha seu plano'}</h2>
+            {sub?.plan ? <RowList>
               {[
-                'Quadras ilimitadas',
-                'Peladas ilimitadas',
-                'Painel de gestão completo',
-                'Histórico de eventos',
-                'Suporte por e-mail',
+                `${sub.plan.maxQuadras ?? 'Ilimitadas'} quadras`,
+                `${sub.plan.maxEstabelecimentos ?? 'Ilimitados'} estabelecimentos`,
+                `${sub.plan.maxModalidades ?? 'Ilimitadas'} modalidades`,
               ].map(item => (
                 <div className="row" key={item}>
                   <span style={{ color: '#3BAA34', fontWeight: 600 }}>✓</span>
                   <span className="value">{item}</span>
                 </div>
               ))}
-            </RowList>
+            </RowList> : <p>Compare preços e limites para escolher o plano que acompanha o seu negócio.</p>}
           </Card>
         </Grid>
       </Container>
