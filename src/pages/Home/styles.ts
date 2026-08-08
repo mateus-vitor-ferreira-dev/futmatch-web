@@ -39,42 +39,52 @@ export const GreetingTitle = styled.h1`
   line-height: 1.2;
 `
 
-export const HeaderActions = styled.div`
-  flex-shrink: 0;
+// ── Stats Row ─────────────────────────────────────────────────────────────────
 
-  @media (max-width: 640px) {
-    width: 100%;
+export const StatsRow = styled.div`
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+
+  @media (max-width: 480px) {
+    gap: 8px;
   }
 `
 
-// ── Compact Stats Strip ───────────────────────────────────────────────────────
-
-export const StatsRow = styled.div`
-  display: flex;
-  align-items: center;
-  gap: 20px;
-  flex-wrap: wrap;
-`
-
 export const StatBox = styled.div`
+  background: ${({ theme }) => theme.colors.bgCard};
+  border: 1px solid ${({ theme }) => theme.colors.border};
+  border-radius: 12px;
+  padding: 20px;
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 14px;
+
+  @media (max-width: 480px) {
+    padding: 14px;
+    gap: 10px;
+  }
 `
 
-export const StatIconBox = styled.span`
-  font-size: 16px;
-  line-height: 1;
+export const StatIconBox = styled.div`
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
+  background: ${({ theme }) => theme.colors.primarySubtle};
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+  flex-shrink: 0;
 `
 
 export const StatInfo = styled.div`
   display: flex;
-  align-items: baseline;
-  gap: 5px;
+  flex-direction: column;
 `
 
 export const StatValue = styled.span`
-  font-size: 0.9375rem;
+  font-size: 1.4rem;
   font-weight: 700;
   color: ${({ theme }) => theme.colors.textPrimary};
   line-height: 1.2;
@@ -343,12 +353,22 @@ export const EmptyState = styled.div`
 
 // ── CTA Buttons ───────────────────────────────────────────────────────────────
 
+export const CTARow = styled.div`
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+
+  @media (max-width: 640px) {
+    grid-template-columns: 1fr;
+  }
+`
+
 export const CTAPrimary = styled.button`
-  display: inline-flex;
+  display: flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
-  padding: 13px 22px;
+  padding: 16px;
   background: ${({ theme }) => theme.colors.primary};
   color: white;
   border: none;
@@ -363,35 +383,26 @@ export const CTAPrimary = styled.button`
   &:hover {
     background: ${({ theme }) => theme.colors.primaryHover};
   }
-
-  @media (max-width: 640px) {
-    width: 100%;
-  }
 `
 
 export const CTASecondary = styled.button`
-  display: inline-flex;
+  display: flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
-  padding: 12px 20px;
+  padding: 16px;
   background: ${({ theme }) => theme.colors.bgCard};
   color: ${({ theme }) => theme.colors.textPrimary};
   border: 1.5px solid ${({ theme }) => theme.colors.border};
   border-radius: 12px;
-  font-size: 0.875rem;
+  font-size: 0.9375rem;
   font-weight: 600;
   cursor: pointer;
   transition: background 0.15s, border-color 0.15s;
   font-family: ${({ theme }) => theme.fonts.sans};
-  align-self: flex-start;
 
   &:hover {
     border-color: ${({ theme }) => theme.colors.primary};
     background: ${({ theme }) => theme.colors.primarySubtle};
-  }
-
-  @media (max-width: 640px) {
-    width: 100%;
   }
 `

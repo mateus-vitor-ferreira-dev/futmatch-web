@@ -8,14 +8,14 @@ import { useSports, getSportMeta } from '../../hooks/useSports'
 import type { CourtType } from '../../types/api'
 import {
   PageWrapper,
-  CompactHeader, GreetingBlock, GreetingText, GreetingTitle, HeaderActions,
+  CompactHeader, GreetingBlock, GreetingText, GreetingTitle,
   StatsRow, StatBox, StatIconBox, StatInfo, StatValue, StatLabel,
   TabsWrapper, TabsRow, TabsFade, Tab,
   SectionBlock, SectionHeader, SectionTitle, SectionSubtitle,
   GamesGrid, GameCardWrapper, CardTop, CardCourtIcon, CardCourtInfo,
   CourtName, SportBadge, VagasBadge, CardMeta, MetaRow,
   CardBottom, PlayerCount, Price, ProgressBar, ProgressFill, EmptyState,
-  CTAPrimary, CTASecondary,
+  CTARow, CTAPrimary, CTASecondary,
 } from './styles'
 
 interface FiltroTab {
@@ -94,7 +94,7 @@ export default function Home() {
 
   const [events, setEvents] = useState<EventoSolto[]>([])
   const [loadingEvents, setLoadingEvents] = useState(true)
-  const [stats, setStats] = useState({ total: 0, thisMonth: 0 })
+  const [totalGames, setTotalGames] = useState(0)
   const [activeSport, setActiveSport] = useState('ALL')
   const [showLeftFade, setShowLeftFade] = useState(false)
   const [showRightFade, setShowRightFade] = useState(false)
@@ -139,17 +139,9 @@ export default function Home() {
   const fetchStats = useCallback(async () => {
     try {
       const result = await playerService.getMyParticipatingEvents({})
-      const arr = normalizeList(result)
-      const now = new Date()
-      const thisMonth = arr.filter(e => {
-        const raw = (e.scheduledAt || e.startTime || e.date || e.startsAt || e.createdAt) as string | undefined
-        if (!raw) return false
-        const d = new Date(raw)
-        return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear()
-      })
-      setStats({ total: arr.length, thisMonth: thisMonth.length })
+      setTotalGames(normalizeList(result).length)
     } catch {
-      // mantém os valores padrão
+      // mantém o valor padrão
     }
   }, [])
 
@@ -185,19 +177,36 @@ export default function Home() {
     <MainLayout user={user}>
       <PageWrapper>
 
-        {/* Saudação compacta + ação primária */}
+        {/* Saudação compacta */}
         <CompactHeader>
           <GreetingBlock>
             <GreetingText>👋 {getGreeting()}, {firstName}!</GreetingText>
             <GreetingTitle>E aí, bora jogar hoje?</GreetingTitle>
           </GreetingBlock>
-          <HeaderActions>
-            <CTAPrimary onClick={() => navigate('/quero-jogar')}>
-              <Search size={18} />
-              Encontrar um jogo
-            </CTAPrimary>
-          </HeaderActions>
         </CompactHeader>
+
+        {/* Métricas do jogador */}
+        <StatsRow>
+          <StatBox>
+            <StatIconBox>🏆</StatIconBox>
+            <StatInfo>
+              <StatValue>{totalGames}</StatValue>
+              <StatLabel>Jogos</StatLabel>
+            </StatInfo>
+          </StatBox>
+          <StatBox>
+            <StatIconBox>⭐</StatIconBox>
+            <StatInfo>
+              {/*
+                * Era user.rating — campo inexistente na API, então o ternário
+                * sempre caía no '—'. O valor real é stats.averageStars, que
+                * /auth/me não devolve (ver nota em MainLayout).
+                */}
+              <StatValue>{user?.stats?.averageStars != null ? Number(user.stats.averageStars).toFixed(1) : '—'}</StatValue>
+              <StatLabel>Nota</StatLabel>
+            </StatInfo>
+          </StatBox>
+        </StatsRow>
 
         {/* Seletor único de modalidades */}
         <TabsWrapper>
@@ -295,41 +304,17 @@ export default function Home() {
           )}
         </SectionBlock>
 
-        {/* Criar jogo — ação secundária */}
-        <CTASecondary onClick={() => navigate('/minhas-peladas?action=criar')}>
-          <Zap size={18} />
-          Criar jogo
-        </CTASecondary>
-
-        {/* Atividade pessoal — compacta */}
-        <StatsRow>
-          <StatBox>
-            <StatIconBox>🏆</StatIconBox>
-            <StatInfo>
-              <StatValue>{stats.total}</StatValue>
-              <StatLabel>Jogos</StatLabel>
-            </StatInfo>
-          </StatBox>
-          <StatBox>
-            <StatIconBox>⭐</StatIconBox>
-            <StatInfo>
-              {/*
-                * Era user.rating — campo inexistente na API, então o ternário
-                * sempre caía no '—'. O valor real é stats.averageStars, que
-                * /auth/me não devolve (ver nota em MainLayout).
-                */}
-              <StatValue>{user?.stats?.averageStars != null ? Number(user.stats.averageStars).toFixed(1) : '—'}</StatValue>
-              <StatLabel>Nota</StatLabel>
-            </StatInfo>
-          </StatBox>
-          <StatBox>
-            <StatIconBox>📅</StatIconBox>
-            <StatInfo>
-              <StatValue>{stats.thisMonth}</StatValue>
-              <StatLabel>Este mês</StatLabel>
-            </StatInfo>
-          </StatBox>
-        </StatsRow>
+        {/* Ações — encontrar ou criar um jogo, lado a lado */}
+        <CTARow>
+          <CTAPrimary onClick={() => navigate('/quero-jogar')}>
+            <Search size={18} />
+            Encontrar um jogo
+          </CTAPrimary>
+          <CTASecondary onClick={() => navigate('/minhas-peladas?action=criar')}>
+            <Zap size={18} />
+            Criar jogo
+          </CTASecondary>
+        </CTARow>
 
       </PageWrapper>
     </MainLayout>
