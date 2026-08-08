@@ -7,118 +7,74 @@ export const PageWrapper = styled.div`
   width: 100%;
 `
 
-// ── Hero Banner ───────────────────────────────────────────────────────────────
+// ── Compact Header ──────────────────────────────────────────────────────────
 
-export const HeroBanner = styled.div`
-  background: linear-gradient(135deg, #14532d 0%, #166534 55%, #15803d 100%);
-  border-radius: 16px;
-  padding: 28px 32px;
-  position: relative;
-  overflow: hidden;
-  color: white;
-
-  @media (max-width: 768px) {
-    padding: 20px;
-    border-radius: 12px;
-  }
+export const CompactHeader = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
 `
 
-export const HeroDecor1 = styled.div`
-  position: absolute;
-  top: -32px;
-  right: -32px;
-  width: 160px;
-  height: 160px;
-  border-radius: 50%;
-  background: rgba(255, 255, 255, 0.06);
-  pointer-events: none;
+export const GreetingBlock = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
 `
 
-export const HeroDecor2 = styled.div`
-  position: absolute;
-  top: 20px;
-  right: 60px;
-  width: 80px;
-  height: 80px;
-  border-radius: 50%;
-  background: rgba(255, 255, 255, 0.04);
-  pointer-events: none;
-`
-
-export const HeroGreeting = styled.p`
-  font-size: 0.9rem;
+export const GreetingText = styled.p`
+  font-size: 0.8125rem;
   font-weight: 500;
-  color: rgba(255, 255, 255, 0.85);
-  margin: 0 0 8px;
+  color: ${({ theme }) => theme.colors.textMuted};
+  margin: 0;
 `
 
-export const HeroTitle = styled.h1`
-  font-size: 1.6rem;
+export const GreetingTitle = styled.h1`
+  font-size: 1.25rem;
   font-weight: 800;
-  color: white;
-  margin: 0 0 10px;
+  color: ${({ theme }) => theme.colors.textPrimary};
+  margin: 0;
   line-height: 1.2;
+`
 
-  @media (max-width: 768px) {
-    font-size: 1.3rem;
+export const HeaderActions = styled.div`
+  flex-shrink: 0;
+
+  @media (max-width: 640px) {
+    width: 100%;
   }
 `
 
-export const HeroSubtitle = styled.p`
-  font-size: 0.875rem;
-  color: rgba(255, 255, 255, 0.75);
-  margin: 0;
-  max-width: 480px;
-`
-
-// ── Stats Row ─────────────────────────────────────────────────────────────────
+// ── Compact Stats Strip ───────────────────────────────────────────────────────
 
 export const StatsRow = styled.div`
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 12px;
-
-  @media (max-width: 480px) {
-    gap: 8px;
-  }
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  flex-wrap: wrap;
 `
 
 export const StatBox = styled.div`
-  background: ${({ theme }) => theme.colors.bgCard};
-  border: 1px solid ${({ theme }) => theme.colors.border};
-  border-radius: 12px;
-  padding: 20px;
   display: flex;
   align-items: center;
-  gap: 14px;
-
-  @media (max-width: 480px) {
-    padding: 12px;
-    gap: 8px;
-    flex-direction: column;
-    align-items: flex-start;
-  }
+  gap: 8px;
 `
 
-export const StatIconBox = styled.div`
-  width: 44px;
-  height: 44px;
-  border-radius: 10px;
-  background: ${({ theme }) => theme.colors.primarySubtle};
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 22px;
-  flex-shrink: 0;
+export const StatIconBox = styled.span`
+  font-size: 16px;
+  line-height: 1;
 `
 
 export const StatInfo = styled.div`
   display: flex;
-  flex-direction: column;
+  align-items: baseline;
+  gap: 5px;
 `
 
 export const StatValue = styled.span`
-  font-size: 1.4rem;
+  font-size: 0.9375rem;
   font-weight: 700;
   color: ${({ theme }) => theme.colors.textPrimary};
   line-height: 1.2;
@@ -132,13 +88,30 @@ export const StatLabel = styled.span`
 
 // ── Sport Tabs ────────────────────────────────────────────────────────────────
 
+export const TabsWrapper = styled.div`
+  position: relative;
+`
+
 export const TabsRow = styled.div`
   display: flex;
   gap: 8px;
   flex-wrap: nowrap;
   overflow-x: auto;
   scrollbar-width: none;
+  scroll-behavior: smooth;
   &::-webkit-scrollbar { display: none; }
+`
+
+export const TabsFade = styled.div<{ $side: 'left' | 'right'; $visible: boolean; }>`
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  ${({ $side }) => $side}: 0;
+  width: 32px;
+  pointer-events: none;
+  opacity: ${({ $visible }) => $visible ? 1 : 0};
+  transition: opacity 0.15s;
+  background: ${({ $side, theme }) => `linear-gradient(to ${$side === 'left' ? 'right' : 'left'}, ${theme.colors.bgApp}, transparent)`};
 `
 
 export const Tab = styled.button<{ $active?: boolean; }>`
@@ -156,11 +129,17 @@ export const Tab = styled.button<{ $active?: boolean; }>`
   transition: all 0.15s;
   white-space: nowrap;
   font-family: ${({ theme }) => theme.fonts.sans};
+  flex-shrink: 0;
 
   &:hover {
     border-color: ${({ theme }) => theme.colors.primary};
     background: ${({ $active, theme }) => $active ? theme.colors.primaryHover : theme.colors.primarySubtle};
     color: ${({ $active, theme }) => $active ? 'white' : theme.colors.primary};
+  }
+
+  &:focus-visible {
+    outline: 2px solid ${({ theme }) => theme.colors.primary};
+    outline-offset: 2px;
   }
 `
 
@@ -364,22 +343,12 @@ export const EmptyState = styled.div`
 
 // ── CTA Buttons ───────────────────────────────────────────────────────────────
 
-export const CTARow = styled.div`
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 12px;
-
-  @media (max-width: 768px) {
-    grid-template-columns: 1fr;
-  }
-`
-
 export const CTAPrimary = styled.button`
-  display: flex;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
-  padding: 18px;
+  padding: 13px 22px;
   background: ${({ theme }) => theme.colors.primary};
   color: white;
   border: none;
@@ -389,127 +358,40 @@ export const CTAPrimary = styled.button`
   cursor: pointer;
   transition: background 0.15s;
   font-family: ${({ theme }) => theme.fonts.sans};
+  white-space: nowrap;
 
   &:hover {
     background: ${({ theme }) => theme.colors.primaryHover};
   }
+
+  @media (max-width: 640px) {
+    width: 100%;
+  }
 `
 
 export const CTASecondary = styled.button`
-  display: flex;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
-  padding: 18px;
-  background: ${({ theme }) => theme.colors.warningLight};
-  color: ${({ theme }) => theme.colors.warningText};
-  border: 1.5px solid ${({ theme }) => theme.colors.warningBorder};
+  padding: 12px 20px;
+  background: ${({ theme }) => theme.colors.bgCard};
+  color: ${({ theme }) => theme.colors.textPrimary};
+  border: 1.5px solid ${({ theme }) => theme.colors.border};
   border-radius: 12px;
-  font-size: 0.9375rem;
+  font-size: 0.875rem;
   font-weight: 600;
   cursor: pointer;
-  transition: background 0.15s;
+  transition: background 0.15s, border-color 0.15s;
   font-family: ${({ theme }) => theme.fonts.sans};
-
-  &:hover {
-    filter: brightness(0.95);
-  }
-`
-
-// ── Explore by Modality ───────────────────────────────────────────────────────
-
-export const ModalityGrid = styled.div`
-  display: grid;
-  grid-template-columns: repeat(5, 1fr);
-  gap: 10px;
-
-  @media (max-width: 768px) {
-    grid-template-columns: repeat(2, 1fr);
-  }
-`
-
-export const ModalityCard = styled.button`
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  background: ${({ theme }) => theme.colors.bgCard};
-  border: 1px solid ${({ theme }) => theme.colors.border};
-  border-radius: 10px;
-  padding: 14px;
-  cursor: pointer;
-  text-align: left;
-  transition: border-color 0.15s, background 0.15s;
-  font-family: ${({ theme }) => theme.fonts.sans};
+  align-self: flex-start;
 
   &:hover {
     border-color: ${({ theme }) => theme.colors.primary};
     background: ${({ theme }) => theme.colors.primarySubtle};
   }
-`
 
-export const ModalityIconBox = styled.div`
-  width: 40px;
-  height: 40px;
-  border-radius: 8px;
-  background: ${({ theme }) => theme.colors.primarySubtle};
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 20px;
-  flex-shrink: 0;
-`
-
-export const ModalityInfo = styled.div`
-  display: flex;
-  flex-direction: column;
-  gap: 1px;
-  min-width: 0;
-`
-
-export const ModalityName = styled.span`
-  font-size: 0.875rem;
-  font-weight: 600;
-  color: ${({ theme }) => theme.colors.textPrimary};
-`
-
-export const ModalityCount = styled.span`
-  font-size: 0.75rem;
-  color: ${({ theme }) => theme.colors.textMuted};
-`
-
-// ── Tip Card ──────────────────────────────────────────────────────────────────
-
-export const TipCard = styled.div`
-  background: ${({ theme }) => theme.colors.warningLight};
-  border: 1px solid ${({ theme }) => theme.colors.warningBorder};
-  border-radius: 12px;
-  padding: 16px 20px;
-  display: flex;
-  align-items: flex-start;
-  gap: 12px;
-`
-
-export const TipIcon = styled.div`
-  font-size: 22px;
-  flex-shrink: 0;
-  margin-top: 1px;
-`
-
-export const TipContent = styled.div`
-  display: flex;
-  flex-direction: column;
-  gap: 3px;
-`
-
-export const TipTitle = styled.span`
-  font-size: 0.875rem;
-  font-weight: 600;
-  color: ${({ theme }) => theme.colors.warningText};
-`
-
-export const TipText = styled.p`
-  font-size: 0.8125rem;
-  color: ${({ theme }) => theme.colors.warningText};
-  margin: 0;
-  line-height: 1.5;
+  @media (max-width: 640px) {
+    width: 100%;
+  }
 `

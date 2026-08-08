@@ -1,24 +1,21 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { MapPin, Clock, Users, ChevronRight, Search, Zap } from 'lucide-react'
+import { MapPin, Clock, Users, Search, Zap } from 'lucide-react'
 import { useAuth } from '../../contexts/AuthContext'
 import { MainLayout } from '../../components'
 import { playerService } from '../../services/playerService'
 import { useSports, getSportMeta } from '../../hooks/useSports'
 import type { CourtType } from '../../types/api'
-import type { SportOption } from '../../hooks/useSports'
 import {
   PageWrapper,
-  HeroBanner, HeroDecor1, HeroDecor2, HeroGreeting, HeroTitle, HeroSubtitle,
+  CompactHeader, GreetingBlock, GreetingText, GreetingTitle, HeaderActions,
   StatsRow, StatBox, StatIconBox, StatInfo, StatValue, StatLabel,
-  TabsRow, Tab,
-  SectionBlock, SectionHeader, SectionTitle, SectionSubtitle, SeeAllBtn,
+  TabsWrapper, TabsRow, TabsFade, Tab,
+  SectionBlock, SectionHeader, SectionTitle, SectionSubtitle,
   GamesGrid, GameCardWrapper, CardTop, CardCourtIcon, CardCourtInfo,
   CourtName, SportBadge, VagasBadge, CardMeta, MetaRow,
   CardBottom, PlayerCount, Price, ProgressBar, ProgressFill, EmptyState,
-  CTARow, CTAPrimary, CTASecondary,
-  ModalityGrid, ModalityCard, ModalityIconBox, ModalityInfo, ModalityName, ModalityCount,
-  TipCard, TipIcon, TipContent, TipTitle, TipText,
+  CTAPrimary, CTASecondary,
 } from './styles'
 
 interface FiltroTab {
@@ -31,21 +28,9 @@ interface FiltroTab {
 
 const ALL_TAB: FiltroTab = { id: 'ALL', label: 'Todos', icon: '🎯', types: null }
 
-const TIPS = [
-  { title: 'Dica de craque', text: 'Avalie seus colegas após cada jogo e ajude a construir uma comunidade confiável — seja no campo, na areia ou na mesa!' },
-  { title: 'Pontualidade é respeito', text: 'Chegue 10 minutos antes do início para aquecer e conhecer os outros jogadores.' },
-  { title: 'Comunique ausências', text: 'Se não puder comparecer, avise com antecedência para não deixar o time na mão.' },
-  { title: 'Hidratação é essencial', text: 'Beba água antes, durante e após o jogo para manter o desempenho em alta.' },
-  { title: 'Respeite o organizador', text: 'Siga as regras combinadas pelo dono do jogo — todos agradecem!' },
-]
-
 function getGreeting() {
   const h = new Date().getHours()
   return h < 12 ? 'Bom dia' : h < 18 ? 'Boa tarde' : 'Boa noite'
-}
-
-function getDailyTip() {
-  return TIPS[Math.floor(Date.now() / 86400000) % TIPS.length]
 }
 
 /**
@@ -111,6 +96,10 @@ export default function Home() {
   const [loadingEvents, setLoadingEvents] = useState(true)
   const [stats, setStats] = useState({ total: 0, thisMonth: 0 })
   const [activeSport, setActiveSport] = useState('ALL')
+  const [showLeftFade, setShowLeftFade] = useState(false)
+  const [showRightFade, setShowRightFade] = useState(false)
+  const tabsRef = useRef<HTMLDivElement>(null)
+  const activeTabRef = useRef<HTMLButtonElement>(null)
 
   const fetchFeaturedEvents = useCallback(async () => {
     try {
@@ -173,76 +162,67 @@ export default function Home() {
     ? events
     : events.filter(e => e.court?.type === activeSport)
 
-  const sportCountMap = allSports.reduce<Record<string, number>>((acc, sport) => {
-    acc[sport.id] = events.filter(e => e.court?.type === sport.id).length
-    return acc
-  }, {})
+  const updateFades = useCallback(() => {
+    const el = tabsRef.current
+    if (!el) return
+    setShowLeftFade(el.scrollLeft > 4)
+    setShowRightFade(el.scrollLeft + el.clientWidth < el.scrollWidth - 4)
+  }, [])
+
+  useEffect(() => {
+    updateFades()
+    window.addEventListener('resize', updateFades)
+    return () => window.removeEventListener('resize', updateFades)
+  }, [updateFades, allSports])
+
+  useEffect(() => {
+    activeTabRef.current?.scrollIntoView({ behavior: 'smooth', inline: 'nearest', block: 'nearest' })
+  }, [activeSport])
 
   const firstName = user?.name?.split(' ')[0] || 'Jogador'
-  const tip = getDailyTip()
 
   return (
     <MainLayout user={user}>
       <PageWrapper>
 
-        {/* Hero Banner */}
-        <HeroBanner>
-          <HeroDecor1 />
-          <HeroDecor2 />
-          <HeroGreeting>👋 {getGreeting()}, {firstName}!</HeroGreeting>
-          <HeroTitle>E aí, bora jogar hoje? 🎯</HeroTitle>
-          <HeroSubtitle>
-            {events.length > 0
-              ? `${events.length} jogo${events.length !== 1 ? 's' : ''} aberto${events.length !== 1 ? 's' : ''} perto de você — futebol, vôlei, beach tennis e mais.`
-              : 'Explore os jogos disponíveis e entre numa pelada hoje!'}
-          </HeroSubtitle>
-        </HeroBanner>
+        {/* Saudação compacta + ação primária */}
+        <CompactHeader>
+          <GreetingBlock>
+            <GreetingText>👋 {getGreeting()}, {firstName}!</GreetingText>
+            <GreetingTitle>E aí, bora jogar hoje?</GreetingTitle>
+          </GreetingBlock>
+          <HeaderActions>
+            <CTAPrimary onClick={() => navigate('/quero-jogar')}>
+              <Search size={18} />
+              Encontrar um jogo
+            </CTAPrimary>
+          </HeaderActions>
+        </CompactHeader>
 
-        {/* Stats Cards */}
-        <StatsRow>
-          <StatBox>
-            <StatIconBox>🏆</StatIconBox>
-            <StatInfo>
-              <StatValue>{stats.total}</StatValue>
-              <StatLabel>Jogos</StatLabel>
-            </StatInfo>
-          </StatBox>
-          <StatBox>
-            <StatIconBox>⭐</StatIconBox>
-            <StatInfo>
-              {/*
-                * Era user.rating — campo inexistente na API, então o ternário
-                * sempre caía no '—'. O valor real é stats.averageStars, que
-                * /auth/me não devolve (ver nota em MainLayout).
-                */}
-              <StatValue>{user?.stats?.averageStars != null ? Number(user.stats.averageStars).toFixed(1) : '—'}</StatValue>
-              <StatLabel>Nota</StatLabel>
-            </StatInfo>
-          </StatBox>
-          <StatBox>
-            <StatIconBox>📅</StatIconBox>
-            <StatInfo>
-              <StatValue>{stats.thisMonth}</StatValue>
-              <StatLabel>Este mês</StatLabel>
-            </StatInfo>
-          </StatBox>
-        </StatsRow>
+        {/* Seletor único de modalidades */}
+        <TabsWrapper>
+          <TabsRow ref={tabsRef} onScroll={updateFades} role="group" aria-label="Filtrar por modalidade">
+            {SPORT_TABS.map(tab => {
+              const active = activeSport === tab.id
+              return (
+                <Tab
+                  key={tab.id}
+                  ref={active ? activeTabRef : null}
+                  $active={active}
+                  aria-pressed={active}
+                  onClick={() => setActiveSport(tab.id)}
+                >
+                  <span>{tab.icon}</span>
+                  {tab.label}
+                </Tab>
+              )
+            })}
+          </TabsRow>
+          <TabsFade $side="left" $visible={showLeftFade} />
+          <TabsFade $side="right" $visible={showRightFade} />
+        </TabsWrapper>
 
-        {/* Sport Tabs */}
-        <TabsRow>
-          {SPORT_TABS.map(tab => (
-            <Tab
-              key={tab.id}
-              $active={activeSport === tab.id}
-              onClick={() => setActiveSport(tab.id)}
-            >
-              <span>{tab.icon}</span>
-              {tab.label}
-            </Tab>
-          ))}
-        </TabsRow>
-
-        {/* Jogos em Destaque */}
+        {/* Jogos disponíveis — conteúdo dominante */}
         <SectionBlock>
           <SectionHeader>
             <div>
@@ -251,9 +231,6 @@ export default function Home() {
                 {filteredEvents.length} disponíve{filteredEvents.length !== 1 ? 'is' : 'l'} agora
               </SectionSubtitle>
             </div>
-            <SeeAllBtn onClick={() => navigate('/quero-jogar')}>
-              Ver todos <ChevronRight size={16} />
-            </SeeAllBtn>
           </SectionHeader>
 
           {loadingEvents ? (
@@ -318,50 +295,41 @@ export default function Home() {
           )}
         </SectionBlock>
 
-        {/* CTAs */}
-        <CTARow>
-          <CTAPrimary onClick={() => navigate('/quero-jogar')}>
-            <Search size={18} />
-            Entrar em um jogo
-          </CTAPrimary>
-          <CTASecondary onClick={() => navigate('/minhas-peladas?action=criar')}>
-            <Zap size={18} />
-            Criar jogo
-          </CTASecondary>
-        </CTARow>
+        {/* Criar jogo — ação secundária */}
+        <CTASecondary onClick={() => navigate('/minhas-peladas?action=criar')}>
+          <Zap size={18} />
+          Criar jogo
+        </CTASecondary>
 
-        {/* Explorar por Modalidade */}
-        <SectionBlock>
-          <SectionHeader>
-            <SectionTitle>Explorar por modalidade</SectionTitle>
-          </SectionHeader>
-          <ModalityGrid>
-            {allSports.map((sport: SportOption) => {
-              const count = sportCountMap[sport.id] ?? 0
-              return (
-                <ModalityCard
-                  key={sport.id}
-                  onClick={() => navigate(`/quero-jogar?sport=${sport.id}`)}
-                >
-                  <ModalityIconBox>{sport.icon}</ModalityIconBox>
-                  <ModalityInfo>
-                    <ModalityName>{sport.label}</ModalityName>
-                    <ModalityCount>{count} aberto{count !== 1 ? 's' : ''}</ModalityCount>
-                  </ModalityInfo>
-                </ModalityCard>
-              )
-            })}
-          </ModalityGrid>
-        </SectionBlock>
-
-        {/* Dica de Craque */}
-        <TipCard>
-          <TipIcon>💡</TipIcon>
-          <TipContent>
-            <TipTitle>{tip.title}</TipTitle>
-            <TipText>{tip.text}</TipText>
-          </TipContent>
-        </TipCard>
+        {/* Atividade pessoal — compacta */}
+        <StatsRow>
+          <StatBox>
+            <StatIconBox>🏆</StatIconBox>
+            <StatInfo>
+              <StatValue>{stats.total}</StatValue>
+              <StatLabel>Jogos</StatLabel>
+            </StatInfo>
+          </StatBox>
+          <StatBox>
+            <StatIconBox>⭐</StatIconBox>
+            <StatInfo>
+              {/*
+                * Era user.rating — campo inexistente na API, então o ternário
+                * sempre caía no '—'. O valor real é stats.averageStars, que
+                * /auth/me não devolve (ver nota em MainLayout).
+                */}
+              <StatValue>{user?.stats?.averageStars != null ? Number(user.stats.averageStars).toFixed(1) : '—'}</StatValue>
+              <StatLabel>Nota</StatLabel>
+            </StatInfo>
+          </StatBox>
+          <StatBox>
+            <StatIconBox>📅</StatIconBox>
+            <StatInfo>
+              <StatValue>{stats.thisMonth}</StatValue>
+              <StatLabel>Este mês</StatLabel>
+            </StatInfo>
+          </StatBox>
+        </StatsRow>
 
       </PageWrapper>
     </MainLayout>
