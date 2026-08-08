@@ -391,9 +391,9 @@ export const CTASecondary = styled.button`
   justify-content: center;
   gap: 8px;
   padding: 16px;
-  background: ${({ theme }) => theme.colors.bgCard};
-  color: ${({ theme }) => theme.colors.textPrimary};
-  border: 1.5px solid ${({ theme }) => theme.colors.border};
+  background: ${({ theme }) => theme.colors.primaryLight};
+  color: ${({ theme }) => theme.colors.primaryDark};
+  border: 1.5px solid transparent;
   border-radius: 12px;
   font-size: 0.9375rem;
   font-weight: 600;
@@ -403,6 +403,5 @@ export const CTASecondary = styled.button`
 
   &:hover {
     border-color: ${({ theme }) => theme.colors.primary};
-    background: ${({ theme }) => theme.colors.primarySubtle};
   }
 `
