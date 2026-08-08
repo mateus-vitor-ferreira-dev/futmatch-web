@@ -5,8 +5,18 @@ export interface CheckoutSession {
   url: string | null
 }
 
+/**
+ * Resultado da troca.
+ *
+ * `plan` é sempre o plano **em vigor** depois da chamada — que num downgrade
+ * continua sendo o antigo, porque a troca só vale no fim do ciclo. Quem diz
+ * para onde vai, nesse caso, é `planoAgendado`.
+ */
 export interface SwitchPlanResult {
   plan: Plan
+  planoAgendado?: Pick<Plan, 'id' | 'nome' | 'precoCentavos'> | null
+  efetivaImediatamente: boolean
+  valeAPartirDe: string | null
 }
 
 export const subscriptionService = {

@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
-import { Check, Loader2, AlertTriangle } from 'lucide-react'
+import { Check, Loader2, AlertTriangle, CalendarClock } from 'lucide-react'
 import { toast } from 'sonner'
 import { useAuth } from '../../../contexts/AuthContext'
 import { plansService } from '../../../services/plansService'
@@ -13,13 +13,18 @@ import {
   Container, UsageCard, UsageGrid, UsageItem, UsageLabel, UsageValue, UsageBar, UsageBarFill,
   PlansGrid, PlanCard, CurrentBadge, PlanName, PlanPrice, PlanFeatures, PlanButton,
   Modal, ModalOverlay, ModalBox, ModalTitle, EffectRow, WarningBox, ModalActions, CancelBtn, ConfirmBtn,
-  CenteredSpinner,
+  CenteredSpinner, ScheduledBox, CancelScheduleBtn,
 } from './styles'
 
 const STATUS_COM_TROCA = ['active', 'trialing', 'past_due']
 
 function limiteLabel(valor: number | null, feminino = false): string {
   return valor === null ? (feminino ? 'Ilimitadas' : 'Ilimitados') : String(valor)
+}
+
+/** Mesma formatação do resto do painel — ver Admin/Dashboard e Owner/Requests. */
+function formatarData(iso: string): string {
+  return new Date(iso).toLocaleDateString('pt-BR')
 }
 
 export default function OwnerPlans() {
@@ -33,6 +38,7 @@ export default function OwnerPlans() {
   const [preview, setPreview] = useState<SwitchPlanPreview | null>(null)
   const [previewLoading, setPreviewLoading] = useState(false)
   const [confirmando, setConfirmando] = useState(false)
+  const [cancelandoAgendamento, setCancelandoAgendamento] = useState(false)
 
   const carregar = useCallback(() => {
     setLoading(true)
@@ -93,8 +99,23 @@ export default function OwnerPlans() {
     if (!trocaPlano) return
     try {
       setConfirmando(true)
-      await subscriptionService.switchPlan(trocaPlano.id)
-      toast.success(`Plano trocado para ${trocaPlano.nome}.`)
+      const resultado = await subscriptionService.switchPlan(trocaPlano.id)
+
+      /*
+        Downgrade não troca nada agora — é agendado para a virada do ciclo.
+        Dizer "plano trocado" aqui e recarregar a tela mostrando o plano antigo
+        fazia o dono concluir que o clique não tinha pegado.
+      */
+      if (resultado.efetivaImediatamente) {
+        toast.success(`Plano trocado para ${trocaPlano.nome}.`)
+      } else {
+        toast.success(
+          resultado.valeAPartirDe
+            ? `Troca para ${trocaPlano.nome} agendada para ${formatarData(resultado.valeAPartirDe)}.`
+            : `Troca para ${trocaPlano.nome} agendada para o fim do ciclo atual.`,
+        )
+      }
+
       setTrocaPlano(null)
       setPreview(null)
       carregar()
@@ -102,6 +123,26 @@ export default function OwnerPlans() {
       toast.error(mensagemDeErro(err, 'Não foi possível trocar de plano. Tente novamente.'))
     } finally {
       setConfirmando(false)
+    }
+  }
+
+  /**
+   * Cancelar um downgrade agendado é trocar de volta para o plano em vigor —
+   * a API não tem rota própria para isso, e não precisa: `switch` com o plano
+   * atual solta o agendamento sem cobrar nada.
+   */
+  const cancelarAgendamento = async () => {
+    const planoEmVigor = sub?.plan
+    if (!planoEmVigor) return
+    try {
+      setCancelandoAgendamento(true)
+      await subscriptionService.switchPlan(planoEmVigor.id)
+      toast.success(`Troca cancelada. Você continua no ${planoEmVigor.nome}.`)
+      carregar()
+    } catch (err) {
+      toast.error(mensagemDeErro(err, 'Não foi possível cancelar a troca. Tente novamente.'))
+    } finally {
+      setCancelandoAgendamento(false)
     }
   }
 
@@ -115,6 +156,32 @@ export default function OwnerPlans() {
       pageSub="Compare, assine ou troque de plano."
     >
       <Container>
+        {/*
+          Sem isto, quem agenda um downgrade volta para uma tela idêntica à de
+          antes — plano antigo em vigor, nenhum sinal do agendamento — e conclui
+          que a troca falhou.
+        */}
+        {sub?.trocaAgendada && (
+          <ScheduledBox>
+            <CalendarClock size={18} />
+            <div>
+              <strong>Troca agendada para {formatarData(sub.trocaAgendada.valeAPartirDe)}</strong>
+              <p>
+                Você passa para o {sub.trocaAgendada.plan.nome}
+                {' '}({formatarPrecoCentavos(sub.trocaAgendada.plan.precoCentavos)} / mês) nessa data.
+                Até lá continua no {sub.plan?.nome ?? 'plano atual'}, com os limites que já paga.
+              </p>
+            </div>
+            <CancelScheduleBtn
+              type="button"
+              onClick={cancelarAgendamento}
+              disabled={cancelandoAgendamento}
+            >
+              {cancelandoAgendamento ? 'Cancelando...' : 'Cancelar troca'}
+            </CancelScheduleBtn>
+          </ScheduledBox>
+        )}
+
         {sub?.usage && (
           <UsageCard>
             <h2>Uso atual</h2>
@@ -192,24 +259,54 @@ export default function OwnerPlans() {
               <>
                 <EffectRow>
                   <span className="label">Quando passa a valer</span>
-                  <span className="value">{preview.efetivaImediatamente ? 'Imediatamente' : 'No próximo ciclo'}</span>
+                  <span className="value">
+                    {preview.efetivaImediatamente
+                      ? 'Imediatamente'
+                      : preview.valeAPartirDe
+                        ? `Em ${formatarData(preview.valeAPartirDe)}`
+                        : 'No fim do ciclo atual'}
+                  </span>
                 </EffectRow>
                 <EffectRow>
                   <span className="label">Cobrança imediata</span>
                   <span className="value">Nenhuma</span>
                 </EffectRow>
-                <EffectRow>
-                  <span className="label">{preview.tipo === 'downgrade'
-                    ? 'Crédito estimado na próxima fatura'
-                    : preview.tipo === 'upgrade'
-                      ? 'Ajuste estimado na próxima fatura'
-                      : 'Ajuste na próxima fatura'}</span>
-                  <span className="value">
-                    {preview.tipo === 'mesmo_preco'
-                      ? formatarPrecoCentavos(0)
-                      : `≈ ${formatarPrecoCentavos(Math.abs(preview.estimativaCobrancaCentavos))}`}
-                  </span>
-                </EffectRow>
+
+                {/*
+                  No downgrade não há linha de valor: a troca só vale no fim do
+                  ciclo, então nada é cobrado nem creditado. A tela anunciava
+                  "crédito estimado na próxima fatura" — prometia um estorno que
+                  não acontece.
+                */}
+                {preview.efetivaImediatamente && (
+                  <EffectRow>
+                    <span className="label">
+                      {preview.tipo === 'upgrade' ? 'Ajuste estimado na próxima fatura' : 'Ajuste na próxima fatura'}
+                    </span>
+                    <span className="value">
+                      {preview.tipo === 'mesmo_preco'
+                        ? formatarPrecoCentavos(0)
+                        : `≈ ${formatarPrecoCentavos(Math.abs(preview.estimativaCobrancaCentavos))}`}
+                    </span>
+                  </EffectRow>
+                )}
+
+                {!preview.efetivaImediatamente && (
+                  <EffectRow>
+                    <span className="label">Cobrança ou crédito agora</span>
+                    <span className="value">Nenhum</span>
+                  </EffectRow>
+                )}
+
+                {!preview.efetivaImediatamente && (
+                  <WarningBox>
+                    <AlertTriangle size={18} />
+                    <span>
+                      Você continua no {sub?.plan?.nome ?? 'plano atual'} até lá, com os limites que já paga.
+                      Enquanto a troca não valer, dá para cancelá-la voltando para o plano atual.
+                    </span>
+                  </WarningBox>
+                )}
 
                 {(preview.usoExcederiaNovoPlano?.quadras || preview.usoExcederiaNovoPlano?.estabelecimentos) && (
                   <WarningBox>
