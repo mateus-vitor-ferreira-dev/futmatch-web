@@ -414,11 +414,25 @@ export interface SubscriptionUsage {
     estabelecimentos: number;
 }
 
+/**
+ * Downgrade contratado que ainda não valeu.
+ *
+ * Downgrade passa a valer no fim do ciclo: o dono usa até o fim o que já
+ * pagou. Até lá, `SubscriptionStatus.plan` continua sendo o plano em vigor —
+ * é ele que rege os limites — e isto aqui diz para onde vai.
+ */
+export interface TrocaAgendada {
+    plan: Plan;
+    valeAPartirDe: IsoDate;
+}
+
 export interface SubscriptionStatus {
     status: string;
     currentPeriodEnd: IsoDate | null;
     stripeSubscriptionId?: string | null;
+    /** O plano EM VIGOR, mesmo havendo troca agendada. */
     plan?: Plan | null;
+    trocaAgendada?: TrocaAgendada | null;
     usage?: SubscriptionUsage;
 }
 
@@ -428,9 +442,17 @@ export interface SwitchPlanPreview {
     planoAtual: Pick<Plan, "id" | "nome" | "precoCentavos"> | null;
     planoNovo: Pick<Plan, "id" | "nome" | "precoCentavos">;
     tipo: SwitchPlanEffectType;
-    /** Aproximada — o valor exato vai para a fatura seguinte na Stripe. */
+    /**
+     * Aproximada — o valor exato vai para a fatura seguinte na Stripe.
+     *
+     * **Zero no downgrade**, e não é arredondamento: como a troca só vale no
+     * fim do ciclo, nada é cobrado nem creditado agora.
+     */
     estimativaCobrancaCentavos: number;
+    /** `true` no upgrade, que vale na hora; `false` no downgrade. */
     efetivaImediatamente: boolean;
+    /** Quando o downgrade passa a valer. Null quando a troca é imediata. */
+    valeAPartirDe: IsoDate | null;
     usoExcederiaNovoPlano: { quadras: boolean; estabelecimentos: boolean } | null;
 }
 
