@@ -185,6 +185,18 @@ export default function Home() {
           </GreetingBlock>
         </CompactHeader>
 
+        {/* Ações — encontrar ou criar um jogo, lado a lado, sem precisar rolar a tela */}
+        <CTARow>
+          <CTAPrimary onClick={() => navigate('/quero-jogar')}>
+            <Search size={18} />
+            Encontrar um jogo
+          </CTAPrimary>
+          <CTASecondary onClick={() => navigate('/minhas-peladas?action=criar')}>
+            <Zap size={18} />
+            Criar jogo
+          </CTASecondary>
+        </CTARow>
+
         {/* Métricas do jogador */}
         <StatsRow>
           <StatBox>
@@ -303,18 +315,6 @@ export default function Home() {
             </GamesGrid>
           )}
         </SectionBlock>
-
-        {/* Ações — encontrar ou criar um jogo, lado a lado */}
-        <CTARow>
-          <CTAPrimary onClick={() => navigate('/quero-jogar')}>
-            <Search size={18} />
-            Encontrar um jogo
-          </CTAPrimary>
-          <CTASecondary onClick={() => navigate('/minhas-peladas?action=criar')}>
-            <Zap size={18} />
-            Criar jogo
-          </CTASecondary>
-        </CTARow>
 
       </PageWrapper>
     </MainLayout>

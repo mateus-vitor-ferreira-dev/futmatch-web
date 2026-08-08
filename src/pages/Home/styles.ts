@@ -368,10 +368,10 @@ export const CTAPrimary = styled.button`
   align-items: center;
   justify-content: center;
   gap: 8px;
-  padding: 16px;
+  padding: 15px;
   background: ${({ theme }) => theme.colors.primary};
   color: white;
-  border: none;
+  border: 2px solid transparent;
   border-radius: 12px;
   font-size: 0.9375rem;
   font-weight: 600;
@@ -390,18 +390,18 @@ export const CTASecondary = styled.button`
   align-items: center;
   justify-content: center;
   gap: 8px;
-  padding: 16px;
+  padding: 15px;
   background: ${({ theme }) => theme.colors.primaryLight};
   color: ${({ theme }) => theme.colors.primaryDark};
-  border: 1.5px solid transparent;
+  border: 2px solid ${({ theme }) => theme.colors.primaryDark};
   border-radius: 12px;
   font-size: 0.9375rem;
   font-weight: 600;
   cursor: pointer;
-  transition: background 0.15s, border-color 0.15s;
+  transition: background 0.15s;
   font-family: ${({ theme }) => theme.fonts.sans};
 
   &:hover {
-    border-color: ${({ theme }) => theme.colors.primary};
+    background: ${({ theme }) => theme.colors.primarySubtle};
   }
 `
