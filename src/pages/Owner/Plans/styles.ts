@@ -277,3 +277,51 @@ export const CenteredSpinner = styled.div`
   justify-content: center;
   padding: 40px;
 `
+
+/**
+ * Aviso de downgrade agendado.
+ *
+ * Fica no topo da página, antes do uso e dos cards: é a resposta à pergunta
+ * "minha troca pegou?", e ela precisa aparecer sem rolagem.
+ */
+export const ScheduledBox = styled.div`
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  background: ${({ theme }) => theme.colors.warningLight};
+  border: 1px solid ${({ theme }) => theme.colors.warningBorder};
+  color: ${({ theme }) => theme.colors.warningText};
+  border-radius: ${({ theme }) => theme.radii.md};
+  padding: 14px 16px;
+  margin-bottom: 20px;
+  font-size: ${({ theme }) => theme.fontSizes.sm};
+
+  svg { flex-shrink: 0; margin-top: 2px; }
+
+  div { flex: 1; }
+
+  strong { display: block; margin-bottom: 4px; }
+
+  p { margin: 0; opacity: 0.9; }
+
+  @media (max-width: 640px) {
+    flex-wrap: wrap;
+  }
+`
+
+export const CancelScheduleBtn = styled.button`
+  flex-shrink: 0;
+  padding: 8px 14px;
+  border-radius: ${({ theme }) => theme.radii.md};
+  font-size: ${({ theme }) => theme.fontSizes.sm};
+  font-weight: ${({ theme }) => theme.fontWeights.semibold};
+  cursor: pointer;
+  border: 1px solid ${({ theme }) => theme.colors.warningBorder};
+  background: transparent;
+  color: inherit;
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+`
