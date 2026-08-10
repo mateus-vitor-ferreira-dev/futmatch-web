@@ -6,7 +6,6 @@ import { useAuth } from '../../contexts/AuthContext'
 import { playerService } from '../../services/playerService'
 import { useSports, getSportMeta } from '../../hooks/useSports'
 import { SkeletonCard } from '../../components/Skeleton'
-import { MainLayout } from '../../components'
 import { mensagemDeErro } from '../../utils/apiError'
 import type { EventFilters } from '../../services/events'
 import type { CourtType, Pelada } from '../../types/api'
@@ -150,7 +149,7 @@ export default function QueroJogar() {
   }
 
   return (
-    <MainLayout user={user}>
+    <>
       <Container>
         <HeaderRow>
           <Header>
@@ -402,6 +401,6 @@ export default function QueroJogar() {
           </div>
         )}
       </Container>
-    </MainLayout>
+    </>
   )
 }

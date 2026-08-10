@@ -5,9 +5,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom'
 import { toast } from 'sonner'
 import { SkeletonCard } from '../../components/Skeleton'
 import { Calendar, Clock, Copy, Plus, Shuffle, Flag, XCircle, CheckSquare } from 'lucide-react'
-import { useAuth } from '../../contexts/AuthContext'
 import { playerService } from '../../services/playerService'
-import { MainLayout } from '../../components'
 import { Grid, Card, CardHeader, InfoRow, ProgressBarContainer, ProgressBar, SpotsInfo } from '../QueroJogar/styles'
 import { mensagemDeErro } from '../../utils/apiError'
 import type { Court, DrawResult, Participation, Pelada, PeladaStatus } from '../../types/api'
@@ -40,7 +38,6 @@ interface FormularioPelada {
 }
 
 export default function MinhasPeladas() {
-  const { user } = useAuth()
   const navigate = useNavigate()
   const [searchParams, setSearchParams] = useSearchParams()
   const [activeTab, setActiveTab] = useState('participating')
@@ -212,7 +209,7 @@ export default function MinhasPeladas() {
   }
 
   return (
-    <MainLayout user={user}>
+    <>
       <Container>
         <PageHeader>
           <div>
@@ -501,6 +498,6 @@ export default function MinhasPeladas() {
           </DrawModalOverlay>
         )}
       </Container>
-    </MainLayout>
+    </>
   )
 }

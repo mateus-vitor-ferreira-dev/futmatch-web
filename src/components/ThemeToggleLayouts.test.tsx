@@ -1,19 +1,20 @@
 import { describe, expect, it } from 'vitest'
+import { Route, Routes } from 'react-router-dom'
 import { renderWithProviders, screen } from '../test/render'
 import DashboardLayout from './DashboardLayout'
 import MainLayout from './MainLayout'
 
+// Os layouts viraram rota-pai na #197: renderizam `<Outlet />` em vez de
+// receber `children`. Por isso o teste monta uma rota aninhada em volta deles.
+
 describe('seletor de tema dos layouts', () => {
   it('alterna o tema no painel administrativo', async () => {
     const { user } = renderWithProviders(
-      <DashboardLayout
-        navItems={[]}
-        tagline="Painel"
-        accent="#3baa34"
-        pageTitle="Visão geral"
-      >
-        <p>Conteúdo</p>
-      </DashboardLayout>,
+      <Routes>
+        <Route element={<DashboardLayout navItems={[]} tagline="Painel" accent="#3baa34" />}>
+          <Route index element={<p>Conteúdo</p>} />
+        </Route>
+      </Routes>,
     )
 
     await user.click(screen.getByRole('button', { name: 'Modo escuro' }))
@@ -24,9 +25,11 @@ describe('seletor de tema dos layouts', () => {
 
   it('mantém os seletores desktop e mobile sincronizados no layout principal', async () => {
     const { user } = renderWithProviders(
-      <MainLayout>
-        <p>Conteúdo</p>
-      </MainLayout>,
+      <Routes>
+        <Route element={<MainLayout />}>
+          <Route index element={<p>Conteúdo</p>} />
+        </Route>
+      </Routes>,
     )
 
     const [desktopToggle] = screen.getAllByRole('button', { name: 'Modo escuro' })

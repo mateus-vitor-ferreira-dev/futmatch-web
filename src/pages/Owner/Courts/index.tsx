@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
+import { usePageHeader, PageActions } from '../../../components/DashboardLayout/pageHeader'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
 import { yupResolver } from '@hookform/resolvers/yup'
@@ -6,9 +7,6 @@ import * as yup from 'yup'
 import { toast } from 'sonner'
 import { toastErroDeApi } from '../../../utils/toastErro'
 import { ArrowLeft } from 'lucide-react'
-import DashboardLayout from '../../../components/DashboardLayout'
-import { ownerNavItems } from '../../../constants/navItems'
-import { useAuth } from '../../../contexts/AuthContext'
 import { useSubscription } from '../../../hooks/useSubscription'
 import SubscriptionGate from '../../../components/SubscriptionGate'
 import { getSportMeta } from '../../../hooks/useSports'
@@ -53,7 +51,6 @@ type FormValues = yup.InferType<typeof schema>
 export default function OwnerCourts() {
   const { placeId } = useParams<{ placeId: string }>()
   const navigate = useNavigate()
-  const { user } = useAuth()
   const { sub, isActive, loading: subLoading } = useSubscription()
 
   const [place, setPlace]       = useState<Place | null>(null)
@@ -168,18 +165,11 @@ export default function OwnerCourts() {
 
   const placeName = place?.name ?? 'Estabelecimento'
 
+  usePageHeader(`Quadras — ${placeName}`, "Gerencie as quadras deste estabelecimento")
+
   return (
-    <DashboardLayout
-      user={user}
-      navItems={ownerNavItems(user?.role)}
-      tagline="Owner Panel"
-      accent="#f59e0b"
-      pageTitle={`Quadras — ${placeName}`}
-      pageSub="Gerencie as quadras deste estabelecimento"
-      topbarActions={
-        <NewBtn onClick={openCreate}>+ Nova Quadra</NewBtn>
-      }
-    >
+    <>
+      <PageActions><NewBtn onClick={openCreate}>+ Nova Quadra</NewBtn></PageActions>
       <SubscriptionGate isActive={isActive} loading={subLoading} sub={sub}>
         <BackBtn onClick={() => navigate('/owner/places')}>
           <ArrowLeft size={15} />
@@ -287,6 +277,6 @@ export default function OwnerCourts() {
           </Modal>
         )}
       </SubscriptionGate>
-    </DashboardLayout>
+    </>
   )
 }

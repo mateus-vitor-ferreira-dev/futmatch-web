@@ -2,7 +2,6 @@ import { useState, useEffect, useCallback, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { MapPin, Clock, Users, Search, Zap } from 'lucide-react'
 import { useAuth } from '../../contexts/AuthContext'
-import { MainLayout } from '../../components'
 import { playerService } from '../../services/playerService'
 import { useSports, getSportMeta } from '../../hooks/useSports'
 import type { CourtType } from '../../types/api'
@@ -174,7 +173,7 @@ export default function Home() {
   const firstName = user?.name?.split(' ')[0] || 'Jogador'
 
   return (
-    <MainLayout user={user}>
+    <>
       <PageWrapper>
 
         {/* Saudação compacta */}
@@ -317,6 +316,6 @@ export default function Home() {
         </SectionBlock>
 
       </PageWrapper>
-    </MainLayout>
+    </>
   )
 }

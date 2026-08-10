@@ -1,11 +1,10 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
+import { usePageHeader } from '../../../components/DashboardLayout/pageHeader'
 import {
   AlertTriangle, ArrowDown, ArrowUp, History, Loader2, Package, Plus, ShoppingCart,
 } from 'lucide-react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { toast } from 'sonner'
-import DashboardLayout from '../../../components/DashboardLayout'
-import { ownerNavItems } from '../../../constants/navItems'
 import { useAuth } from '../../../contexts/AuthContext'
 import { useSubscription } from '../../../hooks/useSubscription'
 import { inventoryService } from '../../../services/inventoryService'
@@ -262,15 +261,10 @@ export default function OwnerInventory() {
     }
   }
 
+  usePageHeader("Estoque", "Mercadorias vendidas no balcão, separadas por estabelecimento.")
+
   return (
-    <DashboardLayout
-      user={user}
-      navItems={ownerNavItems(user?.role)}
-      tagline="Owner Panel"
-      accent="#f59e0b"
-      pageTitle="Estoque"
-      pageSub="Mercadorias vendidas no balcão, separadas por estabelecimento."
-    >
+    <>
       <Toolbar>
         <div>
           <Label htmlFor="place">Estabelecimento</Label>
@@ -579,6 +573,6 @@ export default function OwnerInventory() {
           </ModalBox>
         </Modal>
       )}
-    </DashboardLayout>
+    </>
   )
 }

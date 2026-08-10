@@ -1,13 +1,11 @@
 import { useState, useEffect } from 'react'
+import { usePageHeader, PageActions } from '../../../components/DashboardLayout/pageHeader'
 import { useForm } from 'react-hook-form'
 import { yupResolver } from '@hookform/resolvers/yup'
 import * as yup from 'yup'
 import { toastErroDeApi } from '../../../utils/toastErro'
-import DashboardLayout from '../../../components/DashboardLayout'
-import { ownerNavItems } from '../../../constants/navItems'
 import StatCard from '../../../components/StatCard'
 import SubscriptionGate from '../../../components/SubscriptionGate'
-import { useAuth } from '../../../contexts/AuthContext'
 import { useSubscription } from '../../../hooks/useSubscription'
 import * as placeRequestsService from '../../../services/placeRequests'
 import type { PlaceRequest } from '../../../types/api'
@@ -48,7 +46,6 @@ const schema = yup.object({
 type FormularioSolicitacao = yup.InferType<typeof schema>
 
 export default function OwnerRequests() {
-  const { user } = useAuth()
   const { sub, isActive, loading: subLoading } = useSubscription()
   const [requests, setRequests]   = useState<PlaceRequest[]>([])
   const [loading, setLoading]     = useState(true)
@@ -96,18 +93,11 @@ export default function OwnerRequests() {
     rejected: requests.filter((r) => r.status === 'REJECTED').length,
   }
 
+  usePageHeader("Minhas Solicitações", "Acompanhe o status das suas solicitações de cadastro de estabelecimentos")
+
   return (
-    <DashboardLayout
-      user={user}
-      navItems={ownerNavItems(user?.role)}
-      tagline="Owner Panel"
-      accent="#f59e0b"
-      pageTitle="Minhas Solicitações"
-      pageSub="Acompanhe o status das suas solicitações de cadastro de estabelecimentos"
-      topbarActions={
-        <NewBtn onClick={() => setShowModal(true)}>+ Nova Solicitação</NewBtn>
-      }
-    >
+    <>
+      <PageActions><NewBtn onClick={() => setShowModal(true)}>+ Nova Solicitação</NewBtn></PageActions>
       <SubscriptionGate isActive={isActive} loading={subLoading} sub={sub}>
       <StatsRow>
         <StatCard label="Total Enviadas" value={counts.total}    accent="#3b82f6" />
@@ -229,6 +219,6 @@ export default function OwnerRequests() {
         </Modal>
       )}
       </SubscriptionGate>
-    </DashboardLayout>
+    </>
   )
 }
