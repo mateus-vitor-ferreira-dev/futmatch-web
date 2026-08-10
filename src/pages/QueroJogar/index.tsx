@@ -1,9 +1,11 @@
-import { useState, useEffect, useCallback, useMemo } from 'react'
+import { useState, useMemo } from 'react'
+import { useInfiniteQuery, useQueryClient } from '@tanstack/react-query'
 import { useSearchParams, useNavigate } from 'react-router-dom'
 import { toast } from 'sonner'
 import { Search, Calendar, Clock, CheckCircle, MapPin, SlidersHorizontal, X } from 'lucide-react'
 import { useAuth } from '../../contexts/AuthContext'
 import { playerService } from '../../services/playerService'
+import { chaves } from '../../lib/queryClient'
 import { useSports, getSportMeta } from '../../hooks/useSports'
 import { SkeletonCard } from '../../components/Skeleton'
 import { mensagemDeErro } from '../../utils/apiError'
@@ -46,12 +48,8 @@ export default function QueroJogar() {
   const { sports: allSports } = useSports()
   const [searchParams] = useSearchParams()
   const navigate = useNavigate()
+  const queryClient = useQueryClient()
 
-  const [events, setEvents]             = useState<Pelada[]>([])
-  const [loading, setLoading]           = useState(true)
-  const [loadingMore, setLoadingMore]   = useState(false)
-  const [page, setPage]                 = useState(1)
-  const [hasMore, setHasMore]           = useState(false)
   const [search, setSearch]             = useState('')
   const [selectedSport, setSelectedSport] = useState(searchParams.get('sport') || '')
   const [showFilters, setShowFilters]   = useState(false)
@@ -61,29 +59,39 @@ export default function QueroJogar() {
   const [filterCity, setFilterCity]     = useState('')
   const [filterVagas, setFilterVagas]   = useState(false)
 
-  // courtType e city são filtros server-side — requerem novo fetch quando mudam
-  const fetchEvents = useCallback(async (pageNum = 1) => {
-    try {
-      if (pageNum === 1) setLoading(true)
-      else setLoadingMore(true)
-      const params: EventFilters = { status: 'WAITING', page: pageNum, limit: 20 }
+  /*
+   * courtType e city são filtros server-side: entram na chave de cache, então
+   * mudar de filtro busca do zero e voltar a um filtro já visto vem do cache,
+   * sem rede. O `useInfiniteQuery` guarda as páginas acumuladas — antes elas
+   * viviam num useState que sumia ao trocar de rota, e voltar para cá recomeçava
+   * da página 1.
+   */
+  const filtrosServidor = { courtType: selectedSport || undefined, city: filterCity || undefined }
+
+  const {
+    data: paginas,
+    isPending: loading,
+    isFetchingNextPage: loadingMore,
+    hasNextPage: hasMore,
+    fetchNextPage,
+  } = useInfiniteQuery({
+    queryKey: chaves.eventos.busca(filtrosServidor),
+    initialPageParam: 1,
+    queryFn: async ({ pageParam }) => {
+      const params: EventFilters = { status: 'WAITING', page: pageParam, limit: 20 }
       if (selectedSport) params.courtType = selectedSport as CourtType
       if (filterCity)    params.city      = filterCity
       const res = await playerService.searchEvents(params)
-      const incoming = res.data?.events ?? res.data ?? []
-      setEvents(prev => pageNum === 1 ? incoming : [...prev, ...incoming])
-      setHasMore(res.data?.hasMore ?? false)
-      setPage(pageNum)
-    } catch {
-      if (pageNum === 1) setEvents([])
-    } finally {
-      setLoading(false)
-      setLoadingMore(false)
-    }
-  }, [selectedSport, filterCity])
+      return {
+        eventos: (res.data?.events ?? res.data ?? []) as Pelada[],
+        temMais: res.data?.hasMore ?? false,
+      }
+    },
+    // `undefined` diz ao react-query que acabou — é o que apaga o botão.
+    getNextPageParam: (ultima, todas) => (ultima.temMais ? todas.length + 1 : undefined),
+  })
 
-  // Refaz fetch do zero quando filtros server-side mudam
-  useEffect(() => { fetchEvents(1) }, [fetchEvents])
+  const events = useMemo(() => paginas?.pages.flatMap((p) => p.eventos) ?? [], [paginas])
 
   const cities = useMemo(() =>
     [...new Set(events.map(e => e.court?.place?.city).filter(Boolean))].sort(),
@@ -142,7 +150,7 @@ export default function QueroJogar() {
   const handleJoin = async (courtId: string, eventId: string) => {
     try {
       await playerService.joinEvent(courtId, eventId)
-      fetchEvents(1)
+      queryClient.invalidateQueries({ queryKey: ['eventos'] })
     } catch (error) {
       toast.error(mensagemDeErro(error, 'Erro ao entrar no jogo'))
     }
@@ -382,7 +390,7 @@ export default function QueroJogar() {
         {hasMore && (
           <div style={{ display: 'flex', justifyContent: 'center', marginTop: 32 }}>
             <button
-              onClick={() => fetchEvents(page + 1)}
+              onClick={() => fetchNextPage()}
               disabled={loadingMore}
               style={{
                 padding: '12px 32px',
