@@ -12,18 +12,23 @@ import {
 } from './styles'
 
 // Imagens de fundo por modalidade — adicione os arquivos em src/assets/sports/
-import imgSociety     from '../../assets/sports/society.jpg'
-import imgCampo       from '../../assets/sports/campo.jpg'
-import imgFutsal      from '../../assets/sports/futsal.jpg'
-import imgAreia       from '../../assets/sports/areia.jpg'
-import imgVolei       from '../../assets/sports/volei.jpg'
-import imgVoleiAreia  from '../../assets/sports/volei_areia.jpg'
-import imgHandball    from '../../assets/sports/handball.jpg'
-import imgPeteca      from '../../assets/sports/peteca.png'
+//
+// Todas em WebP e abaixo de 150 kB: eram 4,68 MB em JPG/PNG, com peteca.png
+// sozinha em 948 kB e futsal/tenis em 1920x2880 — resolução de retrato grande
+// demais para um fundo atrás de overlay escuro. Ver src/assets/orcamento.test.ts,
+// que reprova quem passar do teto.
+import imgSociety     from '../../assets/sports/society.webp'
+import imgCampo       from '../../assets/sports/campo.webp'
+import imgFutsal      from '../../assets/sports/futsal.webp'
+import imgAreia       from '../../assets/sports/areia.webp'
+import imgVolei       from '../../assets/sports/volei.webp'
+import imgVoleiAreia  from '../../assets/sports/volei_areia.webp'
+import imgHandball    from '../../assets/sports/handball.webp'
+import imgPeteca      from '../../assets/sports/peteca.webp'
 import imgBeachTennis from '../../assets/sports/beach_tennis.webp'
-import imgBasquete    from '../../assets/sports/basquete.jpg'
-import imgTenis       from '../../assets/sports/tenis.jpg'
-import imgPoker       from '../../assets/sports/poker.jpg'
+import imgBasquete    from '../../assets/sports/basquete.webp'
+import imgTenis       from '../../assets/sports/tenis.webp'
+import imgPoker       from '../../assets/sports/poker.webp'
 
 /** Mapa de id do esporte → imagem de fundo correspondente */
 const SPORT_IMAGES: Partial<Record<CourtType, string>> = {
