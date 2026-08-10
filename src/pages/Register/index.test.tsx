@@ -39,6 +39,23 @@ beforeEach(() => {
   getMe.mockResolvedValue(envelope(criaUsuario()))
 })
 
+describe('Cadastro — documentos legais', () => {
+  it('abre os documentos publicados na landing em uma nova aba', () => {
+    renderWithProviders(<Register initialMode="register" />, { route: '/register' })
+
+    expect(screen.getByRole('link', { name: 'Termos de Uso' })).toMatchObject({
+      href: 'https://so-mais-um.com/termos-de-uso',
+      target: '_blank',
+      rel: 'noopener noreferrer',
+    })
+    expect(screen.getByRole('link', { name: 'Política de Privacidade' })).toMatchObject({
+      href: 'https://so-mais-um.com/politica-de-privacidade',
+      target: '_blank',
+      rel: 'noopener noreferrer',
+    })
+  })
+})
+
 /**
  * Renderiza a tela em modo login e devolve os campos.
  *

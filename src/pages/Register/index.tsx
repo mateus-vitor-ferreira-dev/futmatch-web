@@ -19,6 +19,11 @@ import {
   SubmitButton, SwitchText, ForgotLink, LegalText,
 } from './styles'
 
+const LEGAL_URLS = {
+  termos: 'https://so-mais-um.com/termos-de-uso',
+  privacidade: 'https://so-mais-um.com/politica-de-privacidade',
+} as const
+
 /** Schema de validação para cadastro (inclui nome, confirmação de senha) */
 const registerSchema = yup.object({
   name:            yup.string().min(2, 'Mínimo 2 caracteres').required('Obrigatório'),
@@ -260,8 +265,8 @@ export default function Register({ initialMode = 'register' }) {
 
       <LegalText>
         Ao entrar, você concorda com os{' '}
-        <a href="#">Termos de Uso</a> e a{' '}
-        <a href="#">Política de Privacidade</a>.
+        <a href={LEGAL_URLS.termos} target="_blank" rel="noopener noreferrer">Termos de Uso</a> e a{' '}
+        <a href={LEGAL_URLS.privacidade} target="_blank" rel="noopener noreferrer">Política de Privacidade</a>.
       </LegalText>
     </AuthLayout>
   )
