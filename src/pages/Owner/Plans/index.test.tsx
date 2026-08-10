@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { renderWithProviders, screen, waitFor } from '../../../test/render'
+import { erroDaApi } from '../../../test/factories'
 import type { Plan, SubscriptionStatus, SwitchPlanPreview } from '../../../types/api'
 import OwnerPlans from './index'
 
@@ -18,6 +19,7 @@ vi.mock('sonner', () => ({ toast: { error: vi.fn(), success: vi.fn() } }))
 
 import { plansService } from '../../../services/plansService'
 import { subscriptionService } from '../../../services/subscriptionService'
+import { toast } from 'sonner'
 
 const basico: Plan = {
   id: 'basico', nome: 'Só+1 Básico', precoCentavos: 3990,
@@ -42,6 +44,13 @@ const getStatus = vi.mocked(subscriptionService.getStatus)
 const checkout = vi.mocked(subscriptionService.createCheckout)
 const previewSwitch = vi.mocked(subscriptionService.previewSwitch)
 const switchPlan = vi.mocked(subscriptionService.switchPlan)
+const toastDeErro = vi.mocked(toast.error)
+
+function erroDeStripeIndisponivel() {
+  const err = erroDaApi('Pagamentos indisponíveis', 503)
+  ;(err.response!.data as { code?: string }).code = 'STRIPE_NOT_CONFIGURED'
+  return err
+}
 
 beforeEach(() => {
   vi.clearAllMocks()
@@ -71,6 +80,23 @@ describe('OwnerPlans', () => {
     await user.click((await screen.findAllByRole('button', { name: 'Assinar' }))[0])
 
     expect(checkout).toHaveBeenCalledWith('basico')
+  })
+
+  it('mantém aviso e bloqueia assinaturas quando a Stripe está indisponível', async () => {
+    getStatus.mockResolvedValue({
+      status: 'inactive', currentPeriodEnd: null, plan: null,
+      usage: { quadras: 1, estabelecimentos: 1 },
+    })
+    checkout.mockRejectedValue(erroDeStripeIndisponivel())
+
+    const { user } = renderWithProviders(<OwnerPlans />)
+    await user.click((await screen.findAllByRole('button', { name: 'Assinar' }))[0])
+
+    expect(await screen.findByRole('alert')).toHaveTextContent('Pagamentos temporariamente indisponíveis')
+    expect(
+      screen.getAllByRole('button', { name: 'Assinar' }).every((button) => button.hasAttribute('disabled')),
+    ).toBe(true)
+    expect(toastDeErro).not.toHaveBeenCalled()
   })
 
   /**
@@ -181,5 +207,31 @@ describe('OwnerPlans', () => {
     await screen.findByText('Seu plano atual')
     expect(screen.queryByText(/Troca agendada/)).not.toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'Cancelar troca' })).not.toBeInTheDocument()
+  })
+
+  it('trata a indisponibilidade ao abrir a troca de plano', async () => {
+    previewSwitch.mockRejectedValue(erroDeStripeIndisponivel())
+
+    const { user } = renderWithProviders(<OwnerPlans />)
+    await user.click(await screen.findByRole('button', { name: 'Trocar para este plano' }))
+
+    expect(await screen.findByRole('alert')).toHaveTextContent('Pagamentos temporariamente indisponíveis')
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Trocar para este plano' })).toBeDisabled()
+    expect(toastDeErro).not.toHaveBeenCalled()
+  })
+
+  it('trata a indisponibilidade também na confirmação da troca', async () => {
+    previewSwitch.mockResolvedValue(previewDowngrade)
+    switchPlan.mockRejectedValue(erroDeStripeIndisponivel())
+
+    const { user } = renderWithProviders(<OwnerPlans />)
+    await user.click(await screen.findByRole('button', { name: 'Trocar para este plano' }))
+    await user.click(await screen.findByRole('button', { name: 'Confirmar troca' }))
+
+    expect(await screen.findByRole('alert')).toHaveTextContent('Tente novamente mais tarde')
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Trocar para este plano' })).toBeDisabled()
+    expect(toastDeErro).not.toHaveBeenCalled()
   })
 })

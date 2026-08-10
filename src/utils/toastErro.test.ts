@@ -11,7 +11,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { AxiosError } from 'axios'
 import { erroDaApi } from '../test/factories'
 import { toastErroDeApi } from './toastErro'
-import { ehErroDeAssinatura, ehErroDeLimiteDePlano } from './apiError'
+import { ehErroDeAssinatura, ehErroDeLimiteDePlano, ehErroDeStripeIndisponivel } from './apiError'
 
 vi.mock('sonner', () => ({
   toast: { error: vi.fn(), success: vi.fn() },
@@ -65,6 +65,30 @@ describe('ehErroDeLimiteDePlano', () => {
   it('reconhece apenas o código específico devolvido pela API', () => {
     expect(ehErroDeLimiteDePlano(erroComCodigo('PLAN_LIMIT_REACHED', 403))).toBe(true)
     expect(ehErroDeLimiteDePlano(erroComCodigo('FORBIDDEN', 403))).toBe(false)
+  })
+})
+
+describe('ehErroDeStripeIndisponivel', () => {
+  it('reconhece o código da Stripe indisponível com status 503', () => {
+    expect(ehErroDeStripeIndisponivel(erroComCodigo('STRIPE_NOT_CONFIGURED', 503))).toBe(true)
+  })
+
+  it('não confunde com outro erro 503', () => {
+    expect(ehErroDeStripeIndisponivel(erroComCodigo('SERVICE_UNAVAILABLE', 503))).toBe(false)
+    expect(ehErroDeStripeIndisponivel(erroDaApi('Serviço indisponível', 503))).toBe(false)
+  })
+
+  it('não reconhece o código fora do status contratado', () => {
+    expect(ehErroDeStripeIndisponivel(erroComCodigo('STRIPE_NOT_CONFIGURED', 500))).toBe(false)
+  })
+
+  it('não confunde com erro de rede', () => {
+    expect(ehErroDeStripeIndisponivel(new AxiosError('Network Error'))).toBe(false)
+  })
+
+  it('não confunde com valores que não são erros do axios', () => {
+    expect(ehErroDeStripeIndisponivel(new Error('quebrou'))).toBe(false)
+    expect(ehErroDeStripeIndisponivel('string solta')).toBe(false)
   })
 })
 

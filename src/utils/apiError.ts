@@ -47,3 +47,10 @@ export function ehErroDeLimiteDePlano(err: unknown): boolean {
   const corpo = err.response?.data as ApiErrorBody | undefined
   return corpo?.code === 'PLAN_LIMIT_REACHED'
 }
+
+/** A integração de pagamentos está indisponível por configuração da API? */
+export function ehErroDeStripeIndisponivel(err: unknown): boolean {
+  if (!(err instanceof AxiosError)) return false
+  if (codigoDeErro(err) !== 'STRIPE_NOT_CONFIGURED') return false
+  return err.response?.status === 503
+}
