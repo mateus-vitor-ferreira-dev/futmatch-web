@@ -9,6 +9,7 @@ import { useThemeMode } from '../../contexts/ThemeContext'
 import { useAuth } from '../../contexts/AuthContext'
 import NotificationBell from '../NotificationBell'
 import ContentLoader from '../ContentLoader'
+import { prefetchRota } from '../../routes/paginas'
 import {
   AppShell, Overlay, Sidebar, Logo, LogoIcon, LogoText, LogoName, LogoTagline,
   Nav, NavItem, NavDivider, UserCard, Avatar, UserInfo, UserName, UserBadge,
@@ -96,7 +97,9 @@ export default function MainLayout() {
 
         <Nav>
           {NAV_ITEMS.map(({ to, label, icon: Icon }) => (
-            <NavItem key={to} to={to}>
+            // `onFocus` junto do hover para quem navega por teclado ter o
+            // mesmo ganho — só o mouse deixaria esse usuário de fora.
+            <NavItem key={to} to={to} onMouseEnter={() => prefetchRota(to)} onFocus={() => prefetchRota(to)}>
               <Icon />
               {label}
             </NavItem>
@@ -106,7 +109,7 @@ export default function MainLayout() {
             <>
               <NavDivider />
               {getPanelLinks(user?.role).map(({ to, label, icon: Icon }) => (
-                <NavItem key={to} to={to}>
+                <NavItem key={to} to={to} onMouseEnter={() => prefetchRota(to)} onFocus={() => prefetchRota(to)}>
                   <Icon />
                   {label}
                 </NavItem>
