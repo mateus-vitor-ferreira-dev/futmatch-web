@@ -20,3 +20,11 @@ export const getMe = (): Promise<AxiosResponse<ApiEnvelope<UserMe>>> =>
 export const updateMe = (
   data: UpdateProfileInput,
 ): Promise<AxiosResponse<ApiEnvelope<UserMe>>> => api.patch('/users/me', data)
+
+export interface DeleteAccountInput {
+  confirmation: 'EXCLUIR MINHA CONTA'
+  currentPassword?: string
+}
+
+export const deleteMe = (data: DeleteAccountInput): Promise<AxiosResponse<void>> =>
+  api.delete('/users/me', { data })
