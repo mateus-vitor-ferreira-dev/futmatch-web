@@ -8,6 +8,7 @@ export interface UpdateProfileInput {
   name?: string
   avatarUrl?: string | null
   pixKey?: string | null
+  marketingOptIn?: boolean
   currentPassword?: string
   newPassword?: string
   confirmNewPassword?: string

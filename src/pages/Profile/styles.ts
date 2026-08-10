@@ -158,6 +158,19 @@ export const Field = styled.div`
   gap: 6px;
 `
 
+export const ConsentField = styled.label`
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  color: ${({ theme }) => theme.colors.textSecondary};
+  font-size: ${({ theme }) => theme.fontSizes.sm};
+  line-height: 1.45;
+  cursor: pointer;
+
+  input { margin-top: 3px; accent-color: ${({ theme }) => theme.colors.primary}; }
+`
+
 export const Label = styled.label`
   font-size: ${({ theme }) => theme.fontSizes.xs};
   font-weight: ${({ theme }) => theme.fontWeights.semibold};

@@ -17,6 +17,7 @@ import {
   SectionTitle, SectionDivider,
   AvatarBlock, AvatarUploadWrapper, AvatarOverlay, AvatarCircle, AvatarInitials, AvatarHint,
   Form, FormGrid, Field, Label, Input, FieldError,
+  ConsentField,
   SaveBtn,
   LogoutSection, LogoutBtn,
   StepBox,
@@ -32,6 +33,7 @@ const profileSchema = yup.object({
     .nullable(),
   pixKey:    yup.string().nullable(),
   avatarUrl: yup.string().url('URL inválida').nullable().transform((v) => v || null),
+  marketingOptIn: yup.boolean().default(false),
 })
 
 const newPasswordSchema = yup.object({
@@ -107,6 +109,7 @@ export default function Profile() {
         phone:     (user as { phone?: string }).phone ?? '',
         pixKey:    user.pixKey    ?? '',
         avatarUrl: user.avatarUrl ?? '',
+        marketingOptIn: user.marketingOptIn ?? false,
       })
     }
   }, [user, resetProfile])
@@ -269,6 +272,10 @@ export default function Profile() {
                 {errP.pixKey && <FieldError>{errP.pixKey.message}</FieldError>}
               </Field>
               <input type="hidden" {...regProfile('avatarUrl')} />
+              <ConsentField>
+                <input type="checkbox" {...regProfile('marketingOptIn')} />
+                Quero receber novidades, dicas e comunicações de marketing da Só+1.
+              </ConsentField>
             </FormGrid>
 
             <SaveBtn type="submit" disabled={savingProfile}>

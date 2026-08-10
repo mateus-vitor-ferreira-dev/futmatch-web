@@ -28,6 +28,7 @@ import * as authService from '../../services/auth'
 import { getSports } from '../../services/sports'
 
 const login = vi.mocked(authService.login)
+const cadastro = vi.mocked(authService.register)
 const getMe = vi.mocked(authService.getMe)
 
 beforeEach(() => {
@@ -53,6 +54,38 @@ describe('Cadastro — documentos legais', () => {
       target: '_blank',
       rel: 'noopener noreferrer',
     })
+  })
+})
+
+describe('Cadastro — consentimento de marketing', () => {
+  it('começa desmarcado e envia false sem bloquear o cadastro', async () => {
+    cadastro.mockResolvedValue(envelope({ token: 't', user: criaUsuario() }))
+    const { user } = renderWithProviders(<Register initialMode="register" />, { route: '/register' })
+
+    const optIn = screen.getByRole('checkbox', { name: /quero receber novidades/i })
+    expect(optIn).not.toBeChecked()
+
+    await user.type(screen.getByPlaceholderText('Ex: João da Silva'), 'João Silva')
+    await user.type(screen.getByPlaceholderText('seu@email.com'), 'joao@exemplo.com')
+    await user.type(screen.getByPlaceholderText('Mín. 6 caracteres'), 'senha123')
+    await user.type(screen.getByPlaceholderText('Repita a senha'), 'senha123')
+    await user.click(screen.getByRole('button', { name: /criar conta grátis/i }))
+
+    await waitFor(() => expect(cadastro).toHaveBeenCalledWith(expect.objectContaining({ marketingOptIn: false })))
+  })
+
+  it('envia true somente depois da escolha explícita', async () => {
+    cadastro.mockResolvedValue(envelope({ token: 't', user: criaUsuario() }))
+    const { user } = renderWithProviders(<Register initialMode="register" />, { route: '/register' })
+
+    await user.type(screen.getByPlaceholderText('Ex: João da Silva'), 'João Silva')
+    await user.type(screen.getByPlaceholderText('seu@email.com'), 'joao2@exemplo.com')
+    await user.type(screen.getByPlaceholderText('Mín. 6 caracteres'), 'senha123')
+    await user.type(screen.getByPlaceholderText('Repita a senha'), 'senha123')
+    await user.click(screen.getByRole('checkbox', { name: /quero receber novidades/i }))
+    await user.click(screen.getByRole('button', { name: /criar conta grátis/i }))
+
+    await waitFor(() => expect(cadastro).toHaveBeenCalledWith(expect.objectContaining({ marketingOptIn: true })))
   })
 })
 
