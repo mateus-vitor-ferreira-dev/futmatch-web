@@ -77,6 +77,17 @@ describe('Perfil — o que vai no PATCH', () => {
     await waitFor(() => expect(getMe).toHaveBeenCalled())
     expect(updateMe).not.toHaveBeenCalled()
   })
+
+  it('permite ligar e desligar o consentimento de marketing', async () => {
+    const { user } = await abrePerfil()
+    const optIn = screen.getByRole('checkbox', { name: /quero receber novidades/i })
+
+    expect(optIn).not.toBeChecked()
+    await user.click(optIn)
+    await user.click(screen.getByRole('button', { name: 'Salvar alterações' }))
+
+    await waitFor(() => expect(updateMe).toHaveBeenCalledWith({ marketingOptIn: true }))
+  })
 })
 
 describe('Perfil — exclusão de conta', () => {

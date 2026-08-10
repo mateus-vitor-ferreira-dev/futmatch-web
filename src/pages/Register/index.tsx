@@ -17,6 +17,7 @@ import {
   GoogleWrapper, GoogleButton, Divider,
   Form, Field, Row, Label, Input, ErrorMsg,
   SubmitButton, SwitchText, ForgotLink, LegalText,
+  MarketingConsent,
 } from './styles'
 
 const LEGAL_URLS = {
@@ -38,6 +39,7 @@ const registerSchema = yup.object({
   confirmPassword: yup.string()
     .oneOf([yup.ref('password')], 'Senhas não coincidem')
     .required('Obrigatório'),
+  marketingOptIn: yup.boolean().default(false),
 })
 
 /** Schema de validação para login (apenas e-mail e senha) */
@@ -244,6 +246,13 @@ export default function Register({ initialMode = 'register' }) {
               loading={loadingSports}
             />
           </Field>
+        )}
+
+        {isRegister && (
+          <MarketingConsent>
+            <input type="checkbox" {...register('marketingOptIn')} />
+            Quero receber novidades, dicas e comunicações de marketing da Só+1. Posso cancelar a qualquer momento.
+          </MarketingConsent>
         )}
 
         {/* Erros globais da API */}

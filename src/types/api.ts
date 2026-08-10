@@ -111,6 +111,7 @@ export interface UserPublic {
 export interface UserMe extends UserPublic {
     email: string;
     pixKey: string | null;
+    marketingOptIn: boolean;
     stats?: UserStats;
     _count?: {
         peladasCreated: number;
