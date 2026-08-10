@@ -7,6 +7,7 @@ import { useAuth } from '../../contexts/AuthContext'
 import LogoSvg from '../LogoSvg'
 import NotificationBell from '../NotificationBell'
 import ContentLoader from '../ContentLoader'
+import { prefetchRota } from '../../routes/paginas'
 import { PageHeaderProvider } from './pageHeader'
 import {
   Shell, Sidebar, Logo, LogoIcon, LogoText, LogoName, LogoTagline,
@@ -110,7 +111,15 @@ export default function DashboardLayout({
           {itensComBadge.map(({ to, label, icon: Icon, badge, divider, end }) => (
             <span key={to}>
               {divider && <Divider />}
-              <NavItem to={to} end={!!end} onClick={() => setMobileMenuOpen(false)}>
+              {/* `onFocus` junto do hover para quem navega por teclado ter o
+                  mesmo ganho — só o mouse deixaria esse usuário de fora. */}
+              <NavItem
+                to={to}
+                end={!!end}
+                onClick={() => setMobileMenuOpen(false)}
+                onMouseEnter={() => prefetchRota(to)}
+                onFocus={() => prefetchRota(to)}
+              >
                 <Icon size={18} />
                 {label}
                 {badge != null && badge > 0 && <NavBadge>{badge}</NavBadge>}

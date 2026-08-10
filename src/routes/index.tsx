@@ -1,49 +1,18 @@
-import { lazy, Suspense, useMemo } from 'react'
-import type { ComponentType, ReactNode } from 'react'
+import { Suspense, useMemo } from 'react'
+import type { ReactNode } from 'react'
 import { BrowserRouter, Routes, Route, Navigate, useNavigate } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
 import MainLayout from '../components/MainLayout'
 import DashboardLayout from '../components/DashboardLayout'
 import { adminNavItems, ownerNavItems } from '../constants/navItems'
+import {
+  Intro, Register, ForgotPassword, ResetPassword, OwnerAccess,
+  Home, Profile, QueroJogar, CriarPelada, Tournaments, MinhasPeladas,
+  Historico, Avaliacoes, PeladaDetail, TournamentDetail,
+  AdminDashboard, AdminUsers, AdminRequests, AdminPlaces,
+  OwnerDashboard, OwnerPlans, OwnerPlaces, OwnerInventory, OwnerEquipment, OwnerRequests, OwnerCourts,
+} from './paginas'
 
-// Recarrega a página automaticamente quando um chunk antigo não é encontrado após um novo deploy
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function lazyWithRetry<T extends ComponentType<any>>(
-  fn: () => Promise<{ default: T }>,
-) {
-  return lazy(() => fn().catch(() => {
-    window.location.reload()
-    // Promise que nunca resolve: a página está recarregando de qualquer forma.
-    return new Promise<{ default: T }>(() => {})
-  }))
-}
-
-const Intro          = lazyWithRetry(() => import('../pages/Intro'))
-const Register       = lazyWithRetry(() => import('../pages/Register'))
-const Home           = lazyWithRetry(() => import('../pages/Home'))
-const Profile        = lazyWithRetry(() => import('../pages/Profile'))
-const ForgotPassword = lazyWithRetry(() => import('../pages/ForgotPassword'))
-const ResetPassword  = lazyWithRetry(() => import('../pages/ResetPassword'))
-const QueroJogar     = lazyWithRetry(() => import('../pages/QueroJogar'))
-const MinhasPeladas  = lazyWithRetry(() => import('../pages/MinhasPeladas'))
-const Historico      = lazyWithRetry(() => import('../pages/Historico'))
-const CriarPelada    = lazyWithRetry(() => import('../pages/CriarPelada'))
-const Tournaments    = lazyWithRetry(() => import('../pages/Tournaments'))
-const Avaliacoes     = lazyWithRetry(() => import('../pages/Avaliacoes'))
-const PeladaDetail        = lazyWithRetry(() => import('../pages/PeladaDetail'))
-const TournamentDetail    = lazyWithRetry(() => import('../pages/TournamentDetail'))
-const AdminDashboard = lazyWithRetry(() => import('../pages/Admin/Dashboard'))
-const AdminUsers     = lazyWithRetry(() => import('../pages/Admin/Users'))
-const AdminRequests  = lazyWithRetry(() => import('../pages/Admin/Requests'))
-const AdminPlaces    = lazyWithRetry(() => import('../pages/Admin/Places'))
-const OwnerDashboard = lazyWithRetry(() => import('../pages/Owner/Dashboard'))
-const OwnerPlans     = lazyWithRetry(() => import('../pages/Owner/Plans'))
-const OwnerPlaces    = lazyWithRetry(() => import('../pages/Owner/Places'))
-const OwnerRequests  = lazyWithRetry(() => import('../pages/Owner/Requests'))
-const OwnerCourts    = lazyWithRetry(() => import('../pages/Owner/Courts'))
-const OwnerInventory = lazyWithRetry(() => import('../pages/Owner/Inventory'))
-const OwnerEquipment = lazyWithRetry(() => import('../pages/Owner/Equipment'))
-const OwnerAccess    = lazyWithRetry(() => import('../pages/OwnerAccess'))
 
 /**
  * Fallback das rotas que não têm layout (login, cadastro, intro).
