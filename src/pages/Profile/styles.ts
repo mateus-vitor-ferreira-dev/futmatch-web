@@ -218,6 +218,66 @@ export const ErrorMsg = styled.p`
   margin: 0;
 `
 
+export const DangerSection = styled.section`
+  margin-top: 24px;
+  padding: 18px;
+  border: 1px solid ${({ theme }) => theme.colors.error};
+  border-radius: ${({ theme }) => theme.radii.md};
+
+  p { margin: 6px 0 14px; color: ${({ theme }) => theme.colors.textSecondary}; font-size: ${({ theme }) => theme.fontSizes.sm}; line-height: 1.5; }
+`
+
+export const DangerBtn = styled.button`
+  border: none;
+  border-radius: ${({ theme }) => theme.radii.md};
+  padding: 9px 16px;
+  background: ${({ theme }) => theme.colors.error};
+  color: #fff;
+  font-weight: ${({ theme }) => theme.fontWeights.semibold};
+  cursor: pointer;
+`
+
+export const DeleteModal = styled.div`
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+`
+
+export const DeleteOverlay = styled.button`
+  position: absolute;
+  inset: 0;
+  border: 0;
+  background: rgba(0, 0, 0, 0.6);
+`
+
+export const DeleteBox = styled.div`
+  position: relative;
+  width: min(100%, 520px);
+  padding: 24px;
+  border-radius: ${({ theme }) => theme.radii.lg};
+  background: ${({ theme }) => theme.colors.bgCard};
+  box-shadow: ${({ theme }) => theme.shadows.lg};
+
+  h2 { margin: 0 0 12px; color: ${({ theme }) => theme.colors.textPrimary}; }
+  p, li { color: ${({ theme }) => theme.colors.textSecondary}; font-size: ${({ theme }) => theme.fontSizes.sm}; line-height: 1.5; }
+  ul { padding-left: 20px; }
+`
+
+export const DeleteActions = styled.div`
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 20px;
+
+  button { border: 0; border-radius: ${({ theme }) => theme.radii.md}; padding: 9px 15px; font-weight: ${({ theme }) => theme.fontWeights.semibold}; cursor: pointer; }
+  button:first-child { background: ${({ theme }) => theme.colors.borderLight}; color: ${({ theme }) => theme.colors.textPrimary}; }
+  button:last-child { background: ${({ theme }) => theme.colors.error}; color: #fff; }
+  button:disabled { opacity: 0.5; cursor: not-allowed; }
+`
+
 // ── Logout ────────────────────────────────────────────────────────────────────
 
 export const LogoutSection = styled.section``
