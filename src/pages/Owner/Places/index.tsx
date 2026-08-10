@@ -1,12 +1,11 @@
 import { useState, useEffect, useCallback } from 'react'
+import { usePageHeader } from '../../../components/DashboardLayout/pageHeader'
 import { useNavigate } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
 import { yupResolver } from '@hookform/resolvers/yup'
 import * as yup from 'yup'
 import { toast } from 'sonner'
 import { toastErroDeApi } from '../../../utils/toastErro'
-import DashboardLayout from '../../../components/DashboardLayout'
-import { ownerNavItems } from '../../../constants/navItems'
 import StatCard from '../../../components/StatCard'
 import SubscriptionGate from '../../../components/SubscriptionGate'
 import { useAuth } from '../../../contexts/AuthContext'
@@ -128,15 +127,10 @@ export default function OwnerPlaces() {
     ? (places.reduce((acc, p) => acc + ((p as { averageRating?: number }).averageRating ?? 0), 0) / places.length).toFixed(1)
     : '—'
 
+  usePageHeader("Meus Estabelecimentos", "Gerencie seus locais, quadras e status de cada estabelecimento")
+
   return (
-    <DashboardLayout
-      user={user}
-      navItems={ownerNavItems(user?.role)}
-      tagline="Owner Panel"
-      accent="#f59e0b"
-      pageTitle="Meus Estabelecimentos"
-      pageSub="Gerencie seus locais, quadras e status de cada estabelecimento"
-    >
+    <>
       <SubscriptionGate isActive={isActive} loading={subLoading} sub={sub}>
       <StatsRow>
         <StatCard label="Estabelecimentos" value={places.length} accent="#f59e0b" />
@@ -249,6 +243,6 @@ export default function OwnerPlaces() {
           </ModalBox>
         </Modal>
       )}
-    </DashboardLayout>
+    </>
   )
 }

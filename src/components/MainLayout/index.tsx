@@ -1,14 +1,15 @@
-import { useState, useEffect } from 'react'
-import type { ReactNode } from 'react'
+import { Suspense, useState, useEffect } from 'react'
 import type { LucideIcon } from 'lucide-react'
-import type { UserMe, UserRole } from '../../types/api'
+import type { UserRole } from '../../types/api'
 import { Home, Search, ClipboardList, History, User, Plus, Trophy, Menu, Star, Sun, Moon, LayoutDashboard, Store, LogOut } from 'lucide-react'
 import iconUrl from '../../assets/icon-so-mais-um.svg'
 import LogoSvg from '../LogoSvg'
-import { useNavigate, useLocation } from 'react-router-dom'
+import { Outlet, useNavigate, useLocation } from 'react-router-dom'
 import { useThemeMode } from '../../contexts/ThemeContext'
 import { useAuth } from '../../contexts/AuthContext'
 import NotificationBell from '../NotificationBell'
+import ContentLoader from '../ContentLoader'
+import { prefetchRota } from '../../routes/paginas'
 import {
   AppShell, Overlay, Sidebar, Logo, LogoIcon, LogoText, LogoName, LogoTagline,
   Nav, NavItem, NavDivider, UserCard, Avatar, UserInfo, UserName, UserBadge,
@@ -52,18 +53,23 @@ function getInitials(name = ''): string {
     .join('')
 }
 
-export interface MainLayoutProps {
-  children: ReactNode
-  user?: UserMe | null
-}
-
-export default function MainLayout({ children, user }: MainLayoutProps) {
+/**
+ * Layout da área do jogador.
+ *
+ * É **rota-pai**: renderiza `<Outlet />` em vez de receber `children`. Antes da
+ * #197 cada uma das dez páginas renderizava este layout dentro de si, então
+ * trocar de rota desmontava a sidebar e derrubava a conexão SSE do sino.
+ *
+ * `user` vem do contexto de autenticação, não mais por prop — a rota-pai não
+ * tem quem lhe passe a prop, e todas as páginas já liam do mesmo `useAuth`.
+ */
+export default function MainLayout() {
   const navigate = useNavigate()
   const location = useLocation()
-  const initials = getInitials(user?.name)
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const { isDark, toggleTheme } = useThemeMode()
-  const { logout } = useAuth()
+  const { logout, user } = useAuth()
+  const initials = getInitials(user?.name)
 
   function handleLogout() {
     logout()
@@ -91,7 +97,9 @@ export default function MainLayout({ children, user }: MainLayoutProps) {
 
         <Nav>
           {NAV_ITEMS.map(({ to, label, icon: Icon }) => (
-            <NavItem key={to} to={to}>
+            // `onFocus` junto do hover para quem navega por teclado ter o
+            // mesmo ganho — só o mouse deixaria esse usuário de fora.
+            <NavItem key={to} to={to} onMouseEnter={() => prefetchRota(to)} onFocus={() => prefetchRota(to)}>
               <Icon />
               {label}
             </NavItem>
@@ -101,7 +109,7 @@ export default function MainLayout({ children, user }: MainLayoutProps) {
             <>
               <NavDivider />
               {getPanelLinks(user?.role).map(({ to, label, icon: Icon }) => (
-                <NavItem key={to} to={to}>
+                <NavItem key={to} to={to} onMouseEnter={() => prefetchRota(to)} onFocus={() => prefetchRota(to)}>
                   <Icon />
                   {label}
                 </NavItem>
@@ -160,7 +168,11 @@ export default function MainLayout({ children, user }: MainLayoutProps) {
           </div>
         </MobileTopbar>
 
-        <Content>{children}</Content>
+        <Content>
+          <Suspense fallback={<ContentLoader />}>
+            <Outlet />
+          </Suspense>
+        </Content>
       </ContentWrapper>
     </AppShell>
   )

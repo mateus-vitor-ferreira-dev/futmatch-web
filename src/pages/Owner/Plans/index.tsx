@@ -1,11 +1,9 @@
 import { useState, useEffect, useCallback } from 'react'
+import { usePageHeader } from '../../../components/DashboardLayout/pageHeader'
 import { Check, Loader2, AlertTriangle, CalendarClock } from 'lucide-react'
 import { toast } from 'sonner'
-import { useAuth } from '../../../contexts/AuthContext'
 import { plansService } from '../../../services/plansService'
 import { subscriptionService } from '../../../services/subscriptionService'
-import DashboardLayout from '../../../components/DashboardLayout'
-import { ownerNavItems } from '../../../constants/navItems'
 import { formatarPrecoCentavos } from '../../../utils/formatCurrency'
 import { mensagemDeErro } from '../../../utils/apiError'
 import type { Plan, SubscriptionStatus, SwitchPlanPreview } from '../../../types/api'
@@ -28,7 +26,6 @@ function formatarData(iso: string): string {
 }
 
 export default function OwnerPlans() {
-  const { user } = useAuth()
   const [plans, setPlans] = useState<Plan[]>([])
   const [sub, setSub] = useState<SubscriptionStatus | null>(null)
   const [loading, setLoading] = useState(true)
@@ -146,15 +143,10 @@ export default function OwnerPlans() {
     }
   }
 
+  usePageHeader("Planos", "Compare, assine ou troque de plano.")
+
   return (
-    <DashboardLayout
-      user={user}
-      navItems={ownerNavItems(user?.role)}
-      tagline="Owner Panel"
-      accent="#3b82f6"
-      pageTitle="Planos"
-      pageSub="Compare, assine ou troque de plano."
-    >
+    <>
       <Container>
         {/*
           Sem isto, quem agenda um downgrade volta para uma tela idêntica à de
@@ -335,7 +327,7 @@ export default function OwnerPlans() {
           </ModalBox>
         </Modal>
       )}
-    </DashboardLayout>
+    </>
   )
 }
 

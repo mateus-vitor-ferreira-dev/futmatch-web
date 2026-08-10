@@ -7,7 +7,6 @@ import * as yup from 'yup'
 import { toast } from 'sonner'
 import { useAuth } from '../../contexts/AuthContext'
 import { useSports } from '../../hooks/useSports'
-import { MainLayout } from '../../components'
 import TournamentBracket from '../../components/TournamentBracket'
 import { listTournaments, createTournament, createDivision } from '../../services/tournaments'
 import { list as listPlaces } from '../../services/places'
@@ -402,7 +401,7 @@ export default function Tournaments() {
   }
 
   return (
-    <MainLayout user={user}>
+    <>
       <Container>
 
         {/* ── Cabeçalho ── */}
@@ -690,6 +689,6 @@ export default function Tournaments() {
         )}
 
       </Container>
-    </MainLayout>
+    </>
   )
 }

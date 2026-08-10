@@ -3,7 +3,6 @@ import { useParams, useNavigate } from 'react-router-dom'
 import { toast } from 'sonner'
 import { ArrowLeft, Calendar, Clock, MapPin, Users, DollarSign, Copy, CheckCircle, Crown, Flag, XCircle, ExternalLink, LogOut } from 'lucide-react'
 import { useAuth } from '../../contexts/AuthContext'
-import { MainLayout } from '../../components'
 import { playerService, MAX_MOTIVO_SAIDA } from '../../services/playerService'
 import { getSportMeta } from '../../hooks/useSports'
 import type { CourtType, Pelada, PeladaStatus } from '../../types/api'
@@ -68,7 +67,7 @@ export default function PeladaDetail() {
 
   useEffect(() => { load() }, [load])
 
-  if (loading) return <MainLayout user={user}><LoadingBox>Carregando...</LoadingBox></MainLayout>
+  if (loading) return <><LoadingBox>Carregando...</LoadingBox></>
   if (!event)  return null
 
   const participations  = event.participations ?? []
@@ -150,7 +149,7 @@ export default function PeladaDetail() {
   }
 
   return (
-    <MainLayout user={user}>
+    <>
       <Container>
         <BackBtn onClick={() => navigate(-1)}>
           <ArrowLeft size={16} /> Voltar
@@ -371,6 +370,6 @@ export default function PeladaDetail() {
           </ModalBox>
         </Modal>
       )}
-    </MainLayout>
+    </>
   )
 }
