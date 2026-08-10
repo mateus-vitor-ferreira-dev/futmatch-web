@@ -2,8 +2,6 @@ import { useState, useEffect, useCallback } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { toast } from 'sonner'
 import { ArrowLeft, Calendar, MapPin, Users, Trophy, Tag, Layers } from 'lucide-react'
-import { useAuth } from '../../contexts/AuthContext'
-import { MainLayout } from '../../components'
 import TournamentBracket from '../../components/TournamentBracket'
 import { getTournament, getTournamentDivisions } from '../../services/tournaments'
 import { getSportMeta } from '../../hooks/useSports'
@@ -51,7 +49,6 @@ function fmtDate(d: string | null | undefined): string {
 export default function TournamentDetail() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
-  const { user } = useAuth()
 
   const [tournament, setTournament]   = useState<Tournament | null>(null)
   const [divisions, setDivisions]     = useState<TournamentDivision[]>([])
@@ -77,7 +74,7 @@ export default function TournamentDetail() {
 
   useEffect(() => { load() }, [load])
 
-  if (loading) return <MainLayout user={user}><LoadingBox>Carregando...</LoadingBox></MainLayout>
+  if (loading) return <><LoadingBox>Carregando...</LoadingBox></>
   if (!tournament) return null
 
   const sport   = getSportMeta(tournament.sportType)
@@ -85,7 +82,7 @@ export default function TournamentDetail() {
   const status  = STATUS_LABEL[tournament.status] ?? { label: tournament.status, color: 'default' }
 
   return (
-    <MainLayout user={user}>
+    <>
       <Container>
         <BackBtn onClick={() => navigate('/torneios')}>
           <ArrowLeft size={16} /> Voltar
@@ -213,6 +210,6 @@ export default function TournamentDetail() {
           </BracketSection>
         </Body>
       </Container>
-    </MainLayout>
+    </>
   )
 }

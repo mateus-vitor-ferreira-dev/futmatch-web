@@ -1,13 +1,13 @@
 import { Sun, Moon, LogOut, Menu, X } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
-import type { ReactNode } from 'react'
-import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
-import type { UserMe } from '../../types/api'
+import { Suspense, useCallback, useMemo, useState } from 'react'
+import { Outlet, useNavigate } from 'react-router-dom'
 import { useThemeMode } from '../../contexts/ThemeContext'
 import { useAuth } from '../../contexts/AuthContext'
 import LogoSvg from '../LogoSvg'
 import NotificationBell from '../NotificationBell'
+import ContentLoader from '../ContentLoader'
+import { PageHeaderProvider } from './pageHeader'
 import {
   Shell, Sidebar, Logo, LogoIcon, LogoText, LogoName, LogoTagline,
   Divider, Nav, NavItem, NavBadge,
@@ -35,31 +35,55 @@ export interface NavItemDef {
 }
 
 export interface DashboardLayoutProps {
-  user?: UserMe | null
   navItems: NavItemDef[]
   tagline: string
   accent: string
-  pageTitle: string
-  pageSub?: string
-  topbarActions?: ReactNode
-  children: ReactNode
 }
 
-/** Layout compartilhado para os painéis de Admin e Owner. */
+/**
+ * Layout compartilhado para os painéis de Admin e Owner.
+ *
+ * É **rota-pai**: renderiza `<Outlet />` em vez de receber `children`. Assim a
+ * sidebar, a topbar e a conexão SSE do sino sobrevivem à troca de rota, em vez
+ * de serem destruídas e recriadas por cada página (#197).
+ *
+ * Título, subtítulo e ações da topbar deixaram de ser props e passaram a ser
+ * publicados pela página via `usePageHeader` e `<PageActions>`.
+ */
 export default function DashboardLayout({
-  user,
   navItems,
   tagline,
   accent,
-  pageTitle,
-  pageSub,
-  topbarActions,
-  children,
 }: DashboardLayoutProps) {
   const { isDark, toggleTheme } = useThemeMode()
   const navigate = useNavigate()
-  const { logout } = useAuth()
+  const { logout, user } = useAuth()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const [header, setHeaderState] = useState<{ title: string; sub?: string }>({ title: '' })
+  const [navBadges, setNavBadges] = useState<Record<string, number>>({})
+  const [actionsSlot, setActionsSlot] = useState<HTMLElement | null>(null)
+
+  // Identidade estável: é dependência do efeito em `usePageHeader`. A
+  // comparação evita re-render quando a página republica o mesmo título.
+  const setHeader = useCallback((title: string, sub?: string) => {
+    setHeaderState((anterior) =>
+      anterior.title === title && anterior.sub === sub ? anterior : { title, sub },
+    )
+  }, [])
+
+  const setNavBadge = useCallback((to: string, count: number) => {
+    setNavBadges((anterior) => (anterior[to] === count ? anterior : { ...anterior, [to]: count }))
+  }, [])
+
+  const headerContext = useMemo(
+    () => ({ setHeader, setNavBadge, actionsSlot }),
+    [setHeader, setNavBadge, actionsSlot],
+  )
+
+  const itensComBadge = useMemo(
+    () => navItems.map((item) => (navBadges[item.to] != null ? { ...item, badge: navBadges[item.to] } : item)),
+    [navItems, navBadges],
+  )
 
   function handleLogout() {
     logout()
@@ -83,7 +107,7 @@ export default function DashboardLayout({
         <Divider />
 
         <Nav>
-          {navItems.map(({ to, label, icon: Icon, badge, divider, end }) => (
+          {itensComBadge.map(({ to, label, icon: Icon, badge, divider, end }) => (
             <span key={to}>
               {divider && <Divider />}
               <NavItem to={to} end={!!end} onClick={() => setMobileMenuOpen(false)}>
@@ -129,17 +153,26 @@ export default function DashboardLayout({
               {mobileMenuOpen ? <X size={22} /> : <Menu size={22} />}
             </MobileMenuBtn>
             <div className="page-heading">
-              <TopbarTitle>{pageTitle}</TopbarTitle>
-              {pageSub && <TopbarSub>{pageSub}</TopbarSub>}
+              <TopbarTitle>{header.title}</TopbarTitle>
+              {header.sub && <TopbarSub>{header.sub}</TopbarSub>}
             </div>
             <TopbarActions>
               <NotificationBell />
-              {topbarActions}
+              {/* Alvo do portal de `<PageActions>`. `display: contents` faz os
+                  filhos virarem itens do flex de TopbarActions, preservando o
+                  espaçamento que existia quando as ações vinham por prop. */}
+              <span ref={setActionsSlot} style={{ display: 'contents' }} />
             </TopbarActions>
           </TopbarRow>
         </Topbar>
 
-        <Content>{children}</Content>
+        <Content>
+          <PageHeaderProvider value={headerContext}>
+            <Suspense fallback={<ContentLoader />}>
+              <Outlet />
+            </Suspense>
+          </PageHeaderProvider>
+        </Content>
       </Main>
     </Shell>
   )

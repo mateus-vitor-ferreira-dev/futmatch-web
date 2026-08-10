@@ -1,9 +1,7 @@
 import { useState, useEffect, useCallback } from 'react'
+import { usePageHeader } from '../../../components/DashboardLayout/pageHeader'
 import { toast } from 'sonner'
-import DashboardLayout from '../../../components/DashboardLayout'
-import { adminNavItems } from '../../../constants/navItems'
 import StatCard from '../../../components/StatCard'
-import { useAuth } from '../../../contexts/AuthContext'
 import * as placesService from '../../../services/places'
 import * as adminService from '../../../services/admin'
 import type { Place } from '../../../types/api'
@@ -23,7 +21,6 @@ const STATUS_COLOR = { OPEN: '#16a34a', CLOSED: '#6b7280' }
 const STATUS_BG    = { OPEN: '#dcfce7', CLOSED: '#f3f4f6' }
 
 export default function AdminPlaces() {
-  const { user } = useAuth()
   const [places, setPlaces]     = useState<Place[]>([])
   const [owners, setOwners]     = useState<AdminUser[]>([])
   const [loading, setLoading]   = useState(true)
@@ -135,15 +132,10 @@ export default function AdminPlaces() {
     noOwner: places.filter((p) => !p.ownerId).length,
   }
 
+  usePageHeader("Estabelecimentos", "Gerencie todos os estabelecimentos da plataforma e atribua proprietários")
+
   return (
-    <DashboardLayout
-      user={user}
-      navItems={adminNavItems}
-      tagline="Admin Panel"
-      accent="#16a34a"
-      pageTitle="Estabelecimentos"
-      pageSub="Gerencie todos os estabelecimentos da plataforma e atribua proprietários"
-    >
+    <>
       <StatsRow>
         <StatCard label="Total"           value={counts.total}   accent="#3b82f6" />
         <StatCard label="Abertos"         value={counts.open}    accent="#22c55e" />
@@ -270,6 +262,6 @@ export default function AdminPlaces() {
           </ModalBox>
         </Modal>
       )}
-    </DashboardLayout>
+    </>
   )
 }

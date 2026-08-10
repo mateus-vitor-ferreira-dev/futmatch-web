@@ -1,9 +1,7 @@
 import { useState, useEffect, useCallback } from 'react'
+import { usePageHeader, useNavBadge } from '../../../components/DashboardLayout/pageHeader'
 import { toast } from 'sonner'
-import DashboardLayout from '../../../components/DashboardLayout'
-import { adminNavItems } from '../../../constants/navItems'
 import StatCard from '../../../components/StatCard'
-import { useAuth } from '../../../contexts/AuthContext'
 import * as placeRequestsService from '../../../services/placeRequests'
 import type { PlaceRequest, PlaceRequestStatus } from '../../../types/api'
 import {
@@ -26,7 +24,6 @@ const STATUS_COLOR = { PENDING: '#d97706', APPROVED: '#16a34a', REJECTED: '#dc26
 const STATUS_BG    = { PENDING: '#fef3c7', APPROVED: '#dcfce7', REJECTED: '#fee2e2' }
 
 export default function AdminRequests() {
-  const { user } = useAuth()
   const [requests, setRequests]   = useState<PlaceRequest[]>([])
   const [tab, setTab] = useState<PlaceRequestStatus | undefined>(undefined)
   const [loading, setLoading]     = useState(true)
@@ -86,17 +83,13 @@ export default function AdminRequests() {
 
   const pendingCount = requests.filter((r) => r.status === 'PENDING').length
 
+  usePageHeader("Solicitações de Estabelecimento", "Aprove ou rejeite solicitações de Owners para cadastro de novos estabelecimentos")
+  // Contagem de pendentes no item do menu — só enquanto esta página está
+  // aberta, como era antes de o layout virar rota-pai.
+  useNavBadge('/admin/requests', pendingCount)
+
   return (
-    <DashboardLayout
-      user={user}
-      navItems={adminNavItems.map((n) =>
-        n.to === '/admin/requests' ? { ...n, badge: pendingCount } : n
-      )}
-      tagline="Admin Panel"
-      accent="#16a34a"
-      pageTitle="Solicitações de Estabelecimento"
-      pageSub="Aprove ou rejeite solicitações de Owners para cadastro de novos estabelecimentos"
-    >
+    <>
       <StatsRow>
         <StatCard label="Total"      value={counts.total}    accent="#3b82f6" />
         <StatCard label="Pendentes"  value={counts.pending}  accent="#f59e0b" />
@@ -191,6 +184,6 @@ export default function AdminRequests() {
           </ModalBox>
         </RejectModal>
       )}
-    </DashboardLayout>
+    </>
   )
 }

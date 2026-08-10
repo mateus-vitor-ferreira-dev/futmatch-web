@@ -6,7 +6,6 @@ import { yupResolver } from '@hookform/resolvers/yup'
 import * as yup from 'yup'
 import { toast } from 'sonner'
 import { Camera, Loader, LogOut } from 'lucide-react'
-import MainLayout from '../../components/MainLayout'
 import { PhoneInput, PasswordInput } from '../../components'
 import { useAuth } from '../../contexts/AuthContext'
 import * as usersService from '../../services/users'
@@ -191,7 +190,7 @@ export default function Profile() {
   }
 
   return (
-    <MainLayout user={user}>
+    <>
       <PageWrapper>
 
         {/* Avatar */}
@@ -347,6 +346,6 @@ export default function Profile() {
         </LogoutSection>
 
       </PageWrapper>
-    </MainLayout>
+    </>
   )
 }

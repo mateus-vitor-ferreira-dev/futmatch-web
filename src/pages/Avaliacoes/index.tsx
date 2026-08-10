@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useAuth } from '../../contexts/AuthContext'
 import { playerService } from '../../services/playerService'
-import { MainLayout } from '../../components'
 import type { Review, ReviewTag, UserStats } from '../../types/api'
 import {
   Container, StatsCard, Section,
@@ -60,7 +59,7 @@ export default function Avaliacoes() {
     : 'N/A'
 
   return (
-    <MainLayout user={user}>
+    <>
       <Container>
         <h1>Minhas Avaliações</h1>
 
@@ -179,6 +178,6 @@ export default function Avaliacoes() {
           </>
         )}
       </Container>
-    </MainLayout>
+    </>
   )
 }
