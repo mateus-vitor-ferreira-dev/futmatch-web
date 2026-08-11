@@ -1,12 +1,12 @@
 import { Suspense, useMemo } from 'react'
 import type { ReactNode } from 'react'
-import { BrowserRouter, Routes, Route, Navigate, useNavigate } from 'react-router-dom'
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
 import MainLayout from '../components/MainLayout'
 import DashboardLayout from '../components/DashboardLayout'
 import { adminNavItems, ownerNavItems } from '../constants/navItems'
 import {
-  Intro, Register, ForgotPassword, ResetPassword, OwnerAccess,
+  Register, ForgotPassword, ResetPassword, OwnerAccess,
   Home, Profile, QueroJogar, CriarPelada, Tournaments, MinhasPeladas,
   Historico, Avaliacoes, PeladaDetail, TournamentDetail,
   AdminDashboard, AdminUsers, AdminRequests, AdminPlaces,
@@ -29,11 +29,6 @@ function FullPageLoader() {
       <style>{`@keyframes spin { to { transform: rotate(360deg) } }`}</style>
     </div>
   )
-}
-
-function IntroRoute() {
-  const navigate = useNavigate()
-  return <Intro onComplete={() => navigate('/login')} />
 }
 
 function PublicRoute({ children }: { children: ReactNode }) {
@@ -89,7 +84,10 @@ export default function AppRoutes() {
     <BrowserRouter>
       <Routes>
         {/* Público — sem layout, fallback de tela cheia */}
-        <Route path="/"                element={<Suspense fallback={<FullPageLoader />}><IntroRoute /></Suspense>} />
+        {/* A raiz é o login. Até a #225 ela era uma intro animada de 4s que todo
+            mundo pagava, inclusive quem já estava logado — que ainda passava por
+            /login antes de o PublicRoute mandá-lo para a área dele. */}
+        <Route path="/"                element={<Suspense fallback={<FullPageLoader />}><PublicRoute><Register initialMode="login"    /></PublicRoute></Suspense>} />
         <Route path="/login"           element={<Suspense fallback={<FullPageLoader />}><PublicRoute><Register initialMode="login"    /></PublicRoute></Suspense>} />
         <Route path="/register"        element={<Suspense fallback={<FullPageLoader />}><PublicRoute><Register initialMode="register" /></PublicRoute></Suspense>} />
         <Route path="/esqueci-senha"   element={<Suspense fallback={<FullPageLoader />}><PublicRoute><ForgotPassword /></PublicRoute></Suspense>} />
