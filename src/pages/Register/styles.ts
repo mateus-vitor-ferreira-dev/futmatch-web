@@ -223,3 +223,18 @@ export const LegalText = styled.p`
     &:hover { color: ${({ theme }) => theme.colors.primary}; }
   }
 `
+
+export const MarketingConsent = styled.label`
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  color: ${({ theme }) => theme.colors.textSecondary};
+  font-size: ${({ theme }) => theme.fontSizes.xs};
+  line-height: 1.45;
+  cursor: pointer;
+
+  input {
+    margin-top: 2px;
+    accent-color: ${({ theme }) => theme.colors.primary};
+  }
+`

@@ -1,7 +1,9 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useMemo, useRef } from 'react'
 import type { ReactNode } from 'react'
 import type { CourtType } from '../../types/api'
 import { useSports } from '../../hooks/useSports'
+import { useEstatisticas } from '../../hooks/useEstatisticas'
+import type { NumerosPublicos } from '../../services/stats'
 import {
   Wrapper, LeftPanel, BgImage, BgOverlay,
   Logo, LogoIcon, LogoText, LogoName, LogoTagline,
@@ -51,12 +53,83 @@ const ITEM_HEIGHT = 56
 /** Intervalo de rotação automática da roda (ms) */
 const INTERVAL    = 3000
 
-/** Estatísticas exibidas no painel esquerdo */
-const STATS = [
-  { value: '847', label: 'jogadores online' },
-  { value: '32',  label: 'jogos hoje'       },
-  { value: '12',  label: 'cidades'          },
+/** Cartão de estatística do painel esquerdo */
+interface Cartao {
+  value: string
+  label: string
+}
+
+/**
+ * Fatos de produto, que não dependem de tração.
+ *
+ * Ficam escritos aqui de propósito: o número de modalidades e a gratuidade
+ * para o jogador são decisão do produto, não medição do banco. São eles que
+ * seguram a linha de pé enquanto os contadores ainda não sustentam afirmação
+ * — mesma escolha da landing, em `StatsSection.tsx`.
+ */
+const FIXOS: Cartao[] = [
+  { value: '12',   label: 'modalidades'             },
+  { value: '100%', label: 'gratuito para jogadores' },
 ]
+
+/** Cabem três cartões na linha; o resto sobra para fora do layout. */
+const MAX_CARTOES = 3
+
+/**
+ * Quanto cada número precisa valer para entrar na tela.
+ *
+ * Esconder o zero não bastou (`landing#36`): "2 jogadores na plataforma" é
+ * verdade e ainda assim prova o contrário do que a linha se propõe a dizer.
+ * Prova social responde "outras pessoas usam isso?" — respondida com 2, ela
+ * chama atenção justamente para a falta de tração. Sem o cartão, quem chega
+ * não conclui nada; com ele, conclui que ninguém usa.
+ *
+ * Por cartão porque convencem em escalas diferentes: "3 cidades atendidas" é
+ * plausível, "3 jogadores" não é.
+ *
+ * ⚠️ Estes números são os mesmos de `LIMIARES` em
+ * `so-mais-um-landing/src/components/landing/StatsSection.tsx`. É a mesma
+ * afirmação, dita ao mesmo visitante, em duas telas do mesmo produto — mudar
+ * de um lado sem o outro faz as duas discordarem em público.
+ */
+const LIMIARES = {
+  jogadores:      50,
+  peladasAbertas:  5,
+  cidades:         3,
+  arenas:          3,
+}
+
+/**
+ * Monta os cartões do painel esquerdo a partir do que a API devolveu.
+ *
+ * Isto existe porque até 11/08/2026 os três números eram constantes escritas
+ * no código — `847 jogadores online`, `32 jogos hoje`, `12 cidades` — contra
+ * `2 / 0 / 0` reais no banco (#234). É afirmação pública sobre tração, feita
+ * em produção a todo visitante não autenticado, e uma ordem de grandeza fora.
+ *
+ * Duas regras vieram junto:
+ *
+ * 1. **Rótulo diz o que o dado é.** A rota conta jogadores *cadastrados* e
+ *    peladas *abertas*; não existe presença nem recorte de "hoje". Trocar só o
+ *    número e manter "online"/"hoje" trocaria uma mentira por outra.
+ * 2. **Cartão que não sustenta a afirmação some.** Abaixo do `LIMIARES` ou com
+ *    a API fora do ar, ele não aparece — nunca um `0`, nunca um número que
+ *    prova o contrário, nunca um valor inventado.
+ */
+function montarCartoes(numeros: NumerosPublicos | null): Cartao[] {
+  const doDado = !numeros
+    ? []
+    : [
+        { valor: numeros.jogadores,      minimo: LIMIARES.jogadores,      label: 'jogadores na plataforma' },
+        { valor: numeros.peladasAbertas, minimo: LIMIARES.peladasAbertas, label: 'peladas abertas'         },
+        { valor: numeros.arenas,         minimo: LIMIARES.arenas,         label: 'arenas parceiras'        },
+        { valor: numeros.cidades,        minimo: LIMIARES.cidades,        label: 'cidades atendidas'       },
+      ]
+        .filter((cartao) => cartao.valor >= cartao.minimo)
+        .map((cartao) => ({ value: String(cartao.valor), label: cartao.label }))
+
+  return [...doDado, ...FIXOS].slice(0, MAX_CARTOES)
+}
 
 /**
  * Configuração visual dos 5 slots visíveis da roda de modalidades.
@@ -92,6 +165,9 @@ const SLOT_PADRAO: Slot = { scale: 0.72, opacity: 0.30 }
  */
 export default function AuthLayout({ children }: { children: ReactNode }) {
   const { sports } = useSports()
+  const { numeros } = useEstatisticas()
+
+  const stats = useMemo(() => montarCartoes(numeros), [numeros])
 
   /** Índice do esporte ativo na roda */
   const [activeIdx, setActiveIdx] = useState(0)
@@ -214,7 +290,7 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
           </WheelTrack>
 
           <StatsRow>
-            {STATS.map((s) => (
+            {stats.map((s) => (
               <StatCard key={s.label}>
                 <StatValue>{s.value}</StatValue>
                 <StatLabel>{s.label}</StatLabel>

@@ -17,7 +17,13 @@ import {
   GoogleWrapper, GoogleButton, Divider,
   Form, Field, Row, Label, Input, ErrorMsg,
   SubmitButton, SwitchText, ForgotLink, LegalText,
+  MarketingConsent,
 } from './styles'
+
+const LEGAL_URLS = {
+  termos: 'https://so-mais-um.com/termos-de-uso',
+  privacidade: 'https://so-mais-um.com/politica-de-privacidade',
+} as const
 
 /** Schema de validação para cadastro (inclui nome, confirmação de senha) */
 const registerSchema = yup.object({
@@ -33,6 +39,7 @@ const registerSchema = yup.object({
   confirmPassword: yup.string()
     .oneOf([yup.ref('password')], 'Senhas não coincidem')
     .required('Obrigatório'),
+  marketingOptIn: yup.boolean().default(false),
 })
 
 /** Schema de validação para login (apenas e-mail e senha) */
@@ -241,6 +248,13 @@ export default function Register({ initialMode = 'register' }) {
           </Field>
         )}
 
+        {isRegister && (
+          <MarketingConsent>
+            <input type="checkbox" {...register('marketingOptIn')} />
+            Quero receber novidades, dicas e comunicações de marketing da Só+1. Posso cancelar a qualquer momento.
+          </MarketingConsent>
+        )}
+
         {/* Erros globais da API */}
         {errors.root && <ErrorMsg>{errors.root.message}</ErrorMsg>}
 
@@ -260,8 +274,8 @@ export default function Register({ initialMode = 'register' }) {
 
       <LegalText>
         Ao entrar, você concorda com os{' '}
-        <a href="#">Termos de Uso</a> e a{' '}
-        <a href="#">Política de Privacidade</a>.
+        <a href={LEGAL_URLS.termos} target="_blank" rel="noopener noreferrer">Termos de Uso</a> e a{' '}
+        <a href={LEGAL_URLS.privacidade} target="_blank" rel="noopener noreferrer">Política de Privacidade</a>.
       </LegalText>
     </AuthLayout>
   )

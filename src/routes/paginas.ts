@@ -35,7 +35,9 @@ function lazyWithRetry<T extends ComponentType<any>>(carregar: Carregador<T>) {
  * prefetch parte. Caminho desconhecido simplesmente não faz nada.
  */
 const CARREGADORES = {
-  '/':                 () => import('../pages/Intro'),
+  // `/` e `/login` carregam o mesmo chunk: a raiz mostra o login para quem não
+  // está autenticado, e redireciona quem está. Ver a rota `/` em index.tsx.
+  '/':                 () => import('../pages/Register'),
   '/login':            () => import('../pages/Register'),
   '/register':         () => import('../pages/Register'),
   '/esqueci-senha':    () => import('../pages/ForgotPassword'),
@@ -114,7 +116,6 @@ export function limparPrefetch(): void {
   jaPedidas.clear()
 }
 
-export const Intro            = lazyWithRetry(CARREGADORES['/'])
 export const Register         = lazyWithRetry(CARREGADORES['/login'])
 export const ForgotPassword   = lazyWithRetry(CARREGADORES['/esqueci-senha'])
 export const ResetPassword    = lazyWithRetry(CARREGADORES['/redefinir-senha'])
