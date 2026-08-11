@@ -76,6 +76,30 @@ const FIXOS: Cartao[] = [
 const MAX_CARTOES = 3
 
 /**
+ * Quanto cada número precisa valer para entrar na tela.
+ *
+ * Esconder o zero não bastou (`landing#36`): "2 jogadores na plataforma" é
+ * verdade e ainda assim prova o contrário do que a linha se propõe a dizer.
+ * Prova social responde "outras pessoas usam isso?" — respondida com 2, ela
+ * chama atenção justamente para a falta de tração. Sem o cartão, quem chega
+ * não conclui nada; com ele, conclui que ninguém usa.
+ *
+ * Por cartão porque convencem em escalas diferentes: "3 cidades atendidas" é
+ * plausível, "3 jogadores" não é.
+ *
+ * ⚠️ Estes números são os mesmos de `LIMIARES` em
+ * `so-mais-um-landing/src/components/landing/StatsSection.tsx`. É a mesma
+ * afirmação, dita ao mesmo visitante, em duas telas do mesmo produto — mudar
+ * de um lado sem o outro faz as duas discordarem em público.
+ */
+const LIMIARES = {
+  jogadores:      50,
+  peladasAbertas:  5,
+  cidades:         3,
+  arenas:          3,
+}
+
+/**
  * Monta os cartões do painel esquerdo a partir do que a API devolveu.
  *
  * Isto existe porque até 11/08/2026 os três números eram constantes escritas
@@ -88,21 +112,20 @@ const MAX_CARTOES = 3
  * 1. **Rótulo diz o que o dado é.** A rota conta jogadores *cadastrados* e
  *    peladas *abertas*; não existe presença nem recorte de "hoje". Trocar só o
  *    número e manter "online"/"hoje" trocaria uma mentira por outra.
- * 2. **Cartão sem número some.** Zerado ou com a API fora do ar, ele não
- *    aparece — nunca um `0`, nunca um valor inventado. O limiar mínimo por
- *    cartão ainda vai ser decidido junto com a `landing#36`; até lá vale o
- *    mesmo que a landing já aplica hoje, que é "maior que zero".
+ * 2. **Cartão que não sustenta a afirmação some.** Abaixo do `LIMIARES` ou com
+ *    a API fora do ar, ele não aparece — nunca um `0`, nunca um número que
+ *    prova o contrário, nunca um valor inventado.
  */
 function montarCartoes(numeros: NumerosPublicos | null): Cartao[] {
   const doDado = !numeros
     ? []
     : [
-        { valor: numeros.jogadores,      label: 'jogadores na plataforma' },
-        { valor: numeros.peladasAbertas, label: 'peladas abertas'         },
-        { valor: numeros.arenas,         label: 'arenas parceiras'        },
-        { valor: numeros.cidades,        label: 'cidades atendidas'       },
+        { valor: numeros.jogadores,      minimo: LIMIARES.jogadores,      label: 'jogadores na plataforma' },
+        { valor: numeros.peladasAbertas, minimo: LIMIARES.peladasAbertas, label: 'peladas abertas'         },
+        { valor: numeros.arenas,         minimo: LIMIARES.arenas,         label: 'arenas parceiras'        },
+        { valor: numeros.cidades,        minimo: LIMIARES.cidades,        label: 'cidades atendidas'       },
       ]
-        .filter((cartao) => cartao.valor > 0)
+        .filter((cartao) => cartao.valor >= cartao.minimo)
         .map((cartao) => ({ value: String(cartao.valor), label: cartao.label }))
 
   return [...doDado, ...FIXOS].slice(0, MAX_CARTOES)
