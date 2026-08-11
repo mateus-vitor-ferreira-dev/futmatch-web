@@ -1,16 +1,20 @@
-# CODEOWNERS — quem o GitHub chama automaticamente para revisar o quê.
-#
-# Aqui só entra o que é PERMANENTE. A escala de área muda a cada sprint e vive
-# no manual da equipe, não neste arquivo. O porquê está lá, em
-# "Convenções → CODEOWNERS":
+# CODEOWNERS — quem é chamado automaticamente para revisar o quê.
+# Área principal ≠ exclusividade: qualquer pessoa pode revisar, o CODEOWNERS só
+# garante que alguém da área seja notificado. Ver o manual da equipe:
 # https://github.com/mateus-vitor-ferreira-dev/so-mais-um-api/blob/main/docs/EQUIPE.md
 #
-# Este arquivo não trava nada: aprovação obrigatória é zero, o que bloqueia o
-# merge é o CI. Ele só pede review automaticamente, e só funciona para quem tem
-# acesso de escrita no repositório.
+# Só funciona para pessoas com acesso de escrita no repositório.
+# Descomente as linhas conforme a equipe definir as áreas na primeira planning.
 
-# Fallback: o que não estiver coberto abaixo é de quem mantém o repositório
 *                       @mateus-vitor-ferreira-dev
 
-# CI e deploy: quebra aqui para todo mundo ao mesmo tempo
-.github/workflows/      @mateus-vitor-ferreira-dev
+# Telas e componentes — área de Front
+# src/pages/            @usuario-da-area-de-front
+# src/components/       @usuario-da-area-de-front
+
+# Estilos e design system — área de Design
+# src/styles/           @usuario-da-area-de-design
+# src/assets/           @usuario-da-area-de-design
+
+# Testes — área de Teste
+# **/*.test.tsx         @usuario-da-area-de-teste
