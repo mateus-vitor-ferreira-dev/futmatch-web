@@ -4,7 +4,6 @@ import { SkeletonList } from '../../components/Skeleton'
 import { getSportMeta } from '../../hooks/useSports'
 import { useAuth } from '../../contexts/AuthContext'
 import { playerService } from '../../services/playerService'
-import { MainLayout } from '../../components'
 import { mensagemDeErro } from '../../utils/apiError'
 import type { ReviewProgress } from '../../services/playerService'
 import type { Participation, Pelada, ReviewTag, UserStats } from '../../types/api'
@@ -127,7 +126,7 @@ export default function Historico() {
     : 0
 
   return (
-    <MainLayout user={user}>
+    <>
       <Container>
         <h1>Meu Histórico</h1>
 
@@ -251,6 +250,6 @@ export default function Historico() {
           </EvalModalOverlay>
         )}
       </Container>
-    </MainLayout>
+    </>
   )
 }

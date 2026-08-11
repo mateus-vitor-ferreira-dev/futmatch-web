@@ -1,48 +1,28 @@
-import { lazy, Suspense } from 'react'
-import type { ComponentType, ReactNode } from 'react'
+import { Suspense, useMemo } from 'react'
+import type { ReactNode } from 'react'
 import { BrowserRouter, Routes, Route, Navigate, useNavigate } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
+import MainLayout from '../components/MainLayout'
+import DashboardLayout from '../components/DashboardLayout'
+import { adminNavItems, ownerNavItems } from '../constants/navItems'
+import {
+  Intro, Register, ForgotPassword, ResetPassword, OwnerAccess,
+  Home, Profile, QueroJogar, CriarPelada, Tournaments, MinhasPeladas,
+  Historico, Avaliacoes, PeladaDetail, TournamentDetail,
+  AdminDashboard, AdminUsers, AdminRequests, AdminPlaces,
+  OwnerDashboard, OwnerPlans, OwnerPlaces, OwnerInventory, OwnerEquipment, OwnerRequests, OwnerCourts,
+} from './paginas'
 
-// Recarrega a página automaticamente quando um chunk antigo não é encontrado após um novo deploy
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function lazyWithRetry<T extends ComponentType<any>>(
-  fn: () => Promise<{ default: T }>,
-) {
-  return lazy(() => fn().catch(() => {
-    window.location.reload()
-    // Promise que nunca resolve: a página está recarregando de qualquer forma.
-    return new Promise<{ default: T }>(() => {})
-  }))
-}
 
-const Intro          = lazyWithRetry(() => import('../pages/Intro'))
-const Register       = lazyWithRetry(() => import('../pages/Register'))
-const Home           = lazyWithRetry(() => import('../pages/Home'))
-const Profile        = lazyWithRetry(() => import('../pages/Profile'))
-const ForgotPassword = lazyWithRetry(() => import('../pages/ForgotPassword'))
-const ResetPassword  = lazyWithRetry(() => import('../pages/ResetPassword'))
-const QueroJogar     = lazyWithRetry(() => import('../pages/QueroJogar'))
-const MinhasPeladas  = lazyWithRetry(() => import('../pages/MinhasPeladas'))
-const Historico      = lazyWithRetry(() => import('../pages/Historico'))
-const CriarPelada    = lazyWithRetry(() => import('../pages/CriarPelada'))
-const Tournaments    = lazyWithRetry(() => import('../pages/Tournaments'))
-const Avaliacoes     = lazyWithRetry(() => import('../pages/Avaliacoes'))
-const PeladaDetail        = lazyWithRetry(() => import('../pages/PeladaDetail'))
-const TournamentDetail    = lazyWithRetry(() => import('../pages/TournamentDetail'))
-const AdminDashboard = lazyWithRetry(() => import('../pages/Admin/Dashboard'))
-const AdminUsers     = lazyWithRetry(() => import('../pages/Admin/Users'))
-const AdminRequests  = lazyWithRetry(() => import('../pages/Admin/Requests'))
-const AdminPlaces    = lazyWithRetry(() => import('../pages/Admin/Places'))
-const OwnerDashboard = lazyWithRetry(() => import('../pages/Owner/Dashboard'))
-const OwnerPlans     = lazyWithRetry(() => import('../pages/Owner/Plans'))
-const OwnerPlaces    = lazyWithRetry(() => import('../pages/Owner/Places'))
-const OwnerRequests  = lazyWithRetry(() => import('../pages/Owner/Requests'))
-const OwnerCourts    = lazyWithRetry(() => import('../pages/Owner/Courts'))
-const OwnerInventory = lazyWithRetry(() => import('../pages/Owner/Inventory'))
-const OwnerEquipment = lazyWithRetry(() => import('../pages/Owner/Equipment'))
-const OwnerAccess    = lazyWithRetry(() => import('../pages/OwnerAccess'))
-
-function PageLoader() {
+/**
+ * Fallback das rotas que não têm layout (login, cadastro, intro).
+ *
+ * As rotas de dentro do app não usam este: cada layout tem o próprio
+ * `<Suspense>` com `ContentLoader`, que preserva sidebar e topbar na troca de
+ * rota. Antes da #197 este spinner de tela cheia cobria o app inteiro a cada
+ * navegação.
+ */
+function FullPageLoader() {
   return (
     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh', background: '#f9fafb' }}>
       <div style={{ width: 36, height: 36, border: '3px solid #e5e7eb', borderTopColor: '#22c55e', borderRadius: '50%', animation: 'spin 0.7s linear infinite' }} />
@@ -65,6 +45,14 @@ function PublicRoute({ children }: { children: ReactNode }) {
   return <Navigate to="/home" replace />
 }
 
+/**
+ * Guardas de rota.
+ *
+ * Recebem `children` para poderem embrulhar a rota-pai de layout: o elemento
+ * da rota passa a ser `<PrivateRoute><MainLayout /></PrivateRoute>`, de modo
+ * que a verificação de papel acontece **antes** de o layout montar. Sem isso,
+ * a sidebar apareceria por um instante para quem não tem acesso.
+ */
 function PrivateRoute({ children }: { children: ReactNode }) {
   const { isAuthenticated, loading } = useAuth()
   if (loading) return null
@@ -87,52 +75,72 @@ function OwnerRoute({ children }: { children: ReactNode }) {
   return <>{children}</>
 }
 
+/** Layout do painel do owner, com o menu que depende do papel de quem acessa. */
+function OwnerPanelLayout() {
+  const { user } = useAuth()
+  // `ownerNavItems` monta um array novo a cada chamada; sem o memo, o layout
+  // recalcularia os badges do menu a cada render.
+  const navItems = useMemo(() => ownerNavItems(user?.role), [user?.role])
+  return <DashboardLayout navItems={navItems} tagline="Owner Panel" accent="#f59e0b" />
+}
+
 export default function AppRoutes() {
   return (
     <BrowserRouter>
-      <Suspense fallback={<PageLoader />}>
-        <Routes>
-          {/* Público */}
-          <Route path="/"                element={<IntroRoute />} />
-          <Route path="/login"           element={<PublicRoute><Register initialMode="login"    /></PublicRoute>} />
-          <Route path="/register"        element={<PublicRoute><Register initialMode="register" /></PublicRoute>} />
-          <Route path="/esqueci-senha"   element={<PublicRoute><ForgotPassword /></PublicRoute>} />
-          <Route path="/redefinir-senha" element={<PublicRoute><ResetPassword  /></PublicRoute>} />
-          <Route path="/seja-parceiro"  element={<OwnerAccess />} />
+      <Routes>
+        {/* Público — sem layout, fallback de tela cheia */}
+        <Route path="/"                element={<Suspense fallback={<FullPageLoader />}><IntroRoute /></Suspense>} />
+        <Route path="/login"           element={<Suspense fallback={<FullPageLoader />}><PublicRoute><Register initialMode="login"    /></PublicRoute></Suspense>} />
+        <Route path="/register"        element={<Suspense fallback={<FullPageLoader />}><PublicRoute><Register initialMode="register" /></PublicRoute></Suspense>} />
+        <Route path="/esqueci-senha"   element={<Suspense fallback={<FullPageLoader />}><PublicRoute><ForgotPassword /></PublicRoute></Suspense>} />
+        <Route path="/redefinir-senha" element={<Suspense fallback={<FullPageLoader />}><PublicRoute><ResetPassword  /></PublicRoute></Suspense>} />
+        <Route path="/seja-parceiro"   element={<Suspense fallback={<FullPageLoader />}><OwnerAccess /></Suspense>} />
 
-          {/* Usuário autenticado (Jogador) */}
-          <Route path="/home"           element={<PrivateRoute><Home          /></PrivateRoute>} />
-          <Route path="/perfil"         element={<PrivateRoute><Profile       /></PrivateRoute>} />
-          <Route path="/quero-jogar"    element={<PrivateRoute><QueroJogar    /></PrivateRoute>} />
-          <Route path="/criar-pelada"   element={<PrivateRoute><CriarPelada   /></PrivateRoute>} />
-          <Route path="/torneios"       element={<PrivateRoute><Tournaments       /></PrivateRoute>} />
-          <Route path="/torneios/:id"   element={<PrivateRoute><TournamentDetail  /></PrivateRoute>} />
-          <Route path="/minhas-peladas" element={<PrivateRoute><MinhasPeladas /></PrivateRoute>} />
-          <Route path="/historico"      element={<PrivateRoute><Historico     /></PrivateRoute>} />
-          <Route path="/avaliacoes"     element={<PrivateRoute><Avaliacoes    /></PrivateRoute>} />
-          <Route path="/pelada/:eventId" element={<PrivateRoute><PeladaDetail  /></PrivateRoute>} />
+        {/* Área do jogador — MainLayout monta uma vez e persiste entre estas rotas */}
+        <Route element={<PrivateRoute><MainLayout /></PrivateRoute>}>
+          <Route path="/home"            element={<Home />} />
+          <Route path="/perfil"          element={<Profile />} />
+          <Route path="/quero-jogar"     element={<QueroJogar />} />
+          <Route path="/criar-pelada"    element={<CriarPelada />} />
+          <Route path="/torneios"        element={<Tournaments />} />
+          <Route path="/torneios/:id"    element={<TournamentDetail />} />
+          <Route path="/minhas-peladas"  element={<MinhasPeladas />} />
+          <Route path="/historico"       element={<Historico />} />
+          <Route path="/avaliacoes"      element={<Avaliacoes />} />
+          <Route path="/pelada/:eventId" element={<PeladaDetail />} />
+        </Route>
 
-          {/* Painel Admin */}
-          <Route path="/admin/dashboard" element={<AdminRoute><AdminDashboard /></AdminRoute>} />
-          <Route path="/admin/users"     element={<AdminRoute><AdminUsers     /></AdminRoute>} />
-          <Route path="/admin/requests"  element={<AdminRoute><AdminRequests  /></AdminRoute>} />
-          <Route path="/admin/places"    element={<AdminRoute><AdminPlaces    /></AdminRoute>} />
-          <Route path="/admin"           element={<Navigate to="/admin/dashboard" replace />} />
+        {/* Painel Admin */}
+        <Route
+          path="/admin"
+          element={
+            <AdminRoute>
+              <DashboardLayout navItems={adminNavItems} tagline="Admin Panel" accent="#16a34a" />
+            </AdminRoute>
+          }
+        >
+          <Route index               element={<Navigate to="/admin/dashboard" replace />} />
+          <Route path="dashboard"    element={<AdminDashboard />} />
+          <Route path="users"        element={<AdminUsers />} />
+          <Route path="requests"     element={<AdminRequests />} />
+          <Route path="places"       element={<AdminPlaces />} />
+        </Route>
 
-          {/* Painel Owner */}
-          <Route path="/owner/dashboard"              element={<OwnerRoute><OwnerDashboard /></OwnerRoute>} />
-          <Route path="/owner/plans"                  element={<OwnerRoute><OwnerPlans     /></OwnerRoute>} />
-          <Route path="/owner/places"               element={<OwnerRoute><OwnerPlaces    /></OwnerRoute>} />
-          <Route path="/owner/places/:placeId/courts" element={<OwnerRoute><OwnerCourts  /></OwnerRoute>} />
-          <Route path="/owner/inventory"              element={<OwnerRoute><OwnerInventory /></OwnerRoute>} />
-          <Route path="/owner/equipment"             element={<OwnerRoute><OwnerEquipment /></OwnerRoute>} />
-          <Route path="/owner/requests"             element={<OwnerRoute><OwnerRequests  /></OwnerRoute>} />
-          <Route path="/owner"                      element={<Navigate to="/owner/dashboard" replace />} />
+        {/* Painel Owner */}
+        <Route path="/owner" element={<OwnerRoute><OwnerPanelLayout /></OwnerRoute>}>
+          <Route index                      element={<Navigate to="/owner/dashboard" replace />} />
+          <Route path="dashboard"           element={<OwnerDashboard />} />
+          <Route path="plans"               element={<OwnerPlans />} />
+          <Route path="places"              element={<OwnerPlaces />} />
+          <Route path="places/:placeId/courts" element={<OwnerCourts />} />
+          <Route path="inventory"           element={<OwnerInventory />} />
+          <Route path="equipment"           element={<OwnerEquipment />} />
+          <Route path="requests"            element={<OwnerRequests />} />
+        </Route>
 
-          {/* Fallback */}
-          <Route path="*" element={<Navigate to="/login" replace />} />
-        </Routes>
-      </Suspense>
+        {/* Fallback */}
+        <Route path="*" element={<Navigate to="/login" replace />} />
+      </Routes>
     </BrowserRouter>
   )
 }

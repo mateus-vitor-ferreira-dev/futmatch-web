@@ -1,5 +1,6 @@
-import { useState, useEffect } from 'react'
+import { useQuery } from '@tanstack/react-query'
 import { getSports } from '../services/sports'
+import { chaves } from '../lib/queryClient'
 import type { CourtType, Sport } from '../types/api'
 
 /**
@@ -66,19 +67,26 @@ export function getSportMeta(type: CourtType): { label: string; icon: string } {
  * Busca modalidades da API e deriva tabs de filtro agrupadas por `group`.
  * Usa fallback local se a API estiver indisponível.
  *
+ * Este hook é chamado em quinze lugares — páginas, EventCard, SportSelect. Com
+ * `useEffect` cada um deles disparava o próprio `GET /sports` na montagem, e
+ * `sports` reaparecia em toda navegação medida na #197. Sob `useQuery` os
+ * quinze compartilham a mesma entrada de cache: uma requisição por sessão.
+ *
+ * `staleTime` de uma hora porque modalidade é dado de catálogo: muda quando
+ * alguém faz deploy, não durante a sessão de quem está procurando pelada.
  */
 export function useSports(): { sports: SportOption[]; tabs: SportTab[]; loading: boolean } {
-  const [sports, setSports] = useState<SportOption[]>([])
-  const [loading, setLoading] = useState(true)
+  const { data, isPending } = useQuery({
+    queryKey: chaves.modalidades,
+    queryFn: getSports,
+    staleTime: 60 * 60_000,
+    // O fallback local cobre a API fora do ar; sem isto o `retry` global
+    // atrasaria a tela para no fim mostrar a mesma lista embutida.
+    retry: false,
+  })
 
-  useEffect(() => {
-    getSports()
-      .then(setSports)
-      .catch(() => setSports(FALLBACK_SPORTS))
-      .finally(() => setLoading(false))
-  }, [])
-
-  const safeSports = Array.isArray(sports) ? sports : []
+  const loading = isPending
+  const safeSports = Array.isArray(data) ? data : []
   const effectiveSports = safeSports.length > 0 && safeSports.some(s => s.group) ? safeSports : FALLBACK_SPORTS
   const tabs = deriveTabs(effectiveSports)
 

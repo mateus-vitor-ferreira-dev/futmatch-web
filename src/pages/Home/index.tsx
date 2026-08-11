@@ -1,9 +1,10 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
+import { useQuery } from '@tanstack/react-query'
 import { useNavigate } from 'react-router-dom'
 import { MapPin, Clock, Users, Search, Zap } from 'lucide-react'
 import { useAuth } from '../../contexts/AuthContext'
-import { MainLayout } from '../../components'
 import { playerService } from '../../services/playerService'
+import { chaves } from '../../lib/queryClient'
 import { useSports, getSportMeta } from '../../hooks/useSports'
 import type { CourtType } from '../../types/api'
 import {
@@ -92,63 +93,41 @@ export default function Home() {
   const { sports: allSports } = useSports()
   const SPORT_TABS = [ALL_TAB, ...allSports]
 
-  const [events, setEvents] = useState<EventoSolto[]>([])
-  const [loadingEvents, setLoadingEvents] = useState(true)
-  const [totalGames, setTotalGames] = useState(0)
   const [activeSport, setActiveSport] = useState('ALL')
   const [showLeftFade, setShowLeftFade] = useState(false)
   const [showRightFade, setShowRightFade] = useState(false)
   const tabsRef = useRef<HTMLDivElement>(null)
   const activeTabRef = useRef<HTMLButtonElement>(null)
 
-  const fetchFeaturedEvents = useCallback(async () => {
-    try {
-      setLoadingEvents(true)
-      /*
-       * ⚠️ Dois filtros aqui eram no-op e foram removidos:
-       *
-       * 1. `date: today` — o searchEventsQuerySchema da API aceita `from` e
-       *    `to`, não `date`. Com stripUnknown o campo era descartado, então
-       *    este bloco NUNCA restringiu a busca ao dia de hoje. O efeito real
-       *    sempre foi "peladas futuras", que é o default do backend quando
-       *    nenhuma faixa é informada.
-       *
-       * 2. `city: user.city` — o model User não tem coluna `city`, então
-       *    user.city era sempre undefined e o spread condicional jamais
-       *    adicionava o filtro.
-       *
-       * Comportamento preservado de propósito: restringir a hoje mudaria o que
-       * a home exibe. Para filtrar por hoje de fato, usar { from, to }.
-       */
-      const result = await playerService.searchEvents({
-        status: 'WAITING',
-      })
-      setEvents(normalizeList(result))
-    } catch {
-      setEvents([])
-    } finally {
-      setLoadingEvents(false)
-    }
-    // `user` saiu das dependências junto com o filtro `city: user.city`
-    // descrito acima: o callback não lê mais nada de `user`, e mantê-lo aqui
-    // só recriava a função — e refazia a busca — a cada nova identidade do
-    // objeto. A Home fica atrás de PrivateRoute, então o usuário já está
-    // carregado na montagem. Mesmo critério do fetchStats logo abaixo.
-  }, [])
+  /*
+   * ⚠️ Dois filtros aqui eram no-op e foram removidos:
+   *
+   * 1. `date: today` — o searchEventsQuerySchema da API aceita `from` e `to`,
+   *    não `date`. Com stripUnknown o campo era descartado, então este bloco
+   *    NUNCA restringiu a busca ao dia de hoje. O efeito real sempre foi
+   *    "peladas futuras", que é o default do backend quando nenhuma faixa é
+   *    informada.
+   *
+   * 2. `city: user.city` — o model User não tem coluna `city`, então
+   *    user.city era sempre undefined e o spread condicional jamais
+   *    adicionava o filtro.
+   *
+   * Comportamento preservado de propósito: restringir a hoje mudaria o que a
+   * home exibe. Para filtrar por hoje de fato, usar { from, to }.
+   */
+  const filtro = { status: 'WAITING' as const }
 
-  const fetchStats = useCallback(async () => {
-    try {
-      const result = await playerService.getMyParticipatingEvents({})
-      setTotalGames(normalizeList(result).length)
-    } catch {
-      // mantém o valor padrão
-    }
-  }, [])
+  const { data: events = [], isPending: loadingEvents } = useQuery({
+    queryKey: chaves.eventos.busca(filtro),
+    queryFn: () => playerService.searchEvents(filtro).then(normalizeList),
+  })
 
-  useEffect(() => {
-    fetchFeaturedEvents()
-    fetchStats()
-  }, [fetchFeaturedEvents, fetchStats])
+  const { data: participando = [] } = useQuery({
+    queryKey: chaves.eventos.participando(),
+    queryFn: () => playerService.getMyParticipatingEvents({}).then(normalizeList),
+  })
+
+  const totalGames = participando.length
 
   const filteredEvents = activeSport === 'ALL'
     ? events
@@ -174,7 +153,7 @@ export default function Home() {
   const firstName = user?.name?.split(' ')[0] || 'Jogador'
 
   return (
-    <MainLayout user={user}>
+    <>
       <PageWrapper>
 
         {/* Saudação compacta */}
@@ -317,6 +296,6 @@ export default function Home() {
         </SectionBlock>
 
       </PageWrapper>
-    </MainLayout>
+    </>
   )
 }

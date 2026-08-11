@@ -5,6 +5,29 @@ export const Container = styled.div`
   margin: 0 auto;
 `
 
+export const PaymentWarning = styled.div`
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 24px;
+  padding: 16px 18px;
+  border: 1px solid ${({ theme }) => theme.colors.warningBorder};
+  border-radius: 10px;
+  background: ${({ theme }) => theme.colors.warningLight};
+  color: ${({ theme }) => theme.colors.warningText};
+
+  svg { flex-shrink: 0; }
+
+  div {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  strong { font-size: 14px; }
+  span { font-size: 13px; }
+`
+
 export const UsageCard = styled.div`
   background: ${({ theme }) => theme.colors.bgCard};
   border: 1px solid ${({ theme }) => theme.colors.borderLight};

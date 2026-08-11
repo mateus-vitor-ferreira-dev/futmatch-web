@@ -1,13 +1,13 @@
 import { useState, useEffect, useCallback } from 'react'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { getSportMeta } from '../../hooks/useSports'
 import { useForm } from 'react-hook-form'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { toast } from 'sonner'
 import { SkeletonCard } from '../../components/Skeleton'
 import { Calendar, Clock, Copy, Plus, Shuffle, Flag, XCircle, CheckSquare } from 'lucide-react'
-import { useAuth } from '../../contexts/AuthContext'
 import { playerService } from '../../services/playerService'
-import { MainLayout } from '../../components'
+import { chaves } from '../../lib/queryClient'
 import { Grid, Card, CardHeader, InfoRow, ProgressBarContainer, ProgressBar, SpotsInfo } from '../QueroJogar/styles'
 import { mensagemDeErro } from '../../utils/apiError'
 import type { Court, DrawResult, Participation, Pelada, PeladaStatus } from '../../types/api'
@@ -40,21 +40,12 @@ interface FormularioPelada {
 }
 
 export default function MinhasPeladas() {
-  const { user } = useAuth()
   const navigate = useNavigate()
+  const queryClient = useQueryClient()
   const [searchParams, setSearchParams] = useSearchParams()
   const [activeTab, setActiveTab] = useState('participating')
-  /**
-   * A aba "participating" devolve Participation[] (com a pelada aninhada) e a
-   * aba "created" devolve Pelada[] — o mesmo estado guarda as duas formas, e o
-   * render normaliza com `event.pelada || event`.
-   */
-  const [events, setEvents] = useState<Array<Pelada | Participation>>([])
-  const [loading, setLoading] = useState(true)
-
   // Modal criar jogo — inicializa a partir da URL para evitar flash
   const [isModalOpen, setIsModalOpen] = useState(() => searchParams.get('action') === 'criar')
-  const [courts, setCourts] = useState<Court[]>([])
 
   // Sorteio
   const [drawEvent, setDrawEvent] = useState<Pelada | null>(null)
@@ -78,31 +69,33 @@ export default function MinhasPeladas() {
     }
   }, [searchParams, setSearchParams])
 
-  const fetchData = useCallback(async () => {
-    try {
-      setLoading(true)
+  /**
+   * A aba "participating" devolve Participation[] (com a pelada aninhada) e a
+   * "created" devolve Pelada[]. Cada aba tem a própria entrada de cache, então
+   * alternar entre elas ida e volta não refaz a busca.
+   */
+  const { data: events = [], isPending: loading } = useQuery<Array<Pelada | Participation>>({
+    queryKey: activeTab === 'participating' ? chaves.eventos.participando() : chaves.eventos.criados(),
+    queryFn: async () => {
       const res = activeTab === 'participating'
         ? await playerService.getMyParticipatingEvents()
         : await playerService.getMyCreatedEvents()
-      setEvents(res.data || [])
-    } catch (error) {
-      console.error('Erro ao buscar jogos', error)
-    } finally {
-      setLoading(false)
-    }
-  }, [activeTab])
+      return res.data || []
+    },
+  })
 
-  const fetchCourts = async () => {
-    try {
-      const res = await playerService.getCourts()
-      setCourts(res.data || [])
-    } catch (error) {
-      console.error('Erro ao carregar quadras', error)
-    }
-  }
+  // Só busca quadras quando o modal abre — o `enabled` substitui o useEffect
+  // condicional, e o resultado fica em cache para a segunda abertura.
+  const { data: courts = [] } = useQuery<Court[]>({
+    queryKey: chaves.quadras(),
+    queryFn: async () => (await playerService.getCourts()).data || [],
+    enabled: isModalOpen,
+  })
 
-  useEffect(() => { fetchData() }, [fetchData])
-  useEffect(() => { if (isModalOpen) fetchCourts() }, [isModalOpen])
+  /** Invalida as duas abas: criar ou alterar pelada mexe nas duas listas. */
+  const invalidarPeladas = useCallback(() => {
+    queryClient.invalidateQueries({ queryKey: ['eventos'] })
+  }, [queryClient])
 
   const onSubmit = async (data: FormularioPelada) => {
     try {
@@ -116,7 +109,7 @@ export default function MinhasPeladas() {
       setIsModalOpen(false)
       reset()
       setActiveTab('created')
-      fetchData()
+      invalidarPeladas()
     } catch (error) {
       toast.error(mensagemDeErro(error, 'Erro ao criar pelada'))
     }
@@ -205,14 +198,14 @@ export default function MinhasPeladas() {
     try {
       await playerService.updateEventStatus(ev.courtId, ev.id, status)
       toast.success(`Pelada ${status === 'FINISHED' ? 'finalizada' : 'cancelada'}.`)
-      fetchData()
+      invalidarPeladas()
     } catch (error) {
       toast.error(mensagemDeErro(error, 'Erro ao atualizar status.'))
     }
   }
 
   return (
-    <MainLayout user={user}>
+    <>
       <Container>
         <PageHeader>
           <div>
@@ -501,6 +494,6 @@ export default function MinhasPeladas() {
           </DrawModalOverlay>
         )}
       </Container>
-    </MainLayout>
+    </>
   )
 }

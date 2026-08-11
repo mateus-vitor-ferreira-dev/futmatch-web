@@ -1,8 +1,6 @@
 import { useState, useEffect } from 'react'
-import { useAuth } from '../../../contexts/AuthContext'
+import { usePageHeader } from '../../../components/DashboardLayout/pageHeader'
 import api from '../../../services/api'
-import DashboardLayout from '../../../components/DashboardLayout'
-import { adminNavItems } from '../../../constants/navItems'
 import {
   Container, KpiGrid, KpiCard, Section, Table, Badge, ActionButton,
   DetailModal, DetailOverlay, DetailBox, DetailHeader, DetailTitle, CloseBtn,
@@ -48,7 +46,6 @@ interface DashboardStats {
 }
 
 export default function AdminDashboard() {
-  const { user } = useAuth()
   const [stats, setStats] = useState<DashboardStats>({ totalArenas: 0, active: 0, revenue: '0,00', expiring: 0 })
   const [contracts, setContracts] = useState<Contract[]>([])
   const [payments, setPayments] = useState<Payment[]>([])
@@ -76,15 +73,10 @@ export default function AdminDashboard() {
     fetchData()
   }, [])
 
+  usePageHeader("Visão Geral (Assinaturas)", "Acompanhe contratos, pagamentos e a saúde financeira da plataforma")
+
   return (
-    <DashboardLayout
-      user={user}
-      navItems={adminNavItems}
-      tagline="Admin Panel"
-      accent="#16a34a"
-      pageTitle="Visão Geral (Assinaturas)"
-      pageSub="Acompanhe contratos, pagamentos e a saúde financeira da plataforma"
-    >
+    <>
       <Container>
         <KpiGrid>
           <KpiCard $borderColor="#3b82f6"><h3>Total de Arenas</h3><p>{stats.totalArenas}</p></KpiCard>
@@ -200,6 +192,6 @@ export default function AdminDashboard() {
           </DetailBox>
         </DetailModal>
       )}
-    </DashboardLayout>
+    </>
   )
 }

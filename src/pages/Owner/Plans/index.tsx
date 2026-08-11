@@ -1,19 +1,17 @@
 import { useState, useEffect, useCallback } from 'react'
+import { usePageHeader } from '../../../components/DashboardLayout/pageHeader'
 import { Check, Loader2, AlertTriangle, CalendarClock } from 'lucide-react'
 import { toast } from 'sonner'
-import { useAuth } from '../../../contexts/AuthContext'
 import { plansService } from '../../../services/plansService'
 import { subscriptionService } from '../../../services/subscriptionService'
-import DashboardLayout from '../../../components/DashboardLayout'
-import { ownerNavItems } from '../../../constants/navItems'
 import { formatarPrecoCentavos } from '../../../utils/formatCurrency'
-import { mensagemDeErro } from '../../../utils/apiError'
+import { ehErroDeStripeIndisponivel, mensagemDeErro } from '../../../utils/apiError'
 import type { Plan, SubscriptionStatus, SwitchPlanPreview } from '../../../types/api'
 import {
   Container, UsageCard, UsageGrid, UsageItem, UsageLabel, UsageValue, UsageBar, UsageBarFill,
   PlansGrid, PlanCard, CurrentBadge, PlanName, PlanPrice, PlanFeatures, PlanButton,
   Modal, ModalOverlay, ModalBox, ModalTitle, EffectRow, WarningBox, ModalActions, CancelBtn, ConfirmBtn,
-  CenteredSpinner, ScheduledBox, CancelScheduleBtn,
+  CenteredSpinner, ScheduledBox, CancelScheduleBtn, PaymentWarning,
 } from './styles'
 
 const STATUS_COM_TROCA = ['active', 'trialing', 'past_due']
@@ -28,11 +26,11 @@ function formatarData(iso: string): string {
 }
 
 export default function OwnerPlans() {
-  const { user } = useAuth()
   const [plans, setPlans] = useState<Plan[]>([])
   const [sub, setSub] = useState<SubscriptionStatus | null>(null)
   const [loading, setLoading] = useState(true)
   const [paying, setPaying] = useState<string | null>(null)
+  const [stripeIndisponivel, setStripeIndisponivel] = useState(false)
 
   const [trocaPlano, setTrocaPlano] = useState<Plan | null>(null)
   const [preview, setPreview] = useState<SwitchPlanPreview | null>(null)
@@ -75,7 +73,11 @@ export default function OwnerPlans() {
       if (!url) throw new Error('O pagamento não retornou um endereço de checkout.')
       window.location.assign(url)
     } catch (err) {
-      toast.error(mensagemDeErro(err, 'Erro ao iniciar pagamento. Tente novamente.'))
+      if (ehErroDeStripeIndisponivel(err)) {
+        setStripeIndisponivel(true)
+      } else {
+        toast.error(mensagemDeErro(err, 'Erro ao iniciar pagamento. Tente novamente.'))
+      }
       setPaying(null)
     }
   }
@@ -88,7 +90,11 @@ export default function OwnerPlans() {
       const result = await subscriptionService.previewSwitch(plano.id)
       setPreview(result)
     } catch (err) {
-      toast.error(mensagemDeErro(err, 'Não foi possível calcular o efeito da troca.'))
+      if (ehErroDeStripeIndisponivel(err)) {
+        setStripeIndisponivel(true)
+      } else {
+        toast.error(mensagemDeErro(err, 'Não foi possível calcular o efeito da troca.'))
+      }
       setTrocaPlano(null)
     } finally {
       setPreviewLoading(false)
@@ -120,7 +126,13 @@ export default function OwnerPlans() {
       setPreview(null)
       carregar()
     } catch (err) {
-      toast.error(mensagemDeErro(err, 'Não foi possível trocar de plano. Tente novamente.'))
+      if (ehErroDeStripeIndisponivel(err)) {
+        setStripeIndisponivel(true)
+        setTrocaPlano(null)
+        setPreview(null)
+      } else {
+        toast.error(mensagemDeErro(err, 'Não foi possível trocar de plano. Tente novamente.'))
+      }
     } finally {
       setConfirmando(false)
     }
@@ -140,22 +152,31 @@ export default function OwnerPlans() {
       toast.success(`Troca cancelada. Você continua no ${planoEmVigor.nome}.`)
       carregar()
     } catch (err) {
-      toast.error(mensagemDeErro(err, 'Não foi possível cancelar a troca. Tente novamente.'))
+      if (ehErroDeStripeIndisponivel(err)) {
+        setStripeIndisponivel(true)
+      } else {
+        toast.error(mensagemDeErro(err, 'Não foi possível cancelar a troca. Tente novamente.'))
+      }
     } finally {
       setCancelandoAgendamento(false)
     }
   }
 
+  usePageHeader("Planos", "Compare, assine ou troque de plano.")
+
   return (
-    <DashboardLayout
-      user={user}
-      navItems={ownerNavItems(user?.role)}
-      tagline="Owner Panel"
-      accent="#3b82f6"
-      pageTitle="Planos"
-      pageSub="Compare, assine ou troque de plano."
-    >
+    <>
       <Container>
+        {stripeIndisponivel && (
+          <PaymentWarning role="alert">
+            <AlertTriangle size={20} />
+            <div>
+              <strong>Pagamentos temporariamente indisponíveis</strong>
+              <span>Não é possível assinar ou trocar de plano agora. Tente novamente mais tarde.</span>
+            </div>
+          </PaymentWarning>
+        )}
+
         {/*
           Sem isto, quem agenda um downgrade volta para uma tela idêntica à de
           antes — plano antigo em vigor, nenhum sinal do agendamento — e conclui
@@ -175,7 +196,7 @@ export default function OwnerPlans() {
             <CancelScheduleBtn
               type="button"
               onClick={cancelarAgendamento}
-              disabled={cancelandoAgendamento}
+              disabled={stripeIndisponivel || cancelandoAgendamento}
             >
               {cancelandoAgendamento ? 'Cancelando...' : 'Cancelar troca'}
             </CancelScheduleBtn>
@@ -228,11 +249,17 @@ export default function OwnerPlans() {
                   {éAtual ? (
                     <PlanButton $variant="current" disabled>Plano atual</PlanButton>
                   ) : podeTrocar ? (
-                    <PlanButton onClick={() => abrirTroca(plano)} disabled={previewLoading || confirmando}>
+                    <PlanButton
+                      onClick={() => abrirTroca(plano)}
+                      disabled={stripeIndisponivel || previewLoading || confirmando}
+                    >
                       Trocar para este plano
                     </PlanButton>
                   ) : (
-                    <PlanButton onClick={() => handleAssinar(plano.id)} disabled={carregandoEsse}>
+                    <PlanButton
+                      onClick={() => handleAssinar(plano.id)}
+                      disabled={stripeIndisponivel || carregandoEsse}
+                    >
                       {carregandoEsse
                         ? <><Loader2 size={16} style={{ animation: 'spin 1s linear infinite' }} /> Aguarde...</>
                         : 'Assinar'}
@@ -328,14 +355,18 @@ export default function OwnerPlans() {
               <CancelBtn type="button" onClick={() => setTrocaPlano(null)} disabled={confirmando}>
                 Cancelar
               </CancelBtn>
-              <ConfirmBtn type="button" onClick={confirmarTroca} disabled={confirmando || previewLoading}>
+              <ConfirmBtn
+                type="button"
+                onClick={confirmarTroca}
+                disabled={stripeIndisponivel || confirmando || previewLoading}
+              >
                 {confirmando ? 'Trocando...' : 'Confirmar troca'}
               </ConfirmBtn>
             </ModalActions>
           </ModalBox>
         </Modal>
       )}
-    </DashboardLayout>
+    </>
   )
 }
 

@@ -3,9 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { useForm, useWatch } from 'react-hook-form'
 import { yupResolver } from '@hookform/resolvers/yup'
 import * as yup from 'yup'
-import { useAuth } from '../../contexts/AuthContext'
 import { useSports } from '../../hooks/useSports'
-import { MainLayout } from '../../components'
 import { searchCourts } from '../../services/courts'
 import { createEvent } from '../../services/events'
 import type { Court, Place } from '../../types/api'
@@ -65,7 +63,6 @@ const STEPS = ['Escolher Quadra', 'Detalhes da Pelada', 'Confirmação']
 const MIN_DATE = new Date(Date.now() + 60000).toISOString().slice(0, 16)
 
 export default function CriarPelada() {
-  const { user }   = useAuth()
   const navigate   = useNavigate()
   const { sports } = useSports()
 
@@ -161,7 +158,7 @@ export default function CriarPelada() {
     'Escolha a quadra'
 
   return (
-    <MainLayout user={user}>
+    <>
       <Container>
         <PageHeader>
           <Title>Criar Pelada</Title>
@@ -400,6 +397,6 @@ export default function CriarPelada() {
         )}
 
       </Container>
-    </MainLayout>
+    </>
   )
 }

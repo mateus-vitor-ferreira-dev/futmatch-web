@@ -6,7 +6,6 @@ import { yupResolver } from '@hookform/resolvers/yup'
 import * as yup from 'yup'
 import { toast } from 'sonner'
 import { Camera, Loader, LogOut } from 'lucide-react'
-import MainLayout from '../../components/MainLayout'
 import { PhoneInput, PasswordInput } from '../../components'
 import { useAuth } from '../../contexts/AuthContext'
 import * as usersService from '../../services/users'
@@ -18,9 +17,11 @@ import {
   SectionTitle, SectionDivider,
   AvatarBlock, AvatarUploadWrapper, AvatarOverlay, AvatarCircle, AvatarInitials, AvatarHint,
   Form, FormGrid, Field, Label, Input, FieldError,
+  ConsentField,
   SaveBtn,
   LogoutSection, LogoutBtn,
   StepBox,
+  DangerSection, DangerBtn, DeleteModal, DeleteOverlay, DeleteBox, DeleteActions,
 } from './styles'
 
 const profileSchema = yup.object({
@@ -33,6 +34,7 @@ const profileSchema = yup.object({
     .nullable(),
   pixKey:    yup.string().nullable(),
   avatarUrl: yup.string().url('URL inválida').nullable().transform((v) => v || null),
+  marketingOptIn: yup.boolean().default(false),
 })
 
 const newPasswordSchema = yup.object({
@@ -58,6 +60,11 @@ export default function Profile() {
 
   // ── Tabs ──────────────────────────────────────────────────────────────────
   const [activeTab, setActiveTab] = useState('personal')
+  const [showDelete, setShowDelete] = useState(false)
+  const [deleteConfirmation, setDeleteConfirmation] = useState('')
+  const [deletePassword, setDeletePassword] = useState('')
+  const [deleting, setDeleting] = useState(false)
+  const [deleteError, setDeleteError] = useState('')
 
   // ── Fluxo de senha (dois passos) ──────────────────────────────────────────
   const [pwdStep, setPwdStep]           = useState(1)
@@ -108,6 +115,7 @@ export default function Profile() {
         phone:     (user as { phone?: string }).phone ?? '',
         pixKey:    user.pixKey    ?? '',
         avatarUrl: user.avatarUrl ?? '',
+        marketingOptIn: user.marketingOptIn ?? false,
       })
     }
   }, [user, resetProfile])
@@ -190,8 +198,35 @@ export default function Profile() {
     navigate('/login')
   }
 
+  const closeDelete = () => {
+    if (deleting) return
+    setShowDelete(false)
+    setDeleteConfirmation('')
+    setDeletePassword('')
+    setDeleteError('')
+  }
+
+  const handleDelete = async () => {
+    if (deleteConfirmation !== 'EXCLUIR MINHA CONTA') return
+    setDeleting(true)
+    setDeleteError('')
+    try {
+      await usersService.deleteMe({
+        confirmation: 'EXCLUIR MINHA CONTA',
+        ...(deletePassword ? { currentPassword: deletePassword } : {}),
+      })
+      logout()
+      toast.success('Sua conta foi excluída.')
+      navigate('/login', { replace: true })
+    } catch (err) {
+      setDeleteError(mensagemDeErro(err, 'Não foi possível excluir a conta.'))
+    } finally {
+      setDeleting(false)
+    }
+  }
+
   return (
-    <MainLayout user={user}>
+    <>
       <PageWrapper>
 
         {/* Avatar */}
@@ -270,6 +305,10 @@ export default function Profile() {
                 {errP.pixKey && <FieldError>{errP.pixKey.message}</FieldError>}
               </Field>
               <input type="hidden" {...regProfile('avatarUrl')} />
+              <ConsentField>
+                <input type="checkbox" {...regProfile('marketingOptIn')} />
+                Quero receber novidades, dicas e comunicações de marketing da Só+1.
+              </ConsentField>
             </FormGrid>
 
             <SaveBtn type="submit" disabled={savingProfile}>
@@ -346,7 +385,43 @@ export default function Profile() {
           </LogoutBtn>
         </LogoutSection>
 
+        <DangerSection>
+          <SectionTitle>Excluir conta</SectionTitle>
+          <p>A exclusão é irreversível. Seus dados identificáveis serão removidos e o histórico coletivo permanecerá anonimizado.</p>
+          <DangerBtn type="button" onClick={() => setShowDelete(true)}>Excluir minha conta</DangerBtn>
+        </DangerSection>
+
       </PageWrapper>
-    </MainLayout>
+
+      {showDelete && (
+        <DeleteModal>
+          <DeleteOverlay type="button" aria-label="Fechar exclusão" onClick={closeDelete} />
+          <DeleteBox role="dialog" aria-modal="true" aria-labelledby="delete-account-title">
+            <h2 id="delete-account-title">Excluir sua conta?</h2>
+            <p>Esta ação não pode ser desfeita:</p>
+            <ul>
+              <li>nome, e-mail, foto, chave Pix, senha e acessos serão removidos;</li>
+              <li>assinatura ativa e eventos futuros serão cancelados;</li>
+              <li>participações e avaliações permanecem sem sua identificação.</li>
+            </ul>
+            <Field>
+              <Label htmlFor="delete-confirmation">Digite EXCLUIR MINHA CONTA</Label>
+              <Input id="delete-confirmation" value={deleteConfirmation} onChange={e => setDeleteConfirmation(e.target.value)} autoComplete="off" />
+            </Field>
+            <Field>
+              <Label htmlFor="delete-password">Senha atual (se sua conta tiver senha)</Label>
+              <Input id="delete-password" type="password" value={deletePassword} onChange={e => setDeletePassword(e.target.value)} autoComplete="current-password" />
+            </Field>
+            {deleteError && <FieldError role="alert">{deleteError}</FieldError>}
+            <DeleteActions>
+              <button type="button" onClick={closeDelete} disabled={deleting}>Cancelar</button>
+              <button type="button" onClick={handleDelete} disabled={deleting || deleteConfirmation !== 'EXCLUIR MINHA CONTA'}>
+                {deleting ? 'Excluindo...' : 'Confirmar exclusão'}
+              </button>
+            </DeleteActions>
+          </DeleteBox>
+        </DeleteModal>
+      )}
+    </>
   )
 }

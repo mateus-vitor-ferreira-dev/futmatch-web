@@ -28,6 +28,7 @@ import * as authService from '../../services/auth'
 import { getSports } from '../../services/sports'
 
 const login = vi.mocked(authService.login)
+const cadastro = vi.mocked(authService.register)
 const getMe = vi.mocked(authService.getMe)
 
 beforeEach(() => {
@@ -37,6 +38,55 @@ beforeEach(() => {
   // login traz só os campos públicos da conta. Sem esta resposta, todo login
   // destes testes falharia no passo seguinte ao acerto da senha.
   getMe.mockResolvedValue(envelope(criaUsuario()))
+})
+
+describe('Cadastro — documentos legais', () => {
+  it('abre os documentos publicados na landing em uma nova aba', () => {
+    renderWithProviders(<Register initialMode="register" />, { route: '/register' })
+
+    expect(screen.getByRole('link', { name: 'Termos de Uso' })).toMatchObject({
+      href: 'https://so-mais-um.com/termos-de-uso',
+      target: '_blank',
+      rel: 'noopener noreferrer',
+    })
+    expect(screen.getByRole('link', { name: 'Política de Privacidade' })).toMatchObject({
+      href: 'https://so-mais-um.com/politica-de-privacidade',
+      target: '_blank',
+      rel: 'noopener noreferrer',
+    })
+  })
+})
+
+describe('Cadastro — consentimento de marketing', () => {
+  it('começa desmarcado e envia false sem bloquear o cadastro', async () => {
+    cadastro.mockResolvedValue(envelope({ token: 't', user: criaUsuario() }))
+    const { user } = renderWithProviders(<Register initialMode="register" />, { route: '/register' })
+
+    const optIn = screen.getByRole('checkbox', { name: /quero receber novidades/i })
+    expect(optIn).not.toBeChecked()
+
+    await user.type(screen.getByPlaceholderText('Ex: João da Silva'), 'João Silva')
+    await user.type(screen.getByPlaceholderText('seu@email.com'), 'joao@exemplo.com')
+    await user.type(screen.getByPlaceholderText('Mín. 6 caracteres'), 'senha123')
+    await user.type(screen.getByPlaceholderText('Repita a senha'), 'senha123')
+    await user.click(screen.getByRole('button', { name: /criar conta grátis/i }))
+
+    await waitFor(() => expect(cadastro).toHaveBeenCalledWith(expect.objectContaining({ marketingOptIn: false })))
+  })
+
+  it('envia true somente depois da escolha explícita', async () => {
+    cadastro.mockResolvedValue(envelope({ token: 't', user: criaUsuario() }))
+    const { user } = renderWithProviders(<Register initialMode="register" />, { route: '/register' })
+
+    await user.type(screen.getByPlaceholderText('Ex: João da Silva'), 'João Silva')
+    await user.type(screen.getByPlaceholderText('seu@email.com'), 'joao2@exemplo.com')
+    await user.type(screen.getByPlaceholderText('Mín. 6 caracteres'), 'senha123')
+    await user.type(screen.getByPlaceholderText('Repita a senha'), 'senha123')
+    await user.click(screen.getByRole('checkbox', { name: /quero receber novidades/i }))
+    await user.click(screen.getByRole('button', { name: /criar conta grátis/i }))
+
+    await waitFor(() => expect(cadastro).toHaveBeenCalledWith(expect.objectContaining({ marketingOptIn: true })))
+  })
 })
 
 /**

@@ -1,13 +1,11 @@
 import type { FormEvent } from 'react'
+import { usePageHeader } from '../../../components/DashboardLayout/pageHeader'
 import type { UserRole } from '../../../types/api'
 import { useState, useEffect, useCallback } from 'react'
 import { toast } from 'sonner'
 import { Mail } from 'lucide-react'
-import DashboardLayout from '../../../components/DashboardLayout'
-import { adminNavItems } from '../../../constants/navItems'
 import StatCard from '../../../components/StatCard'
 import RoleBadge from '../../../components/RoleBadge'
-import { useAuth } from '../../../contexts/AuthContext'
 import * as adminService from '../../../services/admin'
 import type { AdminUser, InviteResult } from '../../../services/admin'
 import { mensagemDeErro } from '../../../utils/apiError'
@@ -32,7 +30,6 @@ function getInitials(name = '') {
 }
 
 export default function AdminUsers() {
-  const { user } = useAuth()
   const [users, setUsers]         = useState<AdminUser[]>([])
   const [search, setSearch]       = useState('')
   const [roleFilter, setRoleFilter] = useState('Todos')
@@ -106,15 +103,10 @@ export default function AdminUsers() {
     u.email.toLowerCase().includes(search.toLowerCase())
   )
 
+  usePageHeader("Gestão de Usuários", "Gerencie roles, filtre e monitore todos os usuários da plataforma")
+
   return (
-    <DashboardLayout
-      user={user}
-      navItems={adminNavItems}
-      tagline="Admin Panel"
-      accent="#16a34a"
-      pageTitle="Gestão de Usuários"
-      pageSub="Gerencie roles, filtre e monitore todos os usuários da plataforma"
-    >
+    <>
       <StatsRow>
         <StatCard label="Total de Usuários" value={counts.total}   accent="#3b82f6" />
         <StatCard label="Owners"            value={counts.owners}  accent="#22c55e" />
@@ -276,6 +268,6 @@ export default function AdminUsers() {
           </ModalWrap>
         )
       })()}
-    </DashboardLayout>
+    </>
   )
 }

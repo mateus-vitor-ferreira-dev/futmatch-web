@@ -1,12 +1,10 @@
 import { useState, useEffect } from 'react'
+import { usePageHeader } from '../../../components/DashboardLayout/pageHeader'
 import { CreditCard, Loader2, MapPin, Shield, CalendarCheck, Bell } from 'lucide-react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { toast } from 'sonner'
-import { useAuth } from '../../../contexts/AuthContext'
 import { subscriptionService } from '../../../services/subscriptionService'
 import { ownerService } from '../../../services/ownerService'
-import DashboardLayout from '../../../components/DashboardLayout'
-import { ownerNavItems } from '../../../constants/navItems'
 import { formatarPrecoCentavos } from '../../../utils/formatCurrency'
 import { Container, Grid, Card, PlanHighlight, RowList, PrimaryButton, Badge, StatsGrid, StatCard, StatIcon, StatInfo, StatValue, StatLabel } from './styles'
 import type { OwnerStats, SubscriptionStatus } from '../../../types/api'
@@ -20,7 +18,6 @@ const STATUS_LABEL: Record<string, string> = {
 }
 
 export default function OwnerDashboard() {
-  const { user } = useAuth()
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
   const [sub, setSub] = useState<SubscriptionStatus | null>(null)
@@ -46,15 +43,10 @@ export default function OwnerDashboard() {
   const isActive = sub?.status === 'active' || sub?.status === 'trialing'
   const nomePlano = sub?.plan?.nome ?? 'Nenhum plano ativo'
 
+  usePageHeader("Minha Assinatura", "Acompanhe seu uso e gerencie sua assinatura.")
+
   return (
-    <DashboardLayout
-      user={user}
-      navItems={ownerNavItems(user?.role)}
-      tagline="Owner Panel"
-      accent="#3b82f6"
-      pageTitle="Minha Assinatura"
-      pageSub="Acompanhe seu uso e gerencie sua assinatura."
-    >
+    <>
       <Container>
         <StatsGrid>
           {[
@@ -143,6 +135,6 @@ export default function OwnerDashboard() {
           </Card>
         </Grid>
       </Container>
-    </DashboardLayout>
+    </>
   )
 }

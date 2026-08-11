@@ -1,10 +1,9 @@
 import { useCallback, useEffect, useMemo, useState, type FormEvent } from 'react'
+import { usePageHeader } from '../../../components/DashboardLayout/pageHeader'
 import { Plus, RefreshCcw, Undo2 } from 'lucide-react'
 import { useSearchParams } from 'react-router-dom'
 import { toast } from 'sonner'
-import DashboardLayout from '../../../components/DashboardLayout'
 import SubscriptionGate from '../../../components/SubscriptionGate'
-import { ownerNavItems } from '../../../constants/navItems'
 import { useAuth } from '../../../contexts/AuthContext'
 import { useSubscription } from '../../../hooks/useSubscription'
 import { getSportMeta } from '../../../hooks/useSports'
@@ -206,15 +205,10 @@ export default function OwnerEquipment() {
 
   const selectedPlace = places.find((place) => place.id === placeId)
 
+  usePageHeader("Equipamentos", "Controle o que saiu, voltou, quebrou ou foi perdido")
+
   return (
-    <DashboardLayout
-      user={user}
-      navItems={ownerNavItems(user?.role)}
-      tagline="Owner Panel"
-      accent="#f59e0b"
-      pageTitle="Equipamentos"
-      pageSub="Controle o que saiu, voltou, quebrou ou foi perdido"
-    >
+    <>
       <SubscriptionGate isActive={isActive} loading={subLoading} sub={sub}>
         <Toolbar>
           <Select aria-label="Estabelecimento" value={placeId} onChange={(event) => changePlace(event.target.value)}>
@@ -349,6 +343,6 @@ export default function OwnerEquipment() {
           </ModalBox>
         </Modal>
       )}
-    </DashboardLayout>
+    </>
   )
 }

@@ -20,6 +20,7 @@ import * as usersService from '../../services/users'
 
 const getMe = vi.mocked(authService.getMe)
 const updateMe = vi.mocked(usersService.updateMe)
+const deleteMe = vi.mocked(usersService.deleteMe)
 
 const CAMPO_NOME = 'Seu nome'
 const CAMPO_PIX  = 'CPF, e-mail, telefone ou chave aleatória'
@@ -75,5 +76,48 @@ describe('Perfil — o que vai no PATCH', () => {
     // Salvar sem ter mexido em nada não tem por que virar escrita no banco.
     await waitFor(() => expect(getMe).toHaveBeenCalled())
     expect(updateMe).not.toHaveBeenCalled()
+  })
+
+  it('permite ligar e desligar o consentimento de marketing', async () => {
+    const { user } = await abrePerfil()
+    const optIn = screen.getByRole('checkbox', { name: /quero receber novidades/i })
+
+    expect(optIn).not.toBeChecked()
+    await user.click(optIn)
+    await user.click(screen.getByRole('button', { name: 'Salvar alterações' }))
+
+    await waitFor(() => expect(updateMe).toHaveBeenCalledWith({ marketingOptIn: true }))
+  })
+})
+
+describe('Perfil — exclusão de conta', () => {
+  it('permite cancelar a confirmação sem chamar a API', async () => {
+    const { user } = await abrePerfil()
+
+    await user.click(screen.getByRole('button', { name: 'Excluir minha conta' }))
+    expect(screen.getByRole('dialog', { name: 'Excluir sua conta?' })).toBeInTheDocument()
+    await user.click(screen.getByRole('button', { name: 'Cancelar' }))
+
+    expect(screen.queryByRole('dialog', { name: 'Excluir sua conta?' })).not.toBeInTheDocument()
+    expect(deleteMe).not.toHaveBeenCalled()
+  })
+
+  it('exige a frase, exclui, encerra a sessão e redireciona', async () => {
+    deleteMe.mockResolvedValue({ status: 204 } as Awaited<ReturnType<typeof usersService.deleteMe>>)
+    const { user } = await abrePerfil()
+
+    await user.click(screen.getByRole('button', { name: 'Excluir minha conta' }))
+    const confirmar = screen.getByRole('button', { name: 'Confirmar exclusão' })
+    expect(confirmar).toBeDisabled()
+
+    await user.type(screen.getByLabelText('Digite EXCLUIR MINHA CONTA'), 'EXCLUIR MINHA CONTA')
+    await user.type(screen.getByLabelText(/Senha atual/), 'senha123')
+    await user.click(confirmar)
+
+    await waitFor(() => expect(deleteMe).toHaveBeenCalledWith({
+      confirmation: 'EXCLUIR MINHA CONTA',
+      currentPassword: 'senha123',
+    }))
+    await waitFor(() => expect(localStorage.getItem(TOKEN_KEY)).toBeNull())
   })
 })
