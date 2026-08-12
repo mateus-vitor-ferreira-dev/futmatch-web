@@ -9,7 +9,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { renderWithProviders, screen, waitFor } from '../../test/render'
 import { criaUsuario, envelope } from '../../test/factories'
-import { TOKEN_KEY } from '../../services/api'
+import { SESSION_HINT_KEY, marcarSessao } from '../../services/api'
 import Profile from './index'
 
 vi.mock('../../services/auth')
@@ -27,7 +27,7 @@ const CAMPO_PIX  = 'CPF, e-mail, telefone ou chave aleatória'
 
 beforeEach(() => {
   vi.clearAllMocks()
-  localStorage.setItem(TOKEN_KEY, 'token-valido')
+  marcarSessao()
   getMe.mockResolvedValue(
     envelope(criaUsuario({ name: 'Mateus Ferreira', pixKey: 'mateus@pix.com' })),
   )
@@ -118,6 +118,6 @@ describe('Perfil — exclusão de conta', () => {
       confirmation: 'EXCLUIR MINHA CONTA',
       currentPassword: 'senha123',
     }))
-    await waitFor(() => expect(localStorage.getItem(TOKEN_KEY)).toBeNull())
+    await waitFor(() => expect(localStorage.getItem(SESSION_HINT_KEY)).toBeNull())
   })
 })
