@@ -12,7 +12,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { renderWithProviders, screen, waitFor, within } from '../../test/render'
 import { criaPelada, criaParticipante, criaUsuario, criaBuscaDePeladas, envelope, erroDaApi } from '../../test/factories'
-import { TOKEN_KEY } from '../../services/api'
+import { marcarSessao } from '../../services/api'
 import QueroJogar from './index'
 
 vi.mock('../../services/playerService')
@@ -32,7 +32,7 @@ const USUARIO = criaUsuario({ id: 'user-1', name: 'Mateus' })
 
 beforeEach(() => {
   vi.clearAllMocks()
-  localStorage.setItem(TOKEN_KEY, 'token-valido')
+  marcarSessao()
   vi.mocked(authService.getMe).mockResolvedValue(envelope(USUARIO))
   // O hook useSports cai no catálogo local quando a API não responde — é o
   // caminho que o teste quer, e evita depender da lista vinda do servidor.

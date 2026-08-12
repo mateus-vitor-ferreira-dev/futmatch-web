@@ -54,9 +54,15 @@ export const login = (data: LoginInput): Promise<ApiEnvelope<AuthResult>> =>
 export const googleAuth = (idToken: string): Promise<ApiEnvelope<AuthResult>> =>
   api.post('/auth/google', { idToken }).then((r) => r.data)
 
-/** Dados do usuário autenticado (requer token no header). */
+/** Dados do usuário autenticado — a sessão vai no cookie, sem nada a passar. */
 export const getMe = (): Promise<ApiEnvelope<UserMe>> =>
   api.get('/auth/me').then((r) => r.data)
+
+/**
+ * Encerra a sessão do navegador: a API expira o cookie `httpOnly`, que este
+ * código não consegue apagar sozinho. Responde 204 mesmo sem sessão.
+ */
+export const logout = (): Promise<void> => api.post('/auth/logout').then(() => undefined)
 
 export const forgotPassword = (email: string): Promise<ApiEnvelope<MensagemResult>> =>
   api.post('/auth/forgot-password', { email }).then((r) => r.data)

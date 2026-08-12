@@ -12,7 +12,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { renderWithProviders, screen, waitFor, within } from '../../test/render'
 import { criaUsuario, envelope, erroDaApi } from '../../test/factories'
-import { TOKEN_KEY } from '../../services/api'
+import { SESSION_HINT_KEY } from '../../services/api'
 import Register from './index'
 
 const { navega } = vi.hoisted(() => ({ navega: vi.fn() }))
@@ -156,7 +156,7 @@ describe('Login — credenciais', () => {
 
     expect(await screen.findByText('E-mail ou senha incorretos')).toBeInTheDocument()
     // Erro de credencial não pode gravar sessão nenhuma.
-    expect(localStorage.getItem(TOKEN_KEY)).toBeNull()
+    expect(localStorage.getItem(SESSION_HINT_KEY)).toBeNull()
     expect(navega).not.toHaveBeenCalled()
   })
 
@@ -188,6 +188,6 @@ describe('Login — destino por papel', () => {
     await user.click(entrar)
 
     await waitFor(() => expect(navega).toHaveBeenCalledWith(destino))
-    expect(localStorage.getItem(TOKEN_KEY)).toBe('token-novo')
+    expect(localStorage.getItem(SESSION_HINT_KEY)).toBe('1')
   })
 })

@@ -85,11 +85,11 @@ flowchart TB
 
 **Deploy novo não quebra a aba que já estava aberta.** SPA com code splitting tem um problema clássico: você publica, o hash dos chunks muda, e o usuário que estava com a página aberta clica num link e recebe um 404 de módulo. Aqui a defesa tem duas camadas. `lazyWithRetry` embrulha cada `import()` e, se o chunk sumiu, recarrega a página em vez de estourar. O que escapar cai no `ErrorBoundary`, que reconhece a assinatura do erro (`Failed to fetch dynamically imported module`, `Unable to preload CSS`) e recarrega também — só mostra a tela de erro para falhas de verdade. O `vercel.json` fecha o combo: `index.html` com `no-store`, `/assets/*` com `immutable` por um ano.
 
-**SSE com o token onde ele cabe.** O sino de notificações escuta `GET /notifications/stream` via `EventSource` — sem polling, sem WebSocket para manter de pé. Só que `EventSource` não deixa você mandar header `Authorization`; então o JWT vai na query string e a conexão é fechada no cleanup do efeito. Cada notificação nova entra no topo da lista sem refetch, e payload malformado é ignorado em silêncio: o sino é acessório, nunca derruba a tela.
+**SSE autenticado por cookie.** O sino de notificações escuta `GET /notifications/stream` via `EventSource` — sem polling, sem WebSocket para manter de pé. `EventSource` não deixa mandar header `Authorization`, e era por isso que o JWT ia na query string; agora vai o cookie de sessão, com `withCredentials: true`, e a conexão é fechada no cleanup do efeito. Cada notificação nova entra no topo da lista sem refetch, e payload malformado é ignorado em silêncio: o sino é acessório, nunca derruba a tela.
 
 **Filtro híbrido: rede onde importa, memória onde é barato.** `courtType` e `city` são filtros server-side — mudaram, refaz o fetch paginado do zero (`limit: 20`, `hasMore` para o "carregar mais"). Busca textual, faixa de horário, preço por pessoa, arena e "só com vaga" filtram em memória sobre o que já veio. Resultado: nenhuma requisição a cada tecla digitada, e a lista de cidades e arenas dos selects é derivada dos próprios resultados com `useMemo`, em vez de exigir um endpoint só para popular dropdown.
 
-**Sessão que se restaura sozinha e cai sozinha.** O `AuthContext` valida o token do `localStorage` contra `GET /auth/me` no mount e segura o render das rotas com um `loading` — sem isso, um refresh na `/admin` piscaria a tela de login antes de reconhecer o usuário. Dois interceptors Axios cuidam do resto: o de request injeta o `Bearer`, o de response trata `401` como veredito final — limpa o token e manda para `/login`. Não há refresh token no front: o 401 desloga, ponto.
+**A sessão não é legível por JavaScript.** O token não mora mais no `localStorage`: ele vem em cookie `httpOnly` emitido pela API, que este código não lê nem escreve — um XSS na página deixa de valer a sessão inteira. O que sobra no `localStorage` é a marca `só+1:sessao`, que **não é credencial**: ela só diz se vale a pena perguntar `GET /auth/me` ao montar, e forjá-la à mão rende um 401. O `AuthContext` valida essa marca contra o `/auth/me` no mount e segura o render das rotas com um `loading` — sem isso, um refresh na `/admin` piscaria a tela de login antes de reconhecer o usuário. Dois interceptors Axios cuidam do resto: o de request manda `X-Requested-With` no que muda estado (é a defesa contra CSRF que a API exige), o de response trata `401` como veredito final — esquece a sessão e manda para `/login`, mas só de quem tinha sessão, para não arrancar um visitante do `/redefinir-senha?token=...`. Não há refresh token no front: o 401 desloga, ponto.
 
 **Quatro guardas de rota, não um `isAdmin` espalhado.** `PublicRoute` (logado não vê login e é despachado para o painel do seu papel), `PrivateRoute`, `AdminRoute` e `OwnerRoute` — que deixa `ADMIN` passar por dentro, porque admin precisa enxergar o que o dono enxerga. A autorização vive no roteador, num arquivo só; as páginas não conhecem papel.
 
@@ -269,7 +269,7 @@ npm run dev
 ### 6. Como saber que subiu
 
 1. Abra `http://localhost:5173` — cai na animação de abertura e segue para `/login`.
-2. Crie uma conta em `/register`. Se voltar para `/home` com seu nome no topo, o front está falando com a API: `POST /auth/register` gravou o token em `localStorage` sob a chave `só+1:token` e o `AuthContext` já revalidou com `GET /auth/me`.
+2. Crie uma conta em `/register`. Se voltar para `/home` com seu nome no topo, o front está falando com a API: `POST /auth/register` devolveu o cookie de sessão e o `AuthContext` já revalidou com `GET /auth/me`. No DevTools, o cookie aparece marcado `HttpOnly` e o `localStorage` tem só a marca `só+1:sessao`.
 3. Recarregue a página. Continuar logado prova que a restauração de sessão funciona.
 4. No DevTools → Network → filtro `EventSource`, a conexão com `/notifications/stream` deve aparecer aberta (status `pending`) — é o SSE do sino.
 
@@ -283,7 +283,7 @@ npm run dev
     </tr>
     <tr>
       <td><strong>Loop infinito para <code>/login</code></strong></td>
-      <td>O interceptor de response derruba a sessão em qualquer <code>401</code>. Normalmente é token expirado ou <code>VITE_API_URL</code> apontando para uma API com outro <code>JWT_SECRET</code>. Limpe a chave <code>só+1:token</code> no <code>localStorage</code> e refaça o login.</td>
+      <td>O interceptor de response derruba a sessão em qualquer <code>401</code>. Normalmente é sessão expirada ou <code>VITE_API_URL</code> apontando para uma API com outro <code>JWT_SECRET</code>. Apague o cookie <code>somaisum_sessao</code> pelo DevTools, limpe a marca <code>só+1:sessao</code> no <code>localStorage</code> e refaça o login.</td>
     </tr>
     <tr>
       <td><strong>Botão do Google não abre nada</strong></td>
@@ -400,7 +400,7 @@ Os fluxos críticos do jogador, o que dá mais prejuízo quando quebra:
 
 | Fluxo | Onde | O que garante |
 |---|---|---|
-| Login e sessão | `contexts/AuthContext.test.tsx` | Restaura a sessão ao montar, descarta token expirado, guarda e limpa no login/logout |
+| Login e sessão | `contexts/AuthContext.test.tsx` | Restaura a sessão ao montar, descarta sessão expirada, marca e limpa no login/logout, e sai mesmo se a chamada de logout falhar |
 | Sessão expirada | `services/api.test.ts` | No 401 o interceptor desloga e manda para `/login` — e **não** desloga em 403 ou 500 |
 | Entrar na conta | `pages/Register/index.test.tsx` | Validação, mensagem da API na tela, e o destino certo por papel (jogador, dono, admin) |
 | Buscar pelada | `pages/QueroJogar/index.test.tsx` | Filtro de modalidade e cidade refaz a busca na API; horário, arena e texto recortam sem nova ida |
