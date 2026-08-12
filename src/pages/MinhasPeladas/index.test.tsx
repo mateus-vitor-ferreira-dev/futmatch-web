@@ -13,7 +13,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { renderWithProviders, screen, waitFor } from '../../test/render'
 import { criaPelada, criaUsuario, envelope, erroDaApi } from '../../test/factories'
-import { TOKEN_KEY } from '../../services/api'
+import { marcarSessao } from '../../services/api'
 import type { Participation } from '../../types/api'
 import MinhasPeladas from './index'
 
@@ -36,7 +36,7 @@ const sorteiaTimes = vi.mocked(playerService.drawTeams)
 
 beforeEach(() => {
   vi.clearAllMocks()
-  localStorage.setItem(TOKEN_KEY, 'token-valido')
+  marcarSessao()
   vi.mocked(authService.getMe).mockResolvedValue(envelope(criaUsuario({ id: 'user-1' })))
   vi.mocked(notificationService.list).mockResolvedValue([])
   vi.mocked(playerService.getCourts).mockResolvedValue(envelope([]))

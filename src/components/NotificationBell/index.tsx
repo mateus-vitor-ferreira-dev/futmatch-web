@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { Bell } from 'lucide-react'
 import { notificationService } from '../../services/notificationService'
-import { TOKEN_KEY } from '../../services/api'
+import { temSessao } from '../../services/api'
 import { env } from '../../config/env'
 import type { Notification } from '../../types/api'
 import {
@@ -38,11 +38,14 @@ export default function NotificationBell() {
   useEffect(() => {
     load()
 
-    const token = localStorage.getItem(TOKEN_KEY)
-    if (!token) return
+    if (!temSessao()) return
 
-    const url = `${env.apiUrl}/notifications/stream?token=${encodeURIComponent(token)}`
-    const es  = new EventSource(url)
+    /**
+     * `withCredentials` é o que manda o cookie de sessão na conexão. Antes o
+     * JWT ia na query string — o `EventSource` não aceita header customizado —,
+     * e URL com token acaba em log de proxy, histórico e `Referer`.
+     */
+    const es = new EventSource(`${env.apiUrl}/notifications/stream`, { withCredentials: true })
     esRef.current = es
 
     es.onmessage = (e) => {

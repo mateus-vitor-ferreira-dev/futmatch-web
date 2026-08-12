@@ -9,13 +9,14 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { renderWithProviders, screen, waitFor } from '../test/render'
 import { criaUsuario, envelope, erroDaApi } from '../test/factories'
 import { useAuth } from './AuthContext'
-import { TOKEN_KEY } from '../services/api'
+import { SESSION_HINT_KEY, marcarSessao } from '../services/api'
 
 vi.mock('../services/auth')
 import * as authService from '../services/auth'
 
 const getMe = vi.mocked(authService.getMe)
 const login = vi.mocked(authService.login)
+const logoutApi = vi.mocked(authService.logout)
 
 /**
  * Sonda: expõe o contexto como texto na tela, para o teste afirmar pelo que
@@ -40,10 +41,11 @@ function Sonda() {
 
 beforeEach(() => {
   vi.clearAllMocks()
+  logoutApi.mockResolvedValue(undefined)
 })
 
 describe('AuthContext — restauração de sessão', () => {
-  it('sem token, termina o carregamento sem chamar a API', async () => {
+  it('sem sessão, termina o carregamento sem chamar a API', async () => {
     renderWithProviders(<Sonda />)
 
     await waitFor(() => {
@@ -53,8 +55,8 @@ describe('AuthContext — restauração de sessão', () => {
     expect(screen.getByText('autenticado: false')).toBeInTheDocument()
   })
 
-  it('com token válido, restaura o usuário ao montar', async () => {
-    localStorage.setItem(TOKEN_KEY, 'token-valido')
+  it('com sessão marcada, restaura o usuário ao montar — o cookie vai sozinho', async () => {
+    marcarSessao()
     getMe.mockResolvedValue(envelope(criaUsuario({ name: 'Mateus Ferreira' })))
 
     renderWithProviders(<Sonda />)
@@ -64,8 +66,8 @@ describe('AuthContext — restauração de sessão', () => {
     expect(getMe).toHaveBeenCalledTimes(1)
   })
 
-  it('com token expirado, descarta o token e não autentica', async () => {
-    localStorage.setItem(TOKEN_KEY, 'token-expirado')
+  it('com sessão expirada, esquece a marca e não autentica', async () => {
+    marcarSessao()
     getMe.mockRejectedValue(erroDaApi('Token inválido', 401))
 
     renderWithProviders(<Sonda />)
@@ -73,15 +75,15 @@ describe('AuthContext — restauração de sessão', () => {
     await waitFor(() => {
       expect(screen.getByText('carregando: false')).toBeInTheDocument()
     })
-    // O token some do localStorage: deixá-lo ali faria toda requisição
-    // seguinte sair com um Bearer que a API já recusou.
-    expect(localStorage.getItem(TOKEN_KEY)).toBeNull()
+    // A marca some: mantê-la faria o app perguntar /auth/me a cada F5 para
+    // uma sessão que a API já recusou.
+    expect(localStorage.getItem(SESSION_HINT_KEY)).toBeNull()
     expect(screen.getByText('autenticado: false')).toBeInTheDocument()
   })
 })
 
 describe('AuthContext — entrar e sair', () => {
-  it('login guarda o token e popula o usuário pelo GET /auth/me', async () => {
+  it('login marca a sessão e popula o usuário pelo GET /auth/me', async () => {
     // Os dois nomes são diferentes de propósito. O payload do login traz só os
     // campos públicos da conta — sem o pixKey que o formulário de perfil lê —
     // então o contexto tem que ficar com o que veio do /auth/me. Enquanto ele
@@ -99,7 +101,7 @@ describe('AuthContext — entrar e sair', () => {
     await usuario.click(screen.getByRole('button', { name: 'entrar' }))
 
     expect(await screen.findByText('usuário: Mateus Ferreira')).toBeInTheDocument()
-    expect(localStorage.getItem(TOKEN_KEY)).toBe('token-novo')
+    expect(localStorage.getItem(SESSION_HINT_KEY)).toBe('1')
     expect(screen.getByText('autenticado: true')).toBeInTheDocument()
     expect(getMe).toHaveBeenCalledTimes(1)
   })
@@ -113,14 +115,14 @@ describe('AuthContext — entrar e sair', () => {
 
     await usuario.click(screen.getByRole('button', { name: 'entrar' }))
 
-    // Token guardado e usuário vazio seria o pior dos mundos: a aplicação se
-    // acharia deslogada e ainda mandaria o Bearer em toda requisição.
-    await waitFor(() => expect(localStorage.getItem(TOKEN_KEY)).toBeNull())
+    // Marca guardada e usuário vazio seria o pior dos mundos: a aplicação se
+    // acharia deslogada e ainda tentaria restaurar a sessão a cada F5.
+    await waitFor(() => expect(localStorage.getItem(SESSION_HINT_KEY)).toBeNull())
     expect(screen.getByText('autenticado: false')).toBeInTheDocument()
   })
 
-  it('logout apaga o token e o usuário', async () => {
-    localStorage.setItem(TOKEN_KEY, 'token-valido')
+  it('logout apaga a marca, o usuário e pede à API para expirar o cookie', async () => {
+    marcarSessao()
     getMe.mockResolvedValue(envelope(criaUsuario()))
 
     const { user: usuario } = renderWithProviders(<Sonda />)
@@ -128,8 +130,29 @@ describe('AuthContext — entrar e sair', () => {
 
     await usuario.click(screen.getByRole('button', { name: 'sair' }))
 
-    expect(localStorage.getItem(TOKEN_KEY)).toBeNull()
+    expect(localStorage.getItem(SESSION_HINT_KEY)).toBeNull()
     expect(screen.getByText('autenticado: false')).toBeInTheDocument()
     expect(screen.getByText('usuário: nenhum')).toBeInTheDocument()
+    // O cookie é httpOnly: só a API consegue apagá-lo.
+    expect(logoutApi).toHaveBeenCalledTimes(1)
+  })
+
+  /**
+   * Sair não pode depender da rede. O estado local cai primeiro e o pedido à
+   * API vai atrás — se ele falhar, o app já está deslogado e o cookie morre
+   * sozinho na expiração.
+   */
+  it('sai mesmo quando a chamada de logout falha', async () => {
+    marcarSessao()
+    getMe.mockResolvedValue(envelope(criaUsuario()))
+    logoutApi.mockRejectedValue(erroDaApi('Sem rede', 500))
+
+    const { user: usuario } = renderWithProviders(<Sonda />)
+    await screen.findByText('autenticado: true')
+
+    await usuario.click(screen.getByRole('button', { name: 'sair' }))
+
+    expect(localStorage.getItem(SESSION_HINT_KEY)).toBeNull()
+    expect(screen.getByText('autenticado: false')).toBeInTheDocument()
   })
 })

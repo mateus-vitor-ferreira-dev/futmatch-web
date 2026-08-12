@@ -6,7 +6,7 @@ import type {
   RegisterInput,
   RegisterOwnerInput,
 } from '../services/auth'
-import { TOKEN_KEY } from '../services/api'
+import { marcarSessao, esquecerSessao, temSessao } from '../services/api'
 import type { ApiEnvelope, AuthResult, UserMe } from '../types/api'
 
 export interface AuthContextValue {
@@ -26,35 +26,31 @@ const AuthContext = createContext<AuthContextValue | null>(null)
 /**
  * Provedor de autenticação da aplicação.
  *
- * Restaura a sessão ao montar (via token no localStorage),
- * e expõe ações de registro, login, Google OAuth e logout.
+ * A sessão vive num cookie `httpOnly` que este código não lê — quem a envia é o
+ * navegador, em toda requisição, por causa do `withCredentials` em services/api.
+ * Aqui só se guarda a marca de que ela existe, para saber se vale a pena
+ * perguntar quem é o usuário ao abrir o app.
  */
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser]       = useState<UserMe | null>(null)
   const [loading, setLoading] = useState(true)
 
-  // Restaura sessão ao montar: verifica token salvo e busca dados do usuário
+  // Restaura sessão ao montar: o cookie vai junto, então basta perguntar quem é
   useEffect(() => {
-    const token = localStorage.getItem(TOKEN_KEY)
-    if (!token) { setLoading(false); return }
+    if (!temSessao()) { setLoading(false); return }
 
     authService.getMe()
       .then((res) => setUser(res.data))
-      .catch(() => localStorage.removeItem(TOKEN_KEY))
+      .catch(esquecerSessao)
       .finally(() => setLoading(false))
   }, [])
 
   /**
-   * Persiste o JWT no localStorage.
+   * Fecha a autenticação: marca a sessão e popula o usuário pelo GET /auth/me.
    *
-   * A chave vem de services/api: era o literal 'só+1:token' repetido aqui em
-   * três pontos e mais uma vez no interceptor. Uma divergência de digitação
-   * entre eles quebraria a sessão sem erro visível.
-   */
-  const saveToken = (token: string) => localStorage.setItem(TOKEN_KEY, token)
-
-  /**
-   * Fecha a autenticação: guarda o token e popula o usuário pelo GET /auth/me.
+   * Não há token para guardar — o cookie já veio na resposta do login. O que se
+   * anota é só a marca, e ela existe para o app não sair perguntando `/auth/me`
+   * para visitante que nunca entrou.
    *
    * O payload de login traz só os campos públicos da conta (`UserSessao`), sem
    * o `pixKey` que o formulário de perfil precisa. Buscar o perfil aqui deixa
@@ -62,8 +58,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
    * cima já usa. Custa uma requisição a mais num evento que acontece uma vez
    * por sessão, e em troca não existe mais um `user` pela metade circulando.
    */
-  const concluirAutenticacao = useCallback(async (token: string) => {
-    saveToken(token)
+  const concluirAutenticacao = useCallback(async () => {
+    marcarSessao()
 
     try {
       const me = await authService.getMe()
@@ -71,33 +67,33 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } catch (err) {
       // Sem o perfil não há sessão utilizável. Falhar visível, e deixar a
       // pessoa tentar de novo, é melhor do que ficar autenticado pela metade.
-      localStorage.removeItem(TOKEN_KEY)
+      esquecerSessao()
       throw err
     }
   }, [])
 
   const register = useCallback(async (data: RegisterInput) => {
     const res = await authService.register(data)
-    await concluirAutenticacao(res.data.token)
+    await concluirAutenticacao()
     return res
   }, [concluirAutenticacao])
 
   const registerOwner = useCallback(async (data: RegisterOwnerInput) => {
     const res = await authService.registerOwner(data)
-    await concluirAutenticacao(res.data.token)
+    await concluirAutenticacao()
     return res
   }, [concluirAutenticacao])
 
   const login = useCallback(async (data: LoginInput) => {
     const res = await authService.login(data)
-    await concluirAutenticacao(res.data.token)
+    await concluirAutenticacao()
     return res
   }, [concluirAutenticacao])
 
   /** `idToken` é o credential retornado pelo componente GoogleLogin. */
   const googleLogin = useCallback(async (idToken: string) => {
     const res = await authService.googleAuth(idToken)
-    await concluirAutenticacao(res.data.token)
+    await concluirAutenticacao()
     return res
   }, [concluirAutenticacao])
 
@@ -107,10 +103,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(res.data)
   }, [])
 
-  /** Remove o token e limpa o estado do usuário */
+  /**
+   * Encerra a sessão: estado local primeiro, pedido à API depois.
+   *
+   * A ordem importa. Quem chama faz `logout(); navigate('/login')` sem esperar,
+   * e /login manda usuário autenticado de volta para /home — se o `setUser(null)`
+   * ficasse atrás de um await de rede, a pessoa clicaria em sair e voltaria para
+   * dentro do app.
+   *
+   * O cookie é `httpOnly`, então quem o apaga é a API. Se essa chamada falhar —
+   * sem rede, por exemplo —, o app já está deslogado e o cookie sobrevive até
+   * expirar ou até o próximo login sobrescrevê-lo. É o melhor esforço possível
+   * daqui, e não vale segurar a saída por causa dele.
+   */
   const logout = useCallback(() => {
-    localStorage.removeItem(TOKEN_KEY)
+    esquecerSessao()
     setUser(null)
+    void authService.logout().catch(() => {})
   }, [])
 
   return (

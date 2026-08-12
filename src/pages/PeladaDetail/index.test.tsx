@@ -9,7 +9,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { renderWithProviders, screen, waitFor } from '../../test/render'
 import { criaPelada, criaParticipante, criaUsuario, envelope, erroDaApi } from '../../test/factories'
-import { TOKEN_KEY } from '../../services/api'
+import { marcarSessao } from '../../services/api'
 import PeladaDetail from './index'
 
 vi.mock('../../services/playerService')
@@ -33,7 +33,7 @@ const USUARIO = criaUsuario({ id: 'user-1', name: 'Mateus' })
 
 beforeEach(() => {
   vi.clearAllMocks()
-  localStorage.setItem(TOKEN_KEY, 'token-valido')
+  marcarSessao()
   vi.mocked(authService.getMe).mockResolvedValue(envelope(USUARIO))
   vi.mocked(notificationService.list).mockResolvedValue([])
   entraNaPelada.mockResolvedValue(envelope({ userId: 'user-1' } as never))

@@ -13,7 +13,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { renderWithProviders, screen, waitFor } from '../../test/render'
 import { criaUsuario, envelope, erroDaApi } from '../../test/factories'
-import { TOKEN_KEY } from '../../services/api'
+import { marcarSessao } from '../../services/api'
 import type { Court } from '../../types/api'
 import CriarPelada from './index'
 
@@ -46,7 +46,7 @@ const QUADRA: Court = {
 
 beforeEach(() => {
   vi.clearAllMocks()
-  localStorage.setItem(TOKEN_KEY, 'token-valido')
+  marcarSessao()
   vi.mocked(authService.getMe).mockResolvedValue(envelope(criaUsuario({ id: 'user-1' })))
   vi.mocked(getSports).mockRejectedValue(erroDaApi('sem sports', 503))
   vi.mocked(notificationService.list).mockResolvedValue([])
