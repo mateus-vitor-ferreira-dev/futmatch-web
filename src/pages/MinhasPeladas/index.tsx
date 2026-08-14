@@ -238,6 +238,8 @@ export default function MinhasPeladas() {
               const progress = (currentPlayers / maxPlayers) * 100
 
               return (
+                // O cartão inteiro navega para o detalhe, então todo controle dentro dele
+                // precisa de stopPropagation — senão o modal abre e fecha no mesmo clique.
                 <Card key={ev.id} onClick={() => navigate(`/pelada/${ev.id}`)} style={{ cursor: 'pointer' }}>
                   <CardHeader>
                     <div>
@@ -261,22 +263,22 @@ export default function MinhasPeladas() {
                     <>
                       <PixBox>
                         <span>PIX: {ev.pixKey}</span>
-                        <button onClick={() => copyPix(ev.pixKey)}><Copy size={14} /> Copiar</button>
+                        <button onClick={(e) => { e.stopPropagation(); copyPix(ev.pixKey) }}><Copy size={14} /> Copiar</button>
                       </PixBox>
                       {(ev.status === 'WAITING' || ev.status === 'FULL') && (
                         <>
-                          <DrawButton onClick={() => openDraw(ev)}>
+                          <DrawButton onClick={(e) => { e.stopPropagation(); openDraw(ev) }}>
                             <Shuffle size={14} /> Sortear Times
                           </DrawButton>
                           <div style={{ display: 'flex', gap: 8, marginTop: 8 }}>
                             <button
-                              onClick={() => handleUpdateStatus(ev, 'FINISHED')}
+                              onClick={(e) => { e.stopPropagation(); handleUpdateStatus(ev, 'FINISHED') }}
                               style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, padding: '8px 12px', borderRadius: 8, border: '1px solid #e5e7eb', background: '#f0fdf4', color: '#166534', fontWeight: 600, fontSize: 13, cursor: 'pointer' }}
                             >
                               <Flag size={13} /> Finalizar
                             </button>
                             <button
-                              onClick={() => handleUpdateStatus(ev, 'CANCELLED')}
+                              onClick={(e) => { e.stopPropagation(); handleUpdateStatus(ev, 'CANCELLED') }}
                               style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, padding: '8px 12px', borderRadius: 8, border: '1px solid #fee2e2', background: '#fee2e2', color: '#991b1b', fontWeight: 600, fontSize: 13, cursor: 'pointer' }}
                             >
                               <XCircle size={13} /> Cancelar
