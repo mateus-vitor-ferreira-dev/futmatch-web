@@ -183,6 +183,9 @@ export const PixBox = styled.div`
 `
 
 export const PixLabel = styled.span`
+  /* Rótulo e chave são dois spans irmãos: sem o block eles saem na mesma linha,
+     colados, e a tela mostrava "CHAVE PIXfulano@exemplo.com". */
+  display: block;
   font-size: ${({ theme }) => theme.fontSizes.xs};
   color: ${({ theme }) => theme.colors.primaryDark};
   font-weight: ${({ theme }) => theme.fontWeights.semibold};
