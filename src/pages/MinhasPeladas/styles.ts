@@ -214,10 +214,58 @@ export const DrawModalContent = styled.div`
   }
 `
 
+/**
+ * Cabeçalho do resultado do sorteio. Centralizado só aqui — o modal de
+ * "Sortear Times" que vem antes tem um formulário com rótulos à esquerda, e
+ * centralizar o título dele desalinharia com o próprio conteúdo.
+ */
+export const DrawResultHeader = styled.div`
+  text-align: center;
+  margin-bottom: ${({ theme }) => theme.spacing[6]};
+
+  p {
+    color: ${({ theme }) => theme.colors.textSecondary};
+    margin-top: ${({ theme }) => theme.spacing[2]};
+  }
+`
+
 export const TeamGrid = styled.div`
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
   gap: ${({ theme }) => theme.spacing[4]};
+`
+
+/**
+ * Layout de confronto — só para 2 times.
+ *
+ * O slider de "Quantos times?" vai de 2 a 10, e o ✕ do meio só quer dizer
+ * alguma coisa quando são exatamente dois. Com 3+ o resultado continua no
+ * `TeamGrid`, que é a grade de sempre.
+ *
+ * `align-items: start` para que times de tamanhos diferentes (número ímpar de
+ * confirmados) não estiquem o cartão menor até a altura do maior.
+ */
+export const TeamVersus = styled.div`
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: start;
+  gap: ${({ theme }) => theme.spacing[3]};
+
+  /* Abaixo de 480px os dois cartões espremeriam o nome dos jogadores. O ✕ vai
+     para o meio da coluna, entre um time e outro, e o confronto se lê de cima
+     para baixo. */
+  @media (max-width: 480px) {
+    grid-template-columns: 1fr;
+  }
+`
+
+export const VersusMark = styled.span`
+  align-self: center;
+  color: ${({ theme }) => theme.colors.error};
+  font-size: ${({ theme }) => theme.fontSizes['2xl']};
+  font-weight: 800;
+  line-height: 1;
+  user-select: none;
 `
 
 export const TeamCard = styled.div<{ $color?: string; }>`

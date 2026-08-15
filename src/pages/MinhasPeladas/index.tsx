@@ -10,12 +10,13 @@ import { playerService } from '../../services/playerService'
 import { chaves } from '../../lib/queryClient'
 import { Grid, Card, CardHeader, InfoRow, ProgressBarContainer, ProgressBar, SpotsInfo } from '../QueroJogar/styles'
 import { mensagemDeErro } from '../../utils/apiError'
-import type { Court, DrawResult, Participation, Pelada, PeladaStatus } from '../../types/api'
+import type { Court, DrawResult, DrawTeam, Participation, Pelada, PeladaStatus } from '../../types/api'
 import {
   Container, PageHeader, CreateButton, Tabs, Tab, PixBox,
   ModalOverlay, ModalContent, Form, ButtonGroup,
   DrawButton, DrawModalOverlay, DrawModalContent,
   TeamGrid, TeamCard, TeamHeader, PlayerItem,
+  DrawResultHeader, TeamVersus, VersusMark,
 } from './styles'
 
 const STATUS_LABELS: Record<string, string> = {
@@ -29,6 +30,26 @@ const TEAM_COLORS = [
   '#22c55e', '#3b82f6', '#f59e0b', '#ef4444', '#8b5cf6',
   '#ec4899', '#14b8a6', '#eab308', '#6366f1', '#06b6d4',
 ]
+
+/**
+ * Um time do sorteio. Existe para que o layout de confronto (2 times, com o ✕
+ * no meio) e a grade (3+ times) montem o mesmo cartão sem duplicar o JSX.
+ */
+function CartaoDoTime({ time, indice }: { time: DrawTeam; indice: number }) {
+  const cor = TEAM_COLORS[indice % TEAM_COLORS.length]
+
+  return (
+    <TeamCard $color={cor}>
+      <TeamHeader $color={cor}>{time.name}</TeamHeader>
+      {time.players.map(p => (
+        <PlayerItem key={p.id}>
+          <div className="avatar">{p.name?.charAt(0)?.toUpperCase()}</div>
+          <span>{p.name}</span>
+        </PlayerItem>
+      ))}
+    </TeamCard>
+  )
+}
 
 interface FormularioPelada {
   date: string
@@ -399,26 +420,32 @@ export default function MinhasPeladas() {
                 </>
               ) : (
                 <>
-                  <h2>Times Sorteados</h2>
-                  <p style={{ color: '#6b7280', marginBottom: 24 }}>
-                    {drawResult.totalPlayers} jogadores distribuídos em {drawResult.teamCount} times
-                  </p>
+                  <DrawResultHeader>
+                    <h2>Times Sorteados</h2>
+                    <p>
+                      {drawResult.totalPlayers} jogadores distribuídos em {drawResult.teamCount} times
+                    </p>
+                  </DrawResultHeader>
 
-                  <TeamGrid>
-                    {drawResult.teams.map((team, idx) => (
-                      <TeamCard key={idx} $color={TEAM_COLORS[idx % TEAM_COLORS.length]}>
-                        <TeamHeader $color={TEAM_COLORS[idx % TEAM_COLORS.length]}>
-                          {team.name}
-                        </TeamHeader>
-                        {team.players.map(p => (
-                          <PlayerItem key={p.id}>
-                            <div className="avatar">{p.name?.charAt(0)?.toUpperCase()}</div>
-                            <span>{p.name}</span>
-                          </PlayerItem>
-                        ))}
-                      </TeamCard>
-                    ))}
-                  </TeamGrid>
+                  {/*
+                    Dois times viram confronto, com o ✕ no meio. De três em diante
+                    o ✕ não diria nada, e o resultado continua na grade de sempre.
+                    O ✕ é irmão dos cartões no grid de três colunas — envolvê-lo
+                    junto com eles num `div` quebraria o layout.
+                  */}
+                  {drawResult.teamCount === 2 ? (
+                    <TeamVersus>
+                      <CartaoDoTime time={drawResult.teams[0]} indice={0} />
+                      <VersusMark aria-hidden="true">✕</VersusMark>
+                      <CartaoDoTime time={drawResult.teams[1]} indice={1} />
+                    </TeamVersus>
+                  ) : (
+                    <TeamGrid>
+                      {drawResult.teams.map((time, indice) => (
+                        <CartaoDoTime key={indice} time={time} indice={indice} />
+                      ))}
+                    </TeamGrid>
+                  )}
 
                   <button
                     onClick={closeDraw}
