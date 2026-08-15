@@ -4,6 +4,7 @@ import { useForm } from 'react-hook-form'
 import { yupResolver } from '@hookform/resolvers/yup'
 import * as yup from 'yup'
 import { toastErroDeApi } from '../../../utils/toastErro'
+import { mensagemDeErro } from '../../../utils/apiError'
 import StatCard from '../../../components/StatCard'
 import SubscriptionGate from '../../../components/SubscriptionGate'
 import { useSubscription } from '../../../hooks/useSubscription'
@@ -15,7 +16,7 @@ import {
   RequestTitle, RequestMeta, RequestFooter, RequestSentAt,
   StatusBadge, EmptyState, ErrorMsg,
   NewBtn, Modal, ModalOverlay, ModalBox, ModalHeader, ModalTitle,
-  Form, FormGroup, Label, Input, Textarea, ModalActions, CancelBtn, SubmitBtn,
+  Form, FormGroup, FormRow, Label, Input, ModalActions, CancelBtn, SubmitBtn,
   FieldError,
 } from './styles'
 
@@ -24,26 +25,63 @@ const STATUS_COLOR = { PENDING: '#d97706', APPROVED: '#16a34a', REJECTED: '#dc26
 const STATUS_BG    = { PENDING: '#fef3c7', APPROVED: '#dcfce7', REJECTED: '#fee2e2' }
 
 /**
- * ⚠️ BUG CONHECIDO — este formulário nunca funcionou.
+ * Espelha o `createPlaceRequestSchema` da API, campo a campo.
  *
- * Os campos abaixo (placeName, address, description) não correspondem ao
- * createPlaceRequestSchema da API, que exige name, street, number,
- * neighborhood, city, state e zipCode. Como o validate middleware roda com
- * stripUnknown, o corpo enviado se reduz a { city } e a requisição sempre
- * volta 422 com seis campos obrigatórios faltando — o owner só vê o toast
- * genérico "Erro ao enviar solicitação.".
+ * Precisa continuar espelhando: o `validate` da API roda com `stripUnknown`,
+ * então campo que não existe lá é descartado em silêncio e volta 422 sem dizer
+ * qual. Foi assim que este formulário nasceu quebrado — pedia `placeName`,
+ * `address` e `description`, o corpo enviado se reduzia a `{ city }`, e o dono
+ * só via um erro genérico. Ver #250.
  *
- * Corrigir exige reescrever o formulário com os campos certos, o que é
- * mudança de UI e ficou fora da migração para TypeScript.
+ * Por isso também não há campo de descrição: a API não tem onde guardá-lo, e um
+ * campo que o usuário preenche para nada é a mesma armadilha de novo.
+ *
+ * `latitude` e `longitude` são opcionais lá e ficam fora daqui de propósito —
+ * o épico de geolocalização (so-mais-um-api#212 a #218) prevê preenchê-las
+ * automaticamente no cadastro e na aprovação.
  */
 const schema = yup.object({
-  placeName:   yup.string().required('Nome obrigatório'),
-  city:        yup.string().required('Cidade obrigatória'),
-  address:     yup.string().required('Endereço obrigatório'),
-  description: yup.string(),
+  name:         yup.string().trim().min(2, 'Nome muito curto').required('Nome obrigatório'),
+  // `excludeEmptyString` para que o campo vazio caia em "CEP obrigatório", e não
+  // na regra de formato — quem não digitou nada não errou o formato.
+  zipCode:      yup.string().trim()
+    .matches(/^\d{5}-?\d{3}$/, { message: 'CEP no formato 00000-000', excludeEmptyString: true })
+    .required('CEP obrigatório'),
+  street:       yup.string().trim().required('Rua obrigatória'),
+  number:       yup.string().trim().required('Número obrigatório'),
+  complement:   yup.string().trim().default(''),
+  neighborhood: yup.string().trim().required('Bairro obrigatório'),
+  city:         yup.string().trim().required('Cidade obrigatória'),
+  state:        yup.string().trim().length(2, 'Use a sigla, ex.: MG').required('Estado obrigatório'),
 })
 
 type FormularioSolicitacao = yup.InferType<typeof schema>
+
+/**
+ * Do que o formulário coleta para o que a API espera.
+ *
+ * O CEP é gravado com hífen (`37200-430` é o formato de todos os registros
+ * existentes) e a sigla do estado em maiúsculas, para que o dado não dependa de
+ * como cada dono digitou.
+ *
+ * `complement` vazio vira `null`, e não `''`: é o que o schema da API espera de
+ * um endereço sem complemento — o caso comum, não a exceção (ver o comentário
+ * do `complement` em `place-request.schema.ts`).
+ */
+function paraAApi(dados: FormularioSolicitacao): PlaceRequestInput {
+  const digitos = dados.zipCode.replace(/\D/g, '')
+
+  return {
+    name:         dados.name,
+    street:       dados.street,
+    number:       dados.number,
+    complement:   dados.complement || null,
+    neighborhood: dados.neighborhood,
+    city:         dados.city,
+    state:        dados.state.toUpperCase(),
+    zipCode:      `${digitos.slice(0, 5)}-${digitos.slice(5)}`,
+  }
+}
 
 export default function OwnerRequests() {
   const { sub, isActive, loading: subLoading } = useSubscription()
@@ -52,6 +90,7 @@ export default function OwnerRequests() {
   const [error, setError]         = useState<string | null>(null)
   const [showModal, setShowModal] = useState(false)
   const [submitting, setSubmitting] = useState(false)
+  const [formError, setFormError] = useState<string | null>(null)
 
   const { register, handleSubmit, reset, formState: { errors } } = useForm({
     resolver: yupResolver(schema),
@@ -74,16 +113,26 @@ export default function OwnerRequests() {
 
   const onSubmit = async (data: FormularioSolicitacao) => {
     setSubmitting(true)
+    setFormError(null)
     try {
-      await placeRequestsService.create(data as unknown as PlaceRequestInput)
+      await placeRequestsService.create(paraAApi(data))
       reset()
       setShowModal(false)
       await fetchRequests()
     } catch (err) {
+      // O toast some sozinho; a mensagem da API — que diz qual campo falhou —
+      // fica no modal até o dono corrigir e reenviar.
+      setFormError(mensagemDeErro(err, 'Erro ao enviar solicitação.'))
       toastErroDeApi(err, 'Erro ao enviar solicitação.')
     } finally {
       setSubmitting(false)
     }
+  }
+
+  const fecharModal = () => {
+    setShowModal(false)
+    setFormError(null)
+    reset()
   }
 
   const counts = {
@@ -172,42 +221,74 @@ export default function OwnerRequests() {
 
       {showModal && (
         <Modal>
-          <ModalOverlay onClick={() => { setShowModal(false); reset() }} />
+          <ModalOverlay onClick={fecharModal} />
           <ModalBox>
             <ModalHeader>
               <ModalTitle>Nova Solicitação de Estabelecimento</ModalTitle>
             </ModalHeader>
 
             <Form onSubmit={handleSubmit(onSubmit)}>
+              {formError && <ErrorMsg>{formError}</ErrorMsg>}
+
+              {/*
+                Cada Label aponta para o id do seu Input. Antes eram irmãos soltos
+                dentro do FormGroup: visualmente pareciam ligados, mas o navegador
+                e o leitor de tela não sabiam disso — clicar no rótulo não focava
+                o campo, e o campo era anunciado sem nome.
+              */}
               <FormGroup>
-                <Label>Nome do Estabelecimento *</Label>
-                <Input {...register('placeName')} placeholder="Ex.: Arena Verde Futebol" />
-                {errors.placeName && <FieldError>{errors.placeName.message}</FieldError>}
+                <Label htmlFor="solicitacao-nome">Nome do Estabelecimento *</Label>
+                <Input id="solicitacao-nome" {...register('name')} placeholder="Ex.: Arena Verde Futebol" />
+                {errors.name && <FieldError>{errors.name.message}</FieldError>}
               </FormGroup>
 
               <FormGroup>
-                <Label>Cidade / Estado *</Label>
-                <Input {...register('city')} placeholder="Ex.: São Paulo, SP" />
-                {errors.city && <FieldError>{errors.city.message}</FieldError>}
+                <Label htmlFor="solicitacao-cep">CEP *</Label>
+                <Input id="solicitacao-cep" {...register('zipCode')} placeholder="00000-000" inputMode="numeric" />
+                {errors.zipCode && <FieldError>{errors.zipCode.message}</FieldError>}
+              </FormGroup>
+
+              <FormRow $proporcao="3fr 1fr">
+                <FormGroup>
+                  <Label htmlFor="solicitacao-rua">Rua *</Label>
+                  <Input id="solicitacao-rua" {...register('street')} placeholder="Ex.: Av. Brasil" />
+                  {errors.street && <FieldError>{errors.street.message}</FieldError>}
+                </FormGroup>
+
+                <FormGroup>
+                  <Label htmlFor="solicitacao-numero">Número *</Label>
+                  <Input id="solicitacao-numero" {...register('number')} placeholder="123" />
+                  {errors.number && <FieldError>{errors.number.message}</FieldError>}
+                </FormGroup>
+              </FormRow>
+
+              <FormGroup>
+                <Label htmlFor="solicitacao-complemento">Complemento</Label>
+                <Input id="solicitacao-complemento" {...register('complement')} placeholder="Ex.: quadra 2, fundos" />
               </FormGroup>
 
               <FormGroup>
-                <Label>Endereço *</Label>
-                <Input {...register('address')} placeholder="Rua, número, bairro" />
-                {errors.address && <FieldError>{errors.address.message}</FieldError>}
+                <Label htmlFor="solicitacao-bairro">Bairro *</Label>
+                <Input id="solicitacao-bairro" {...register('neighborhood')} placeholder="Ex.: Centro" />
+                {errors.neighborhood && <FieldError>{errors.neighborhood.message}</FieldError>}
               </FormGroup>
 
-              <FormGroup>
-                <Label>Descrição / Observações</Label>
-                <Textarea
-                  {...register('description')}
-                  rows={3}
-                  placeholder="Informe diferenciais, estrutura e serviços disponíveis..."
-                />
-              </FormGroup>
+              <FormRow $proporcao="3fr 1fr">
+                <FormGroup>
+                  <Label htmlFor="solicitacao-cidade">Cidade *</Label>
+                  <Input id="solicitacao-cidade" {...register('city')} placeholder="Ex.: Lavras" />
+                  {errors.city && <FieldError>{errors.city.message}</FieldError>}
+                </FormGroup>
+
+                <FormGroup>
+                  <Label htmlFor="solicitacao-uf">UF *</Label>
+                  <Input id="solicitacao-uf" {...register('state')} placeholder="MG" maxLength={2} />
+                  {errors.state && <FieldError>{errors.state.message}</FieldError>}
+                </FormGroup>
+              </FormRow>
 
               <ModalActions>
-                <CancelBtn type="button" onClick={() => { setShowModal(false); reset() }}>
+                <CancelBtn type="button" onClick={fecharModal}>
                   Cancelar
                 </CancelBtn>
                 <SubmitBtn type="submit" disabled={submitting}>
