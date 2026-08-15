@@ -242,6 +242,46 @@ describe('MinhasPeladas — sorteio de times', () => {
     expect(screen.getByText('Bruno')).toBeInTheDocument()
   })
 
+  // O ✕ diz que os dois times jogam um contra o outro. Com três ou mais ele não
+  // teria o que separar, e o resultado volta a ser uma grade de cartões.
+  it('marca o confronto com o ✕ quando o sorteio dá exatamente 2 times', async () => {
+    const { user } = await abreSorteio()
+    sorteiaTimes.mockResolvedValue(envelope({
+      peladaId: 'minha-pelada',
+      teamCount: 2,
+      totalPlayers: 4,
+      teams: [
+        { name: 'Time 1', players: [{ id: 'u1', name: 'Ana', avatarUrl: null, badge: null }] },
+        { name: 'Time 2', players: [{ id: 'u2', name: 'Bruno', avatarUrl: null, badge: null }] },
+      ],
+    }))
+
+    await user.click(screen.getByRole('button', { name: /sortear!/i }))
+
+    expect(await screen.findByRole('heading', { name: 'Times Sorteados' })).toBeInTheDocument()
+    expect(screen.getByText('✕')).toBeInTheDocument()
+  })
+
+  it('não marca confronto quando o sorteio dá 3 times ou mais', async () => {
+    const { user } = await abreSorteio()
+    sorteiaTimes.mockResolvedValue(envelope({
+      peladaId: 'minha-pelada',
+      teamCount: 3,
+      totalPlayers: 3,
+      teams: [
+        { name: 'Time 1', players: [{ id: 'u1', name: 'Ana', avatarUrl: null, badge: null }] },
+        { name: 'Time 2', players: [{ id: 'u2', name: 'Bruno', avatarUrl: null, badge: null }] },
+        { name: 'Time 3', players: [{ id: 'u3', name: 'Carla', avatarUrl: null, badge: null }] },
+      ],
+    }))
+
+    await user.click(screen.getByRole('button', { name: /sortear!/i }))
+
+    expect(await screen.findByRole('heading', { name: 'Times Sorteados' })).toBeInTheDocument()
+    expect(screen.getByText('Carla')).toBeInTheDocument()
+    expect(screen.queryByText('✕')).not.toBeInTheDocument()
+  })
+
   it('mostra a mensagem da API quando o sorteio falha', async () => {
     const { user } = await abreSorteio()
     sorteiaTimes.mockRejectedValue(erroDaApi('Jogadores insuficientes para 2 times', 422))
