@@ -41,6 +41,7 @@ export const queryClient = new QueryClient({
  */
 export const chaves = {
   modalidades: ['modalidades'] as const,
+  formatosDeCampeonato: ['formatos-de-campeonato'] as const,
   eventos: {
     busca:       (filtros: unknown) => ['eventos', 'busca', filtros] as const,
     participando: () => ['eventos', 'participando'] as const,
