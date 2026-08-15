@@ -165,6 +165,24 @@ export const FormGroup = styled.div`
   gap: 6px;
 `
 
+/**
+ * Campos que andam juntos numa linha — rua/número, cidade/UF.
+ *
+ * `$proporcao` é a razão entre as colunas: a rua precisa de muito mais espaço
+ * que o número, e a cidade muito mais que a sigla do estado. Em telas estreitas
+ * as duas empilham, senão o campo maior fica ilegível para caber ao lado do
+ * menor.
+ */
+export const FormRow = styled.div<{ $proporcao?: string; }>`
+  display: grid;
+  grid-template-columns: ${({ $proporcao }) => $proporcao ?? '1fr 1fr'};
+  gap: 12px;
+
+  @media (max-width: 420px) {
+    grid-template-columns: 1fr;
+  }
+`
+
 export const Label = styled.label`
   font-size: ${({ theme }) => theme.fontSizes.xs};
   font-weight: ${({ theme }) => theme.fontWeights.semibold};

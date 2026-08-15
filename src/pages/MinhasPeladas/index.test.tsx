@@ -17,6 +17,15 @@ import { marcarSessao } from '../../services/api'
 import type { Participation } from '../../types/api'
 import MinhasPeladas from './index'
 
+// O cartão inteiro navega para o detalhe da pelada. Espionar o `useNavigate` é o
+// único jeito de provar que os botões de dentro dele NÃO disparam essa navegação:
+// no teste o componente é montado direto, então a rota mudar não desmonta nada e o
+// modal aparece do mesmo jeito — foi assim que a #246 passou despercebida.
+const { navegar } = vi.hoisted(() => ({ navegar: vi.fn() }))
+vi.mock('react-router-dom', async () => ({
+  ...(await vi.importActual<typeof import('react-router-dom')>('react-router-dom')),
+  useNavigate: () => navegar,
+}))
 vi.mock('../../services/playerService')
 vi.mock('../../services/auth')
 vi.mock('../../services/notificationService')
@@ -151,6 +160,32 @@ describe('MinhasPeladas — ações de organizador', () => {
     expect(screen.getByRole('button', { name: /confirmar presenças/i })).toBeInTheDocument()
   })
 
+  it('os controles do cartão não levam para o detalhe da pelada', async () => {
+    const { user } = await abreAbaCriados()
+    // Finalizar e Cancelar pedem confirmação; recusar mantém o teste no clique,
+    // que é o que está sob prova aqui.
+    vi.spyOn(window, 'confirm').mockReturnValue(false)
+
+    for (const nome of [/copiar/i, /finalizar/i, /cancelar/i]) {
+      await user.click(screen.getByRole('button', { name: nome }))
+      expect(navegar).not.toHaveBeenCalled()
+    }
+
+    await user.click(screen.getByRole('button', { name: /sortear times/i }))
+
+    expect(navegar).not.toHaveBeenCalled()
+    // Sem o stopPropagation o modal abria e o cartão navegava no mesmo clique.
+    expect(screen.getByRole('heading', { name: 'Sortear Times' })).toBeInTheDocument()
+  })
+
+  it('clicar no corpo do cartão continua abrindo o detalhe', async () => {
+    const { user } = await abreAbaCriados()
+
+    await user.click(screen.getByText('Arena Sul'))
+
+    expect(navegar).toHaveBeenCalledWith('/pelada/minha-pelada')
+  })
+
   it('esconde as ações em pelada cancelada', async () => {
     await abreAbaCriados([criaPelada({ ...PELADA_ABERTA, status: 'CANCELLED' })])
 
@@ -205,6 +240,46 @@ describe('MinhasPeladas — sorteio de times', () => {
     expect(screen.getByText('4 jogadores distribuídos em 2 times')).toBeInTheDocument()
     expect(screen.getByText('Ana')).toBeInTheDocument()
     expect(screen.getByText('Bruno')).toBeInTheDocument()
+  })
+
+  // O ✕ diz que os dois times jogam um contra o outro. Com três ou mais ele não
+  // teria o que separar, e o resultado volta a ser uma grade de cartões.
+  it('marca o confronto com o ✕ quando o sorteio dá exatamente 2 times', async () => {
+    const { user } = await abreSorteio()
+    sorteiaTimes.mockResolvedValue(envelope({
+      peladaId: 'minha-pelada',
+      teamCount: 2,
+      totalPlayers: 4,
+      teams: [
+        { name: 'Time 1', players: [{ id: 'u1', name: 'Ana', avatarUrl: null, badge: null }] },
+        { name: 'Time 2', players: [{ id: 'u2', name: 'Bruno', avatarUrl: null, badge: null }] },
+      ],
+    }))
+
+    await user.click(screen.getByRole('button', { name: /sortear!/i }))
+
+    expect(await screen.findByRole('heading', { name: 'Times Sorteados' })).toBeInTheDocument()
+    expect(screen.getByText('✕')).toBeInTheDocument()
+  })
+
+  it('não marca confronto quando o sorteio dá 3 times ou mais', async () => {
+    const { user } = await abreSorteio()
+    sorteiaTimes.mockResolvedValue(envelope({
+      peladaId: 'minha-pelada',
+      teamCount: 3,
+      totalPlayers: 3,
+      teams: [
+        { name: 'Time 1', players: [{ id: 'u1', name: 'Ana', avatarUrl: null, badge: null }] },
+        { name: 'Time 2', players: [{ id: 'u2', name: 'Bruno', avatarUrl: null, badge: null }] },
+        { name: 'Time 3', players: [{ id: 'u3', name: 'Carla', avatarUrl: null, badge: null }] },
+      ],
+    }))
+
+    await user.click(screen.getByRole('button', { name: /sortear!/i }))
+
+    expect(await screen.findByRole('heading', { name: 'Times Sorteados' })).toBeInTheDocument()
+    expect(screen.getByText('Carla')).toBeInTheDocument()
+    expect(screen.queryByText('✕')).not.toBeInTheDocument()
   })
 
   it('mostra a mensagem da API quando o sorteio falha', async () => {
