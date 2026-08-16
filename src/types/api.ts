@@ -61,6 +61,20 @@ export type TournamentFormat =
     | "DOUBLE_ELIMINATION"
     | "SWISS";
 
+/**
+ * Um formato de campeonato, como `GET /tournament-formats` o devolve.
+ *
+ * `implemented` é o campo que importa: o enum tem cinco e o sistema sabe
+ * conduzir um. A API recusa criar ou editar campeonato num formato com
+ * `implemented: false`, e a leitura aceita todos. Ver api#263.
+ */
+export interface TournamentFormatInfo {
+    id: TournamentFormat;
+    label: string;
+    description: string;
+    implemented: boolean;
+}
+
 export type CompetitionLevel =
     | "BEGINNER"
     | "INTERMEDIATE"

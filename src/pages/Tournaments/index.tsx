@@ -8,6 +8,7 @@ import { toast } from 'sonner'
 import { useAuth } from '../../contexts/AuthContext'
 import { useSports } from '../../hooks/useSports'
 import TournamentBracket from '../../components/TournamentBracket'
+import { useTournamentFormats } from '../../hooks/useTournamentFormats'
 import { listTournaments, createTournament, createDivision } from '../../services/tournaments'
 import { list as listPlaces } from '../../services/places'
 import type { KeyboardEvent, ReactElement } from 'react'
@@ -48,14 +49,17 @@ const STATUS_LABELS: Record<string, string> = {
   CANCELLED:           'Cancelado',
 }
 
-const FORMATS = [
-  { value: 'KNOCKOUT',            label: 'Eliminatório Simples' },
-  { value: 'LEAGUE',              label: 'Pontos Corridos' },
-  { value: 'GROUPS_AND_KNOCKOUT', label: 'Grupos + Eliminatório' },
-  { value: 'DOUBLE_ELIMINATION',  label: 'Dupla Eliminação' },
-  { value: 'SWISS',               label: 'Sistema Suíço' },
-]
-
+/*
+ * A lista de formatos saiu daqui e passou a vir da API, pelo `useTournamentFormats`.
+ *
+ * Ela ficava chumbada neste arquivo com os cinco valores do enum, e o seletor
+ * oferecia os cinco — enquanto a API sabe conduzir um. Escolher "Pontos
+ * Corridos" criava um campeonato que nunca teria chaveamento, partida nem
+ * resultado. Ver api#263.
+ *
+ * Os ícones ficam, porque são decisão de front: a API devolve `id`, `label`,
+ * `description` e `implemented`, e não opina sobre emoji.
+ */
 const FORMAT_ICONS: Record<string, string> = {
   KNOCKOUT:            '⚡',
   LEAGUE:              '📊',
@@ -307,6 +311,10 @@ export default function Tournaments() {
 
   const watchedFormat = useWatch({ control, name: 'format' })
 
+  // `disponiveis` alimenta o seletor; `rotulo` exibe o formato de campeonatos
+  // que já existem, inclusive os que não podem mais ser criados.
+  const { disponiveis: formatosDisponiveis, rotulo: rotuloDoFormato } = useTournamentFormats()
+
   const fetchTournaments = useCallback(async () => {
     try {
       setLoading(true)
@@ -444,7 +452,10 @@ export default function Tournaments() {
         ) : (
           <Grid>
             {tournaments.map((t) => {
-              const fmt = FORMATS.find(f => f.value === t.format)
+              // `rotulo` lê de TODOS os formatos, não só dos disponíveis:
+              // campeonato gravado como LEAGUE antes da api#263 continua na
+              // lista e precisa aparecer com o nome certo.
+              const fmt = { label: rotuloDoFormato(t.format) }
               const divCount = t._count?.divisions ?? 0
               return (
                 <TournamentCard key={t.id} onClick={() => navigate(`/torneios/${t.id}`)}>
@@ -543,10 +554,15 @@ export default function Tournaments() {
 
                 <Field>
                   <Label>Formato *</Label>
+                  {/*
+                    Só os formatos que a API conduz. Oferecer os outros seria
+                    deixar o dono criar um campeonato que a API recusa — ou, pior,
+                    um que ela aceita e o sistema não sabe levar adiante.
+                  */}
                   <Select {...register('format')} $error={!!errors.format}>
                     <option value="">Selecione...</option>
-                    {FORMATS.map((f) => (
-                      <option key={f.value} value={f.value}>{f.label}</option>
+                    {formatosDisponiveis.map((f) => (
+                      <option key={f.id} value={f.id}>{f.label}</option>
                     ))}
                   </Select>
                   {errors.format && <ErrorMsg>{errors.format.message}</ErrorMsg>}
