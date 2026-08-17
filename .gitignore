@@ -28,3 +28,6 @@ dist-ssr
 
 # Relatório de cobertura (npm run test:coverage)
 coverage
+
+# vercel
+.vercel
