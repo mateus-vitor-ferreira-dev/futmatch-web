@@ -5,6 +5,8 @@ import { useAuth } from '../contexts/AuthContext'
 import MainLayout from '../components/MainLayout'
 import DashboardLayout from '../components/DashboardLayout'
 import { adminNavItems, ownerNavItems } from '../constants/navItems'
+import { useSubscription } from '../hooks/useSubscription'
+import PlanGate from '../components/PlanGate'
 import {
   Register, ForgotPassword, ResetPassword, OwnerAccess,
   Home, Profile, QueroJogar, CriarPelada, Tournaments, MinhasPeladas,
@@ -70,12 +72,21 @@ function OwnerRoute({ children }: { children: ReactNode }) {
   return <>{children}</>
 }
 
-/** Layout do painel do owner, com o menu que depende do papel de quem acessa. */
+/** Layout do painel do owner, com o menu que depende do papel e do plano. */
 function OwnerPanelLayout() {
   const { user } = useAuth()
+  const { temFuncionalidade, loading } = useSubscription()
+
   // `ownerNavItems` monta um array novo a cada chamada; sem o memo, o layout
   // recalcularia os badges do menu a cada render.
-  const navItems = useMemo(() => ownerNavItems(user?.role), [user?.role])
+  //
+  // Enquanto o status não chega, nada é marcado como bloqueado: piscar o cadeado
+  // e tirá-lo meio segundo depois é pior do que mostrar o menu inteiro por um
+  // instante, e quem clicar antes da hora encontra o portão da própria página.
+  const navItems = useMemo(
+    () => ownerNavItems(user?.role, loading ? undefined : temFuncionalidade),
+    [user?.role, loading, temFuncionalidade],
+  )
   return <DashboardLayout navItems={navItems} tagline="Owner Panel" accent="#f59e0b" />
 }
 
@@ -131,8 +142,11 @@ export default function AppRoutes() {
           <Route path="plans"               element={<OwnerPlans />} />
           <Route path="places"              element={<OwnerPlaces />} />
           <Route path="places/:placeId/courts" element={<OwnerCourts />} />
-          <Route path="inventory"           element={<OwnerInventory />} />
-          <Route path="equipment"           element={<OwnerEquipment />} />
+          {/* O portão fica na rota, e não só dentro da página: sem isso, chegar pela
+              URL abriria a tela que o menu marca com cadeado. A API recusa de qualquer
+              jeito, mas o dono veria a tela montar e as chamadas falharem uma a uma. */}
+          <Route path="inventory"           element={<PlanGate funcionalidade="ESTOQUE"><OwnerInventory /></PlanGate>} />
+          <Route path="equipment"           element={<PlanGate funcionalidade="EQUIPAMENTOS"><OwnerEquipment /></PlanGate>} />
           <Route path="requests"            element={<OwnerRequests />} />
         </Route>
 

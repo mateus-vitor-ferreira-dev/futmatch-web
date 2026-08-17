@@ -5,20 +5,21 @@ import { toast } from 'sonner'
 import { plansService } from '../../../services/plansService'
 import { subscriptionService } from '../../../services/subscriptionService'
 import { formatarPrecoCentavos } from '../../../utils/formatCurrency'
+import {
+  ROTULOS_DE_FUNCIONALIDADE,
+  INCLUSO_EM_TODO_PLANO,
+  ORDEM_DAS_FUNCIONALIDADES,
+} from '../../../constants/planFeatures'
 import { ehErroDeStripeIndisponivel, mensagemDeErro } from '../../../utils/apiError'
 import type { Plan, SubscriptionStatus, SwitchPlanPreview } from '../../../types/api'
 import {
-  Container, UsageCard, UsageGrid, UsageItem, UsageLabel, UsageValue, UsageBar, UsageBarFill,
+  Container, UsageCard, UsageGrid, UsageItem, UsageLabel, UsageValue,
   PlansGrid, PlanCard, CurrentBadge, PlanName, PlanPrice, PlanFeatures, PlanButton,
   Modal, ModalOverlay, ModalBox, ModalTitle, EffectRow, WarningBox, ModalActions, CancelBtn, ConfirmBtn,
   CenteredSpinner, ScheduledBox, CancelScheduleBtn, PaymentWarning,
 } from './styles'
 
 const STATUS_COM_TROCA = ['active', 'trialing', 'past_due']
-
-function limiteLabel(valor: number | null, feminino = false): string {
-  return valor === null ? (feminino ? 'Ilimitadas' : 'Ilimitados') : String(valor)
-}
 
 /** Mesma formatação do resto do painel — ver Admin/Dashboard e Owner/Requests. */
 function formatarData(iso: string): string {
@@ -190,7 +191,7 @@ export default function OwnerPlans() {
               <p>
                 Você passa para o {sub.trocaAgendada.plan.nome}
                 {' '}({formatarPrecoCentavos(sub.trocaAgendada.plan.precoCentavos)} / mês) nessa data.
-                Até lá continua no {sub.plan?.nome ?? 'plano atual'}, com os limites que já paga.
+                Até lá continua no {sub.plan?.nome ?? 'plano atual'}, com o acesso que já paga.
               </p>
             </div>
             <CancelScheduleBtn
@@ -203,20 +204,15 @@ export default function OwnerPlans() {
           </ScheduledBox>
         )}
 
+        {/* Sem barra de progresso: barra pressupõe um teto, e nenhum plano tem teto
+            desde a api#278. O número segue útil como retrato do espaço — "seis quadras
+            em dois estabelecimentos" — e não como cota a estourar. */}
         {sub?.usage && (
           <UsageCard>
-            <h2>Uso atual</h2>
+            <h2>Seu espaço hoje</h2>
             <UsageGrid>
-              <BarraDeUso
-                label="Quadras"
-                usado={sub.usage.quadras}
-                limite={sub.plan?.maxQuadras}
-              />
-              <BarraDeUso
-                label="Estabelecimentos"
-                usado={sub.usage.estabelecimentos}
-                limite={sub.plan?.maxEstabelecimentos}
-              />
+              <Numero label="Quadras" valor={sub.usage.quadras} />
+              <Numero label="Estabelecimentos" valor={sub.usage.estabelecimentos} />
             </UsageGrid>
           </UsageCard>
         )}
@@ -240,10 +236,16 @@ export default function OwnerPlans() {
                   <PlanPrice>
                     {formatarPrecoCentavos(plano.precoCentavos)}<span> / mês</span>
                   </PlanPrice>
+                  {/* O incluso vem primeiro, e depois o que este degrau abre. Sem as
+                      duas primeiras linhas o Básico apareceria como um cartão vazio —
+                      ele é o plano de entrada, não um plano sem nada. */}
                   <PlanFeatures>
-                    <li><Check size={16} /> {limiteLabel(plano.maxQuadras, true)} quadras</li>
-                    <li><Check size={16} /> {limiteLabel(plano.maxEstabelecimentos)} estabelecimentos</li>
-                    <li><Check size={16} /> {limiteLabel(plano.maxModalidades, true)} modalidades</li>
+                    {INCLUSO_EM_TODO_PLANO.map((item) => (
+                      <li key={item}><Check size={16} /> {item}</li>
+                    ))}
+                    {ORDEM_DAS_FUNCIONALIDADES.filter((f) => plano.funcionalidades.includes(f)).map((f) => (
+                      <li key={f}><Check size={16} /> {ROTULOS_DE_FUNCIONALIDADE[f]}</li>
+                    ))}
                   </PlanFeatures>
 
                   {éAtual ? (
@@ -329,22 +331,22 @@ export default function OwnerPlans() {
                   <WarningBox>
                     <AlertTriangle size={18} />
                     <span>
-                      Você continua no {sub?.plan?.nome ?? 'plano atual'} até lá, com os limites que já paga.
+                      Você continua no {sub?.plan?.nome ?? 'plano atual'} até lá, com o acesso que já paga.
                       Enquanto a troca não valer, dá para cancelá-la voltando para o plano atual.
                     </span>
                   </WarningBox>
                 )}
 
-                {(preview.usoExcederiaNovoPlano?.quadras || preview.usoExcederiaNovoPlano?.estabelecimentos) && (
+                {/* O que fecha ao descer de degrau. Antes este aviso falava de uso
+                    excedendo teto; não há mais teto, e o que o dono precisa saber é
+                    qual porta do painel deixa de abrir. */}
+                {preview.funcionalidadesPerdidas.length > 0 && (
                   <WarningBox>
                     <AlertTriangle size={18} />
                     <span>
-                      Seu uso atual excede o plano {trocaPlano.nome}
-                      {preview.usoExcederiaNovoPlano.quadras && preview.usoExcederiaNovoPlano.estabelecimentos
-                        ? ' em quadras e estabelecimentos'
-                        : preview.usoExcederiaNovoPlano.quadras ? ' em quadras' : ' em estabelecimentos'}.
-                      {' '}Nada do que já existe será removido, mas novas criações ficarão bloqueadas até o uso caber
-                      no limite ou você escolher um plano maior.
+                      No {trocaPlano.nome} você deixa de acessar{' '}
+                      {listar(preview.funcionalidadesPerdidas.map((f) => ROTULOS_DE_FUNCIONALIDADE[f].toLowerCase()))}.
+                      {' '}Nada é apagado: os dados continuam guardados e voltam a aparecer se você subir de plano de novo.
                     </span>
                   </WarningBox>
                 )}
@@ -370,21 +372,17 @@ export default function OwnerPlans() {
   )
 }
 
-function BarraDeUso({ label, usado, limite }: { label: string; usado: number; limite: number | null | undefined }) {
-  const excedeu = limite !== null && limite !== undefined && usado > limite
-  const pct = limite == null ? 0 : limite === 0 ? 100 : (usado / limite) * 100
+/** "a, b e c" — a vírgula do meio e o "e" no fim, como se escreve. */
+function listar(itens: string[]): string {
+  if (itens.length <= 1) return itens.join('')
+  return `${itens.slice(0, -1).join(', ')} e ${itens[itens.length - 1]}`
+}
 
+function Numero({ label, valor }: { label: string; valor: number }) {
   return (
     <UsageItem>
       <UsageLabel>{label}</UsageLabel>
-      <UsageValue $exceeded={excedeu}>
-        {limite === undefined ? `${usado} cadastrados · escolha um plano` : `${usado} de ${limiteLabel(limite)}`}
-      </UsageValue>
-      {limite !== null && limite !== undefined && (
-        <UsageBar>
-          <UsageBarFill $pct={pct} $exceeded={excedeu} />
-        </UsageBar>
-      )}
+      <UsageValue $exceeded={false}>{valor}</UsageValue>
     </UsageItem>
   )
 }

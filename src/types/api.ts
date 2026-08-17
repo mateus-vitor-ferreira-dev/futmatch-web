@@ -414,14 +414,26 @@ export interface DrawResult {
     teams: DrawTeam[];
 }
 
+/**
+ * O que um degrau da grade abre no painel do parceiro.
+ *
+ * Espelha o enum `PlanFeature` da API. Fora daqui ficaram, de propósito,
+ * Solicitações, Meus Estabelecimentos e a própria tela de Planos: são como o dono
+ * entra na plataforma, o que ele já contratou e como ele paga — trancar qualquer um
+ * deixaria o cliente do lado de fora da própria assinatura.
+ */
+export type PlanFeature = "ESTATISTICAS" | "EQUIPAMENTOS" | "ESTOQUE";
+
 export interface Plan {
     id: string;
     nome: string;
     precoCentavos: number;
-    /** Nulo é sem limite, não zero — ver plan-limit.service.ts na API. */
-    maxQuadras: number | null;
-    maxEstabelecimentos: number | null;
-    maxModalidades: number | null;
+    /**
+     * O que o plano abre. **Lista vazia é o degrau de entrada, não plano quebrado** —
+     * cadastrar a arena e receber partidas não depende de funcionalidade nenhuma.
+     * Nenhum plano limita quantidade de quadras, espaços ou modalidades (api#278).
+     */
+    funcionalidades: PlanFeature[];
 }
 
 export interface SubscriptionUsage {
@@ -434,7 +446,7 @@ export interface SubscriptionUsage {
  *
  * Downgrade passa a valer no fim do ciclo: o dono usa até o fim o que já
  * pagou. Até lá, `SubscriptionStatus.plan` continua sendo o plano em vigor —
- * é ele que rege os limites — e isto aqui diz para onde vai.
+ * é ele que rege o acesso — e isto aqui diz para onde vai.
  */
 export interface TrocaAgendada {
     plan: Plan;
@@ -468,7 +480,11 @@ export interface SwitchPlanPreview {
     efetivaImediatamente: boolean;
     /** Quando o downgrade passa a valer. Null quando a troca é imediata. */
     valeAPartirDe: IsoDate | null;
-    usoExcederiaNovoPlano: { quadras: boolean; estabelecimentos: boolean } | null;
+    /**
+     * O que o dono deixa de acessar ao descer de degrau, para a tela avisar antes do
+     * clique. Vazio no upgrade. Nada é apagado: os dados ficam esperando um upgrade.
+     */
+    funcionalidadesPerdidas: PlanFeature[];
 }
 
 export type InventoryUnit = 'UNIDADE' | 'GARRAFA' | 'LATA' | 'PACOTE' | 'CAIXA' | 'QUILOGRAMA';

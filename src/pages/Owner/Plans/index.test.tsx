@@ -23,12 +23,12 @@ import { toast } from 'sonner'
 
 const basico: Plan = {
   id: 'basico', nome: 'Só+1 Básico', precoCentavos: 3990,
-  maxQuadras: 3, maxEstabelecimentos: 1, maxModalidades: 2,
+  funcionalidades: [],
 }
 
 const pro: Plan = {
   id: 'pro', nome: 'Só+1 Pro', precoCentavos: 7990,
-  maxQuadras: 10, maxEstabelecimentos: 3, maxModalidades: 5,
+  funcionalidades: ['ESTATISTICAS', 'EQUIPAMENTOS', 'ESTOQUE'],
 }
 
 const assinaturaPro: SubscriptionStatus = {
@@ -59,14 +59,36 @@ beforeEach(() => {
 })
 
 describe('OwnerPlans', () => {
-  it('compara os planos, destaca o atual e mostra uso ao lado do limite', async () => {
+  it('compara os planos, destaca o atual e mostra o tamanho do espaço', async () => {
     renderWithProviders(<OwnerPlans />)
 
     expect(await screen.findByText('Seu plano atual')).toBeInTheDocument()
-    expect(screen.getByText('6 de 10')).toBeInTheDocument()
-    expect(screen.getByText('2 de 3')).toBeInTheDocument()
     expect(screen.getByText('R$ 39,90')).toBeInTheDocument()
     expect(screen.getByText('R$ 79,90')).toBeInTheDocument()
+
+    // Número seco, sem "de N": nenhum plano tem teto desde a api#278, e "6 de 10"
+    // prometeria uma cota que não existe mais.
+    const espaco = screen.getByText('Seu espaço hoje').parentElement!
+    expect(espaco).toHaveTextContent('Quadras')
+    expect(espaco).toHaveTextContent('6')
+    expect(espaco).toHaveTextContent('Estabelecimentos')
+    expect(espaco).toHaveTextContent('2')
+    expect(espaco).not.toHaveTextContent(/\bde 10\b/)
+  })
+
+  it('compara por funcionalidade, e o plano de entrada não aparece vazio', async () => {
+    renderWithProviders(<OwnerPlans />)
+
+    await screen.findByText('Seu plano atual')
+
+    // Todo degrau mostra o que está incluso; só o Pro mostra as três funcionalidades.
+    expect(screen.getAllByText('Cadastrar a arena e as quadras')).toHaveLength(2)
+    expect(screen.getByText('Controle de estoque')).toBeInTheDocument()
+    expect(screen.getByText('Controle de equipamento')).toBeInTheDocument()
+
+    // E nada de teto de quantidade em lugar nenhum da tela.
+    expect(screen.queryByText(/modalidades/i)).not.toBeInTheDocument()
+    expect(screen.queryByText(/ilimitad/i)).not.toBeInTheDocument()
   })
 
   it('envia ao checkout exatamente o plano escolhido', async () => {
@@ -111,7 +133,7 @@ describe('OwnerPlans', () => {
     estimativaCobrancaCentavos: 0,
     efetivaImediatamente: false,
     valeAPartirDe: '2026-09-01T12:00:00.000Z',
-    usoExcederiaNovoPlano: { quadras: true, estabelecimentos: true },
+    funcionalidadesPerdidas: ['EQUIPAMENTOS', 'ESTOQUE'],
   }
 
   it('explica o downgrade antes de confirmar e só então efetiva a troca', async () => {
@@ -126,7 +148,7 @@ describe('OwnerPlans', () => {
 
     const dialogo = await screen.findByRole('dialog')
     expect(dialogo).toHaveTextContent('Em 01/09/2026')
-    expect(dialogo).toHaveTextContent('Nada do que já existe será removido')
+    expect(dialogo).toHaveTextContent('Nada é apagado')
     expect(switchPlan).not.toHaveBeenCalled()
 
     await user.click(screen.getByRole('button', { name: 'Confirmar troca' }))
@@ -154,7 +176,7 @@ describe('OwnerPlans', () => {
       estimativaCobrancaCentavos: 2000,
       efetivaImediatamente: true,
       valeAPartirDe: null,
-      usoExcederiaNovoPlano: null,
+      funcionalidadesPerdidas: [],
     })
     getStatus.mockResolvedValue({ ...assinaturaPro, plan: basico })
 
