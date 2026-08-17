@@ -44,7 +44,7 @@ describe('<AuthLayout /> — números do painel', () => {
 
     await waitFor(() => expect(screen.getByText('128')).toBeInTheDocument())
     expect(screen.getByText('jogadores na plataforma')).toBeInTheDocument()
-    expect(screen.getByText('peladas abertas')).toBeInTheDocument()
+    expect(screen.getByText('partidas abertas')).toBeInTheDocument()
     // "online" e "hoje" prometiam presença e recorte de dia, que a rota não
     // tem. O rótulo agora diz o que o número de fato é.
     expect(screen.queryByText('jogadores online')).not.toBeInTheDocument()
@@ -67,7 +67,7 @@ describe('<AuthLayout /> — números do painel', () => {
     renderiza()
 
     await waitFor(() => expect(screen.getByText('128')).toBeInTheDocument())
-    expect(screen.getByText('peladas abertas')).toBeInTheDocument()
+    expect(screen.getByText('partidas abertas')).toBeInTheDocument()
     expect(screen.getByText('arenas parceiras')).toBeInTheDocument()
     // Quarto do dado e os fixos não cabem — a linha tem três lugares.
     expect(screen.queryByText('cidades atendidas')).not.toBeInTheDocument()
@@ -98,7 +98,7 @@ describe('<AuthLayout /> — limiar por cartão', () => {
 
     renderiza()
 
-    await waitFor(() => expect(screen.getByText('peladas abertas')).toBeInTheDocument())
+    await waitFor(() => expect(screen.getByText('partidas abertas')).toBeInTheDocument())
     expect(screen.queryByText('jogadores na plataforma')).not.toBeInTheDocument()
     expect(screen.queryByText('49')).not.toBeInTheDocument()
   })
@@ -110,7 +110,7 @@ describe('<AuthLayout /> — limiar por cartão', () => {
 
     await waitFor(() => expect(screen.getByText('50')).toBeInTheDocument())
     expect(screen.getByText('jogadores na plataforma')).toBeInTheDocument()
-    expect(screen.getByText('peladas abertas')).toBeInTheDocument()
+    expect(screen.getByText('partidas abertas')).toBeInTheDocument()
   })
 
   it('cada cartão tem o seu limiar: 4 cidades passa, 4 jogadores não', async () => {

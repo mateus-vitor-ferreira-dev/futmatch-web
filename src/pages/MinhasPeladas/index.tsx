@@ -132,7 +132,7 @@ export default function MinhasPeladas() {
       setActiveTab('created')
       invalidarPeladas()
     } catch (error) {
-      toast.error(mensagemDeErro(error, 'Erro ao criar pelada'))
+      toast.error(mensagemDeErro(error, 'Erro ao criar partida'))
     }
   }
 
@@ -215,10 +215,10 @@ export default function MinhasPeladas() {
 
   const handleUpdateStatus = async (ev: Pelada, status: PeladaStatus) => {
     const label = status === 'FINISHED' ? 'finalizar' : 'cancelar'
-    if (!window.confirm(`Tem certeza que deseja ${label} esta pelada?`)) return
+    if (!window.confirm(`Tem certeza que deseja ${label} esta partida?`)) return
     try {
       await playerService.updateEventStatus(ev.courtId, ev.id, status)
-      toast.success(`Pelada ${status === 'FINISHED' ? 'finalizada' : 'cancelada'}.`)
+      toast.success(`Partida ${status === 'FINISHED' ? 'finalizada' : 'cancelada'}.`)
       invalidarPeladas()
     } catch (error) {
       toast.error(mensagemDeErro(error, 'Erro ao atualizar status.'))

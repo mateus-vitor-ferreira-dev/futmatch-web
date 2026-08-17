@@ -128,7 +128,7 @@ function montarCartoes(numeros: NumerosPublicos | null): Cartao[] {
     ? []
     : [
         { valor: numeros.jogadores,      minimo: LIMIARES.jogadores,      label: 'jogadores na plataforma' },
-        { valor: numeros.peladasAbertas, minimo: LIMIARES.peladasAbertas, label: 'peladas abertas'         },
+        { valor: numeros.peladasAbertas, minimo: LIMIARES.peladasAbertas, label: 'partidas abertas'        },
         { valor: numeros.arenas,         minimo: LIMIARES.arenas,         label: 'arenas parceiras'        },
         { valor: numeros.cidades,        minimo: LIMIARES.cidades,        label: 'cidades atendidas'       },
       ]

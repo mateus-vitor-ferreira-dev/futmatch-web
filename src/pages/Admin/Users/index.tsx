@@ -148,7 +148,7 @@ export default function AdminUsers() {
             <tr>
               <Th>Usuário</Th>
               <Th>Role</Th>
-              <Th center>Peladas</Th>
+              <Th center>Partidas</Th>
               <Th center>Locais</Th>
               <Th>Cadastro</Th>
               <Th>Ações</Th>

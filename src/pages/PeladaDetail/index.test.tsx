@@ -98,7 +98,7 @@ describe('PeladaDetail — botão de entrar', () => {
 
     abrePelada()
 
-    const botao = await screen.findByRole('button', { name: /entrar na pelada/i })
+    const botao = await screen.findByRole('button', { name: /entrar na partida/i })
     expect(botao).toBeEnabled()
   })
 
@@ -137,8 +137,8 @@ describe('PeladaDetail — botão de entrar', () => {
 
     abrePelada()
 
-    expect(await screen.findByText(/você é o organizador desta pelada/i)).toBeInTheDocument()
-    expect(screen.queryByRole('button', { name: /entrar na pelada/i })).not.toBeInTheDocument()
+    expect(await screen.findByText(/você é o organizador desta partida/i)).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /entrar na partida/i })).not.toBeInTheDocument()
   })
 
   it('some com o botão em pelada cancelada', async () => {
@@ -147,7 +147,7 @@ describe('PeladaDetail — botão de entrar', () => {
     abrePelada()
 
     expect(await screen.findByText(/cancelado/i)).toBeInTheDocument()
-    expect(screen.queryByRole('button', { name: /entrar na pelada/i })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /entrar na partida/i })).not.toBeInTheDocument()
   })
 })
 
@@ -164,7 +164,7 @@ describe('PeladaDetail — ação de entrar', () => {
     const { user } = abrePelada()
     expect(await screen.findByText('3 / 10 confirmados')).toBeInTheDocument()
 
-    await user.click(screen.getByRole('button', { name: /entrar na pelada/i }))
+    await user.click(screen.getByRole('button', { name: /entrar na partida/i }))
 
     expect(entraNaPelada).toHaveBeenCalledWith('quadra-1', 'pelada-1')
     // A tela só reflete a entrada porque recarrega a pelada depois do POST.
@@ -179,9 +179,9 @@ describe('PeladaDetail — ação de entrar', () => {
     entraNaPelada.mockRejectedValue(erroDaApi('Você já está em outra pelada neste horário'))
 
     const { user } = abrePelada()
-    await screen.findByRole('button', { name: /entrar na pelada/i })
+    await screen.findByRole('button', { name: /entrar na partida/i })
 
-    await user.click(screen.getByRole('button', { name: /entrar na pelada/i }))
+    await user.click(screen.getByRole('button', { name: /entrar na partida/i }))
 
     await waitFor(() => {
       expect(toast.error).toHaveBeenCalledWith('Você já está em outra pelada neste horário')
@@ -194,7 +194,7 @@ describe('PeladaDetail — ação de entrar', () => {
     )
 
     abrePelada()
-    await screen.findByRole('button', { name: /entrar na pelada/i })
+    await screen.findByRole('button', { name: /entrar na partida/i })
 
     // De fora, a chave de cobrança não interessa — e não é da conta de quem
     // ainda não se comprometeu com o rateio.
@@ -231,7 +231,7 @@ describe('PeladaDetail — sair da pelada', () => {
 
     abrePelada()
 
-    expect(await screen.findByRole('button', { name: /sair da pelada/i })).toBeEnabled()
+    expect(await screen.findByRole('button', { name: /sair da partida/i })).toBeEnabled()
   })
 
   it('não oferece sair para quem está de fora', async () => {
@@ -240,9 +240,9 @@ describe('PeladaDetail — sair da pelada', () => {
     )
 
     abrePelada()
-    await screen.findByRole('button', { name: /entrar na pelada/i })
+    await screen.findByRole('button', { name: /entrar na partida/i })
 
-    expect(screen.queryByRole('button', { name: /sair da pelada/i })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /sair da partida/i })).not.toBeInTheDocument()
   })
 
   it('não oferece sair para o organizador — para ele existe cancelar', async () => {
@@ -255,9 +255,9 @@ describe('PeladaDetail — sair da pelada', () => {
     )
 
     abrePelada()
-    await screen.findByText(/você é o organizador desta pelada/i)
+    await screen.findByText(/você é o organizador desta partida/i)
 
-    expect(screen.queryByRole('button', { name: /sair da pelada/i })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /sair da partida/i })).not.toBeInTheDocument()
     expect(screen.getByRole('button', { name: /cancelar/i })).toBeInTheDocument()
   })
 
@@ -269,7 +269,7 @@ describe('PeladaDetail — sair da pelada', () => {
       abrePelada()
       await screen.findByText(/\d+ \/ \d+ confirmados/)
 
-      expect(screen.queryByRole('button', { name: /sair da pelada/i })).not.toBeInTheDocument()
+      expect(screen.queryByRole('button', { name: /sair da partida/i })).not.toBeInTheDocument()
     },
   )
 
@@ -277,10 +277,10 @@ describe('PeladaDetail — sair da pelada', () => {
     buscaPelada.mockResolvedValue(peladaComOUsuarioDentro())
     const { user } = abrePelada()
 
-    await user.click(await screen.findByRole('button', { name: /sair da pelada/i }))
+    await user.click(await screen.findByRole('button', { name: /sair da partida/i }))
 
     expect(screen.getByRole('dialog')).toBeInTheDocument()
-    expect(screen.getByText('Sair desta pelada?')).toBeInTheDocument()
+    expect(screen.getByText('Sair desta partida?')).toBeInTheDocument()
     expect(saiDaPelada).not.toHaveBeenCalled()
   })
 
@@ -288,8 +288,8 @@ describe('PeladaDetail — sair da pelada', () => {
     buscaPelada.mockResolvedValue(peladaComOUsuarioDentro())
     const { user } = abrePelada()
 
-    await user.click(await screen.findByRole('button', { name: /sair da pelada/i }))
-    await user.click(screen.getByRole('button', { name: /continuar na pelada/i }))
+    await user.click(await screen.findByRole('button', { name: /sair da partida/i }))
+    await user.click(screen.getByRole('button', { name: /continuar na partida/i }))
 
     await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument())
     expect(saiDaPelada).not.toHaveBeenCalled()
@@ -305,7 +305,7 @@ describe('PeladaDetail — sair da pelada', () => {
     const { user } = abrePelada()
     expect(await screen.findByText('4 / 10 confirmados')).toBeInTheDocument()
 
-    await user.click(screen.getByRole('button', { name: /sair da pelada/i }))
+    await user.click(screen.getByRole('button', { name: /sair da partida/i }))
     await user.click(screen.getByRole('button', { name: /confirmar saída/i }))
 
     await waitFor(() => {
@@ -313,14 +313,14 @@ describe('PeladaDetail — sair da pelada', () => {
     })
     // A vaga liberada tem que aparecer: é o efeito que o jogador foi buscar.
     expect(await screen.findByText('3 / 10 confirmados')).toBeInTheDocument()
-    expect(await screen.findByRole('button', { name: /entrar na pelada/i })).toBeEnabled()
+    expect(await screen.findByRole('button', { name: /entrar na partida/i })).toBeEnabled()
   })
 
   it('envia o motivo quando o jogador escreve um', async () => {
     buscaPelada.mockResolvedValue(peladaComOUsuarioDentro())
     const { user } = abrePelada()
 
-    await user.click(await screen.findByRole('button', { name: /sair da pelada/i }))
+    await user.click(await screen.findByRole('button', { name: /sair da partida/i }))
     await user.type(screen.getByLabelText(/quer dizer o motivo/i), 'me machuquei no treino')
     await user.click(screen.getByRole('button', { name: /confirmar saída/i }))
 
@@ -333,7 +333,7 @@ describe('PeladaDetail — sair da pelada', () => {
     buscaPelada.mockResolvedValue(peladaComOUsuarioDentro())
     const { user } = abrePelada()
 
-    await user.click(await screen.findByRole('button', { name: /sair da pelada/i }))
+    await user.click(await screen.findByRole('button', { name: /sair da partida/i }))
     await user.type(screen.getByLabelText(/quer dizer o motivo/i), '   ')
     await user.click(screen.getByRole('button', { name: /confirmar saída/i }))
 
@@ -346,7 +346,7 @@ describe('PeladaDetail — sair da pelada', () => {
     buscaPelada.mockResolvedValue(peladaComOUsuarioDentro())
     const { user } = abrePelada()
 
-    await user.click(await screen.findByRole('button', { name: /sair da pelada/i }))
+    await user.click(await screen.findByRole('button', { name: /sair da partida/i }))
     const campo = screen.getByLabelText(/quer dizer o motivo/i)
 
     // 200 é o limite do leavePeladaSchema no backend. Cortar aqui evita um
@@ -361,7 +361,7 @@ describe('PeladaDetail — sair da pelada', () => {
     saiDaPelada.mockRejectedValue(erroDaApi('A pelada já foi finalizada', 422))
     const { user } = abrePelada()
 
-    await user.click(await screen.findByRole('button', { name: /sair da pelada/i }))
+    await user.click(await screen.findByRole('button', { name: /sair da partida/i }))
     await user.click(screen.getByRole('button', { name: /confirmar saída/i }))
 
     await waitFor(() => {

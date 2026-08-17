@@ -135,7 +135,7 @@ export default function OwnerPlaces() {
       <StatsRow>
         <StatCard label="Estabelecimentos" value={places.length} accent="#f59e0b" />
         <StatCard label="Quadras"          value={totalCourts}   accent="#22c55e" />
-        <StatCard label="Peladas Ativas"   value={totalEvents}   accent="#3b82f6" />
+        <StatCard label="Partidas Ativas"  value={totalEvents}   accent="#3b82f6" />
         <StatCard label="Avaliação Média"  value={avgRating ? `${avgRating} ★` : '—'} accent="#f59e0b" />
       </StatsRow>
 
