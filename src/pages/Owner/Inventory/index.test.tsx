@@ -9,8 +9,15 @@ vi.mock('../../../contexts/AuthContext', () => ({
   AuthProvider: ({ children }: { children: React.ReactNode }) => children,
   useAuth: () => ({ user: { id: 'owner-1', name: 'Dono', role: 'OWNER' } }),
 }))
-vi.mock('../../../hooks/useSubscription', () => ({
-  useSubscription: () => ({ sub: null, ...subscriptionState }),
+// `importOriginal` porque o SubscriptionGate, que a tela passou a usar desde a
+// #244, importa `diasDeToleranciaRestantes` deste mesmo módulo.
+vi.mock('../../../hooks/useSubscription', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('../../../hooks/useSubscription')>()),
+  useSubscription: () => ({
+    sub: null,
+    ...subscriptionState,
+    podeAlterar: subscriptionState.isActive && !subscriptionState.loading,
+  }),
 }))
 vi.mock('../../../components/DashboardLayout', () => ({ default: ({ children }: { children: React.ReactNode }) => <main>{children}</main> }))
 vi.mock('../../../services/places')
@@ -122,7 +129,7 @@ describe('OwnerInventory', () => {
     renderWithProviders(<OwnerInventory />, { route: '/owner/inventory?placeId=place-1' })
 
     expect(await screen.findByRole('heading', { name: 'Gatorade' })).toBeInTheDocument()
-    expect(screen.getByText(/pode consultar o estoque/i)).toBeInTheDocument()
+    expect(screen.getByText(/pode consultar, mas precisa de uma assinatura ativa/i)).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Registrar venda' })).toBeDisabled()
     expect(screen.getByRole('button', { name: 'Novo produto' })).toBeDisabled()
   })

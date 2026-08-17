@@ -61,7 +61,7 @@ function localDate(date: string) {
 
 export default function OwnerEquipment() {
   const { user } = useAuth()
-  const { sub, isActive, loading: subLoading } = useSubscription()
+  const { sub, isActive, loading: subLoading, podeAlterar } = useSubscription()
   const [searchParams, setSearchParams] = useSearchParams()
   const [places, setPlaces] = useState<Place[]>([])
   const [placeId, setPlaceId] = useState(searchParams.get('placeId') ?? '')
@@ -217,7 +217,7 @@ export default function OwnerEquipment() {
           </Select>
           <ToolbarActions>
             <SecondaryButton type="button" onClick={refresh} disabled={!placeId || loading}><RefreshCcw size={16} /> Atualizar</SecondaryButton>
-            <PrimaryButton type="button" onClick={() => setItemModal('new')} disabled={!placeId}><Plus size={17} /> Novo equipamento</PrimaryButton>
+            <PrimaryButton type="button" onClick={() => setItemModal('new')} disabled={!placeId || !podeAlterar}><Plus size={17} /> Novo equipamento</PrimaryButton>
           </ToolbarActions>
         </Toolbar>
 
@@ -248,7 +248,7 @@ export default function OwnerEquipment() {
                     {loan.pelada ? `${loan.pelada.court?.name ?? 'Pelada'} · ${localDate(loan.pelada.date)}` : 'Sem pelada vinculada'}
                     {loan.observacao && <><br />{loan.observacao}</>}
                   </LoanInfo>
-                  <CardActions><PrimaryButton type="button" onClick={() => setSettlementModal(loan)}><Undo2 size={16} /> Devolver / baixar</PrimaryButton></CardActions>
+                  <CardActions><PrimaryButton type="button" onClick={() => setSettlementModal(loan)} disabled={!podeAlterar}><Undo2 size={16} /> Devolver / baixar</PrimaryButton></CardActions>
                 </Card>
               ))}
             </Grid>
@@ -266,8 +266,8 @@ export default function OwnerEquipment() {
                   </CardTop>
                   <Quantity><strong>{item.quantidadeDisponivel}</strong> disponíveis de {item.quantidadeTotal}</Quantity>
                   <CardActions>
-                    <SecondaryButton type="button" onClick={() => setItemModal(item)}>Editar</SecondaryButton>
-                    <PrimaryButton type="button" onClick={() => setLoanModal(item)} disabled={item.quantidadeDisponivel < 1 || ['MANUTENCAO', 'INATIVO'].includes(item.estado)}>Registrar saída</PrimaryButton>
+                    <SecondaryButton type="button" onClick={() => setItemModal(item)} disabled={!podeAlterar}>Editar</SecondaryButton>
+                    <PrimaryButton type="button" onClick={() => setLoanModal(item)} disabled={!podeAlterar || item.quantidadeDisponivel < 1 || ['MANUTENCAO', 'INATIVO'].includes(item.estado)}>Registrar saída</PrimaryButton>
                   </CardActions>
                 </Card>
               ))}

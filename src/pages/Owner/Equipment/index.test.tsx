@@ -5,17 +5,27 @@ import { renderWithProviders } from '../../../test/render'
 import OwnerEquipment from './index'
 import type { Equipment, EquipmentLoan, Place } from '../../../types/api'
 
+const assinatura = vi.hoisted(() => ({ isActive: true, loading: false }))
+
 vi.mock('../../../services/places')
 vi.mock('../../../services/equipmentService')
 vi.mock('../../../contexts/AuthContext', () => ({
   useAuth: () => ({ user: { id: 'owner-1', name: 'Dono', role: 'OWNER' } }),
   AuthProvider: ({ children }: { children: ReactNode }) => <>{children}</>,
 }))
-vi.mock('../../../hooks/useSubscription', () => ({
-  useSubscription: () => ({ sub: { status: 'active' }, isActive: true, loading: false }),
+// O SubscriptionGate deixou de ser mockado na #244: agora ele só avisa, e é
+// dele que sai a faixa que o caso de assinatura inativa procura.
+// `importOriginal` porque o componente importa `diasDeToleranciaRestantes`
+// deste mesmo módulo.
+vi.mock('../../../hooks/useSubscription', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('../../../hooks/useSubscription')>()),
+  useSubscription: () => ({
+    sub: { status: 'active' },
+    ...assinatura,
+    podeAlterar: assinatura.isActive && !assinatura.loading,
+  }),
 }))
 vi.mock('../../../components/DashboardLayout', () => ({ default: ({ children }: { children: ReactNode }) => <main>{children}</main> }))
-vi.mock('../../../components/SubscriptionGate', () => ({ default: ({ children }: { children: ReactNode }) => <>{children}</> }))
 vi.mock('sonner', () => ({ toast: { success: vi.fn(), error: vi.fn() } }))
 
 import * as placesService from '../../../services/places'
@@ -42,6 +52,8 @@ const loan = {
 
 beforeEach(() => {
   vi.clearAllMocks()
+  assinatura.isActive = true
+  assinatura.loading = false
   vi.mocked(placesService.list).mockResolvedValue({ data: { success: true, data: [place] } } as Awaited<ReturnType<typeof placesService.list>>)
   vi.mocked(equipmentService.listItems).mockResolvedValue([equipment])
   vi.mocked(equipmentService.listLoans).mockResolvedValue([loan])
@@ -79,5 +91,38 @@ describe('OwnerEquipment', () => {
 
     expect(screen.getByText(/Perda ou quebra reduz a quantidade total/)).toBeInTheDocument()
     expect(screen.getByText(/Pode devolver só uma parte agora/)).toBeInTheDocument()
+  })
+})
+
+/**
+ * A #244: esta tela escondia tudo com a assinatura vencida, enquanto o Estoque,
+ * na mesma navegação lateral, deixava consultar e só travava a edição. Quem
+ * segue o contrato do servidor é o Estoque.
+ */
+describe('OwnerEquipment — assinatura inativa', () => {
+  it('mantém o equipamento à vista e desabilita as ações que gravam', async () => {
+    assinatura.isActive = false
+
+    renderWithProviders(<OwnerEquipment />, { route: '/owner/equipment?placeId=place-1' })
+
+    // Dois cartões trazem o nome: o do empréstimo em aberto e o do equipamento.
+    expect(await screen.findAllByText('Bolas de beach tennis')).not.toHaveLength(0)
+    expect(screen.getByText(/pode consultar, mas precisa de uma assinatura ativa/i)).toBeInTheDocument()
+
+    expect(screen.getByRole('button', { name: /novo equipamento/i })).toBeDisabled()
+    expect(screen.getByRole('button', { name: 'Editar' })).toBeDisabled()
+    expect(screen.getByRole('button', { name: /registrar saída/i })).toBeDisabled()
+    expect(screen.getByRole('button', { name: /devolver \/ baixar/i })).toBeDisabled()
+
+    // Atualizar é leitura — continua valendo.
+    expect(screen.getByRole('button', { name: /atualizar/i })).toBeEnabled()
+  })
+
+  it('com assinatura em dia, nada é avisado nem desabilitado', async () => {
+    renderWithProviders(<OwnerEquipment />, { route: '/owner/equipment?placeId=place-1' })
+
+    expect(await screen.findAllByText('Bolas de beach tennis')).not.toHaveLength(0)
+    expect(screen.queryByText(/pode consultar, mas precisa/i)).not.toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /novo equipamento/i })).toBeEnabled()
   })
 })

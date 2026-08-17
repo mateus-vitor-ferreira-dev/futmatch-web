@@ -70,6 +70,24 @@ export function useSubscription(): {
   sub: SubscriptionStatus | null
   isActive: boolean
   loading: boolean
+  /**
+   * Pode gravar? **Leitura é livre; escrita exige assinatura em dia.**
+   *
+   * É a regra do servidor, dita em uma linha: em todos os módulos o
+   * `requireActiveSubscription` está nos `POST`/`PATCH`/`DELETE` e nunca nos
+   * `GET`. Existe até teste escrito para dizer isso de propósito — *"dono sem
+   * assinatura ainda consulta as próprias solicitações"*, em
+   * `place-request.test.ts`.
+   *
+   * Sai daqui, e não de cada tela, porque era exatamente isso que a #244
+   * apontou: quatro telas escondiam tudo e o Estoque só travava a edição, sem
+   * nada escrito dizendo qual das duas estava certa.
+   *
+   * Inclui o `!loading` de propósito: enquanto o status não chegou, ninguém
+   * grava. Foi liberar clique nesse instante que criou o beco da #119 — o dono
+   * preenchia o formulário inteiro para levar 402 no fim.
+   */
+  podeAlterar: boolean
   /** Funcionalidades do plano em vigor. Vazio sem assinatura. */
   funcionalidades: PlanFeature[]
   temFuncionalidade: (funcionalidade: PlanFeature) => boolean
@@ -100,10 +118,13 @@ export function useSubscription(): {
     [ehAdmin, funcionalidades],
   )
 
+  const isActive = ehAdmin || estaEmDia(sub)
+
   return {
     sub,
-    isActive: ehAdmin || estaEmDia(sub),
+    isActive,
     loading,
+    podeAlterar: isActive && !loading,
     funcionalidades,
     temFuncionalidade,
   }

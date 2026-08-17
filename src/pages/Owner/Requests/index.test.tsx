@@ -19,15 +19,25 @@ import { envelope, erroDaApi } from '../../../test/factories'
 import OwnerRequests from './index'
 import type { ApiEnvelope, PlaceRequest } from '../../../types/api'
 
+const assinatura = vi.hoisted(() => ({ isActive: true, loading: false }))
+
 vi.mock('../../../services/placeRequests')
 vi.mock('../../../contexts/AuthContext', () => ({
   useAuth: () => ({ user: { id: 'owner-1', name: 'Dono', role: 'OWNER' } }),
   AuthProvider: ({ children }: { children: ReactNode }) => <>{children}</>,
 }))
-vi.mock('../../../hooks/useSubscription', () => ({
-  useSubscription: () => ({ sub: { status: 'active' }, isActive: true, loading: false }),
+// O SubscriptionGate deixou de ser mockado na #244: agora ele só avisa, e é
+// dele que sai a faixa que o caso de assinatura inativa procura.
+// `importOriginal` porque o componente importa `diasDeToleranciaRestantes`
+// deste mesmo módulo.
+vi.mock('../../../hooks/useSubscription', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('../../../hooks/useSubscription')>()),
+  useSubscription: () => ({
+    sub: { status: 'active' },
+    ...assinatura,
+    podeAlterar: assinatura.isActive && !assinatura.loading,
+  }),
 }))
-vi.mock('../../../components/SubscriptionGate', () => ({ default: ({ children }: { children: ReactNode }) => <>{children}</> }))
 vi.mock('../../../components/DashboardLayout/pageHeader', () => ({
   usePageHeader: () => {},
   PageActions: ({ children }: { children: ReactNode }) => <>{children}</>,
@@ -49,6 +59,8 @@ function resposta<T>(data: T) {
 
 beforeEach(() => {
   vi.clearAllMocks()
+  assinatura.isActive = true
+  assinatura.loading = false
   listarMinhas.mockResolvedValue(resposta<PlaceRequest[]>([]))
   criar.mockResolvedValue(resposta({} as PlaceRequest))
 })
@@ -150,5 +162,34 @@ describe('OwnerRequests — formulário de nova solicitação', () => {
 
     await waitFor(() => expect(criar).toHaveBeenCalled())
     expect(criar.mock.calls[0][0]).toMatchObject({ complement: 'quadra 2' })
+  })
+})
+
+/**
+ * A #244: esta tela escondia tudo com a assinatura vencida, enquanto o Estoque,
+ * na mesma navegação lateral, deixava consultar e só travava a edição. Quem
+ * segue o contrato do servidor é o Estoque — `requireActiveSubscription` está
+ * só nos verbos de escrita.
+ */
+describe('OwnerRequests — assinatura inativa', () => {
+  it('mantém a consulta e desabilita a nova solicitação', async () => {
+    assinatura.isActive = false
+    listarMinhas.mockResolvedValue(resposta<PlaceRequest[]>([
+      { id: 'req-1', city: 'Lavras', status: 'PENDING' } as PlaceRequest,
+    ]))
+
+    renderWithProviders(<OwnerRequests />)
+
+    await waitFor(() => expect(listarMinhas).toHaveBeenCalled())
+    expect(screen.getByText(/pode consultar, mas precisa de uma assinatura ativa/i)).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /nova solicitação/i })).toBeDisabled()
+  })
+
+  it('com assinatura em dia, nada é avisado nem desabilitado', async () => {
+    renderWithProviders(<OwnerRequests />)
+
+    await waitFor(() => expect(listarMinhas).toHaveBeenCalled())
+    expect(screen.queryByText(/pode consultar, mas precisa/i)).not.toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /nova solicitação/i })).toBeEnabled()
   })
 })
