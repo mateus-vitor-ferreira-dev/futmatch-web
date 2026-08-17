@@ -9,6 +9,7 @@ import {
   Logo, LogoIcon, LogoText, LogoName, LogoTagline,
   LeftCenter, Headline, HeadlineDesc,
   WheelTrack, WheelItem, WheelIcon, WheelText, WheelName, WheelSub,
+  WHEEL_ITEM_HEIGHT,
   StatsRow, StatCard, StatValue, StatLabel,
   LeftQuote, RightPanel, Card,
 } from './styles'
@@ -48,8 +49,14 @@ const SPORT_IMAGES: Partial<Record<CourtType, string>> = {
   POKER:        imgPoker,
 }
 
-/** Altura de cada item na roda de modalidades (px) */
-const ITEM_HEIGHT = 56
+/**
+ * Distância entre os centros de dois itens vizinhos da roda (px).
+ *
+ * É a própria altura do cartão, importada de `styles.ts` em vez de repetida
+ * aqui: são dois números que precisam ser o mesmo, e mantê-los separados foi
+ * o que deixou o item em foco maior que o espaço reservado para ele (#243).
+ */
+const ITEM_HEIGHT = WHEEL_ITEM_HEIGHT
 /** Intervalo de rotação automática da roda (ms) */
 const INTERVAL    = 3000
 
@@ -265,7 +272,13 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
               if (Math.abs(d) > 2) return null // fora da janela visível
               const slot     = SLOTS[d] ?? SLOT_PADRAO
               const isActive = d === 0
-              const top      = trackCenter + d * ITEM_HEIGHT - ITEM_HEIGHT / 2
+              /**
+               * `top` marca o centro do slot, e o `translateY(-50%)` abaixo
+               * puxa o cartão meia altura para cima — a âncora é o centro, não
+               * o topo. Com a âncora no topo, qualquer sobra de altura caía
+               * inteira para baixo, em cima do vizinho.
+               */
+              const top      = trackCenter + d * ITEM_HEIGHT
 
               return (
                 <WheelItem
@@ -273,7 +286,7 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
                   $active={isActive}
                   style={{
                     top,
-                    transform: `scale(${slot.scale})`,
+                    transform: `translateY(-50%) scale(${slot.scale})`,
                     opacity: slot.opacity,
                     zIndex: isActive ? 5 : 4 - Math.abs(d),
                   }}
@@ -282,7 +295,9 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
                   <WheelIcon $active={isActive}>{sport.icon}</WheelIcon>
                   <WheelText>
                     <WheelName $active={isActive}>{sport.label}</WheelName>
-                    {isActive && <WheelSub>{sport.description}</WheelSub>}
+                    {/* renderizada sempre — é ela que iguala a altura dos
+                        cartões; fora do foco fica invisível, sem sair do fluxo */}
+                    <WheelSub $active={isActive}>{sport.description}</WheelSub>
                   </WheelText>
                 </WheelItem>
               )
