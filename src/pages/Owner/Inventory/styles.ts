@@ -43,26 +43,6 @@ export const FilterToggle = styled.label`
   }
 `
 
-export const SubscriptionNotice = styled.div`
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  margin-bottom: 20px;
-  padding: 12px 14px;
-  border: 1px solid ${({ theme }) => theme.colors.warning};
-  border-radius: 10px;
-  background: ${({ theme }) => theme.colors.warningLight};
-  color: ${({ theme }) => theme.colors.warningText};
-  font-size: ${({ theme }) => theme.fontSizes.sm};
-
-  a {
-    color: inherit;
-    font-weight: ${({ theme }) => theme.fontWeights.bold};
-    white-space: nowrap;
-  }
-`
-
 export const Label = styled.label`
   display: block;
   margin-bottom: 6px;

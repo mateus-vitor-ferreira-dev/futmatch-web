@@ -51,7 +51,7 @@ type FormValues = yup.InferType<typeof schema>
 export default function OwnerCourts() {
   const { placeId } = useParams<{ placeId: string }>()
   const navigate = useNavigate()
-  const { sub, isActive, loading: subLoading } = useSubscription()
+  const { sub, isActive, loading: subLoading, podeAlterar } = useSubscription()
 
   const [place, setPlace]       = useState<Place | null>(null)
   const [courts, setCourts]     = useState<Court[]>([])
@@ -169,7 +169,11 @@ export default function OwnerCourts() {
 
   return (
     <>
-      <PageActions><NewBtn onClick={openCreate}>+ Nova Quadra</NewBtn></PageActions>
+      {/* Ficava clicável com a assinatura vencida, porque mora fora do
+          portão: o conteúdo abaixo era apagado e este botão não. */}
+      <PageActions>
+        <NewBtn onClick={openCreate} disabled={!podeAlterar}>+ Nova Quadra</NewBtn>
+      </PageActions>
       <SubscriptionGate isActive={isActive} loading={subLoading} sub={sub}>
         <BackBtn onClick={() => navigate('/owner/places')}>
           <ArrowLeft size={15} />
@@ -206,20 +210,20 @@ export default function OwnerCourts() {
                 </CourtCardHeader>
 
                 <CourtActions>
-                  <ActionBtn variant="secondary" onClick={() => openEdit(court)}>
+                  <ActionBtn variant="secondary" onClick={() => openEdit(court)} disabled={!podeAlterar}>
                     Editar
                   </ActionBtn>
                   <ActionBtn
                     variant={court.status === 'OPEN' ? 'danger' : 'success'}
                     onClick={() => handleToggleStatus(court)}
-                    disabled={toggling === court.id}
+                    disabled={toggling === court.id || !podeAlterar}
                   >
                     {toggling === court.id ? '...' : court.status === 'OPEN' ? 'Fechar' : 'Abrir'}
                   </ActionBtn>
                   <ActionBtn
                     variant="danger"
                     onClick={() => handleDelete(court)}
-                    disabled={deleting === court.id}
+                    disabled={deleting === court.id || !podeAlterar}
                   >
                     {deleting === court.id ? '...' : 'Excluir'}
                   </ActionBtn>

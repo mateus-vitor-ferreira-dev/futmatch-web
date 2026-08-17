@@ -3,10 +3,11 @@ import { usePageHeader } from '../../../components/DashboardLayout/pageHeader'
 import {
   AlertTriangle, ArrowDown, ArrowUp, History, Loader2, Package, Plus, ShoppingCart,
 } from 'lucide-react'
-import { Link, useSearchParams } from 'react-router-dom'
+import { useSearchParams } from 'react-router-dom'
 import { toast } from 'sonner'
 import { useAuth } from '../../../contexts/AuthContext'
 import { useSubscription } from '../../../hooks/useSubscription'
+import SubscriptionGate from '../../../components/SubscriptionGate'
 import { inventoryService } from '../../../services/inventoryService'
 import type { MovementInput, ProductInput } from '../../../services/inventoryService'
 import * as placesService from '../../../services/places'
@@ -21,7 +22,7 @@ import {
   HeaderActions, HistoryCard, HistoryHeader, HistoryItem, HistoryList, Input, Label, Modal,
   ModalActions, ModalBox, ModalOverlay, PageGrid, PrimaryButton, ProductCard, ProductGrid,
   ProductHeader, ProductMeta, QuickSale, SaleButton, SecondaryButton, Select, StockNumber,
-  StockSummary, SubscriptionNotice, SummaryCard, Textarea, Toolbar,
+  StockSummary, SummaryCard, Textarea, Toolbar,
 } from './styles'
 
 const UNIDADES: Array<{ value: InventoryUnit; label: string }> = [
@@ -53,7 +54,7 @@ type MovementModal = { product: InventoryProduct; tipo: InventoryMovementType }
 
 export default function OwnerInventory() {
   const { user } = useAuth()
-  const { isActive, loading: subLoading } = useSubscription()
+  const { sub, isActive, loading: subLoading, podeAlterar } = useSubscription()
   const [searchParams, setSearchParams] = useSearchParams()
   const [places, setPlaces] = useState<Place[]>([])
   const [products, setProducts] = useState<InventoryProduct[]>([])
@@ -74,7 +75,6 @@ export default function OwnerInventory() {
   const [saleQuantities, setSaleQuantities] = useState<Record<string, string>>({})
 
   const placeId = searchParams.get('placeId') ?? ''
-  const canMutate = isActive && !subLoading
 
   useEffect(() => {
     placesService.list().then((res) => {
@@ -136,7 +136,7 @@ export default function OwnerInventory() {
   }
 
   const saveProduct = async () => {
-    if (!canMutate || !placeId) return
+    if (!podeAlterar || !placeId) return
     if (!productForm.nome.trim()) {
       toast.error('Informe o nome do produto.')
       return
@@ -162,7 +162,7 @@ export default function OwnerInventory() {
   }
 
   const deactivateProduct = async (product: InventoryProduct, askConfirmation = true) => {
-    if (!canMutate || !placeId) return
+    if (!podeAlterar || !placeId) return
     if (askConfirmation && !window.confirm(`Desativar o produto "${product.nome}"?`)) return
 
     try {
@@ -179,7 +179,7 @@ export default function OwnerInventory() {
   }
 
   const deleteProduct = async (product: InventoryProduct) => {
-    if (!canMutate || !placeId) return
+    if (!podeAlterar || !placeId) return
     if (!window.confirm(`Excluir o produto "${product.nome}"? Esta ação não pode ser desfeita.`)) return
 
     try {
@@ -206,7 +206,7 @@ export default function OwnerInventory() {
   }
 
   const sell = async (product: InventoryProduct) => {
-    if (!canMutate) return
+    if (!podeAlterar) return
     const quantidade = Math.max(1, Number(saleQuantities[product.id]) || 1)
 
     try {
@@ -242,7 +242,7 @@ export default function OwnerInventory() {
     : [['VENDA', 'Venda'], ['PERDA', 'Perda'], ['AJUSTE', 'Ajuste']] as Array<[InventoryMovementReason, string]>, [movementForm.tipo])
 
   const saveMovement = async () => {
-    if (!canMutate || !movementModal) return
+    if (!podeAlterar || !movementModal) return
     if (movementForm.quantidade < 1) {
       toast.error('Informe uma quantidade válida.')
       return
@@ -265,6 +265,7 @@ export default function OwnerInventory() {
 
   return (
     <>
+      <SubscriptionGate isActive={isActive} loading={subLoading} sub={sub}>
       <Toolbar>
         <div>
           <Label htmlFor="place">Estabelecimento</Label>
@@ -291,18 +292,11 @@ export default function OwnerInventory() {
             />
             Só estoque baixo
           </FilterToggle>
-          <PrimaryButton onClick={openNew} disabled={!placeId || !canMutate}>
+          <PrimaryButton onClick={openNew} disabled={!placeId || !podeAlterar}>
             <Plus size={18} /> Novo produto
           </PrimaryButton>
         </HeaderActions>
       </Toolbar>
-
-      {!canMutate && !subLoading && (
-        <SubscriptionNotice role="status">
-          Você pode consultar o estoque, mas precisa de uma assinatura ativa para alterá-lo.
-          <Link to="/owner/dashboard">Ver assinatura</Link>
-        </SubscriptionNotice>
-      )}
 
       {!placeId ? (
         <EmptyState>Nenhum estabelecimento disponível para controlar estoque.</EmptyState>
@@ -367,22 +361,22 @@ export default function OwnerInventory() {
                         />
                         <SaleButton
                           onClick={() => { void sell(product) }}
-                          disabled={saving || !canMutate || product.saldoAtual === 0}
+                          disabled={saving || !podeAlterar || product.saldoAtual === 0}
                         >
                           <ShoppingCart size={18} /> Registrar venda
                         </SaleButton>
                       </QuickSale>
                       <Actions>
-                        <SecondaryButton disabled={!canMutate} onClick={() => openMovement(product, 'ENTRADA')}>
+                        <SecondaryButton disabled={!podeAlterar} onClick={() => openMovement(product, 'ENTRADA')}>
                           <ArrowUp size={16} /> Entrada
                         </SecondaryButton>
-                        <SecondaryButton disabled={!canMutate} onClick={() => openMovement(product, 'SAIDA')}>
+                        <SecondaryButton disabled={!podeAlterar} onClick={() => openMovement(product, 'SAIDA')}>
                           <ArrowDown size={16} /> Perda/saída
                         </SecondaryButton>
                         <SecondaryButton onClick={() => setHistoryProductId(product.id)}>
                           <History size={16} /> Histórico
                         </SecondaryButton>
-                        <SecondaryButton disabled={!canMutate} onClick={() => openEdit(product)}>
+                        <SecondaryButton disabled={!podeAlterar} onClick={() => openEdit(product)}>
                           Editar
                         </SecondaryButton>
                       </Actions>
@@ -573,6 +567,7 @@ export default function OwnerInventory() {
           </ModalBox>
         </Modal>
       )}
+      </SubscriptionGate>
     </>
   )
 }

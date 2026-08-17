@@ -84,7 +84,7 @@ function paraAApi(dados: FormularioSolicitacao): PlaceRequestInput {
 }
 
 export default function OwnerRequests() {
-  const { sub, isActive, loading: subLoading } = useSubscription()
+  const { sub, isActive, loading: subLoading, podeAlterar } = useSubscription()
   const [requests, setRequests]   = useState<PlaceRequest[]>([])
   const [loading, setLoading]     = useState(true)
   const [error, setError]         = useState<string | null>(null)
@@ -146,7 +146,11 @@ export default function OwnerRequests() {
 
   return (
     <>
-      <PageActions><NewBtn onClick={() => setShowModal(true)}>+ Nova Solicitação</NewBtn></PageActions>
+      {/* Ficava clicável com a assinatura vencida, porque mora fora do
+          portão: o conteúdo abaixo era apagado e este botão não. */}
+      <PageActions>
+        <NewBtn onClick={() => setShowModal(true)} disabled={!podeAlterar}>+ Nova Solicitação</NewBtn>
+      </PageActions>
       <SubscriptionGate isActive={isActive} loading={subLoading} sub={sub}>
       <StatsRow>
         <StatCard label="Total Enviadas" value={counts.total}    accent="#3b82f6" />
