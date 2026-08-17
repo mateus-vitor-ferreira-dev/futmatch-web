@@ -245,7 +245,7 @@ export default function OwnerEquipment() {
                   </CardTop>
                   <LoanInfo>
                     <strong>{loan.borrower.nickname || loan.borrower.name}</strong><br />
-                    {loan.pelada ? `${loan.pelada.court?.name ?? 'Pelada'} · ${localDate(loan.pelada.date)}` : 'Sem pelada vinculada'}
+                    {loan.pelada ? `${loan.pelada.court?.name ?? 'Partida'} · ${localDate(loan.pelada.date)}` : 'Sem partida vinculada'}
                     {loan.observacao && <><br />{loan.observacao}</>}
                   </LoanInfo>
                   <CardActions><PrimaryButton type="button" onClick={() => setSettlementModal(loan)} disabled={!podeAlterar}><Undo2 size={16} /> Devolver / baixar</PrimaryButton></CardActions>
@@ -321,7 +321,7 @@ export default function OwnerEquipment() {
               <Field>Buscar quem levou<Input value={borrowerSearch} onChange={(event) => setBorrowerSearch(event.target.value)} placeholder="Nome ou apelido" /></Field>
               <Field>Quem levou<Select name="borrowerId" required defaultValue=""><option value="" disabled>Selecione a pessoa</option>{borrowers.map((person) => <option key={person.id} value={person.id}>{person.nickname ? `${person.nickname} (${person.name})` : person.name}</option>)}</Select></Field>
               <Field>Quantidade<Input name="quantidade" type="number" min={1} max={loanModal.quantidadeDisponivel} step={1} defaultValue={1} required /></Field>
-              <Field>Pelada (opcional)<Select name="peladaId" defaultValue=""><option value="">Sem vínculo com pelada</option>{peladas.map((pelada) => <option key={pelada.id} value={pelada.id}>{pelada.court.name} · {localDate(pelada.date)}</option>)}</Select></Field>
+              <Field>Partida (opcional)<Select name="peladaId" defaultValue=""><option value="">Sem vínculo com partida</option>{peladas.map((pelada) => <option key={pelada.id} value={pelada.id}>{pelada.court.name} · {localDate(pelada.date)}</option>)}</Select></Field>
               <Field>Observação<Textarea name="observacao" maxLength={300} placeholder="Ex.: Material entregue ao organizador" /></Field>
               <ModalActions><SecondaryButton type="button" onClick={() => setLoanModal(null)}>Cancelar</SecondaryButton><PrimaryButton type="submit" disabled={saving}>{saving ? 'Registrando…' : 'Confirmar saída'}</PrimaryButton></ModalActions>
             </Form>

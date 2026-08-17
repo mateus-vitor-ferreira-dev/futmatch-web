@@ -20,9 +20,9 @@ import {
 const NAV_ITEMS = [
   { to: '/home',           label: 'Início',          icon: Home          },
   { to: '/quero-jogar',    label: 'Quero Jogar',     icon: Search        },
-  { to: '/criar-pelada',   label: 'Criar Pelada',    icon: Plus          },
+  { to: '/criar-pelada',   label: 'Criar Partida',   icon: Plus          },
   { to: '/torneios',       label: 'Torneios',        icon: Trophy        },
-  { to: '/minhas-peladas', label: 'Minhas Peladas',  icon: ClipboardList },
+  { to: '/minhas-peladas', label: 'Minhas Partidas', icon: ClipboardList },
   { to: '/historico',      label: 'Histórico',       icon: History       },
   { to: '/avaliacoes',     label: 'Avaliações',      icon: Star          },
   { to: '/perfil',         label: 'Perfil',          icon: User          },
@@ -91,7 +91,7 @@ export default function MainLayout() {
           </LogoIcon>
           <LogoText>
             <LogoName>Só+1</LogoName>
-            <LogoTagline>Encontre sua pelada</LogoTagline>
+            <LogoTagline>Encontre sua partida</LogoTagline>
           </LogoText>
         </Logo>
 

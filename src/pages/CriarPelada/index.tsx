@@ -51,7 +51,7 @@ const schema = yup.object({
     .number()
     .transform(numeroOuIndefinido)
     .min(0, 'Valor não pode ser negativo')
-    .required('Informe o valor total da pelada'),
+    .required('Informe o valor total da partida'),
   pixKey: yup
     .string()
     .required('Informe a chave Pix para pagamento'),
@@ -59,7 +59,7 @@ const schema = yup.object({
 
 type FormValues = yup.InferType<typeof schema>
 
-const STEPS = ['Escolher Quadra', 'Detalhes da Pelada', 'Confirmação']
+const STEPS = ['Escolher Quadra', 'Detalhes da Partida', 'Confirmação']
 const MIN_DATE = new Date(Date.now() + 60000).toISOString().slice(0, 16)
 
 export default function CriarPelada() {
@@ -137,7 +137,7 @@ export default function CriarPelada() {
       await createEvent(selectedCourt.id, payload)
       setStep(2)
     } catch (err) {
-      setError(mensagemDeErro(err, 'Erro ao criar pelada. Tente novamente.'))
+      setError(mensagemDeErro(err, 'Erro ao criar partida. Tente novamente.'))
     } finally {
       setSubmitting(false)
     }
@@ -161,7 +161,7 @@ export default function CriarPelada() {
     <>
       <Container>
         <PageHeader>
-          <Title>Criar Pelada</Title>
+          <Title>Criar Partida</Title>
           <Subtitle>Abra vagas e chame a galera para jogar.</Subtitle>
         </PageHeader>
 
@@ -285,11 +285,11 @@ export default function CriarPelada() {
           </Card>
         )}
 
-        {/* ── Etapa 1: Detalhes da pelada ── */}
+        {/* ── Etapa 1: Detalhes da partida ── */}
         {step === 1 && (
           <Card>
             <SectionTitle>
-              Detalhes da pelada em {selectedCourt?.name}
+              Detalhes da partida em {selectedCourt?.name}
             </SectionTitle>
 
             {/*
@@ -353,7 +353,7 @@ export default function CriarPelada() {
                   $error={!!errors.pixKey}
                 />
                 {errors.pixKey && <ErrorMsg>{errors.pixKey.message}</ErrorMsg>}
-                <HintMsg>Os jogadores usarão essa chave para pagar a pelada.</HintMsg>
+                <HintMsg>Os jogadores usarão essa chave para pagar a partida.</HintMsg>
               </Field>
 
               {error && (
@@ -367,7 +367,7 @@ export default function CriarPelada() {
                   ← Voltar
                 </BackButton>
                 <NextButton type="submit" disabled={submitting}>
-                  {submitting ? 'Criando...' : 'Criar Pelada ✓'}
+                  {submitting ? 'Criando...' : 'Criar Partida ✓'}
                 </NextButton>
               </Actions>
             </Form>
@@ -379,17 +379,17 @@ export default function CriarPelada() {
           <Card>
             <SuccessBox>
               <span>🎉</span>
-              <h3>Pelada criada com sucesso!</h3>
+              <h3>Partida criada com sucesso!</h3>
               <p>
-                Sua pelada foi aberta em <strong>{selectedCourt?.name}</strong>.
+                Sua partida foi aberta em <strong>{selectedCourt?.name}</strong>.
                 Compartilhe com seus amigos para completar as vagas!
               </p>
               <SuccessActions>
                 <SecondaryBtn onClick={() => navigate('/minhas-peladas')}>
-                  Ver Minhas Peladas
+                  Ver Minhas Partidas
                 </SecondaryBtn>
                 <PrimaryBtn onClick={() => navigate('/quero-jogar')}>
-                  Ver Todas as Peladas
+                  Ver Todas as Partidas
                 </PrimaryBtn>
               </SuccessActions>
             </SuccessBox>
