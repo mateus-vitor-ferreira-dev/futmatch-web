@@ -138,10 +138,15 @@ export default function MainLayout() {
                 * endpoint. O `?? '—'` sempre vencia, então a nota nunca
                 * aparecia. O valor real vive em stats.averageStars.
                 *
-                * ATENÇÃO: o AuthContext popula o usuário via /auth/me, que NÃO
-                * inclui `stats` (só /users/:id e /users/me incluem). Então isto
-                * continua exibindo '—' até o contexto passar a buscar o perfil
-                * completo, ou /auth/me passar a devolver stats.
+                * O `stats` faltava no /auth/me, que é de onde o AuthContext
+                * popula o usuário — então aqui e na Home a nota seguia em '—'
+                * para quem via 4,8 em Histórico e Avaliações, na mesma sessão.
+                * A rota passou a devolvê-lo na api#239, sem custar requisição
+                * a mais na abertura do app.
+                *
+                * O `?.` fica: o campo continua opcional no tipo, e quem nunca
+                * foi avaliado recebe `averageStars: null` de propósito — '—' é
+                * o que se deve mostrar aí, e não um zero.
                 */}
               <UserBadge>⭐ {user.stats?.averageStars ?? '—'} · {user.badge ?? 'Jogador'}</UserBadge>
             </UserInfo>
