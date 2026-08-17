@@ -79,6 +79,19 @@ describe('MinhasPeladas — as duas abas', () => {
     expect(buscaCriadas).not.toHaveBeenCalled()
   })
 
+  it('o + Criar Jogo leva ao assistente, e não abre modal aqui', async () => {
+    buscaParticipando.mockResolvedValue(envelope([]))
+
+    const { user } = renderWithProviders(<MinhasPeladas />)
+    await waitFor(() => expect(buscaParticipando).toHaveBeenCalled())
+    await user.click(screen.getByRole('button', { name: /criar jogo/i }))
+
+    expect(navegar).toHaveBeenCalledWith('/criar-pelada')
+    // Havia um segundo fluxo de criação aqui, com o `GET /courts` inteiro num
+    // `select` só. O botão não pode voltar a abri-lo. Ver #268.
+    expect(screen.queryByRole('heading', { name: 'Criar Jogo' })).not.toBeInTheDocument()
+  })
+
   it('trocar de aba busca no outro endpoint', async () => {
     const { user } = renderWithProviders(<MinhasPeladas />)
     await waitFor(() => expect(buscaParticipando).toHaveBeenCalled())
