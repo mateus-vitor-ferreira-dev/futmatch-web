@@ -233,7 +233,12 @@ export default function MinhasPeladas() {
             <h1>Meus Jogos</h1>
             <p>Gerencie os jogos que você criou ou está participando.</p>
           </div>
-          <CreateButton onClick={() => setIsModalOpen(true)}>
+          {/*
+            Leva ao assistente, e não ao modal daqui: lá a escolha da quadra é
+            estreitada por modalidade e estabelecimento antes de chegar na quadra,
+            enquanto o modal despeja o `GET /courts` inteiro num `select` só. Ver #268.
+          */}
+          <CreateButton onClick={() => navigate('/criar-pelada')}>
             <Plus size={18} style={{ display: 'inline', marginRight: 4, verticalAlign: 'middle' }} />
             Criar Jogo
           </CreateButton>
