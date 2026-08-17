@@ -100,17 +100,42 @@ export const WheelTrack = styled.div`
   );
 `
 
+/**
+ * Altura de cada cartão da roda, em px — a mesma para o item em foco e para
+ * os demais.
+ *
+ * É exportada porque o `index.tsx` usa este mesmo número como distância entre
+ * os centros de dois itens vizinhos. Enquanto os dois forem o mesmo número,
+ * cartão nenhum alcança o vizinho; foi separá-los que produziu a #243, em que
+ * o item ativo media ~67 px dentro de um slot de 56 px e derramava o excedente
+ * por cima do rótulo de baixo.
+ *
+ * O que sustenta a igualdade de altura, e precisa continuar valendo:
+ *
+ *  - `height` fixo aqui, e não altura derivada do conteúdo;
+ *  - `WheelIcon` numa caixa de tamanho fixo, com só a fonte crescendo dentro;
+ *  - `WheelSub` renderizado sempre, escondido por `visibility` fora do foco;
+ *  - nome e descrição em uma linha só, com reticências no que não couber.
+ */
+export const WHEEL_ITEM_HEIGHT = 56
+
 export const WheelItem = styled.div<{ $active?: boolean; }>`
   position: absolute;
   left: 0; right: 0;
-  /* posição vertical calculada via style inline */
+  /* topo calculado via style inline; o translateY(-50%) de lá ancora o cartão
+     pelo centro, para que a folga sobre e falte igual para cima e para baixo */
+  height: ${WHEEL_ITEM_HEIGHT}px;
+  /* garantia final: o que não couber é cortado aqui, e não invade o vizinho */
+  overflow: hidden;
   transition: transform 0.55s cubic-bezier(.4,0,.2,1),
               opacity   0.55s cubic-bezier(.4,0,.2,1);
   transform-origin: center center;
   display: flex;
   align-items: center;
   gap: 14px;
-  padding: ${({ $active }) => $active ? '14px 18px' : '10px 16px'};
+  /* só padding horizontal: com altura fixa, o vertical mudaria o recorte do
+     conteúdo sem mudar a altura, e é o que fazia o item ativo crescer */
+  padding: ${({ $active }) => $active ? '0 18px' : '0 16px'};
   background: ${({ $active }) =>
     $active ? 'rgba(255,255,255,0.18)' : 'rgba(0,0,0,0.12)'};
   border: ${({ $active }) =>
@@ -121,13 +146,26 @@ export const WheelItem = styled.div<{ $active?: boolean; }>`
 `
 
 export const WheelIcon = styled.span<{ $active?: boolean; }>`
+  /* caixa do tamanho do ícone em foco: a fonte cresce dentro dela, e a linha
+     do cartão não muda de altura por causa disso */
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   font-size: ${({ $active }) => $active ? '28px' : '20px'};
   line-height: 1;
   transition: font-size 0.4s ease;
   flex-shrink: 0;
 `
 
-export const WheelText = styled.div`display: flex; flex-direction: column; gap: 2px;`
+/* `min-width: 0` para que as reticências de baixo funcionem dentro do flex */
+export const WheelText = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+`
 
 export const WheelName = styled.span<{ $active?: boolean; }>`
   font-size: ${({ $active, theme }) =>
@@ -137,12 +175,27 @@ export const WheelName = styled.span<{ $active?: boolean; }>`
   color: #fff;
   transition: font-size 0.4s ease;
   text-shadow: 0 1px 6px rgba(0,0,0,0.4);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 `
 
-export const WheelSub = styled.span`
+export const WheelSub = styled.span<{ $active?: boolean; }>`
   font-size: ${({ theme }) => theme.fontSizes.xs};
   color: rgba(255,255,255,0.88);
   text-shadow: 0 1px 6px rgba(0,0,0,0.4);
+  /* Renderizada em todos os itens, para que todos ocupem a mesma altura.
+     visibility, e não display nem condicional no JSX, porque ela reserva o
+     espaço e ainda assim tira o texto da leitura e da árvore de acessibilidade
+     de quem não está em foco. */
+  visibility: ${({ $active }) => $active ? 'visible' : 'hidden'};
+  opacity: ${({ $active }) => $active ? 1 : 0};
+  transition: opacity 0.4s ease, visibility 0.4s ease;
+  /* a descrição vem da API: uma linha longa quebraria em duas e reintroduziria
+     exatamente a diferença de altura que esta issue fechou */
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 `
 
 /* ── Stats cards ─────────────────────────────────────────────────────────── */
