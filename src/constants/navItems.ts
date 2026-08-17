@@ -2,7 +2,7 @@ import {
   LayoutDashboard, Users, ClipboardList, Building2, Home, Store, ShieldCheck, CreditCard, Package, Dumbbell,
 } from 'lucide-react'
 import type { NavItemDef } from '../components/DashboardLayout'
-import type { UserRole } from '../types/api'
+import type { PlanFeature, UserRole } from '../types/api'
 
 /**
  * Navegação lateral dos painéis de admin e owner, em um lugar só.
@@ -28,14 +28,32 @@ export const adminNavItems: NavItemDef[] = [
   { to: '/home',            label: 'Área do Jogador',    icon: Home },
 ]
 
-/** O menu do owner ganha um atalho para o painel admin quando quem acessa é ADMIN. */
-export function ownerNavItems(role: UserRole | undefined): NavItemDef[] {
+/**
+ * Menu do owner. Ganha um atalho para o painel admin quando quem acessa é ADMIN, e
+ * marca com cadeado o que o plano assinado não abre.
+ *
+ * **Item bloqueado não some.** Ele fica visível, esmaecido, e o clique leva para a
+ * tela de planos — é assim que o dono descobre que a funcionalidade existe. Esconder
+ * o que ele poderia comprar não vende nada e ainda o deixa achando que o produto não
+ * faz aquilo.
+ *
+ * Visão Geral, Planos, Meus Estabelecimentos e Solicitações **nunca** são bloqueados:
+ * são como o dono entra na plataforma, o que ele já contratou e como ele paga. A
+ * Visão Geral entra na lista porque a página existe para todo mundo — o que depende de
+ * plano são as estatísticas dentro dela, e quem barra isso é a própria página.
+ */
+export function ownerNavItems(
+  role: UserRole | undefined,
+  temFuncionalidade: (funcionalidade: PlanFeature) => boolean = () => true,
+): NavItemDef[] {
   return [
     { to: '/owner/dashboard', label: 'Visão Geral',           icon: LayoutDashboard, end: true },
     { to: '/owner/plans',     label: 'Planos',                 icon: CreditCard      },
     { to: '/owner/places',    label: 'Meus Estabelecimentos', icon: Building2       },
-    { to: '/owner/inventory', label: 'Estoque',                icon: Package         },
-    { to: '/owner/equipment', label: 'Equipamentos',          icon: Dumbbell        },
+    { to: '/owner/inventory', label: 'Estoque',                icon: Package,
+      bloqueado: !temFuncionalidade('ESTOQUE') },
+    { to: '/owner/equipment', label: 'Equipamentos',          icon: Dumbbell,
+      bloqueado: !temFuncionalidade('EQUIPAMENTOS') },
     { to: '/owner/requests',  label: 'Solicitações',          icon: ClipboardList   },
     ...(role === 'ADMIN'
       ? [{ to: '/admin', label: 'Painel Admin', icon: ShieldCheck, divider: true }]

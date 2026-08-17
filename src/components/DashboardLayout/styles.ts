@@ -121,6 +121,42 @@ export const NavItem = styled(NavLink)`
   }
 `
 
+/**
+ * Item que o plano não abre.
+ *
+ * É um `button`, e não um `NavLink`, de propósito: ele leva para a tela de planos,
+ * não para a rota do item. Se fosse um NavLink apontando para `/owner/plans`, dois
+ * itens do menu ficariam com a classe `.active` ao mesmo tempo naquela tela.
+ *
+ * Continua visível em vez de sumir porque o dono precisa saber que a funcionalidade
+ * existe — menu que esconde o que ele poderia comprar não vende nada e ainda o deixa
+ * achando que o produto não faz aquilo.
+ */
+export const NavItemBloqueado = styled.button`
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 10px 12px;
+  border: none;
+  background: none;
+  border-radius: ${({ theme }) => theme.radii.md};
+  font-family: inherit;
+  font-size: ${({ theme }) => theme.fontSizes.sm};
+  font-weight: ${({ theme }) => theme.fontWeights.medium};
+  color: ${({ theme }) => theme.colors.textMuted ?? theme.colors.textSecondary};
+  opacity: 0.55;
+  cursor: pointer;
+  text-align: left;
+  transition: opacity 0.15s;
+
+  &:hover { opacity: 0.85; }
+
+  svg { flex-shrink: 0; width: 18px; height: 18px; }
+
+  .cadeado { margin-left: auto; width: 14px; height: 14px; }
+`
+
 export const NavBadge = styled.span`
   margin-left: auto;
   background: ${({ theme }) => theme.colors.error};
