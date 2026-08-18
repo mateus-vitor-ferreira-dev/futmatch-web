@@ -372,3 +372,124 @@ describe('PeladaDetail — sair da pelada', () => {
     expect(screen.getByRole('dialog')).toBeInTheDocument()
   })
 })
+
+/**
+ * O detalhe é a tela onde a decisão de sortear naturalmente acontece: é ela que
+ * lista os confirmados por extenso. Mesmo assim o sorteio só existia no cartão
+ * da lista, e o caminho natural — clicar no cartão — levava justamente para
+ * onde o botão não estava (#266).
+ */
+describe('PeladaDetail — sorteio de times', () => {
+  const sorteiaTimes = vi.mocked(playerService.drawTeams)
+
+  /** Partida em aberto, com o usuário logado como organizador dela. */
+  function minhaPartida(over = {}) {
+    return envelope(criaPelada({
+      organizerId: 'user-1',
+      organizer: { id: 'user-1', name: 'Mateus', avatarUrl: null },
+      ...over,
+    }))
+  }
+
+  const DOIS_TIMES = {
+    peladaId: 'pelada-1',
+    teamCount: 2,
+    totalPlayers: 2,
+    teams: [
+      { name: 'Time 1', players: [{ id: 'u1', name: 'Ana', avatarUrl: null, badge: null }] },
+      { name: 'Time 2', players: [{ id: 'u2', name: 'Bruno', avatarUrl: null, badge: null }] },
+    ],
+  }
+
+  it('oferece "Sortear Times" ao organizador de partida em aberto', async () => {
+    buscaPelada.mockResolvedValue(minhaPartida())
+
+    abrePelada()
+
+    expect(await screen.findByRole('button', { name: /sortear times/i })).toBeInTheDocument()
+  })
+
+  it('oferece o sorteio também quando a partida já lotou', async () => {
+    buscaPelada.mockResolvedValue(minhaPartida({ status: 'FULL' }))
+
+    abrePelada()
+
+    expect(await screen.findByRole('button', { name: /sortear times/i })).toBeInTheDocument()
+  })
+
+  it('não oferece o sorteio a quem não é o organizador', async () => {
+    buscaPelada.mockResolvedValue(envelope(criaPelada()))
+
+    abrePelada()
+
+    expect(await screen.findByText('Quadra 1')).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /sortear times/i })).not.toBeInTheDocument()
+  })
+
+  // Depois de finalizada ou cancelada não há o que sortear, e é a mesma
+  // condição que já esconde finalizar e cancelar.
+  it.each(['FINISHED', 'CANCELLED'] as const)('não oferece o sorteio em partida %s', async (status) => {
+    buscaPelada.mockResolvedValue(minhaPartida({ status }))
+
+    abrePelada()
+
+    expect(await screen.findByText(/você é o organizador/i)).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /sortear times/i })).not.toBeInTheDocument()
+  })
+
+  it('abre o modal sem sortear nada antes de o organizador mandar', async () => {
+    buscaPelada.mockResolvedValue(minhaPartida())
+    const { user } = abrePelada()
+
+    await user.click(await screen.findByRole('button', { name: /sortear times/i }))
+
+    expect(screen.getByRole('heading', { name: 'Sortear Times' })).toBeInTheDocument()
+    expect(screen.getByRole('slider')).toHaveValue('2')
+    expect(sorteiaTimes).not.toHaveBeenCalled()
+  })
+
+  it('sorteia com o id da quadra e da partida do detalhe, e mostra os times', async () => {
+    buscaPelada.mockResolvedValue(minhaPartida())
+    sorteiaTimes.mockResolvedValue(envelope(DOIS_TIMES))
+    const { user } = abrePelada()
+
+    await user.click(await screen.findByRole('button', { name: /sortear times/i }))
+    await user.click(screen.getByRole('button', { name: /sortear!/i }))
+
+    await waitFor(() => {
+      expect(sorteiaTimes).toHaveBeenCalledWith('quadra-1', 'pelada-1', 2)
+    })
+    expect(await screen.findByRole('heading', { name: 'Times Sorteados' })).toBeInTheDocument()
+    expect(screen.getByText('Ana')).toBeInTheDocument()
+    expect(screen.getByText('Bruno')).toBeInTheDocument()
+  })
+
+  it('fecha o modal e devolve o organizador ao detalhe', async () => {
+    buscaPelada.mockResolvedValue(minhaPartida())
+    sorteiaTimes.mockResolvedValue(envelope(DOIS_TIMES))
+    const { user } = abrePelada()
+
+    await user.click(await screen.findByRole('button', { name: /sortear times/i }))
+    await user.click(screen.getByRole('button', { name: /sortear!/i }))
+    await user.click(await screen.findByRole('button', { name: 'Fechar' }))
+
+    expect(screen.queryByRole('heading', { name: 'Times Sorteados' })).not.toBeInTheDocument()
+    // O detalhe continua ali — fechar o sorteio não navega para lugar nenhum.
+    expect(screen.getByText('Quadra 1')).toBeInTheDocument()
+  })
+
+  it('mostra a mensagem da API quando o sorteio falha', async () => {
+    buscaPelada.mockResolvedValue(minhaPartida())
+    sorteiaTimes.mockRejectedValue(erroDaApi('Jogadores insuficientes para 2 times', 422))
+    const { user } = abrePelada()
+
+    await user.click(await screen.findByRole('button', { name: /sortear times/i }))
+    await user.click(screen.getByRole('button', { name: /sortear!/i }))
+
+    await waitFor(() => {
+      expect(toast.error).toHaveBeenCalledWith('Jogadores insuficientes para 2 times')
+    })
+    // Continua no passo do slider, para o organizador ajustar e tentar de novo.
+    expect(screen.getByRole('heading', { name: 'Sortear Times' })).toBeInTheDocument()
+  })
+})
