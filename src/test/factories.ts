@@ -153,7 +153,7 @@ export function criaSorteio(over: Partial<DrawResult> = {}): DrawResult {
       spread: 0,
       target: 5,
       withinTarget: true,
-      estimatedPlayers: teams.flatMap(t => t.players).filter(p => p.skill.estimado).length,
+      estimatedPlayers: teams.flatMap(t => t.players).filter(p => p.skill?.estimado).length,
     },
     ...over,
   }

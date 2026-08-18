@@ -38,7 +38,7 @@ function CartaoDoTime({ time, indice }: { time: DrawTeam; indice: number }) {
     <TeamCard $color={cor}>
       <TeamHeader $color={cor}>
         {time.name}
-        <ForcaDoTime>força {time.averageSkill}</ForcaDoTime>
+        {time.averageSkill !== undefined && <ForcaDoTime>força {time.averageSkill}</ForcaDoTime>}
       </TeamHeader>
       {time.players.map(p => (
         <PlayerItem key={p.id}>
@@ -183,22 +183,24 @@ export function SorteioDeTimes({ partida, onClose }: SorteioDeTimesProps) {
               refazer. E quando alguém entrou sem nível declarado, ele precisa
               saber que parte do equilíbrio é palpite (#215).
             */}
-            <ResumoDoEquilibrio $bom={drawResult.balance.withinTarget}>
-              <span>
-                {drawResult.balance.spread === 0
-                  ? 'Times com a mesma força.'
-                  : `Diferença de força entre o time mais forte e o mais fraco: ${drawResult.balance.spread} ponto${drawResult.balance.spread === 1 ? '' : 's'}.`}
-                {!drawResult.balance.withinTarget &&
-                  ' Foi o melhor possível com quem confirmou.'}
-              </span>
-              {drawResult.balance.estimatedPlayers > 0 && (
-                <span className="aviso">
-                  {drawResult.balance.estimatedPlayers === 1
-                    ? '1 jogador entrou sem nível declarado, e o índice dele é uma estimativa.'
-                    : `${drawResult.balance.estimatedPlayers} jogadores entraram sem nível declarado, e os índices deles são estimativas.`}
+            {drawResult.balance && (
+              <ResumoDoEquilibrio $bom={drawResult.balance.withinTarget}>
+                <span>
+                  {drawResult.balance.spread === 0
+                    ? 'Times com a mesma força.'
+                    : `Diferença de força entre o time mais forte e o mais fraco: ${drawResult.balance.spread} ponto${drawResult.balance.spread === 1 ? '' : 's'}.`}
+                  {!drawResult.balance.withinTarget &&
+                    ' Foi o melhor possível com quem confirmou.'}
                 </span>
-              )}
-            </ResumoDoEquilibrio>
+                {drawResult.balance.estimatedPlayers > 0 && (
+                  <span className="aviso">
+                    {drawResult.balance.estimatedPlayers === 1
+                      ? '1 jogador entrou sem nível declarado, e o índice dele é uma estimativa.'
+                      : `${drawResult.balance.estimatedPlayers} jogadores entraram sem nível declarado, e os índices deles são estimativas.`}
+                  </span>
+                )}
+              </ResumoDoEquilibrio>
+            )}
 
             {/*
               Dois times viram confronto, com o ✕ no meio. De três em diante
