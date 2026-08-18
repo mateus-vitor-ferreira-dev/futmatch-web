@@ -789,3 +789,84 @@ describe('PeladaDetail — modo de sorteio e equilíbrio', () => {
     })
   })
 })
+
+/**
+ * A janela de release: o app novo conversando com a API anterior.
+ *
+ * Front e API sobem separados, e por algumas horas o app que já tem o modo de
+ * sorteio fala com uma API que não conhece `balance`, `averageSkill` nem
+ * `skill`. Sem estes testes o resultado do sorteio dava tela branca — ler
+ * `drawResult.balance.withinTarget` de um `balance` ausente estoura, e é o
+ * organizador com o time reunido que vê isso.
+ *
+ * O sorteio continua funcionando; o que some é o que aquela versão da API não
+ * sabe responder.
+ */
+describe('PeladaDetail — sorteio contra uma API anterior', () => {
+  const sorteiaTimes = vi.mocked(playerService.drawTeams)
+
+  /** O que a API devolvia antes da api#206: sem mode, sem balance, sem índices. */
+  function respostaAntiga() {
+    return envelope({
+      peladaId: 'pelada-1',
+      teamCount: 2,
+      totalPlayers: 2,
+      teams: [
+        { name: 'Time 1', players: [{ id: 'u1', name: 'Ana', avatarUrl: null, badge: null }] },
+        { name: 'Time 2', players: [{ id: 'u2', name: 'Bruno', avatarUrl: null, badge: null }] },
+      ],
+    } as never)
+  }
+
+  async function sorteiaComApiAntiga() {
+    sorteiaTimes.mockResolvedValue(respostaAntiga())
+    buscaPelada.mockResolvedValue(
+      envelope(criaPelada({
+        organizerId: 'user-1',
+        organizer: { id: 'user-1', name: 'Mateus', avatarUrl: null },
+      })),
+    )
+    const { user } = abrePelada()
+    await user.click(await screen.findByRole('button', { name: /sortear times/i }))
+    await user.click(screen.getByRole('button', { name: /sortear!/i }))
+    return { user }
+  }
+
+  it('mostra os times normalmente', async () => {
+    await sorteiaComApiAntiga()
+
+    expect(await screen.findByRole('heading', { name: 'Times Sorteados' })).toBeInTheDocument()
+    expect(screen.getByText('Ana')).toBeInTheDocument()
+    expect(screen.getByText('Bruno')).toBeInTheDocument()
+  })
+
+  it('omite o resumo de equilíbrio em vez de estourar', async () => {
+    await sorteiaComApiAntiga()
+
+    await screen.findByRole('heading', { name: 'Times Sorteados' })
+    expect(screen.queryByText(/mesma força|diferença de força/i)).not.toBeInTheDocument()
+  })
+
+  it('omite a força do time, que aquela API não calcula', async () => {
+    await sorteiaComApiAntiga()
+
+    await screen.findByRole('heading', { name: 'Times Sorteados' })
+    expect(screen.queryByText(/^força/)).not.toBeInTheDocument()
+  })
+
+  it('não marca ninguém como estimado', async () => {
+    await sorteiaComApiAntiga()
+
+    await screen.findByRole('heading', { name: 'Times Sorteados' })
+    expect(screen.queryByText(/· estimado/)).not.toBeInTheDocument()
+  })
+
+  it('refazer continua funcionando', async () => {
+    const { user } = await sorteiaComApiAntiga()
+    await screen.findByRole('heading', { name: 'Times Sorteados' })
+
+    await user.click(screen.getByRole('button', { name: /refazer sorteio/i }))
+
+    expect(await screen.findByRole('heading', { name: 'Times Sorteados' })).toBeInTheDocument()
+  })
+})

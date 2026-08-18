@@ -431,27 +431,38 @@ export interface SkillIndex {
     estimado: boolean;
 }
 
+/**
+ * Os campos abaixo são **opcionais de propósito**, e não porque a API às vezes
+ * os omite: ela sempre os devolve, desde a api#206.
+ *
+ * O que eles representam é a **janela de release**. Front e API sobem separados,
+ * e por algumas horas o app novo conversa com a API anterior — que não conhece
+ * `skill`, `averageSkill` nem `balance`. Declarar como obrigatório o que só
+ * existe depois do outro release faz o TypeScript prometer o que a rede não
+ * garante, e o preço é uma tela branca no meio da janela.
+ */
 export interface DrawPlayer extends Pick<UserPublic, "id" | "name" | "avatarUrl" | "badge"> {
-    position: string | null;
-    skill: SkillIndex;
+    position?: string | null;
+    skill?: SkillIndex;
 }
 
 export interface DrawTeam {
     name: string;
     players: DrawPlayer[];
-    /** Soma dos índices do time. */
-    skillIndex: number;
+    /** Soma dos índices do time. Ausente quando a API ainda é anterior à api#206. */
+    skillIndex?: number;
     /** Índice médio por jogador — é por ele que o equilíbrio se mede. */
-    averageSkill: number;
+    averageSkill?: number;
 }
 
 export interface DrawResult {
     peladaId: string;
     teamCount: number;
     totalPlayers: number;
-    mode: DrawMode;
+    mode?: DrawMode;
     teams: DrawTeam[];
-    balance: {
+    /** Ausente quando a API ainda é anterior à api#206 — ver a nota em DrawPlayer. */
+    balance?: {
         /** Diferença de índice médio entre o time mais forte e o mais fraco. */
         spread: number;
         /** O alvo perseguido pelo modo equilibrado. */
