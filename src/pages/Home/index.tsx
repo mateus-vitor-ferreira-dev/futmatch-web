@@ -191,7 +191,7 @@ export default function Home() {
               {/*
                 * Era user.rating — campo inexistente na API, então o ternário
                 * sempre caía no '—'. O valor real é stats.averageStars, que
-                * /auth/me não devolve (ver nota em MainLayout).
+                * /auth/me passou a devolver na api#239.
                 */}
               <StatValue>{user?.stats?.averageStars != null ? Number(user.stats.averageStars).toFixed(1) : '—'}</StatValue>
               <StatLabel>Nota</StatLabel>

@@ -10,13 +10,13 @@ import { playerService } from '../../services/playerService'
 import { chaves } from '../../lib/queryClient'
 import { Grid, Card, CardHeader, InfoRow, ProgressBarContainer, ProgressBar, SpotsInfo } from '../QueroJogar/styles'
 import { mensagemDeErro } from '../../utils/apiError'
-import type { Court, DrawResult, DrawTeam, Participation, Pelada, PeladaStatus } from '../../types/api'
+import type { Court, Participation, Pelada, PeladaStatus } from '../../types/api'
+import { SorteioDeTimes } from '../../components/SorteioDeTimes'
+import { SortearBtn } from '../../components/SorteioDeTimes/styles'
 import {
   Container, PageHeader, CreateButton, Tabs, Tab, PixBox,
   ModalOverlay, ModalContent, Form, ButtonGroup,
-  DrawButton, DrawModalOverlay, DrawModalContent,
-  TeamGrid, TeamCard, TeamHeader, PlayerItem,
-  DrawResultHeader, TeamVersus, VersusMark,
+  DrawModalOverlay, DrawModalContent,
 } from './styles'
 
 const STATUS_LABELS: Record<string, string> = {
@@ -24,31 +24,6 @@ const STATUS_LABELS: Record<string, string> = {
   FULL:      'Lotado',
   FINISHED:  'Finalizado',
   CANCELLED: 'Cancelado',
-}
-
-const TEAM_COLORS = [
-  '#22c55e', '#3b82f6', '#f59e0b', '#ef4444', '#8b5cf6',
-  '#ec4899', '#14b8a6', '#eab308', '#6366f1', '#06b6d4',
-]
-
-/**
- * Um time do sorteio. Existe para que o layout de confronto (2 times, com o ✕
- * no meio) e a grade (3+ times) montem o mesmo cartão sem duplicar o JSX.
- */
-function CartaoDoTime({ time, indice }: { time: DrawTeam; indice: number }) {
-  const cor = TEAM_COLORS[indice % TEAM_COLORS.length]
-
-  return (
-    <TeamCard $color={cor}>
-      <TeamHeader $color={cor}>{time.name}</TeamHeader>
-      {time.players.map(p => (
-        <PlayerItem key={p.id}>
-          <div className="avatar">{p.name?.charAt(0)?.toUpperCase()}</div>
-          <span>{p.name}</span>
-        </PlayerItem>
-      ))}
-    </TeamCard>
-  )
 }
 
 interface FormularioPelada {
@@ -68,11 +43,9 @@ export default function MinhasPeladas() {
   // Modal criar jogo — inicializa a partir da URL para evitar flash
   const [isModalOpen, setIsModalOpen] = useState(() => searchParams.get('action') === 'criar')
 
-  // Sorteio
+  // Sorteio — a partida aberta no modal. O resto do estado (quantidade,
+  // resultado, carregando) vive dentro do SorteioDeTimes.
   const [drawEvent, setDrawEvent] = useState<Pelada | null>(null)
-  const [teamCount, setTeamCount] = useState(2)
-  const [drawResult, setDrawResult] = useState<DrawResult | null>(null)
-  const [drawLoading, setDrawLoading] = useState(false)
 
   // Presença
   const [attendanceEvent, setAttendanceEvent]           = useState<Pelada | null>(null)
@@ -132,7 +105,7 @@ export default function MinhasPeladas() {
       setActiveTab('created')
       invalidarPeladas()
     } catch (error) {
-      toast.error(mensagemDeErro(error, 'Erro ao criar pelada'))
+      toast.error(mensagemDeErro(error, 'Erro ao criar partida'))
     }
   }
 
@@ -141,29 +114,6 @@ export default function MinhasPeladas() {
     toast.success('Chave PIX copiada!')
   }
 
-  const openDraw = (ev: Pelada) => {
-    setDrawEvent(ev)
-    setTeamCount(2)
-    setDrawResult(null)
-  }
-
-  const handleDraw = async () => {
-    if (!drawEvent) return
-    try {
-      setDrawLoading(true)
-      const res = await playerService.drawTeams(drawEvent.courtId, drawEvent.id, teamCount)
-      setDrawResult(res.data)
-    } catch (error) {
-      toast.error(mensagemDeErro(error, 'Erro ao realizar sorteio. Verifique se há jogadores suficientes.'))
-    } finally {
-      setDrawLoading(false)
-    }
-  }
-
-  const closeDraw = () => {
-    setDrawEvent(null)
-    setDrawResult(null)
-  }
 
   const openAttendance = async (ev: Pelada) => {
     setAttendanceEvent(ev)
@@ -215,10 +165,10 @@ export default function MinhasPeladas() {
 
   const handleUpdateStatus = async (ev: Pelada, status: PeladaStatus) => {
     const label = status === 'FINISHED' ? 'finalizar' : 'cancelar'
-    if (!window.confirm(`Tem certeza que deseja ${label} esta pelada?`)) return
+    if (!window.confirm(`Tem certeza que deseja ${label} esta partida?`)) return
     try {
       await playerService.updateEventStatus(ev.courtId, ev.id, status)
-      toast.success(`Pelada ${status === 'FINISHED' ? 'finalizada' : 'cancelada'}.`)
+      toast.success(`Partida ${status === 'FINISHED' ? 'finalizada' : 'cancelada'}.`)
       invalidarPeladas()
     } catch (error) {
       toast.error(mensagemDeErro(error, 'Erro ao atualizar status.'))
@@ -233,7 +183,12 @@ export default function MinhasPeladas() {
             <h1>Meus Jogos</h1>
             <p>Gerencie os jogos que você criou ou está participando.</p>
           </div>
-          <CreateButton onClick={() => setIsModalOpen(true)}>
+          {/*
+            Leva ao assistente, e não ao modal daqui: lá a escolha da quadra é
+            estreitada por modalidade e estabelecimento antes de chegar na quadra,
+            enquanto o modal despeja o `GET /courts` inteiro num `select` só. Ver #268.
+          */}
+          <CreateButton onClick={() => navigate('/criar-pelada')}>
             <Plus size={18} style={{ display: 'inline', marginRight: 4, verticalAlign: 'middle' }} />
             Criar Jogo
           </CreateButton>
@@ -288,9 +243,9 @@ export default function MinhasPeladas() {
                       </PixBox>
                       {(ev.status === 'WAITING' || ev.status === 'FULL') && (
                         <>
-                          <DrawButton onClick={(e) => { e.stopPropagation(); openDraw(ev) }}>
+                          <SortearBtn onClick={(e) => { e.stopPropagation(); setDrawEvent(ev) }}>
                             <Shuffle size={14} /> Sortear Times
-                          </DrawButton>
+                          </SortearBtn>
                           <div style={{ display: 'flex', gap: 8, marginTop: 8 }}>
                             <button
                               onClick={(e) => { e.stopPropagation(); handleUpdateStatus(ev, 'FINISHED') }}
@@ -373,95 +328,12 @@ export default function MinhasPeladas() {
           </ModalOverlay>
         )}
 
-        {/* Modal Sorteio de Times */}
+        {/* Modal Sorteio de Times — o mesmo componente que o detalhe da
+            partida usa, para os dois não divergirem (#266). */}
         {drawEvent && (
-          <DrawModalOverlay onClick={closeDraw}>
-            <DrawModalContent onClick={e => e.stopPropagation()}>
-              {!drawResult ? (
-                <>
-                  <h2>Sortear Times</h2>
-                  <p style={{ color: '#6b7280', marginBottom: 24 }}>
-                    {drawEvent.court?.place?.name} &mdash; {new Date(drawEvent.date).toLocaleDateString('pt-BR')}
-                  </p>
-
-                  <div style={{ marginBottom: 24 }}>
-                    <label style={{ display: 'block', fontWeight: 600, marginBottom: 8, color: '#111827' }}>
-                      Quantos times?
-                    </label>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-                      <input
-                        type="range"
-                        min="2"
-                        max="10"
-                        value={teamCount}
-                        onChange={e => setTeamCount(Number(e.target.value))}
-                        style={{ flex: 1, accentColor: '#22c55e', height: 6 }}
-                      />
-                      <span style={{ fontWeight: 700, fontSize: 28, color: '#22c55e', minWidth: 40, textAlign: 'center' }}>
-                        {teamCount}
-                      </span>
-                    </div>
-                    <p style={{ fontSize: 13, color: '#6b7280', marginTop: 8 }}>
-                      Os jogadores serão distribuídos aleatoriamente entre {teamCount} times.
-                    </p>
-                  </div>
-
-                  <ButtonGroup>
-                    <button type="button" className="cancel" onClick={closeDraw}>Cancelar</button>
-                    <button
-                      type="button"
-                      className="submit"
-                      onClick={handleDraw}
-                      disabled={drawLoading}
-                    >
-                      {drawLoading ? 'Sorteando...' : '⚽ Sortear!'}
-                    </button>
-                  </ButtonGroup>
-                </>
-              ) : (
-                <>
-                  <DrawResultHeader>
-                    <h2>Times Sorteados</h2>
-                    <p>
-                      {drawResult.totalPlayers} jogadores distribuídos em {drawResult.teamCount} times
-                    </p>
-                  </DrawResultHeader>
-
-                  {/*
-                    Dois times viram confronto, com o ✕ no meio. De três em diante
-                    o ✕ não diria nada, e o resultado continua na grade de sempre.
-                    O ✕ é irmão dos cartões no grid de três colunas — envolvê-lo
-                    junto com eles num `div` quebraria o layout.
-                  */}
-                  {drawResult.teamCount === 2 ? (
-                    <TeamVersus>
-                      <CartaoDoTime time={drawResult.teams[0]} indice={0} />
-                      <VersusMark aria-hidden="true">✕</VersusMark>
-                      <CartaoDoTime time={drawResult.teams[1]} indice={1} />
-                    </TeamVersus>
-                  ) : (
-                    <TeamGrid>
-                      {drawResult.teams.map((time, indice) => (
-                        <CartaoDoTime key={indice} time={time} indice={indice} />
-                      ))}
-                    </TeamGrid>
-                  )}
-
-                  <button
-                    onClick={closeDraw}
-                    style={{
-                      width: '100%', marginTop: 16, padding: 12,
-                      borderRadius: 10, background: '#22c55e', color: 'white',
-                      fontWeight: 700, border: 'none', cursor: 'pointer', fontSize: 15,
-                    }}
-                  >
-                    Fechar
-                  </button>
-                </>
-              )}
-            </DrawModalContent>
-          </DrawModalOverlay>
+          <SorteioDeTimes partida={drawEvent} onClose={() => setDrawEvent(null)} />
         )}
+
         {/* Modal Confirmar Presenças */}
         {attendanceEvent && (
           <DrawModalOverlay onClick={closeAttendance}>

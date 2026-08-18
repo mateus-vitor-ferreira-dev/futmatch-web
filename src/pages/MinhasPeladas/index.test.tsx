@@ -12,7 +12,7 @@
  */
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { renderWithProviders, screen, waitFor } from '../../test/render'
-import { criaPelada, criaUsuario, envelope, erroDaApi } from '../../test/factories'
+import { criaJogadorSorteado, criaPelada, criaSorteio, criaUsuario, envelope, erroDaApi } from '../../test/factories'
 import { marcarSessao } from '../../services/api'
 import type { Participation } from '../../types/api'
 import MinhasPeladas from './index'
@@ -77,6 +77,19 @@ describe('MinhasPeladas — as duas abas', () => {
     expect(await screen.findByText('Arena Sul')).toBeInTheDocument()
     expect(buscaParticipando).toHaveBeenCalled()
     expect(buscaCriadas).not.toHaveBeenCalled()
+  })
+
+  it('o + Criar Jogo leva ao assistente, e não abre modal aqui', async () => {
+    buscaParticipando.mockResolvedValue(envelope([]))
+
+    const { user } = renderWithProviders(<MinhasPeladas />)
+    await waitFor(() => expect(buscaParticipando).toHaveBeenCalled())
+    await user.click(screen.getByRole('button', { name: /criar jogo/i }))
+
+    expect(navegar).toHaveBeenCalledWith('/criar-pelada')
+    // Havia um segundo fluxo de criação aqui, com o `GET /courts` inteiro num
+    // `select` só. O botão não pode voltar a abri-lo. Ver #268.
+    expect(screen.queryByRole('heading', { name: 'Criar Jogo' })).not.toBeInTheDocument()
   })
 
   it('trocar de aba busca no outro endpoint', async () => {
@@ -221,20 +234,20 @@ describe('MinhasPeladas — sorteio de times', () => {
 
   it('sorteia com a quantidade escolhida e mostra os times', async () => {
     const { user } = await abreSorteio()
-    sorteiaTimes.mockResolvedValue(envelope({
-      peladaId: 'minha-pelada',
-      teamCount: 2,
+    sorteiaTimes.mockResolvedValue(envelope(criaSorteio({
+      // O cabeçalho conta `totalPlayers`, que aqui é maior que os nomes
+      // listados de propósito: o teste é sobre o texto do cabeçalho.
       totalPlayers: 4,
       teams: [
-        { name: 'Time 1', players: [{ id: 'u1', name: 'Ana', avatarUrl: null, badge: null }] },
-        { name: 'Time 2', players: [{ id: 'u2', name: 'Bruno', avatarUrl: null, badge: null }] },
+        { name: 'Time 1', skillIndex: 50, averageSkill: 50, players: [criaJogadorSorteado({ id: 'u1', name: 'Ana' })] },
+        { name: 'Time 2', skillIndex: 50, averageSkill: 50, players: [criaJogadorSorteado({ id: 'u2', name: 'Bruno' })] },
       ],
-    }))
+    })))
 
     await user.click(screen.getByRole('button', { name: /sortear!/i }))
 
     await waitFor(() => {
-      expect(sorteiaTimes).toHaveBeenCalledWith('quadra-1', 'minha-pelada', 2)
+      expect(sorteiaTimes).toHaveBeenCalledWith('quadra-1', 'minha-pelada', 2, 'ALEATORIO')
     })
     expect(await screen.findByRole('heading', { name: 'Times Sorteados' })).toBeInTheDocument()
     expect(screen.getByText('4 jogadores distribuídos em 2 times')).toBeInTheDocument()
@@ -246,15 +259,12 @@ describe('MinhasPeladas — sorteio de times', () => {
   // teria o que separar, e o resultado volta a ser uma grade de cartões.
   it('marca o confronto com o ✕ quando o sorteio dá exatamente 2 times', async () => {
     const { user } = await abreSorteio()
-    sorteiaTimes.mockResolvedValue(envelope({
-      peladaId: 'minha-pelada',
-      teamCount: 2,
-      totalPlayers: 4,
+    sorteiaTimes.mockResolvedValue(envelope(criaSorteio({
       teams: [
-        { name: 'Time 1', players: [{ id: 'u1', name: 'Ana', avatarUrl: null, badge: null }] },
-        { name: 'Time 2', players: [{ id: 'u2', name: 'Bruno', avatarUrl: null, badge: null }] },
+        { name: 'Time 1', skillIndex: 50, averageSkill: 50, players: [criaJogadorSorteado({ id: 'u1', name: 'Ana' })] },
+        { name: 'Time 2', skillIndex: 50, averageSkill: 50, players: [criaJogadorSorteado({ id: 'u2', name: 'Bruno' })] },
       ],
-    }))
+    })))
 
     await user.click(screen.getByRole('button', { name: /sortear!/i }))
 
@@ -264,16 +274,13 @@ describe('MinhasPeladas — sorteio de times', () => {
 
   it('não marca confronto quando o sorteio dá 3 times ou mais', async () => {
     const { user } = await abreSorteio()
-    sorteiaTimes.mockResolvedValue(envelope({
-      peladaId: 'minha-pelada',
-      teamCount: 3,
-      totalPlayers: 3,
+    sorteiaTimes.mockResolvedValue(envelope(criaSorteio({
       teams: [
-        { name: 'Time 1', players: [{ id: 'u1', name: 'Ana', avatarUrl: null, badge: null }] },
-        { name: 'Time 2', players: [{ id: 'u2', name: 'Bruno', avatarUrl: null, badge: null }] },
-        { name: 'Time 3', players: [{ id: 'u3', name: 'Carla', avatarUrl: null, badge: null }] },
+        { name: 'Time 1', skillIndex: 50, averageSkill: 50, players: [criaJogadorSorteado({ id: 'u1', name: 'Ana' })] },
+        { name: 'Time 2', skillIndex: 50, averageSkill: 50, players: [criaJogadorSorteado({ id: 'u2', name: 'Bruno' })] },
+        { name: 'Time 3', skillIndex: 50, averageSkill: 50, players: [criaJogadorSorteado({ id: 'u3', name: 'Carla' })] },
       ],
-    }))
+    })))
 
     await user.click(screen.getByRole('button', { name: /sortear!/i }))
 

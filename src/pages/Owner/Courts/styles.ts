@@ -147,7 +147,11 @@ export const NewBtn = styled.button`
   color: ${({ theme }) => theme.colors.textOnPrimary};
   transition: background 0.15s;
 
-  &:hover { background: ${({ theme }) => theme.colors.primaryHover}; }
+  &:hover:not(:disabled) { background: ${({ theme }) => theme.colors.primaryHover}; }
+
+  /* Mesmo desabilitado do ActionBtn: sem assinatura em dia o botão precisa
+     parecer desabilitado, não só deixar de responder. */
+  &:disabled { opacity: 0.5; cursor: not-allowed; }
 `
 
 // ── Modal ─────────────────────────────────────────────────────────────────────

@@ -1,4 +1,4 @@
-import { Sun, Moon, LogOut, Menu, X } from 'lucide-react'
+import { Sun, Moon, LogOut, Menu, X, Lock } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import { Suspense, useCallback, useMemo, useState } from 'react'
 import { Outlet, useNavigate } from 'react-router-dom'
@@ -11,7 +11,7 @@ import { prefetchRota } from '../../routes/paginas'
 import { PageHeaderProvider } from './pageHeader'
 import {
   Shell, Sidebar, Logo, LogoIcon, LogoText, LogoName, LogoTagline,
-  Divider, Nav, NavItem, NavBadge,
+  Divider, Nav, NavItem, NavItemBloqueado, NavBadge,
   UserCard, Avatar, UserInfo, UserName, UserRole,
   ThemeToggleBtn, LogoutBtn,
   Main, Topbar, TopbarRow, TopbarTitle, TopbarSub, TopbarActions, Content,
@@ -23,6 +23,9 @@ function getInitials(name = ''): string {
 }
 
 /** Item da barra lateral dos painéis. */
+/** Onde o dono assina ou troca de plano — destino do item bloqueado. */
+const ROTA_PLANOS = '/owner/plans'
+
 export interface NavItemDef {
   to: string
   label: string
@@ -33,6 +36,12 @@ export interface NavItemDef {
   divider?: boolean
   /** Repassado ao NavLink: exige correspondência exata da rota. */
   end?: boolean
+  /**
+   * O plano assinado não abre este item. Ele continua no menu, esmaecido e com
+   * cadeado, e o clique leva para a tela de planos — esconder faria o dono achar
+   * que o produto não tem a funcionalidade.
+   */
+  bloqueado?: boolean
 }
 
 export interface DashboardLayoutProps {
@@ -108,22 +117,37 @@ export default function DashboardLayout({
         <Divider />
 
         <Nav>
-          {itensComBadge.map(({ to, label, icon: Icon, badge, divider, end }) => (
+          {itensComBadge.map(({ to, label, icon: Icon, badge, divider, end, bloqueado }) => (
             <span key={to}>
               {divider && <Divider />}
-              {/* `onFocus` junto do hover para quem navega por teclado ter o
-                  mesmo ganho — só o mouse deixaria esse usuário de fora. */}
-              <NavItem
-                to={to}
-                end={!!end}
-                onClick={() => setMobileMenuOpen(false)}
-                onMouseEnter={() => prefetchRota(to)}
-                onFocus={() => prefetchRota(to)}
-              >
-                <Icon size={18} />
-                {label}
-                {badge != null && badge > 0 && <NavBadge>{badge}</NavBadge>}
-              </NavItem>
+              {bloqueado ? (
+                <NavItemBloqueado
+                  type="button"
+                  title={`${label} faz parte de outro plano`}
+                  onClick={() => {
+                    setMobileMenuOpen(false)
+                    navigate(ROTA_PLANOS)
+                  }}
+                >
+                  <Icon size={18} />
+                  {label}
+                  <Lock className="cadeado" aria-label="Não incluso no seu plano" />
+                </NavItemBloqueado>
+              ) : (
+                /* `onFocus` junto do hover para quem navega por teclado ter o
+                   mesmo ganho — só o mouse deixaria esse usuário de fora. */
+                <NavItem
+                  to={to}
+                  end={!!end}
+                  onClick={() => setMobileMenuOpen(false)}
+                  onMouseEnter={() => prefetchRota(to)}
+                  onFocus={() => prefetchRota(to)}
+                >
+                  <Icon size={18} />
+                  {label}
+                  {badge != null && badge > 0 && <NavBadge>{badge}</NavBadge>}
+                </NavItem>
+              )}
             </span>
           ))}
 

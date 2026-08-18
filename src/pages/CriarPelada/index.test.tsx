@@ -67,7 +67,7 @@ async function vaiAteOFormulario() {
   await user.click(screen.getByRole('button', { name: /Society/ }))
 
   await user.click(await screen.findByText('Arena Sul'))
-  await screen.findByText(/detalhes da pelada em/i)
+  await screen.findByText(/detalhes da partida em/i)
 
   return resultado
 }
@@ -83,7 +83,7 @@ function preenche(container: HTMLElement) {
     vagas: screen.getByPlaceholderText('Ex: 10'),
     valor: screen.getByPlaceholderText('Ex: 100.00'),
     pix: screen.getByPlaceholderText(/CPF, e-mail, telefone/i),
-    enviar: screen.getByRole('button', { name: /criar pelada/i }),
+    enviar: screen.getByRole('button', { name: /criar partida/i }),
   }
 }
 
@@ -110,7 +110,7 @@ describe('CriarPelada — validação do formulário', () => {
   it('não envia nada com o formulário vazio e cobra os quatro campos', async () => {
     const { user } = await vaiAteOFormulario()
 
-    await user.click(screen.getByRole('button', { name: /criar pelada/i }))
+    await user.click(screen.getByRole('button', { name: /criar partida/i }))
 
     expect(await screen.findByText('Informe a data e horário')).toBeInTheDocument()
     expect(screen.getByText('Informe a chave Pix para pagamento')).toBeInTheDocument()
@@ -118,7 +118,7 @@ describe('CriarPelada — validação do formulário', () => {
     // válido`: campo numérico vazio virava NaN e o typeError respondia antes do
     // `.required()`. O transform do schema devolve a vez para estas.
     expect(screen.getByText('Informe o número de vagas')).toBeInTheDocument()
-    expect(screen.getByText('Informe o valor total da pelada')).toBeInTheDocument()
+    expect(screen.getByText('Informe o valor total da partida')).toBeInTheDocument()
     expect(criaEvento).not.toHaveBeenCalled()
   })
 
@@ -143,7 +143,7 @@ describe('CriarPelada — validação do formulário', () => {
 
     expect(await screen.findByText('A data deve ser no futuro')).toBeInTheDocument()
     expect(criaEvento).not.toHaveBeenCalled()
-    expect(screen.queryByText('Pelada criada com sucesso!')).not.toBeInTheDocument()
+    expect(screen.queryByText('Partida criada com sucesso!')).not.toBeInTheDocument()
   })
 
   it('barra menos de 2 vagas — pelada de um jogador só não existe', async () => {
@@ -223,7 +223,7 @@ describe('CriarPelada — envio', () => {
     })
     expect(payload.date).toBe(new Date('2027-06-10T19:00').toISOString())
 
-    expect(await screen.findByText('Pelada criada com sucesso!')).toBeInTheDocument()
+    expect(await screen.findByText('Partida criada com sucesso!')).toBeInTheDocument()
   })
 
   it('renderiza na tela a mensagem de erro que a API devolveu', async () => {
@@ -241,8 +241,8 @@ describe('CriarPelada — envio', () => {
       await screen.findByText(/já existe uma pelada nesta quadra neste horário/i),
     ).toBeInTheDocument()
     // Continua no formulário: o usuário precisa poder corrigir e reenviar.
-    expect(screen.queryByText('Pelada criada com sucesso!')).not.toBeInTheDocument()
-    expect(screen.getByRole('button', { name: /criar pelada/i })).toBeEnabled()
+    expect(screen.queryByText('Partida criada com sucesso!')).not.toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /criar partida/i })).toBeEnabled()
   })
 
   it('cai numa mensagem genérica quando o erro não tem corpo da API', async () => {
@@ -256,6 +256,6 @@ describe('CriarPelada — envio', () => {
     await user.type(campos.pix, 'pix@exemplo.com')
     await user.click(campos.enviar)
 
-    expect(await screen.findByText(/erro ao criar pelada/i)).toBeInTheDocument()
+    expect(await screen.findByText(/erro ao criar partida/i)).toBeInTheDocument()
   })
 })

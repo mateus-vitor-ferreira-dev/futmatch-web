@@ -402,26 +402,98 @@ export interface Sport {
     groupOrder: number;
 }
 
+/**
+ * Como o jogador joga numa modalidade. Um registro por (jogador, modalidade) —
+ * a mesma pessoa pode ser avançada no futsal e iniciante no vôlei.
+ *
+ * `position` é texto livre e nulo quer dizer "jogo em qualquer posição", que é a
+ * resposta honesta da maioria.
+ */
+export interface SportProfile {
+    sport: CourtType;
+    level: CompetitionLevel;
+    position: string | null;
+    updatedAt: string;
+}
+
+/** Os dois jeitos de dividir os times. `ALEATORIO` é o padrão da API. */
+export type DrawMode = "ALEATORIO" | "EQUILIBRADO";
+
+/**
+ * Índice de nível de um jogador na modalidade da partida.
+ *
+ * `estimado: true` quer dizer que ele não declarou nível nem foi avaliado nela,
+ * e o número é um palpite neutro. A tela precisa dizer isso — 50 apresentado
+ * como medida dá confiança falsa no equilíbrio.
+ */
+export interface SkillIndex {
+    valor: number;
+    estimado: boolean;
+}
+
+/**
+ * Os campos abaixo são **opcionais de propósito**, e não porque a API às vezes
+ * os omite: ela sempre os devolve, desde a api#206.
+ *
+ * O que eles representam é a **janela de release**. Front e API sobem separados,
+ * e por algumas horas o app novo conversa com a API anterior — que não conhece
+ * `skill`, `averageSkill` nem `balance`. Declarar como obrigatório o que só
+ * existe depois do outro release faz o TypeScript prometer o que a rede não
+ * garante, e o preço é uma tela branca no meio da janela.
+ */
+export interface DrawPlayer extends Pick<UserPublic, "id" | "name" | "avatarUrl" | "badge"> {
+    position?: string | null;
+    skill?: SkillIndex;
+}
+
 export interface DrawTeam {
     name: string;
-    players: Array<Pick<UserPublic, "id" | "name" | "avatarUrl" | "badge">>;
+    players: DrawPlayer[];
+    /** Soma dos índices do time. Ausente quando a API ainda é anterior à api#206. */
+    skillIndex?: number;
+    /** Índice médio por jogador — é por ele que o equilíbrio se mede. */
+    averageSkill?: number;
 }
 
 export interface DrawResult {
     peladaId: string;
     teamCount: number;
     totalPlayers: number;
+    mode?: DrawMode;
     teams: DrawTeam[];
+    /** Ausente quando a API ainda é anterior à api#206 — ver a nota em DrawPlayer. */
+    balance?: {
+        /** Diferença de índice médio entre o time mais forte e o mais fraco. */
+        spread: number;
+        /** O alvo perseguido pelo modo equilibrado. */
+        target: number;
+        /** `false` quando os jogadores presentes não permitiam chegar ao alvo. */
+        withinTarget: boolean;
+        /** Quantos jogadores entraram com índice estimado. */
+        estimatedPlayers: number;
+    };
 }
+
+/**
+ * O que um degrau da grade abre no painel do parceiro.
+ *
+ * Espelha o enum `PlanFeature` da API. Fora daqui ficaram, de propósito,
+ * Solicitações, Meus Estabelecimentos e a própria tela de Planos: são como o dono
+ * entra na plataforma, o que ele já contratou e como ele paga — trancar qualquer um
+ * deixaria o cliente do lado de fora da própria assinatura.
+ */
+export type PlanFeature = "ESTATISTICAS" | "EQUIPAMENTOS" | "ESTOQUE";
 
 export interface Plan {
     id: string;
     nome: string;
     precoCentavos: number;
-    /** Nulo é sem limite, não zero — ver plan-limit.service.ts na API. */
-    maxQuadras: number | null;
-    maxEstabelecimentos: number | null;
-    maxModalidades: number | null;
+    /**
+     * O que o plano abre. **Lista vazia é o degrau de entrada, não plano quebrado** —
+     * cadastrar a arena e receber partidas não depende de funcionalidade nenhuma.
+     * Nenhum plano limita quantidade de quadras, espaços ou modalidades (api#278).
+     */
+    funcionalidades: PlanFeature[];
 }
 
 export interface SubscriptionUsage {
@@ -434,7 +506,7 @@ export interface SubscriptionUsage {
  *
  * Downgrade passa a valer no fim do ciclo: o dono usa até o fim o que já
  * pagou. Até lá, `SubscriptionStatus.plan` continua sendo o plano em vigor —
- * é ele que rege os limites — e isto aqui diz para onde vai.
+ * é ele que rege o acesso — e isto aqui diz para onde vai.
  */
 export interface TrocaAgendada {
     plan: Plan;
@@ -468,7 +540,11 @@ export interface SwitchPlanPreview {
     efetivaImediatamente: boolean;
     /** Quando o downgrade passa a valer. Null quando a troca é imediata. */
     valeAPartirDe: IsoDate | null;
-    usoExcederiaNovoPlano: { quadras: boolean; estabelecimentos: boolean } | null;
+    /**
+     * O que o dono deixa de acessar ao descer de degrau, para a tela avisar antes do
+     * clique. Vazio no upgrade. Nada é apagado: os dados ficam esperando um upgrade.
+     */
+    funcionalidadesPerdidas: PlanFeature[];
 }
 
 export type InventoryUnit = 'UNIDADE' | 'GARRAFA' | 'LATA' | 'PACOTE' | 'CAIXA' | 'QUILOGRAMA';

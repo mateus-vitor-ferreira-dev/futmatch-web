@@ -1,12 +1,14 @@
 import { useState, useEffect } from 'react'
 import { usePageHeader } from '../../../components/DashboardLayout/pageHeader'
-import { CreditCard, Loader2, MapPin, Shield, CalendarCheck, Bell } from 'lucide-react'
+import { CreditCard, Loader2, MapPin, Shield, CalendarCheck, Bell, BarChart3 } from 'lucide-react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { toast } from 'sonner'
 import { subscriptionService } from '../../../services/subscriptionService'
+import { useSubscription } from '../../../hooks/useSubscription'
 import { ownerService } from '../../../services/ownerService'
 import { formatarPrecoCentavos } from '../../../utils/formatCurrency'
-import { Container, Grid, Card, PlanHighlight, RowList, PrimaryButton, Badge, StatsGrid, StatCard, StatIcon, StatInfo, StatValue, StatLabel } from './styles'
+import { ROTULOS_DE_FUNCIONALIDADE, INCLUSO_EM_TODO_PLANO } from '../../../constants/planFeatures'
+import { Container, Grid, Card, PlanHighlight, RowList, PrimaryButton, Badge, StatsGrid, StatCard, StatIcon, StatInfo, StatValue, StatLabel, ConviteEstatisticas } from './styles'
 import type { OwnerStats, SubscriptionStatus } from '../../../types/api'
 
 const STATUS_LABEL: Record<string, string> = {
@@ -23,6 +25,7 @@ export default function OwnerDashboard() {
   const [sub, setSub] = useState<SubscriptionStatus | null>(null)
   const [loading, setLoading] = useState(true)
   const [stats, setStats] = useState<OwnerStats | null>(null)
+  const { temFuncionalidade } = useSubscription()
 
   useEffect(() => {
     const payment = searchParams.get('payment')
@@ -33,6 +36,9 @@ export default function OwnerDashboard() {
   useEffect(() => {
     Promise.all([
       subscriptionService.getStatus().catch(() => ({ status: 'inactive', currentPeriodEnd: null })),
+      // 403 quando o plano não abre estatísticas — cai no `null` e a grade abaixo
+      // mostra o convite em vez dos números. O `catch` já engolia qualquer falha;
+      // o que muda é a tela saber a diferença entre "não deu" e "não é do seu plano".
       ownerService.getStats().catch(() => null),
     ]).then(([subData, statsData]) => {
       setSub(subData)
@@ -48,11 +54,15 @@ export default function OwnerDashboard() {
   return (
     <>
       <Container>
+        {/* Estatística é funcionalidade de plano (api#278). Sem ela, no lugar dos
+            números vai o convite — mostrar quatro traços deixaria o dono achando
+            que o painel quebrou. */}
+        {temFuncionalidade('ESTATISTICAS') ? (
         <StatsGrid>
           {[
             { icon: MapPin,       color: '#3b82f6', label: 'Estabelecimentos', value: stats?.totalPlaces  ?? '—' },
             { icon: Shield,       color: '#22c55e', label: 'Quadras',          value: stats?.totalCourts  ?? '—' },
-            { icon: CalendarCheck,color: '#f59e0b', label: 'Peladas ativas',   value: stats?.activeEvents ?? '—' },
+            { icon: CalendarCheck,color: '#f59e0b', label: 'Partidas ativas',  value: stats?.activeEvents ?? '—' },
             { icon: Bell,         color: '#ef4444', label: 'Solicitações pendentes', value: stats?.pendingRequests ?? '—' },
           ].map(({ icon: Icon, color, label, value }) => (
             <StatCard key={label}>
@@ -64,6 +74,16 @@ export default function OwnerDashboard() {
             </StatCard>
           ))}
         </StatsGrid>
+        ) : (
+          <ConviteEstatisticas>
+            <BarChart3 size={20} />
+            <div>
+              <strong>Estatísticas do espaço fazem parte de outro plano</strong>
+              <p>Veja quantas partidas acontecem nas suas quadras, e quantas solicitações estão esperando.</p>
+            </div>
+            <PrimaryButton onClick={() => navigate('/owner/plans')}>Ver planos</PrimaryButton>
+          </ConviteEstatisticas>
+        )}
 
         <Grid>
           <Card>
@@ -94,21 +114,15 @@ export default function OwnerDashboard() {
                       </span>
                     </div>
                   )}
+                  {/* Sem "de N": nenhum plano tem teto desde a api#278. O número
+                      continua aqui porque é o tamanho do espaço, não uma cota. */}
                   <div className="row">
                     <span className="label">Quadras</span>
-                    <span className="value">
-                      {sub?.plan
-                        ? `${sub.usage?.quadras ?? 0} de ${sub.plan.maxQuadras ?? 'ilimitadas'}`
-                        : `${sub?.usage?.quadras ?? 0} cadastradas`}
-                    </span>
+                    <span className="value">{sub?.usage?.quadras ?? 0} cadastradas</span>
                   </div>
                   <div className="row">
                     <span className="label">Estabelecimentos</span>
-                    <span className="value">
-                      {sub?.plan
-                        ? `${sub.usage?.estabelecimentos ?? 0} de ${sub.plan.maxEstabelecimentos ?? 'ilimitados'}`
-                        : `${sub?.usage?.estabelecimentos ?? 0} cadastrados`}
-                    </span>
+                    <span className="value">{sub?.usage?.estabelecimentos ?? 0} cadastrados</span>
                   </div>
                 </RowList>
                 <PrimaryButton onClick={() => navigate('/owner/plans')}>
@@ -119,12 +133,15 @@ export default function OwnerDashboard() {
           </Card>
 
           <Card>
-            <h2>{sub?.plan ? 'Limites do plano' : 'Escolha seu plano'}</h2>
+            <h2>{sub?.plan ? 'O que seu plano abre' : 'Escolha seu plano'}</h2>
             {sub?.plan ? <RowList>
+              {/* O que todo degrau inclui vem primeiro, e depois o que este abre.
+                  Listar só as funcionalidades faria o Básico parecer um plano vazio,
+                  quando ele é o de entrada — cadastrar a arena e receber partidas não
+                  depende de funcionalidade nenhuma. */}
               {[
-                `${sub.plan.maxQuadras ?? 'Ilimitadas'} quadras`,
-                `${sub.plan.maxEstabelecimentos ?? 'Ilimitados'} estabelecimentos`,
-                `${sub.plan.maxModalidades ?? 'Ilimitadas'} modalidades`,
+                ...INCLUSO_EM_TODO_PLANO,
+                ...sub.plan.funcionalidades.map(f => ROTULOS_DE_FUNCIONALIDADE[f]),
               ].map(item => (
                 <div className="row" key={item}>
                   <span style={{ color: '#3BAA34', fontWeight: 600 }}>✓</span>

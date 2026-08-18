@@ -47,7 +47,7 @@ O ciclo é **descobrir → entrar → jogar → avaliar**, e ele fecha em cima d
     </tr>
     <tr>
       <td>🏟️ <strong>Dono de quadra</strong><br/><code>OWNER</code></td>
-      <td>Pede o cadastro do espaço, gerencia locais e quadras (criar, editar, ativar/desativar), acompanha as solicitações e assina o <strong>Só+1 Pro</strong> — recursos ficam atrás de um gate de assinatura até o checkout ser concluído.</td>
+      <td>Pede o cadastro do espaço, gerencia locais e quadras (criar, editar, ativar/desativar), acompanha as solicitações e assina o <strong>Só+1 Pro</strong> — sem assinatura em dia ele continua consultando tudo, e só as ações que gravam ficam desabilitadas, como a API já fazia.</td>
     </tr>
     <tr>
       <td>🛠️ <strong>Admin</strong><br/><code>ADMIN</code></td>
@@ -94,6 +94,8 @@ flowchart TB
 **Quatro guardas de rota, não um `isAdmin` espalhado.** `PublicRoute` (logado não vê login e é despachado para o painel do seu papel), `PrivateRoute`, `AdminRoute` e `OwnerRoute` — que deixa `ADMIN` passar por dentro, porque admin precisa enxergar o que o dono enxerga. A autorização vive no roteador, num arquivo só; as páginas não conhecem papel.
 
 **Fallback local para o catálogo de modalidades.** `useSports` busca as modalidades da API e, se ela não responder, cai para uma lista embutida de 12 esportes agrupados em tabs. A tela de filtros nunca aparece vazia por causa de um GET que falhou. O mesmo princípio no upload de avatar: sem Cloudinary configurado, `cloudinaryReady` some com o botão em vez de oferecer um recurso que vai quebrar.
+
+**Assinatura vencida esconde o botão, não o dado.** No painel do dono a regra é uma só, e é a do servidor: **leitura é livre, escrita exige assinatura em dia** — na API o `requireActiveSubscription` está nos `POST`/`PATCH`/`DELETE` e nunca nos `GET`. Na tela, quem responde por isso é o `podeAlterar` do `useSubscription`, que desabilita cada ação que grava; o `SubscriptionGate` só avisa, numa faixa acima do conteúdo. Até a #244 as cinco telas do painel não concordavam: quatro apagavam tudo a 25% sob um cartão de "Assinatura necessária" — carregando os dados para depois escondê-los — e o Estoque deixava consultar e travava só a edição. Quem navegava pelo menu via o produto mudar de regra a cada clique. **O dono com pagamento atrasado é justamente quem mais precisa enxergar o próprio negócio**, para conferir o que tem e decidir se renova. A única situação em que o clique ainda é segurado é enquanto o status não chegou: liberar ali é o beco em que se preenchia o formulário inteiro para levar 402 no fim.
 
 **Tema que começa certo.** O `ThemeContext` lê `prefers-color-scheme` na primeira visita e persiste a escolha no `localStorage`; o `ThemeProvider` do styled-components troca o objeto de tokens inteiro (cores, spacing, fontes) e o `Toaster` do sonner acompanha. Sem flash de tema errado, sem classe `dark` pendurada no `<body>`.
 
@@ -412,8 +414,9 @@ Os fluxos críticos do jogador, o que dá mais prejuízo quando quebra:
 | Mensagem de erro | `utils/apiError.test.ts` | O que o usuário lê quando algo falha, para qualquer coisa que caia no `catch` |
 | Catálogo de modalidades | `hooks/useSports.test.tsx` | O fallback local que sustenta busca, cadastro e criação quando a API não responde |
 | Gate de assinatura | `hooks/useSubscription.test.tsx` · `utils/toastErro.test.ts` | O `isActive` concordando com o middleware da API, inclusive na tolerância de `past_due`, e o erro 402 mostrando o caminho do pagamento |
+| Assinatura vencida no painel | `pages/Owner/{Places,Courts,Equipment,Requests,Inventory}/index.test.tsx` | As cinco telas se comportando igual: conteúdo consultável, ações que gravam desabilitadas e ninguém gravando antes de o status chegar |
 
-**150 testes, ~3s.** A cobertura de linhas está em **~28%**, e o número não é meta: o critério é cobrir o que dói quando quebra, não perseguir porcentagem. **Todo PR novo entra com teste do comportamento que ele muda** — é o que a [Definition of Done](https://github.com/mateus-vitor-ferreira-dev/so-mais-um-api/blob/main/docs/EQUIPE.md) pede.
+**278 testes, ~16s.** A cobertura de linhas está em **~28%**, e o número não é meta: o critério é cobrir o que dói quando quebra, não perseguir porcentagem. **Todo PR novo entra com teste do comportamento que ele muda** — é o que a [Definition of Done](https://github.com/mateus-vitor-ferreira-dev/so-mais-um-api/blob/main/docs/EQUIPE.md) pede.
 
 ---
 

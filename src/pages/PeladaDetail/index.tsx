@@ -1,12 +1,14 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { toast } from 'sonner'
-import { ArrowLeft, Calendar, Clock, MapPin, Users, DollarSign, Copy, CheckCircle, Crown, Flag, XCircle, ExternalLink, LogOut } from 'lucide-react'
+import { ArrowLeft, Calendar, Clock, MapPin, Users, DollarSign, Copy, CheckCircle, Crown, Flag, XCircle, ExternalLink, LogOut, Shuffle } from 'lucide-react'
 import { useAuth } from '../../contexts/AuthContext'
 import { playerService, MAX_MOTIVO_SAIDA } from '../../services/playerService'
 import { getSportMeta } from '../../hooks/useSports'
 import type { CourtType, Pelada, PeladaStatus } from '../../types/api'
 import { mensagemDeErro } from '../../utils/apiError'
+import { SorteioDeTimes } from '../../components/SorteioDeTimes'
+import { SortearBtn } from '../../components/SorteioDeTimes/styles'
 import {
   Container, BackBtn, Card, CardHeader, SportIcon, HeaderInfo,
   CourtName, PlaceName, StatusBadge,
@@ -52,13 +54,14 @@ export default function PeladaDetail() {
   const [confirmandoSaida, setConfirmandoSaida] = useState(false)
   const [motivoSaida, setMotivoSaida]   = useState('')
   const [saindo, setSaindo]             = useState(false)
+  const [sorteando, setSorteando]       = useState(false)
 
   const load = useCallback(async () => {
     try {
       const res = await playerService.getEvent(eventId!)
       setEvent(res.data)
     } catch {
-      toast.error('Pelada não encontrada.')
+      toast.error('Partida não encontrada.')
       navigate('/quero-jogar', { replace: true })
     } finally {
       setLoading(false)
@@ -98,10 +101,10 @@ export default function PeladaDetail() {
     setJoining(true)
     try {
       await playerService.joinEvent(event!.courtId, event!.id)
-      toast.success('Você entrou na pelada!')
+      toast.success('Você entrou na partida!')
       load()
     } catch (err) {
-      toast.error(mensagemDeErro(err, 'Erro ao entrar na pelada.'))
+      toast.error(mensagemDeErro(err, 'Erro ao entrar na partida.'))
     } finally {
       setJoining(false)
     }
@@ -118,11 +121,11 @@ export default function PeladaDetail() {
       // Motivo em branco não vai no corpo: a API o trata como ausente, e
       // mandar string vazia só polui a notificação do organizador.
       await playerService.leaveEvent(event!.courtId, event!.id, motivoSaida.trim() || undefined)
-      toast.success('Você saiu da pelada. Sua vaga foi liberada.')
+      toast.success('Você saiu da partida. Sua vaga foi liberada.')
       setConfirmandoSaida(false)
       load()
     } catch (err) {
-      toast.error(mensagemDeErro(err, 'Erro ao sair da pelada.'))
+      toast.error(mensagemDeErro(err, 'Erro ao sair da partida.'))
     } finally {
       setSaindo(false)
     }
@@ -130,11 +133,11 @@ export default function PeladaDetail() {
 
   async function handleStatus(status: PeladaStatus) {
     const label = status === 'FINISHED' ? 'finalizar' : 'cancelar'
-    if (!window.confirm(`Tem certeza que deseja ${label} esta pelada?`)) return
+    if (!window.confirm(`Tem certeza que deseja ${label} esta partida?`)) return
     setUpdatingStatus(true)
     try {
       await playerService.updateEventStatus(event!.courtId, event!.id, status)
-      toast.success(`Pelada ${status === 'FINISHED' ? 'finalizada' : 'cancelada'} com sucesso.`)
+      toast.success(`Partida ${status === 'FINISHED' ? 'finalizada' : 'cancelada'} com sucesso.`)
       load()
     } catch (err) {
       toast.error(mensagemDeErro(err, 'Erro ao atualizar status.'))
@@ -257,43 +260,55 @@ export default function PeladaDetail() {
                 ) : joining ? (
                   'Entrando...'
                 ) : (
-                  <><Users size={18} /> Entrar na pelada</>
+                  <><Users size={18} /> Entrar na partida</>
                 )}
               </JoinBtn>
             )}
 
-            {/* Sair da pelada */}
+            {/* Sair da partida */}
             {canLeave && (
               <LeaveBtn onClick={abreConfirmacaoDeSaida} disabled={saindo}>
                 <LogOut size={16} />
-                {saindo ? 'Saindo...' : 'Sair da pelada'}
+                {saindo ? 'Saindo...' : 'Sair da partida'}
               </LeaveBtn>
             )}
 
             {/* Tag de organizador */}
             {isOrganizer && (
               <OrganizerTag>
-                <Crown size={12} /> Você é o organizador desta pelada
+                <Crown size={12} /> Você é o organizador desta partida
               </OrganizerTag>
             )}
 
-            {/* Ações do organizador */}
+            {/*
+              Ações do organizador.
+
+              "Sortear Times" vem primeiro de propósito: é a ação de antes do
+              jogo, e a única reversível das três. Finalizar e cancelar não têm
+              volta, e ficavam sozinhas aqui — o organizador que abria o detalhe
+              para sortear precisava voltar para a lista (#266).
+            */}
             {canChangeStatus && (
-              <OrganizerActions>
-                <ActionBtn
-                  disabled={updatingStatus}
-                  onClick={() => handleStatus('FINISHED')}
-                >
-                  <Flag size={14} /> Finalizar pelada
-                </ActionBtn>
-                <ActionBtn
-                  $variant="danger"
-                  disabled={updatingStatus}
-                  onClick={() => handleStatus('CANCELLED')}
-                >
-                  <XCircle size={14} /> Cancelar
-                </ActionBtn>
-              </OrganizerActions>
+              <>
+                <SortearBtn onClick={() => setSorteando(true)}>
+                  <Shuffle size={14} /> Sortear Times
+                </SortearBtn>
+                <OrganizerActions>
+                  <ActionBtn
+                    disabled={updatingStatus}
+                    onClick={() => handleStatus('FINISHED')}
+                  >
+                    <Flag size={14} /> Finalizar partida
+                  </ActionBtn>
+                  <ActionBtn
+                    $variant="danger"
+                    disabled={updatingStatus}
+                    onClick={() => handleStatus('CANCELLED')}
+                  >
+                    <XCircle size={14} /> Cancelar
+                  </ActionBtn>
+                </OrganizerActions>
+              </>
             )}
 
             {/* Participantes */}
@@ -327,13 +342,19 @@ export default function PeladaDetail() {
         </Card>
       </Container>
 
+      {/* O mesmo modal que "Meus Jogos" abre — um componente só, para os dois
+          não divergirem (#266). */}
+      {sorteando && (
+        <SorteioDeTimes partida={event} onClose={() => setSorteando(false)} />
+      )}
+
       {/* Confirmação de saída — sair por clique errado libera uma vaga que o
           jogador queria manter, e a pelada pode encher enquanto isso. */}
       {confirmandoSaida && (
-        <Modal role="dialog" aria-modal="true" aria-label="Sair da pelada">
+        <Modal role="dialog" aria-modal="true" aria-label="Sair da partida">
           <ModalOverlay onClick={() => !saindo && setConfirmandoSaida(false)} />
           <ModalBox>
-            <ModalTitle>Sair desta pelada?</ModalTitle>
+            <ModalTitle>Sair desta partida?</ModalTitle>
             <p>
               Sua vaga volta para a busca na hora e o organizador é avisado.
               Para voltar depois, você precisa entrar de novo — e pode ser que
@@ -361,7 +382,7 @@ export default function PeladaDetail() {
                 onClick={() => setConfirmandoSaida(false)}
                 disabled={saindo}
               >
-                Continuar na pelada
+                Continuar na partida
               </ModalCancelBtn>
               <ModalConfirmBtn type="button" onClick={handleLeave} disabled={saindo}>
                 {saindo ? 'Saindo...' : 'Confirmar saída'}

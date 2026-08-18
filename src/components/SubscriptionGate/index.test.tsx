@@ -1,10 +1,16 @@
 /**
- * O portão tem três estados, e até a #174 só um tinha desenho.
+ * O componente tem três estados, e até a #174 só um tinha desenho.
  *
  * O que estes testes protegem é o que o desenho decidiu: carregando não libera
  * clique (era a origem do 402 que a #119 passou a devolver), atraso dentro da
  * tolerância avisa sem bloquear, e o texto não nomeia plano — porque o plano
  * saiu do código na #118 e vira uma grade na #112.
+ *
+ * A #244 tirou dele o bloqueio da tela sem assinatura. Ele avisa; quem barra a
+ * escrita é o `podeAlterar` do `useSubscription`, botão a botão. O que estes
+ * casos passaram a travar é o contrário do que travavam antes: **sem assinatura
+ * em dia, o conteúdo continua visível e clicável** — é o que a API faz, já que
+ * o `requireActiveSubscription` só existe nos verbos de escrita.
  */
 import { describe, it, expect } from 'vitest'
 import { renderWithProviders, screen } from '../../test/render'
@@ -42,13 +48,26 @@ describe('SubscriptionGate — verificando', () => {
 })
 
 describe('SubscriptionGate — sem assinatura', () => {
-  it('bloqueia e oferece o caminho da assinatura', () => {
+  it('avisa e oferece o caminho da assinatura', () => {
     renderWithProviders(
       <SubscriptionGate isActive={false} loading={false}>{conteudo}</SubscriptionGate>,
     )
 
-    expect(screen.getByText('Assinatura necessária')).toBeInTheDocument()
+    expect(screen.getByText(/pode consultar, mas precisa de uma assinatura ativa/)).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Ver assinatura' })).toBeInTheDocument()
+  })
+
+  it('não esconde o conteúdo: leitura é livre', () => {
+    const { container } = renderWithProviders(
+      <SubscriptionGate isActive={false} loading={false}>{conteudo}</SubscriptionGate>,
+    )
+
+    // Antes da #244 este era o caso que apagava a tela a 25% e a cobria com um
+    // cartão. O dono com pagamento atrasado perdia o acesso de leitura ao
+    // próprio negócio justamente quando mais precisa dele — para conferir o que
+    // tem e decidir se renova.
+    expect(screen.getByRole('button', { name: 'Criar quadra' })).toBeVisible()
+    expect(container.querySelector('[style*="pointer-events: none"]')).toBeNull()
   })
 
   it('não nomeia plano nenhum no texto', () => {
@@ -73,7 +92,7 @@ describe('SubscriptionGate — pagamento em atraso', () => {
 
     // O ponto do aviso: a ação continua disponível.
     expect(screen.getByRole('button', { name: 'Criar quadra' })).toBeEnabled()
-    expect(screen.queryByText('Assinatura necessária')).not.toBeInTheDocument()
+    expect(screen.queryByText(/pode consultar, mas precisa/)).not.toBeInTheDocument()
   })
 
   it('diz quantos dias ainda restam', () => {

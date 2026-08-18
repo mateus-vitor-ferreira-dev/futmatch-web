@@ -37,7 +37,7 @@ const STATUS_BG    = { OPEN: '#dcfce7', CLOSED: '#f3f4f6' }
 export default function OwnerPlaces() {
   const { user } = useAuth()
   const navigate = useNavigate()
-  const { sub, isActive, loading: subLoading } = useSubscription()
+  const { sub, isActive, loading: subLoading, podeAlterar } = useSubscription()
   const [places, setPlaces]   = useState<Place[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError]     = useState<string | null>(null)
@@ -135,7 +135,7 @@ export default function OwnerPlaces() {
       <StatsRow>
         <StatCard label="Estabelecimentos" value={places.length} accent="#f59e0b" />
         <StatCard label="Quadras"          value={totalCourts}   accent="#22c55e" />
-        <StatCard label="Peladas Ativas"   value={totalEvents}   accent="#3b82f6" />
+        <StatCard label="Partidas Ativas"  value={totalEvents}   accent="#3b82f6" />
         <StatCard label="Avaliação Média"  value={avgRating ? `${avgRating} ★` : '—'} accent="#f59e0b" />
       </StatsRow>
 
@@ -180,13 +180,16 @@ export default function OwnerPlaces() {
               <ActionBtn variant="secondary" onClick={() => navigate(`/owner/places/${place.id}/courts`)}>
                 Quadras
               </ActionBtn>
-              <ActionBtn variant="secondary" onClick={() => openEdit(place)}>
+              {/* Editar e abrir/fechar gravam; o resto desta linha navega. Sem
+                  assinatura em dia os dois ficam desabilitados, e a leitura do
+                  estabelecimento continua de pé — é o que a API faz. */}
+              <ActionBtn variant="secondary" onClick={() => openEdit(place)} disabled={!podeAlterar}>
                 Editar
               </ActionBtn>
               <ActionBtn
                 variant={place.status === 'OPEN' ? 'danger' : 'success'}
                 onClick={() => handleToggleStatus(place)}
-                disabled={toggling === place.id}
+                disabled={toggling === place.id || !podeAlterar}
               >
                 {toggling === place.id
                   ? '...'

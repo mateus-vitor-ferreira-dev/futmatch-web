@@ -153,3 +153,39 @@ export const Badge = styled.span<{ $status?: string; }>`
       ? theme.colors.success
       : theme.colors.warning};
 `
+
+/**
+ * No lugar dos números, quando o plano não abre estatísticas.
+ *
+ * Convite, e não bloqueio: a página inteira continua sendo do dono — só esta faixa
+ * é de outro degrau. Quatro cartões com traço no lugar do número pareceriam painel
+ * quebrado, que é a leitura errada e a que mais gera suporte.
+ */
+export const ConviteEstatisticas = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+  padding: 20px 24px;
+  margin-bottom: 24px;
+  border-radius: ${({ theme }) => theme.radii.lg};
+  border: 1px dashed ${({ theme }) => theme.colors.border};
+  background: ${({ theme }) => theme.colors.bgCard};
+
+  > svg { color: ${({ theme }) => theme.colors.primary}; flex-shrink: 0; }
+
+  div { flex: 1; min-width: 220px; }
+
+  strong {
+    display: block;
+    font-size: ${({ theme }) => theme.fontSizes.sm};
+    color: ${({ theme }) => theme.colors.textPrimary};
+  }
+
+  p {
+    margin: 4px 0 0;
+    font-size: ${({ theme }) => theme.fontSizes.sm};
+    color: ${({ theme }) => theme.colors.textSecondary};
+    line-height: 1.5;
+  }
+`

@@ -1,6 +1,7 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo, useCallback } from 'react'
 import { subscriptionService } from '../services/subscriptionService'
-import type { SubscriptionStatus } from '../types/api'
+import { useAuth } from '../contexts/AuthContext'
+import type { PlanFeature, SubscriptionStatus } from '../types/api'
 
 const DIA_MS = 24 * 60 * 60 * 1000
 
@@ -51,11 +52,47 @@ export function diasDeToleranciaRestantes(sub: SubscriptionStatus | null): numbe
   return Math.ceil(restante / DIA_MS)
 }
 
+/**
+ * Estado da assinatura e do plano, num lugar só.
+ *
+ * `isActive` responde "a assinatura está em dia?"; `temFuncionalidade` responde "o
+ * plano abre isso?". São perguntas diferentes e as duas telas precisam distinguir:
+ * quem está em dia no Básico não resolve nada pagando a fatura — precisa subir de
+ * degrau, e mandar a mesma mensagem levaria o dono para a tela errada.
+ *
+ * **A exceção de ADMIN mora aqui, e só aqui.** A API já a tem em dois middlewares
+ * (`subscription.middleware.ts` e `planFeature.middleware.ts`) com a mesma frase:
+ * admin opera a plataforma, não assina. O front repetia o cálculo sem a exceção, e
+ * por isso barrava um ADMIN que a API liberava — era a #265. Concentrar aqui evita
+ * que a próxima tela esqueça de novo.
+ */
 export function useSubscription(): {
   sub: SubscriptionStatus | null
   isActive: boolean
   loading: boolean
+  /**
+   * Pode gravar? **Leitura é livre; escrita exige assinatura em dia.**
+   *
+   * É a regra do servidor, dita em uma linha: em todos os módulos o
+   * `requireActiveSubscription` está nos `POST`/`PATCH`/`DELETE` e nunca nos
+   * `GET`. Existe até teste escrito para dizer isso de propósito — *"dono sem
+   * assinatura ainda consulta as próprias solicitações"*, em
+   * `place-request.test.ts`.
+   *
+   * Sai daqui, e não de cada tela, porque era exatamente isso que a #244
+   * apontou: quatro telas escondiam tudo e o Estoque só travava a edição, sem
+   * nada escrito dizendo qual das duas estava certa.
+   *
+   * Inclui o `!loading` de propósito: enquanto o status não chegou, ninguém
+   * grava. Foi liberar clique nesse instante que criou o beco da #119 — o dono
+   * preenchia o formulário inteiro para levar 402 no fim.
+   */
+  podeAlterar: boolean
+  /** Funcionalidades do plano em vigor. Vazio sem assinatura. */
+  funcionalidades: PlanFeature[]
+  temFuncionalidade: (funcionalidade: PlanFeature) => boolean
 } {
+  const { user } = useAuth()
   const [sub, setSub] = useState<SubscriptionStatus | null>(null)
   const [loading, setLoading] = useState(true)
 
@@ -66,5 +103,29 @@ export function useSubscription(): {
       .finally(() => setLoading(false))
   }, [])
 
-  return { sub, isActive: estaEmDia(sub), loading }
+  const ehAdmin = user?.role === 'ADMIN'
+
+  // O plano EM VIGOR, mesmo havendo downgrade agendado: quem pagou o Premium até
+  // a virada continua abrindo o Premium até a virada.
+  //
+  // Memoizado porque o `?? []` criaria um array novo a cada render, e quem depende
+  // disso — o menu do painel, por exemplo — recalcularia sem nada ter mudado.
+  const doPlano = sub?.plan?.funcionalidades
+  const funcionalidades = useMemo(() => doPlano ?? [], [doPlano])
+
+  const temFuncionalidade = useCallback(
+    (funcionalidade: PlanFeature) => ehAdmin || funcionalidades.includes(funcionalidade),
+    [ehAdmin, funcionalidades],
+  )
+
+  const isActive = ehAdmin || estaEmDia(sub)
+
+  return {
+    sub,
+    isActive,
+    loading,
+    podeAlterar: isActive && !loading,
+    funcionalidades,
+    temFuncionalidade,
+  }
 }

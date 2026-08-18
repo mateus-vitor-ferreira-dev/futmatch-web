@@ -10,7 +10,9 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { renderWithProviders, screen, waitFor } from '../../test/render'
 import { erroDaApi } from '../../test/factories'
+import type { Sport } from '../../types/api'
 import AuthLayout from './index'
+import { WHEEL_ITEM_HEIGHT } from './styles'
 
 vi.mock('../../services/stats')
 vi.mock('../../services/sports')
@@ -42,7 +44,7 @@ describe('<AuthLayout /> — números do painel', () => {
 
     await waitFor(() => expect(screen.getByText('128')).toBeInTheDocument())
     expect(screen.getByText('jogadores na plataforma')).toBeInTheDocument()
-    expect(screen.getByText('peladas abertas')).toBeInTheDocument()
+    expect(screen.getByText('partidas abertas')).toBeInTheDocument()
     // "online" e "hoje" prometiam presença e recorte de dia, que a rota não
     // tem. O rótulo agora diz o que o número de fato é.
     expect(screen.queryByText('jogadores online')).not.toBeInTheDocument()
@@ -65,7 +67,7 @@ describe('<AuthLayout /> — números do painel', () => {
     renderiza()
 
     await waitFor(() => expect(screen.getByText('128')).toBeInTheDocument())
-    expect(screen.getByText('peladas abertas')).toBeInTheDocument()
+    expect(screen.getByText('partidas abertas')).toBeInTheDocument()
     expect(screen.getByText('arenas parceiras')).toBeInTheDocument()
     // Quarto do dado e os fixos não cabem — a linha tem três lugares.
     expect(screen.queryByText('cidades atendidas')).not.toBeInTheDocument()
@@ -96,7 +98,7 @@ describe('<AuthLayout /> — limiar por cartão', () => {
 
     renderiza()
 
-    await waitFor(() => expect(screen.getByText('peladas abertas')).toBeInTheDocument())
+    await waitFor(() => expect(screen.getByText('partidas abertas')).toBeInTheDocument())
     expect(screen.queryByText('jogadores na plataforma')).not.toBeInTheDocument()
     expect(screen.queryByText('49')).not.toBeInTheDocument()
   })
@@ -108,7 +110,7 @@ describe('<AuthLayout /> — limiar por cartão', () => {
 
     await waitFor(() => expect(screen.getByText('50')).toBeInTheDocument())
     expect(screen.getByText('jogadores na plataforma')).toBeInTheDocument()
-    expect(screen.getByText('peladas abertas')).toBeInTheDocument()
+    expect(screen.getByText('partidas abertas')).toBeInTheDocument()
   })
 
   it('cada cartão tem o seu limiar: 4 cidades passa, 4 jogadores não', async () => {
@@ -130,5 +132,125 @@ describe('<AuthLayout /> — limiar por cartão', () => {
     expect(screen.queryByText('jogadores na plataforma')).not.toBeInTheDocument()
     expect(screen.queryByText('2')).not.toBeInTheDocument()
     expect(screen.queryByText('0')).not.toBeInTheDocument()
+  })
+})
+
+/**
+ * A #243: o cartão em foco media ~67 px dentro de um slot de 56 px e, ancorado
+ * pelo topo, derramava o excedente por cima do rótulo do vizinho de baixo. Não
+ * era intermitente — acontecia a cada 3 segundos, com toda modalidade que
+ * entrava em foco, e era o primeiro elemento animado de quem chega para logar.
+ *
+ * jsdom não faz layout, então nada aqui mede pixel renderizado. O que estes
+ * casos travam é a regra de onde a sobreposição nasceu: **a distância entre os
+ * centros de dois cartões é a própria altura do cartão**, e essa altura é a
+ * mesma para todos. Enquanto as duas coisas forem verdade, item nenhum alcança
+ * o vizinho — e o dia em que alguém separar os dois números, ou deixar a altura
+ * voltar a depender do conteúdo, quebra aqui e não em produção.
+ */
+function criaModalidade(over: Partial<Sport> & Pick<Sport, 'id' | 'label'>): Sport {
+  return {
+    icon: '⚽',
+    description: 'Descrição curta',
+    group: 'FUTEBOL',
+    groupLabel: 'Futebol',
+    groupIcon: '⚽',
+    groupOrder: 1,
+    ...over,
+  } as Sport
+}
+
+/**
+ * As descrições são o que distingue este dado do catálogo embutido no
+ * `useSports`, que entra quando a API não responde e **não** traz o campo.
+ * Sem elas, o `waitFor` casaria com o rótulo do fallback e o teste rodaria
+ * contra uma lista que não é a que ele montou.
+ */
+function modalidades(descricao = (label: string) => `Descrição de ${label}`): Sport[] {
+  return [
+    { id: 'CAMPO',  label: 'Futebol de Campo' },
+    { id: 'FUTSAL', label: 'Futsal' },
+    { id: 'AREIA',  label: 'Futevôlei' },
+    { id: 'VOLEI',  label: 'Vôlei' },
+    { id: 'PETECA', label: 'Peteca' },
+  ].map((m) => criaModalidade({ ...m, description: descricao(m.label) } as Partial<Sport> & Pick<Sport, 'id' | 'label'>))
+}
+
+/** Renderiza e só devolve quando a roda já está montada com o dado da API. */
+async function renderizaRoda(lista: Sport[]) {
+  buscaModalidades.mockResolvedValue(lista)
+  const resultado = renderiza()
+  await waitFor(() =>
+    expect(screen.getByText(lista[0]!.description)).toBeInTheDocument(),
+  )
+  return resultado
+}
+
+/**
+ * Os cartões da roda são os únicos elementos com `top` no style inline — é por
+ * ele que o componente posiciona cada um dentro da trilha.
+ *
+ * A propriedade é lida do `style`, e não casada como texto do atributo: o
+ * seletor `[style*="top:"]` também pega o `margin-top` do `HeadlineDesc`.
+ */
+function cartoesDaRoda(container: HTMLElement): HTMLElement[] {
+  return [...container.querySelectorAll<HTMLElement>('[style]')]
+    .filter((el) => el.style.top !== '')
+}
+
+describe('<AuthLayout /> — roda de modalidades', () => {
+  beforeEach(() => {
+    buscaNumeros.mockResolvedValue(NUMEROS)
+  })
+
+  it('todo cartão tem a mesma altura, e ela é a distância entre dois vizinhos', async () => {
+    const { container } = await renderizaRoda(modalidades())
+
+    const cartoes = cartoesDaRoda(container)
+    expect(cartoes.length).toBeGreaterThan(1)
+
+    for (const cartao of cartoes) {
+      expect(getComputedStyle(cartao).height).toBe(`${WHEEL_ITEM_HEIGHT}px`)
+    }
+
+    // Centros consecutivos separados por exatamente uma altura de cartão: é o
+    // que garante que a folga seja zero e nunca negativa.
+    const centros = cartoes.map((c) => parseFloat(c.style.top)).sort((a, b) => a - b)
+    for (let i = 1; i < centros.length; i++) {
+      expect(centros[i]! - centros[i - 1]!).toBe(WHEEL_ITEM_HEIGHT)
+    }
+  })
+
+  it('o cartão é ancorado pelo centro, não pelo topo', async () => {
+    const { container } = await renderizaRoda(modalidades())
+
+    // Sem o translateY(-50%), a sobra de altura cai inteira para baixo — que é
+    // exatamente como o cartão de cima passava por cima do de baixo.
+    for (const cartao of cartoesDaRoda(container)) {
+      expect(cartao.style.transform).toMatch(/^translateY\(-50%\) scale\(/)
+    }
+  })
+
+  it('a descrição é renderizada em todos os itens, e não só no que está em foco', async () => {
+    const { container } = await renderizaRoda(modalidades())
+
+    // É a linha da descrição que iguala a altura: renderizada só no ativo, ela
+    // fazia o cartão em foco medir uma linha a mais que os vizinhos.
+    const comDescricao = cartoesDaRoda(container).filter((cartao) =>
+      /Descrição de/.test(cartao.textContent ?? ''),
+    )
+    expect(comDescricao).toHaveLength(cartoesDaRoda(container).length)
+  })
+
+  it('descrição longa não devolve a altura ao conteúdo', async () => {
+    // O texto vem da API: uma descrição que quebrasse em duas linhas
+    // reintroduziria a diferença de altura que a #243 fechou.
+    const { container } = await renderizaRoda(
+      modalidades((label) => `Descrição de ${label}, ${'desproporcionalmente longa '.repeat(8).trim()}`),
+    )
+
+    for (const cartao of cartoesDaRoda(container)) {
+      expect(getComputedStyle(cartao).height).toBe(`${WHEEL_ITEM_HEIGHT}px`)
+    }
   })
 })

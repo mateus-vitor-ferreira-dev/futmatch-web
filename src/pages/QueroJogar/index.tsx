@@ -162,7 +162,7 @@ export default function QueroJogar() {
         <HeaderRow>
           <Header>
             <h1>Quero Jogar</h1>
-            <p>Encontre a pelada perfeita para você participar hoje.</p>
+            <p>Encontre a partida perfeita para você participar hoje.</p>
           </Header>
         </HeaderRow>
 

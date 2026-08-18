@@ -14,6 +14,16 @@ import { useSubscription } from './useSubscription'
 vi.mock('../services/subscriptionService')
 import { subscriptionService } from '../services/subscriptionService'
 
+/**
+ * O papel entra no cálculo desde a #265: ADMIN opera a plataforma e não assina,
+ * então o hook precisa liberá-lo como a API já libera.
+ */
+const auth = vi.hoisted(() => ({ estado: { user: null as { role: string } | null } }))
+vi.mock('../contexts/AuthContext', async (original) => ({
+  ...(await original<Record<string, unknown>>()),
+  useAuth: () => auth.estado,
+}))
+
 const buscaStatus = vi.mocked(subscriptionService.getStatus)
 
 const HORA_MS = 60 * 60 * 1000
@@ -39,6 +49,7 @@ const emDias = (dias: number) => emHoras(dias * 24)
 
 beforeEach(() => {
   vi.clearAllMocks()
+  auth.estado = { user: { role: 'OWNER' } }
 })
 
 /** Monta o hook e espera o carregamento terminar. */
@@ -115,5 +126,92 @@ describe('useSubscription — tolerância de past_due', () => {
     // Sem data não há de onde medir a tolerância — mesmo lado seguro da API,
     // senão um past_due sem data viraria liberação eterna.
     expect(result.current.isActive).toBe(false)
+  })
+})
+
+describe('useSubscription — funcionalidades do plano', () => {
+  it('devolve o que o plano em vigor abre', async () => {
+    buscaStatus.mockResolvedValue({
+      status: 'active',
+      currentPeriodEnd: emDias(20),
+      plan: { id: 'pro', nome: 'Só+1 Pro', precoCentavos: 7990, funcionalidades: ['ESTATISTICAS'] },
+    })
+
+    const result = await montaHook()
+
+    expect(result.current.funcionalidades).toEqual(['ESTATISTICAS'])
+    expect(result.current.temFuncionalidade('ESTATISTICAS')).toBe(true)
+    expect(result.current.temFuncionalidade('ESTOQUE')).toBe(false)
+  })
+
+  it('plano de entrada não abre nada, e isso não é assinatura quebrada', async () => {
+    buscaStatus.mockResolvedValue({
+      status: 'active',
+      currentPeriodEnd: emDias(20),
+      plan: { id: 'basico', nome: 'Só+1 Básico', precoCentavos: 3990, funcionalidades: [] },
+    })
+
+    const result = await montaHook()
+
+    // As duas respostas convivem: em dia **e** sem a funcionalidade. É a distinção
+    // que manda o dono para a tela de planos em vez da de pagamento.
+    expect(result.current.isActive).toBe(true)
+    expect(result.current.temFuncionalidade('ESTOQUE')).toBe(false)
+  })
+
+  it('sem assinatura não abre nada', async () => {
+    buscaStatus.mockResolvedValue({ status: 'inactive', currentPeriodEnd: null })
+
+    const result = await montaHook()
+
+    expect(result.current.funcionalidades).toEqual([])
+    expect(result.current.temFuncionalidade('ESTATISTICAS')).toBe(false)
+  })
+
+  it('mantém o que o plano EM VIGOR abre, mesmo com downgrade agendado', async () => {
+    buscaStatus.mockResolvedValue({
+      status: 'active',
+      currentPeriodEnd: emDias(20),
+      plan: { id: 'premium', nome: 'Só+1 Premium', precoCentavos: 14990, funcionalidades: ['ESTOQUE'] },
+      trocaAgendada: {
+        plan: { id: 'basico', nome: 'Só+1 Básico', precoCentavos: 3990, funcionalidades: [] },
+        valeAPartirDe: emDias(20),
+      },
+    })
+
+    const result = await montaHook()
+
+    // Quem pagou o Premium até a virada abre o Premium até a virada.
+    expect(result.current.temFuncionalidade('ESTOQUE')).toBe(true)
+  })
+})
+
+describe('useSubscription — ADMIN (#265)', () => {
+  beforeEach(() => {
+    auth.estado = { user: { role: 'ADMIN' } }
+  })
+
+  it('passa mesmo sem assinatura — opera a plataforma, não assina', async () => {
+    buscaStatus.mockResolvedValue({ status: 'inactive', currentPeriodEnd: null })
+
+    const result = await montaHook()
+
+    // A API já liberava (subscription.middleware.ts e planFeature.middleware.ts); o
+    // front barrava, e o painel do dono aparecia esmaecido para o admin.
+    expect(result.current.isActive).toBe(true)
+    expect(result.current.temFuncionalidade('ESTOQUE')).toBe(true)
+    expect(result.current.temFuncionalidade('ESTATISTICAS')).toBe(true)
+  })
+
+  it('passa mesmo assinando um plano que não abre nada', async () => {
+    buscaStatus.mockResolvedValue({
+      status: 'active',
+      currentPeriodEnd: emDias(20),
+      plan: { id: 'basico', nome: 'Só+1 Básico', precoCentavos: 3990, funcionalidades: [] },
+    })
+
+    const result = await montaHook()
+
+    expect(result.current.temFuncionalidade('EQUIPAMENTOS')).toBe(true)
   })
 })
