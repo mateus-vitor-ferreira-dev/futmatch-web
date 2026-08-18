@@ -1,6 +1,7 @@
 import api from './api'
 import type {
   ApiEnvelope,
+  DrawMode,
   DrawResult,
   Participation,
   Pelada,
@@ -164,10 +165,14 @@ export const playerService = {
     courtId: string,
     eventId: string,
     teamCount: number,
+    // O padrão espelha o da API: quem não escolhe modo recebe o sorteio de
+    // sempre. Deixar o front decidir outro padrão faria as duas pontas
+    // discordarem sobre o que "não mandei nada" significa.
+    mode: DrawMode = 'ALEATORIO',
   ): Promise<ApiEnvelope<DrawResult>> => {
     const { data } = await api.post(
       `/courts/${courtId}/events/${eventId}/draw`,
-      { teamCount }
+      { teamCount, mode }
     )
     return data
   },

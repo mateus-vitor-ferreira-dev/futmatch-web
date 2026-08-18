@@ -402,16 +402,51 @@ export interface Sport {
     groupOrder: number;
 }
 
+/** Os dois jeitos de dividir os times. `ALEATORIO` é o padrão da API. */
+export type DrawMode = "ALEATORIO" | "EQUILIBRADO";
+
+/**
+ * Índice de nível de um jogador na modalidade da partida.
+ *
+ * `estimado: true` quer dizer que ele não declarou nível nem foi avaliado nela,
+ * e o número é um palpite neutro. A tela precisa dizer isso — 50 apresentado
+ * como medida dá confiança falsa no equilíbrio.
+ */
+export interface SkillIndex {
+    valor: number;
+    estimado: boolean;
+}
+
+export interface DrawPlayer extends Pick<UserPublic, "id" | "name" | "avatarUrl" | "badge"> {
+    position: string | null;
+    skill: SkillIndex;
+}
+
 export interface DrawTeam {
     name: string;
-    players: Array<Pick<UserPublic, "id" | "name" | "avatarUrl" | "badge">>;
+    players: DrawPlayer[];
+    /** Soma dos índices do time. */
+    skillIndex: number;
+    /** Índice médio por jogador — é por ele que o equilíbrio se mede. */
+    averageSkill: number;
 }
 
 export interface DrawResult {
     peladaId: string;
     teamCount: number;
     totalPlayers: number;
+    mode: DrawMode;
     teams: DrawTeam[];
+    balance: {
+        /** Diferença de índice médio entre o time mais forte e o mais fraco. */
+        spread: number;
+        /** O alvo perseguido pelo modo equilibrado. */
+        target: number;
+        /** `false` quando os jogadores presentes não permitiam chegar ao alvo. */
+        withinTarget: boolean;
+        /** Quantos jogadores entraram com índice estimado. */
+        estimatedPlayers: number;
+    };
 }
 
 /**

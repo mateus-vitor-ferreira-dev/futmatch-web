@@ -288,3 +288,85 @@ export const SortearBtn = styled.button`
     color: white;
   }
 `
+
+/**
+ * Escolha do modo, antes de sortear (#215).
+ *
+ * Dois cartões e não um `select`: o modo equilibrado é a novidade que a maioria
+ * não sabe que existe, e escondê-lo dentro de uma lista suspensa garante que
+ * ninguém descubra. Cada cartão carrega a explicação de uma linha, que é o que
+ * responde "qual eu escolho?" sem obrigar a ler documentação.
+ */
+export const EscolhaDeModo = styled.div`
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: ${({ theme }) => theme.spacing[2]};
+  margin-bottom: ${({ theme }) => theme.spacing[5]};
+
+  /* Empilhado no celular: lado a lado, a explicação de cada modo vira três
+     linhas de duas palavras. */
+  @media (max-width: 520px) {
+    grid-template-columns: 1fr;
+  }
+`
+
+export const OpcaoDeModo = styled.button<{ $ativo?: boolean; }>`
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  padding: ${({ theme }) => theme.spacing[3]};
+  text-align: left;
+  cursor: pointer;
+  border-radius: ${({ theme }) => theme.radii.md};
+  border: 2px solid ${({ theme, $ativo }) => ($ativo ? theme.colors.primary : theme.colors.border)};
+  background: ${({ theme, $ativo }) => ($ativo ? theme.colors.primarySubtle : theme.colors.bgCard)};
+
+  strong {
+    font-size: ${({ theme }) => theme.fontSizes.sm};
+    color: ${({ theme, $ativo }) => ($ativo ? theme.colors.primaryDark : theme.colors.textPrimary)};
+  }
+
+  span {
+    font-size: ${({ theme }) => theme.fontSizes.xs};
+    color: ${({ theme }) => theme.colors.textSecondary};
+    line-height: 1.4;
+  }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+`
+
+/** Faixa com o índice do time, no cabeçalho colorido de cada cartão. */
+export const ForcaDoTime = styled.span`
+  display: block;
+  font-size: ${({ theme }) => theme.fontSizes.xs};
+  font-weight: 600;
+  opacity: 0.9;
+`
+
+/**
+ * Resumo do equilíbrio, logo abaixo do cabeçalho do resultado.
+ *
+ * Existe porque uma lista de nomes não explica nada: o organizador precisa ver
+ * o quanto ficou parelho para confiar — ou para decidir refazer.
+ */
+export const ResumoDoEquilibrio = styled.div<{ $bom?: boolean; }>`
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: ${({ theme }) => theme.spacing[3]};
+  margin-bottom: ${({ theme }) => theme.spacing[4]};
+  border-radius: ${({ theme }) => theme.radii.md};
+  border: 1px solid ${({ theme, $bom }) => ($bom ? theme.colors.successLight : theme.colors.warningBorder)};
+  background: ${({ theme, $bom }) => ($bom ? theme.colors.successLight : theme.colors.warningLight)};
+  color: ${({ theme, $bom }) => ($bom ? theme.colors.primaryDark : theme.colors.warningText)};
+  font-size: ${({ theme }) => theme.fontSizes.sm};
+
+  .aviso {
+    font-size: ${({ theme }) => theme.fontSizes.xs};
+    opacity: 0.9;
+  }
+`
