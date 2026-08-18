@@ -1,12 +1,14 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { toast } from 'sonner'
-import { ArrowLeft, Calendar, Clock, MapPin, Users, DollarSign, Copy, CheckCircle, Crown, Flag, XCircle, ExternalLink, LogOut } from 'lucide-react'
+import { ArrowLeft, Calendar, Clock, MapPin, Users, DollarSign, Copy, CheckCircle, Crown, Flag, XCircle, ExternalLink, LogOut, Shuffle } from 'lucide-react'
 import { useAuth } from '../../contexts/AuthContext'
 import { playerService, MAX_MOTIVO_SAIDA } from '../../services/playerService'
 import { getSportMeta } from '../../hooks/useSports'
 import type { CourtType, Pelada, PeladaStatus } from '../../types/api'
 import { mensagemDeErro } from '../../utils/apiError'
+import { SorteioDeTimes } from '../../components/SorteioDeTimes'
+import { SortearBtn } from '../../components/SorteioDeTimes/styles'
 import {
   Container, BackBtn, Card, CardHeader, SportIcon, HeaderInfo,
   CourtName, PlaceName, StatusBadge,
@@ -52,6 +54,7 @@ export default function PeladaDetail() {
   const [confirmandoSaida, setConfirmandoSaida] = useState(false)
   const [motivoSaida, setMotivoSaida]   = useState('')
   const [saindo, setSaindo]             = useState(false)
+  const [sorteando, setSorteando]       = useState(false)
 
   const load = useCallback(async () => {
     try {
@@ -277,23 +280,35 @@ export default function PeladaDetail() {
               </OrganizerTag>
             )}
 
-            {/* Ações do organizador */}
+            {/*
+              Ações do organizador.
+
+              "Sortear Times" vem primeiro de propósito: é a ação de antes do
+              jogo, e a única reversível das três. Finalizar e cancelar não têm
+              volta, e ficavam sozinhas aqui — o organizador que abria o detalhe
+              para sortear precisava voltar para a lista (#266).
+            */}
             {canChangeStatus && (
-              <OrganizerActions>
-                <ActionBtn
-                  disabled={updatingStatus}
-                  onClick={() => handleStatus('FINISHED')}
-                >
-                  <Flag size={14} /> Finalizar partida
-                </ActionBtn>
-                <ActionBtn
-                  $variant="danger"
-                  disabled={updatingStatus}
-                  onClick={() => handleStatus('CANCELLED')}
-                >
-                  <XCircle size={14} /> Cancelar
-                </ActionBtn>
-              </OrganizerActions>
+              <>
+                <SortearBtn onClick={() => setSorteando(true)}>
+                  <Shuffle size={14} /> Sortear Times
+                </SortearBtn>
+                <OrganizerActions>
+                  <ActionBtn
+                    disabled={updatingStatus}
+                    onClick={() => handleStatus('FINISHED')}
+                  >
+                    <Flag size={14} /> Finalizar partida
+                  </ActionBtn>
+                  <ActionBtn
+                    $variant="danger"
+                    disabled={updatingStatus}
+                    onClick={() => handleStatus('CANCELLED')}
+                  >
+                    <XCircle size={14} /> Cancelar
+                  </ActionBtn>
+                </OrganizerActions>
+              </>
             )}
 
             {/* Participantes */}
@@ -326,6 +341,12 @@ export default function PeladaDetail() {
           </Body>
         </Card>
       </Container>
+
+      {/* O mesmo modal que "Meus Jogos" abre — um componente só, para os dois
+          não divergirem (#266). */}
+      {sorteando && (
+        <SorteioDeTimes partida={event} onClose={() => setSorteando(false)} />
+      )}
 
       {/* Confirmação de saída — sair por clique errado libera uma vaga que o
           jogador queria manter, e a pelada pode encher enquanto isso. */}
