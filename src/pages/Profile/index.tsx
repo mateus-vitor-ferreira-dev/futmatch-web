@@ -6,7 +6,7 @@ import { yupResolver } from '@hookform/resolvers/yup'
 import * as yup from 'yup'
 import { toast } from 'sonner'
 import { Camera, Loader, LogOut } from 'lucide-react'
-import { PhoneInput, PasswordInput } from '../../components'
+import { PhoneInput, PasswordInput, PerfilEsportivo } from '../../components'
 import { useAuth } from '../../contexts/AuthContext'
 import * as usersService from '../../services/users'
 import { uploadImage } from '../../services/cloudinary'
@@ -274,6 +274,9 @@ export default function Profile() {
           <TabBtn $active={activeTab === 'personal'} onClick={() => switchTab('personal')}>
             Dados Pessoais
           </TabBtn>
+          <TabBtn $active={activeTab === 'sports'} onClick={() => switchTab('sports')}>
+            Modalidades
+          </TabBtn>
           <TabBtn $active={activeTab === 'password'} onClick={() => switchTab('password')}>
             Alterar Senha
           </TabBtn>
@@ -316,6 +319,9 @@ export default function Profile() {
             </SaveBtn>
           </Form>
         )}
+
+        {/* Tab: Modalidades — o dado que o sorteio equilibrado consome (#214) */}
+        {activeTab === 'sports' && <PerfilEsportivo />}
 
         {/* Tab: Alterar Senha */}
         {activeTab === 'password' && (
