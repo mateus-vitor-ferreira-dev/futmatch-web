@@ -212,17 +212,54 @@ export const PlayerItem = styled.div`
   }
 `
 
-export const FecharBtn = styled.button`
-  width: 100%;
+/**
+ * As duas saídas do resultado, lado a lado: refazer e fechar (#267).
+ *
+ * "Refazer sorteio" fica à esquerda e discreto; "Fechar" continua verde e à
+ * direita, no lugar onde já estava. Refazer é a ação que o organizador repete
+ * até o confronto parecer justo, e ela não deve competir com a de sair.
+ */
+export const AcoesDoResultado = styled.div`
+  display: flex;
+  gap: ${({ theme }) => theme.spacing[3]};
   margin-top: ${({ theme }) => theme.spacing[4]};
-  padding: ${({ theme }) => theme.spacing[3]};
-  border-radius: ${({ theme }) => theme.radii.lg};
-  background: ${({ theme }) => theme.colors.primary};
-  color: ${({ theme }) => theme.colors.textOnPrimary};
-  font-weight: 700;
-  border: none;
-  cursor: pointer;
-  font-size: ${({ theme }) => theme.fontSizes.md};
+
+  button {
+    flex: 1;
+    padding: ${({ theme }) => theme.spacing[3]};
+    border-radius: ${({ theme }) => theme.radii.lg};
+    font-weight: 700;
+    cursor: pointer;
+    font-size: ${({ theme }) => theme.fontSizes.md};
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+  }
+
+  .refazer {
+    background: ${({ theme }) => theme.colors.bgCard};
+    color: ${({ theme }) => theme.colors.textSecondary};
+    border: 1px solid ${({ theme }) => theme.colors.border};
+
+    &:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+  }
+
+  .fechar {
+    background: ${({ theme }) => theme.colors.primary};
+    color: ${({ theme }) => theme.colors.textOnPrimary};
+    border: none;
+  }
+
+  /* Abaixo de 480px os dois rótulos não cabem lado a lado sem quebrar linha
+     no meio da palavra. Empilhados, "Fechar" continua sendo o de baixo — o
+     último da leitura, como já era quando ele era o único. */
+  @media (max-width: 480px) {
+    flex-direction: column;
+  }
 `
 
 /**

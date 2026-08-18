@@ -7,7 +7,7 @@
  * entrar (a pelada não enche).
  */
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { renderWithProviders, screen, waitFor } from '../../test/render'
+import { renderWithProviders, screen, waitFor, fireEvent } from '../../test/render'
 import { criaPelada, criaParticipante, criaUsuario, envelope, erroDaApi } from '../../test/factories'
 import { marcarSessao } from '../../services/api'
 import PeladaDetail from './index'
@@ -491,5 +491,125 @@ describe('PeladaDetail — sorteio de times', () => {
     })
     // Continua no passo do slider, para o organizador ajustar e tentar de novo.
     expect(screen.getByRole('heading', { name: 'Sortear Times' })).toBeInTheDocument()
+  })
+})
+
+/**
+ * Refazer o sorteio sem sair do modal (#267).
+ *
+ * O sorteio é aleatório puro — o back embaralha e distribui em rodízio, então
+ * os times empatam em número e nunca em força. Quando cai tudo de um lado, o
+ * organizador precisava fechar o modal e refazer o caminho inteiro, o que na
+ * prática o fazia aceitar um sorteio que ele não gostou.
+ */
+describe('PeladaDetail — refazer o sorteio', () => {
+  const sorteiaTimes = vi.mocked(playerService.drawTeams)
+
+  function minhaPartida() {
+    return envelope(criaPelada({
+      organizerId: 'user-1',
+      organizer: { id: 'user-1', name: 'Mateus', avatarUrl: null },
+    }))
+  }
+
+  /** Dois times com a mesma dupla trocada de lado — é o que refazer produz. */
+  function resultado(primeiro: string, segundo: string) {
+    return envelope({
+      peladaId: 'pelada-1',
+      teamCount: 2,
+      totalPlayers: 2,
+      teams: [
+        { name: 'Time 1', players: [{ id: 'u1', name: primeiro, avatarUrl: null, badge: null }] },
+        { name: 'Time 2', players: [{ id: 'u2', name: segundo, avatarUrl: null, badge: null }] },
+      ],
+    })
+  }
+
+  /** Abre o modal e sorteia uma vez, deixando o resultado na tela. */
+  async function comOResultadoNaTela(teamCount = 2) {
+    sorteiaTimes.mockResolvedValue(resultado('Ana', 'Bruno'))
+    buscaPelada.mockResolvedValue(minhaPartida())
+    const { user } = abrePelada()
+
+    await user.click(await screen.findByRole('button', { name: /sortear times/i }))
+    if (teamCount !== 2) {
+      // fireEvent porque arrastar um range com o userEvent não é confiável.
+      fireEvent.change(screen.getByRole('slider'), { target: { value: String(teamCount) } })
+    }
+    await user.click(screen.getByRole('button', { name: /sortear!/i }))
+    await screen.findByRole('heading', { name: 'Times Sorteados' })
+    sorteiaTimes.mockClear()
+
+    return { user }
+  }
+
+  it('o resultado oferece refazer e fechar', async () => {
+    await comOResultadoNaTela()
+
+    expect(screen.getByRole('button', { name: /refazer sorteio/i })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Fechar' })).toBeInTheDocument()
+  })
+
+  it('refaz com o mesmo número de times, sem voltar para o slider', async () => {
+    const { user } = await comOResultadoNaTela(4)
+
+    await user.click(screen.getByRole('button', { name: /refazer sorteio/i }))
+
+    await waitFor(() => {
+      expect(sorteiaTimes).toHaveBeenCalledWith('quadra-1', 'pelada-1', 4)
+    })
+    // Continua no resultado: nem o slider nem o "⚽ Sortear!" reaparecem.
+    expect(screen.queryByRole('slider')).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /sortear!/i })).not.toBeInTheDocument()
+  })
+
+  it('a composição nova substitui a anterior no mesmo modal', async () => {
+    const { user } = await comOResultadoNaTela()
+    sorteiaTimes.mockResolvedValue(resultado('Carla', 'Diego'))
+
+    await user.click(screen.getByRole('button', { name: /refazer sorteio/i }))
+
+    expect(await screen.findByText('Carla')).toBeInTheDocument()
+    expect(screen.getByText('Diego')).toBeInTheDocument()
+    expect(screen.queryByText('Ana')).not.toBeInTheDocument()
+    expect(screen.queryByText('Bruno')).not.toBeInTheDocument()
+  })
+
+  it('desabilita e indica carregamento enquanto a chamada está em curso', async () => {
+    const { user } = await comOResultadoNaTela()
+    let concluiSorteio: (valor: unknown) => void = () => {}
+    sorteiaTimes.mockReturnValue(new Promise((resolve) => { concluiSorteio = resolve }) as never)
+
+    await user.click(screen.getByRole('button', { name: /refazer sorteio/i }))
+
+    const botao = screen.getByRole('button', { name: /sorteando/i })
+    expect(botao).toBeDisabled()
+
+    concluiSorteio(resultado('Carla', 'Diego'))
+    expect(await screen.findByText('Carla')).toBeInTheDocument()
+  })
+
+  it('falhar ao refazer mantém o resultado anterior na tela', async () => {
+    const { user } = await comOResultadoNaTela()
+    sorteiaTimes.mockRejectedValue(erroDaApi('Jogadores insuficientes para 2 times', 422))
+
+    await user.click(screen.getByRole('button', { name: /refazer sorteio/i }))
+
+    await waitFor(() => {
+      expect(toast.error).toHaveBeenCalledWith('Jogadores insuficientes para 2 times')
+    })
+    // A tela não fica vazia nem volta ao slider: o sorteio anterior continua ali.
+    expect(screen.getByRole('heading', { name: 'Times Sorteados' })).toBeInTheDocument()
+    expect(screen.getByText('Ana')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /refazer sorteio/i })).toBeEnabled()
+  })
+
+  it('fechar continua fazendo o que fazia', async () => {
+    const { user } = await comOResultadoNaTela()
+
+    await user.click(screen.getByRole('button', { name: 'Fechar' }))
+
+    expect(screen.queryByRole('heading', { name: 'Times Sorteados' })).not.toBeInTheDocument()
+    expect(screen.getByText('Quadra 1')).toBeInTheDocument()
   })
 })

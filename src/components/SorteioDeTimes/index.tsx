@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { Shuffle } from 'lucide-react'
 import { toast } from 'sonner'
 import { playerService } from '../../services/playerService'
 import { mensagemDeErro } from '../../utils/apiError'
@@ -6,7 +7,7 @@ import type { DrawResult, DrawTeam, Pelada } from '../../types/api'
 import {
   ModalOverlay, ModalContent, Subtitulo, CampoQuantidade, AcoesDoModal,
   DrawResultHeader, TeamGrid, TeamCard, TeamHeader, PlayerItem,
-  TeamVersus, VersusMark, FecharBtn,
+  TeamVersus, VersusMark, AcoesDoResultado,
 } from './styles'
 
 const TEAM_COLORS = [
@@ -57,13 +58,22 @@ interface SorteioDeTimesProps {
  *
  * O sorteio **não é gravado**: o `drawTeams` da api só lê a partida e devolve o
  * resultado calculado. Fechar o modal descarta o que foi sorteado, e é por isso
- * que não há confirmação a pedir aqui.
+ * que não há confirmação a pedir aqui — nem para refazer (#267), que também não
+ * destrói nada guardado.
  */
 export function SorteioDeTimes({ partida, onClose }: SorteioDeTimesProps) {
   const [teamCount, setTeamCount] = useState(2)
   const [drawResult, setDrawResult] = useState<DrawResult | null>(null)
   const [drawLoading, setDrawLoading] = useState(false)
 
+  /**
+   * Sorteia — e é a mesma função que refaz.
+   *
+   * O `drawResult` NÃO é limpo antes da chamada, de propósito: é isso que faz o
+   * resultado anterior continuar na tela enquanto o novo não chega, e continuar
+   * lá se a chamada falhar. Limpar antes devolveria o organizador ao slider a
+   * cada tentativa, que é justo o que a #267 veio tirar do caminho.
+   */
   const handleDraw = async () => {
     try {
       setDrawLoading(true)
@@ -145,7 +155,27 @@ export function SorteioDeTimes({ partida, onClose }: SorteioDeTimesProps) {
               </TeamGrid>
             )}
 
-            <FecharBtn onClick={onClose}>Fechar</FecharBtn>
+            {/*
+              O sorteio é aleatório puro: o back embaralha e distribui em
+              rodízio, então os times empatam em NÚMERO e nunca em força. Às
+              vezes cai tudo de um lado e o jogo acaba 8x2. Refazer devolve o
+              controle ao organizador sem tirar o acaso do meio — e custa uma
+              chamada, porque nada é gravado (#267).
+            */}
+            <AcoesDoResultado>
+              <button
+                type="button"
+                className="refazer"
+                onClick={handleDraw}
+                disabled={drawLoading}
+              >
+                <Shuffle size={16} aria-hidden="true" />
+                {drawLoading ? 'Sorteando...' : 'Refazer sorteio'}
+              </button>
+              <button type="button" className="fechar" onClick={onClose}>
+                Fechar
+              </button>
+            </AcoesDoResultado>
           </>
         )}
       </ModalContent>
