@@ -8,7 +8,15 @@
  */
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { renderWithProviders, screen, waitFor, fireEvent } from '../../test/render'
-import { criaPelada, criaParticipante, criaUsuario, envelope, erroDaApi } from '../../test/factories'
+import {
+  criaJogadorSorteado,
+  criaParticipante,
+  criaPelada,
+  criaSorteio,
+  criaUsuario,
+  envelope,
+  erroDaApi,
+} from '../../test/factories'
 import { marcarSessao } from '../../services/api'
 import PeladaDetail from './index'
 
@@ -391,15 +399,13 @@ describe('PeladaDetail — sorteio de times', () => {
     }))
   }
 
-  const DOIS_TIMES = {
+  const DOIS_TIMES = criaSorteio({
     peladaId: 'pelada-1',
-    teamCount: 2,
-    totalPlayers: 2,
     teams: [
-      { name: 'Time 1', players: [{ id: 'u1', name: 'Ana', avatarUrl: null, badge: null }] },
-      { name: 'Time 2', players: [{ id: 'u2', name: 'Bruno', avatarUrl: null, badge: null }] },
+      { name: 'Time 1', skillIndex: 50, averageSkill: 50, players: [criaJogadorSorteado({ id: 'u1', name: 'Ana' })] },
+      { name: 'Time 2', skillIndex: 50, averageSkill: 50, players: [criaJogadorSorteado({ id: 'u2', name: 'Bruno' })] },
     ],
-  }
+  })
 
   it('oferece "Sortear Times" ao organizador de partida em aberto', async () => {
     buscaPelada.mockResolvedValue(minhaPartida())
@@ -457,7 +463,7 @@ describe('PeladaDetail — sorteio de times', () => {
     await user.click(screen.getByRole('button', { name: /sortear!/i }))
 
     await waitFor(() => {
-      expect(sorteiaTimes).toHaveBeenCalledWith('quadra-1', 'pelada-1', 2)
+      expect(sorteiaTimes).toHaveBeenCalledWith('quadra-1', 'pelada-1', 2, 'ALEATORIO')
     })
     expect(await screen.findByRole('heading', { name: 'Times Sorteados' })).toBeInTheDocument()
     expect(screen.getByText('Ana')).toBeInTheDocument()
@@ -514,15 +520,15 @@ describe('PeladaDetail — refazer o sorteio', () => {
 
   /** Dois times com a mesma dupla trocada de lado — é o que refazer produz. */
   function resultado(primeiro: string, segundo: string) {
-    return envelope({
-      peladaId: 'pelada-1',
-      teamCount: 2,
-      totalPlayers: 2,
-      teams: [
-        { name: 'Time 1', players: [{ id: 'u1', name: primeiro, avatarUrl: null, badge: null }] },
-        { name: 'Time 2', players: [{ id: 'u2', name: segundo, avatarUrl: null, badge: null }] },
-      ],
-    })
+    return envelope(
+      criaSorteio({
+        peladaId: 'pelada-1',
+        teams: [
+          { name: 'Time 1', skillIndex: 50, averageSkill: 50, players: [criaJogadorSorteado({ id: 'u1', name: primeiro })] },
+          { name: 'Time 2', skillIndex: 50, averageSkill: 50, players: [criaJogadorSorteado({ id: 'u2', name: segundo })] },
+        ],
+      }),
+    )
   }
 
   /** Abre o modal e sorteia uma vez, deixando o resultado na tela. */
@@ -556,7 +562,7 @@ describe('PeladaDetail — refazer o sorteio', () => {
     await user.click(screen.getByRole('button', { name: /refazer sorteio/i }))
 
     await waitFor(() => {
-      expect(sorteiaTimes).toHaveBeenCalledWith('quadra-1', 'pelada-1', 4)
+      expect(sorteiaTimes).toHaveBeenCalledWith('quadra-1', 'pelada-1', 4, 'ALEATORIO')
     })
     // Continua no resultado: nem o slider nem o "⚽ Sortear!" reaparecem.
     expect(screen.queryByRole('slider')).not.toBeInTheDocument()
@@ -611,5 +617,175 @@ describe('PeladaDetail — refazer o sorteio', () => {
 
     expect(screen.queryByRole('heading', { name: 'Times Sorteados' })).not.toBeInTheDocument()
     expect(screen.getByText('Quadra 1')).toBeInTheDocument()
+  })
+})
+
+/**
+ * Modo de sorteio e leitura do equilíbrio (web#215, épico api#201).
+ *
+ * Duas coisas a proteger, e as duas são de produto:
+ *
+ * - **o modo equilibrado precisa ser encontrável.** Escondido atrás do mesmo
+ *   botão de antes, ninguém descobre que existe;
+ * - **o resultado precisa se explicar.** Uma lista de nomes não diz se ficou
+ *   justo, e sem isso o organizador não confia no que a tela entregou.
+ */
+describe('PeladaDetail — modo de sorteio e equilíbrio', () => {
+  const sorteiaTimes = vi.mocked(playerService.drawTeams)
+
+  function minhaPartida() {
+    return envelope(criaPelada({
+      organizerId: 'user-1',
+      organizer: { id: 'user-1', name: 'Mateus', avatarUrl: null },
+    }))
+  }
+
+  /** Abre o modal do sorteio, já como organizador. */
+  async function abreSorteio() {
+    buscaPelada.mockResolvedValue(minhaPartida())
+    const { user } = abrePelada()
+    await user.click(await screen.findByRole('button', { name: /sortear times/i }))
+    return { user }
+  }
+
+  it('oferece os dois modos antes de sortear, com o aleatório marcado', async () => {
+    await abreSorteio()
+
+    expect(screen.getByRole('radio', { name: /aleatório/i })).toBeChecked()
+    expect(screen.getByRole('radio', { name: /equilibrado/i })).not.toBeChecked()
+  })
+
+  // Cada modo explica o que faz: quem nunca ouviu falar do equilibrado precisa
+  // saber o que ganha ao escolhê-lo, sem sair da tela para descobrir.
+  it('cada modo diz em uma linha o que faz', async () => {
+    await abreSorteio()
+
+    expect(screen.getByText(/puro sorteio, como sempre foi/i)).toBeInTheDocument()
+    expect(screen.getByText(/nível de cada um para deixar os times parelhos/i)).toBeInTheDocument()
+  })
+
+  it('escolher equilibrado manda o modo para a API', async () => {
+    sorteiaTimes.mockResolvedValue(envelope(criaSorteio({ mode: 'EQUILIBRADO' })))
+    const { user } = await abreSorteio()
+
+    await user.click(screen.getByRole('radio', { name: /equilibrado/i }))
+    await user.click(screen.getByRole('button', { name: /sortear!/i }))
+
+    await waitFor(() => {
+      expect(sorteiaTimes).toHaveBeenCalledWith('quadra-1', 'pelada-1', 2, 'EQUILIBRADO')
+    })
+  })
+
+  it('o texto de ajuda acompanha o modo escolhido', async () => {
+    const { user } = await abreSorteio()
+
+    expect(screen.getByText(/distribuídos aleatoriamente/i)).toBeInTheDocument()
+
+    await user.click(screen.getByRole('radio', { name: /equilibrado/i }))
+
+    expect(screen.getByText(/times de força parecida/i)).toBeInTheDocument()
+  })
+
+  // Sem isto, refazer devolveria o organizador ao sorteio aleatório sem ele
+  // pedir — e ele não teria como saber que o modo mudou.
+  it('refazer mantém o modo escolhido', async () => {
+    sorteiaTimes.mockResolvedValue(envelope(criaSorteio({ mode: 'EQUILIBRADO' })))
+    const { user } = await abreSorteio()
+
+    await user.click(screen.getByRole('radio', { name: /equilibrado/i }))
+    await user.click(screen.getByRole('button', { name: /sortear!/i }))
+    await screen.findByRole('heading', { name: 'Times Sorteados' })
+    sorteiaTimes.mockClear()
+
+    await user.click(screen.getByRole('button', { name: /refazer sorteio/i }))
+
+    await waitFor(() => {
+      expect(sorteiaTimes).toHaveBeenCalledWith('quadra-1', 'pelada-1', 2, 'EQUILIBRADO')
+    })
+  })
+
+  describe('o resultado se explica', () => {
+    /** Sorteia uma vez e devolve o controle já com o resultado na tela. */
+    async function comResultado(sorteio: Parameters<typeof criaSorteio>[0]) {
+      sorteiaTimes.mockResolvedValue(envelope(criaSorteio(sorteio)))
+      const { user } = await abreSorteio()
+      await user.click(screen.getByRole('button', { name: /sortear!/i }))
+      await screen.findByRole('heading', { name: 'Times Sorteados' })
+      return { user }
+    }
+
+    it('mostra a força de cada time', async () => {
+      await comResultado({
+        teams: [
+          { name: 'Time 1', skillIndex: 150, averageSkill: 75, players: [criaJogadorSorteado({ id: 'u1', name: 'Ana' })] },
+          { name: 'Time 2', skillIndex: 140, averageSkill: 70, players: [criaJogadorSorteado({ id: 'u2', name: 'Bruno' })] },
+        ],
+      })
+
+      expect(screen.getByText('força 75')).toBeInTheDocument()
+      expect(screen.getByText('força 70')).toBeInTheDocument()
+    })
+
+    it('anuncia empate de força quando a diferença é zero', async () => {
+      await comResultado({ balance: { spread: 0, target: 5, withinTarget: true, estimatedPlayers: 0 } })
+
+      expect(screen.getByText(/times com a mesma força/i)).toBeInTheDocument()
+    })
+
+    it('diz de quanto foi a diferença quando não é zero', async () => {
+      await comResultado({ balance: { spread: 3, target: 5, withinTarget: true, estimatedPlayers: 0 } })
+
+      expect(screen.getByText(/diferença de força .*: 3 pontos/i)).toBeInTheDocument()
+    })
+
+    // Quando os jogadores presentes não permitem equilibrar, a tela diz isso em
+    // vez de afirmar equilíbrio que não houve.
+    it('avisa quando não deu para chegar ao alvo', async () => {
+      await comResultado({ balance: { spread: 22, target: 5, withinTarget: false, estimatedPlayers: 0 } })
+
+      expect(screen.getByText(/melhor possível com quem confirmou/i)).toBeInTheDocument()
+    })
+
+    it('avisa quantos jogadores entraram sem nível declarado', async () => {
+      await comResultado({ balance: { spread: 1, target: 5, withinTarget: true, estimatedPlayers: 3 } })
+
+      expect(screen.getByText(/3 jogadores entraram sem nível declarado/i)).toBeInTheDocument()
+    })
+
+    it('usa o singular quando é um jogador só', async () => {
+      await comResultado({ balance: { spread: 1, target: 5, withinTarget: true, estimatedPlayers: 1 } })
+
+      expect(screen.getByText(/1 jogador entrou sem nível declarado/i)).toBeInTheDocument()
+    })
+
+    it('não avisa nada quando todos têm nível declarado', async () => {
+      await comResultado({ balance: { spread: 1, target: 5, withinTarget: true, estimatedPlayers: 0 } })
+
+      expect(screen.queryByText(/sem nível declarado/i)).not.toBeInTheDocument()
+    })
+
+    // O aviso no time é o que separa "este número é medido" de "este número é
+    // chute" na hora de olhar o cartão.
+    it('marca o jogador estimado dentro do time', async () => {
+      await comResultado({
+        teams: [
+          {
+            name: 'Time 1',
+            skillIndex: 50,
+            averageSkill: 50,
+            players: [criaJogadorSorteado({ id: 'u1', name: 'Ana', skill: { valor: 50, estimado: true } })],
+          },
+          {
+            name: 'Time 2',
+            skillIndex: 75,
+            averageSkill: 75,
+            players: [criaJogadorSorteado({ id: 'u2', name: 'Bruno', skill: { valor: 75, estimado: false } })],
+          },
+        ],
+      })
+
+      expect(screen.getByText(/· estimado/)).toBeInTheDocument()
+      expect(screen.getAllByText(/· estimado/)).toHaveLength(1)
+    })
   })
 })

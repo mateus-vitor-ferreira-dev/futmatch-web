@@ -11,6 +11,8 @@
 import { AxiosError } from 'axios'
 import type { AxiosResponse } from 'axios'
 import type {
+  DrawPlayer,
+  DrawResult,
   Pelada,
   PeladaParticipant,
   PeladaSearchResult,
@@ -126,4 +128,45 @@ export function erroDaApi(message: string, status = 400): AxiosError {
       config: { headers: {} },
     } as unknown as AxiosResponse,
   )
+}
+
+/**
+ * Resultado de sorteio, com os campos que a api#206 acrescentou já preenchidos.
+ *
+ * Existe para os testes descreverem só o que lhes interessa — "dois times, um
+ * jogador estimado" — sem repetir `mode` e `balance` em cada arquivo. Quando a
+ * resposta ganhar campo novo, muda aqui e não em cada teste.
+ */
+export function criaSorteio(over: Partial<DrawResult> = {}): DrawResult {
+  const teams = over.teams ?? [
+    { name: 'Time 1', skillIndex: 100, averageSkill: 50, players: [criaJogadorSorteado({ id: 'u1', name: 'Ana' })] },
+    { name: 'Time 2', skillIndex: 100, averageSkill: 50, players: [criaJogadorSorteado({ id: 'u2', name: 'Bruno' })] },
+  ]
+
+  return {
+    peladaId: 'minha-pelada',
+    teamCount: teams.length,
+    totalPlayers: teams.reduce((s, t) => s + t.players.length, 0),
+    mode: 'ALEATORIO',
+    teams,
+    balance: {
+      spread: 0,
+      target: 5,
+      withinTarget: true,
+      estimatedPlayers: teams.flatMap(t => t.players).filter(p => p.skill.estimado).length,
+    },
+    ...over,
+  }
+}
+
+export function criaJogadorSorteado(over: Partial<DrawPlayer> = {}): DrawPlayer {
+  return {
+    id: 'u1',
+    name: 'Jogador',
+    avatarUrl: null,
+    badge: null,
+    position: null,
+    skill: { valor: 50, estimado: false },
+    ...over,
+  }
 }
