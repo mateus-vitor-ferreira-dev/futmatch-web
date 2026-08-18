@@ -48,5 +48,6 @@ export const chaves = {
     criados:      () => ['eventos', 'criados'] as const,
   },
   quadras: () => ['quadras'] as const,
+  perfisEsportivos: () => ['perfis-esportivos'] as const,
   estatisticas: () => ['estatisticas'] as const,
 }

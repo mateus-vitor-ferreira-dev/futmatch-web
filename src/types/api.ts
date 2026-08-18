@@ -402,6 +402,20 @@ export interface Sport {
     groupOrder: number;
 }
 
+/**
+ * Como o jogador joga numa modalidade. Um registro por (jogador, modalidade) —
+ * a mesma pessoa pode ser avançada no futsal e iniciante no vôlei.
+ *
+ * `position` é texto livre e nulo quer dizer "jogo em qualquer posição", que é a
+ * resposta honesta da maioria.
+ */
+export interface SportProfile {
+    sport: CourtType;
+    level: CompetitionLevel;
+    position: string | null;
+    updatedAt: string;
+}
+
 export interface DrawTeam {
     name: string;
     players: Array<Pick<UserPublic, "id" | "name" | "avatarUrl" | "badge">>;
