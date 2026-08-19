@@ -34,7 +34,12 @@ const FALLBACK_SPORTS: SportOption[] = [
   { id: 'BEACH_TENNIS', label: 'Beach Tennis',     icon: '🎾', group: 'BEACH_TENNIS', groupLabel: 'Beach Tennis', groupIcon: '🎾', groupOrder: 6 },
   { id: 'BASQUETE',     label: 'Basquete',         icon: '🏀', group: 'BASQUETE',     groupLabel: 'Basquete',     groupIcon: '🏀', groupOrder: 7 },
   { id: 'POKER',        label: 'Poker',            icon: '🃏', group: 'POKER',        groupLabel: 'Poker',        groupIcon: '🃏', groupOrder: 8 },
-  { id: 'TENIS',        label: 'Tênis',            icon: '🎾', group: 'TENIS',        groupLabel: 'Tênis',        groupIcon: '🎾', groupOrder: 9 },
+  // 🥎 no tênis, e não a raquete do Beach Tennis: o cartão de campeonato mostra
+  // só o ícone, e com o mesmo emoji nos dois a modalidade deixava de ser legível.
+  // Precisa continuar igual ao `src/constants/sports.ts` da API — este fallback
+  // só entra quando o `GET /sports` não responde, e é aí que a divergência
+  // apareceria como "o ícone mudou sozinho".
+  { id: 'TENIS',        label: 'Tênis',            icon: '🥎', group: 'TENIS',        groupLabel: 'Tênis',        groupIcon: '🥎', groupOrder: 9 },
 ]
 
 function deriveTabs(sports: SportOption[]): SportTab[] {

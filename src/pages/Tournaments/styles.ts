@@ -80,7 +80,19 @@ export const Grid = styled.div`
   margin-bottom: 40px;
 `
 
+/**
+ * O cartão é uma coluna flex para o botão poder ser empurrado para o rodapé.
+ *
+ * Os cartões já tinham a mesma altura — o grid estica todos até a altura do mais
+ * alto da linha. O que não estava padronizado era **onde o botão caía dentro
+ * deles**: ele vinha logo depois da última linha de informação, então um
+ * campeonato sem taxa de inscrição ou sem datas parava três linhas acima do
+ * vizinho, e a fileira ficava com os botões em degrau. Ver o `margin-top: auto`
+ * do `ViewBracketBtn`, que é a outra metade disto.
+ */
 export const TournamentCard = styled.div`
+  display: flex;
+  flex-direction: column;
   background: ${({ theme }) => theme.colors.bgCard};
   border: 1px solid ${({ theme }) => theme.colors.border};
   border-radius: ${({ theme }) => theme.radii.lg};
@@ -104,10 +116,35 @@ export const CardTop = styled.div`
 `
 
 export const TournamentName = styled.h3`
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
   font-size: ${({ theme }) => theme.fontSizes.md};
   font-weight: ${({ theme }) => theme.fontWeights.semibold};
   color: ${({ theme }) => theme.colors.textPrimary};
   margin: 0;
+`
+
+/**
+ * A modalidade, como ícone.
+ *
+ * O título era `${icone} ${modalidade} ${nome}` — e como quase todo campeonato
+ * já traz a modalidade no próprio nome, saía "🎾 Beach Tennis Copa Só+1 de
+ * Beach Tennis": a mesma palavra duas vezes, empurrando o título para três
+ * linhas e desalinhando o resto do cartão.
+ *
+ * O ícone sozinho diz a mesma coisa em um caractere. O nome por extenso não se
+ * perde — vai no `title`, que aparece ao passar o mouse, e no `aria-label`,
+ * porque emoji sem rótulo não diz nada para quem usa leitor de tela. É por isso
+ * que ele é `role="img"` e não um caractere solto no meio do texto.
+ *
+ * O `flex-shrink: 0` importa: sem ele o ícone é espremido quando o nome é longo,
+ * que é exatamente o caso em que ele mais precisa ser lido.
+ */
+export const SportIcon = styled.span`
+  flex-shrink: 0;
+  font-size: 1.1em;
+  line-height: 1;
 `
 
 export const StatusBadge = styled.span<{ $status?: TournamentStatus }>`
@@ -162,7 +199,16 @@ export const MetaRow = styled.div`
   }
 `
 
+/**
+ * Colado no rodapé do cartão, sempre.
+ *
+ * O `margin-top: auto` come toda a sobra vertical antes do botão, então ele
+ * encosta na base independentemente de quantas linhas de informação o
+ * campeonato tem — é o que alinha os botões de uma fileira inteira sem chumbar
+ * altura em lugar nenhum. Depende do `display: flex` do `TournamentCard`.
+ */
 export const ViewBracketBtn = styled.button`
+  margin-top: auto;
   width: 100%;
   padding: 9px;
   border-radius: ${({ theme }) => theme.radii.md};

@@ -1,8 +1,8 @@
 import { useState, useMemo } from 'react'
 import { useInfiniteQuery, useQueryClient } from '@tanstack/react-query'
-import { useSearchParams, useNavigate } from 'react-router-dom'
+import { useSearchParams, useNavigate, useLocation } from 'react-router-dom'
 import { toast } from 'sonner'
-import { Search, Calendar, Clock, CheckCircle, MapPin, SlidersHorizontal, X } from 'lucide-react'
+import { ArrowLeft, Search, Calendar, Clock, CheckCircle, MapPin, SlidersHorizontal, X } from 'lucide-react'
 import { useAuth } from '../../contexts/AuthContext'
 import { playerService } from '../../services/playerService'
 import { chaves } from '../../lib/queryClient'
@@ -13,7 +13,7 @@ import type { EventFilters } from '../../services/events'
 import type { CourtType, Pelada } from '../../types/api'
 import type { SportOption } from '../../hooks/useSports'
 import {
-  Container, Header, HeaderRow,
+  Container, BackBtn, Header, HeaderRow,
   FiltersArea, SearchInput, ChipsContainer, Chip, ResultsCount,
   SportBtnsRow, SportAllBtn, SportSelectWrapper,
   Grid, Card, CardHeader, InfoRow, ProgressBarContainer, ProgressBar,
@@ -48,6 +48,24 @@ export default function QueroJogar() {
   const { sports: allSports } = useSports()
   const [searchParams] = useSearchParams()
   const navigate = useNavigate()
+  const location = useLocation()
+
+  /**
+   * Dá para voltar dentro do app?
+   *
+   * `key === 'default'` é a primeira entrada da pilha do router: a pessoa abriu
+   * esta URL direto, recarregou, ou chegou por um link de fora. Nesse caso
+   * `navigate(-1)` sairia do Só+1 — e um "Voltar" que fecha o produto não é
+   * voltar.
+   *
+   * Diferente das telas de detalhe, esta é de primeiro nível: dá para cair nela
+   * sem ter passado por nenhuma outra. Por isso a checagem existe aqui e não lá.
+   *
+   * Lido do `location` do router, e não de `window.history.state.idx`: o
+   * MemoryRouter dos testes não mexe no histórico do navegador, e a checagem
+   * pelo `window` responderia uma coisa no teste e outra no produto.
+   */
+  const podeVoltar = location.key !== 'default'
   const queryClient = useQueryClient()
 
   const [search, setSearch]             = useState('')
@@ -159,6 +177,10 @@ export default function QueroJogar() {
   return (
     <>
       <Container>
+        <BackBtn onClick={() => (podeVoltar ? navigate(-1) : navigate('/home'))}>
+          <ArrowLeft size={16} /> Voltar
+        </BackBtn>
+
         <HeaderRow>
           <Header>
             <h1>Quero Jogar</h1>

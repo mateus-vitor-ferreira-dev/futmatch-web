@@ -127,3 +127,53 @@ export const LevelBadge = styled.span`
   color: ${({ theme }) => theme.colors.warning};
   white-space: nowrap;
 `
+
+/**
+ * O placar de um lado, ao lado do nome.
+ *
+ * Fica vazio — e não zerado — enquanto a partida não terminou: `0` é um placar,
+ * e uma partida que ainda não começou não tem nenhum.
+ */
+export const Score = styled.span<{ $winner?: boolean; }>`
+  font-size: ${({ theme }) => theme.fontSizes.sm};
+  font-variant-numeric: tabular-nums;
+  font-weight: ${({ $winner, theme }) =>
+    $winner ? theme.fontWeights.bold : theme.fontWeights.semibold};
+  color: ${({ $winner, theme }) =>
+    $winner ? theme.colors.primaryDark : theme.colors.textSecondary};
+  min-width: 16px;
+  text-align: right;
+`
+
+/**
+ * Etiqueta de estado, só nos dois casos em que o resto do cartão não conta a
+ * história: o jogo rolando agora e o W.O.
+ *
+ * Em `FINISHED` quem fala é o placar, em `SCHEDULED` é a data, e `PENDING` não
+ * tem o que dizer — etiquetar os três encheria a chave de rótulo redundante.
+ */
+export const StatusTag = styled.span<{ $tone: 'live' | 'wo'; }>`
+  font-size: 10px;
+  font-weight: ${({ theme }) => theme.fontWeights.bold};
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 2px 6px;
+  border-radius: ${({ theme }) => theme.radii.full};
+  background: ${({ $tone, theme }) =>
+    $tone === 'live' ? theme.colors.successLight : theme.colors.warningLight};
+  color: ${({ $tone, theme }) =>
+    $tone === 'live' ? theme.colors.success : theme.colors.warningText};
+  white-space: nowrap;
+`
+
+/** Quadra, horário e árbitro — o que existir. Some inteiro quando não há nada. */
+export const MatchMeta = styled.div`
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-top: 1px solid ${({ theme }) => theme.colors.borderLight};
+  font-size: ${({ theme }) => theme.fontSizes.xs};
+  color: ${({ theme }) => theme.colors.textMuted};
+`

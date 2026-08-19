@@ -6,6 +6,7 @@ import type {
   Tournament,
   TournamentDivision,
   TournamentFormat,
+  TournamentMatch,
   TournamentStatus,
 } from '../types/api'
 
@@ -54,6 +55,25 @@ export function getTournamentDivisions(
   tournamentId: string,
 ): Promise<ApiEnvelope<TournamentDivision[]>> {
   return api.get(`/tournaments/${tournamentId}/divisions`).then((r) => r.data)
+}
+
+/**
+ * O chaveamento de uma divisão, ordenado por rodada e posição.
+ *
+ * **Leitura pública, como o resto do campeonato** — chave é o que se manda para
+ * o grupo do WhatsApp, e exigir login fecharia a tela que traz gente.
+ *
+ * Divisão sem chaveamento devolve lista vazia, e não 404: a divisão existe, o
+ * que não existe é a chave dela. São telas diferentes, e o front distingue as
+ * duas por isto.
+ */
+export function getDivisionMatches(
+  tournamentId: string,
+  divisionId: string,
+): Promise<ApiEnvelope<TournamentMatch[]>> {
+  return api
+    .get(`/tournaments/${tournamentId}/divisions/${divisionId}/matches`)
+    .then((r) => r.data)
 }
 
 /** Requer role OWNER ou ADMIN. */
