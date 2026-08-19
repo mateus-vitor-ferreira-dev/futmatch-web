@@ -373,6 +373,13 @@ export interface TournamentRegistration {
     createdAt: IsoDate;
     /** Vem preenchida em `GET /tournaments/:id/registrations/me`. */
     division?: Pick<TournamentDivision, "id" | "name" | "level" | "tournamentId">;
+    /**
+     * Vem preenchido na lista do organizador
+     * (`GET /tournaments/:id/divisions/:id/registrations`), e só nela — a rota
+     * é protegida por `isTournamentManager`. O `email` está aí porque é como o
+     * organizador reconhece quem ele não conhece pelo nome.
+     */
+    user?: Pick<UserPublic, "id" | "name" | "avatarUrl" | "badge"> & { email: string };
 }
 
 /**
@@ -432,6 +439,19 @@ export interface TournamentMatch {
     referee: Pick<UserPublic, "id" | "name" | "avatarUrl" | "badge"> | null;
     createdAt: IsoDate;
     updatedAt: IsoDate;
+}
+
+/**
+ * A partida como ela volta em `GET /tournaments/matches/refereeing`.
+ *
+ * A rota inclui divisão e campeonato porque a lista do árbitro atravessa
+ * campeonatos: sem o nome de cada um, ele saberia o placar a lançar e não
+ * saberia de qual torneio.
+ */
+export interface RefereeingMatch extends TournamentMatch {
+    division: Pick<TournamentDivision, "id" | "name"> & {
+        tournament: Pick<Tournament, "id" | "name" | "status">;
+    };
 }
 
 export interface Tournament {

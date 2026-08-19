@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useMemo } from 'react'
+import PartidasParaApitar from '../../components/PartidasParaApitar'
 import { Plus, MapPin, Calendar, Users, Trophy, X, Layers } from 'lucide-react'
 import { useForm, useWatch } from 'react-hook-form'
 import { useNavigate } from 'react-router-dom'
@@ -418,6 +419,14 @@ export default function Tournaments() {
   return (
     <>
       <Container>
+
+        {/*
+          * As partidas do árbitro (#261). Vive aqui, e não como item de menu,
+          * porque some sozinha quando não há nada para apitar — a esmagadora
+          * maioria das contas nunca vai apitar, e um "Apitar" permanente na
+          * navegação seria ruído para elas.
+          */}
+        <PartidasParaApitar />
 
         {/* ── Cabeçalho ── */}
         <PageHeader>

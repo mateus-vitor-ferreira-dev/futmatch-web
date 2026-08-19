@@ -8,6 +8,7 @@ import type {
   TournamentFormat,
   TournamentMatch,
   TournamentRegistration,
+  RefereeingMatch,
   TournamentStatus,
 } from '../types/api'
 
@@ -134,5 +135,85 @@ export function cancelRegistration(
 ): Promise<ApiEnvelope<TournamentRegistration>> {
   return api
     .delete(`/tournaments/${tournamentId}/divisions/${divisionId}/registrations/${registrationId}`)
+    .then((r) => r.data)
+}
+
+/**
+ * Os inscritos de uma divisão, na visão de quem organiza.
+ *
+ * **Protegida por `isTournamentManager` na API**, que aceita ADMIN, dono do
+ * espaço ou o organizador do campeonato. O front não consegue reproduzir essa
+ * regra — `PlaceSummary` não traz `ownerId` —, então quem decide é o 403: ver
+ * o `TournamentRegistrations`.
+ */
+export function getDivisionRegistrations(
+  tournamentId: string,
+  divisionId: string,
+): Promise<ApiEnvelope<TournamentRegistration[]>> {
+  return api
+    .get(`/tournaments/${tournamentId}/divisions/${divisionId}/registrations`)
+    .then((r) => r.data)
+}
+
+export function approveRegistration(
+  tournamentId: string,
+  divisionId: string,
+  registrationId: string,
+): Promise<ApiEnvelope<TournamentRegistration>> {
+  return api
+    .patch(`/tournaments/${tournamentId}/divisions/${divisionId}/registrations/${registrationId}/approve`)
+    .then((r) => r.data)
+}
+
+/**
+ * Recusa uma inscrição, com justificativa opcional.
+ *
+ * **O campo é `adminNote`, e não `reason`.** O `placeRequests.reject` já custou
+ * esse aprendizado: o front mandava `reason`, o `stripUnknown` do yup
+ * descartava sem reclamar, e o motivo era gravado como `null` — com 200, sem
+ * erro e sem ninguém notar. O schema da api nomeia o campo assim de propósito,
+ * e tem teste aqui provando o nome no corpo.
+ */
+export function rejectRegistration(
+  tournamentId: string,
+  divisionId: string,
+  registrationId: string,
+  adminNote?: string,
+): Promise<ApiEnvelope<TournamentRegistration>> {
+  return api
+    .patch(
+      `/tournaments/${tournamentId}/divisions/${divisionId}/registrations/${registrationId}/reject`,
+      // Vazio vira `null`: o schema aceita ausência e `null`, e mandar `""`
+      // gravaria uma justificativa em branco que a tela do jogador exibiria.
+      { adminNote: adminNote?.trim() ? adminNote.trim() : null },
+    )
+    .then((r) => r.data)
+}
+
+/** As partidas em que o usuário logado foi designado árbitro, de todos os campeonatos. */
+export function getRefereeingMatches(): Promise<ApiEnvelope<RefereeingMatch[]>> {
+  return api.get('/tournaments/matches/refereeing').then((r) => r.data)
+}
+
+/**
+ * O resultado da partida: placar dos dois lados **ou** o vencedor do W.O.,
+ * nunca os dois juntos.
+ *
+ * O schema da api recusa o corpo ambíguo, e recusa também o empate — mata-mata
+ * precisa de alguém para subir de rodada. O front barra os dois antes de enviar,
+ * mas a regra continua sendo da API: barrar aqui é cortesia, não autoridade.
+ */
+export type MatchResultInput =
+  | { scoreA: number; scoreB: number }
+  | { walkoverWinnerId: string }
+
+export function submitMatchResult(
+  tournamentId: string,
+  divisionId: string,
+  matchId: string,
+  resultado: MatchResultInput,
+): Promise<ApiEnvelope<TournamentMatch>> {
+  return api
+    .patch(`/tournaments/${tournamentId}/divisions/${divisionId}/matches/${matchId}/result`, resultado)
     .then((r) => r.data)
 }
