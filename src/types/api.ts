@@ -336,8 +336,37 @@ export interface TournamentDivision {
     minPlayersPerTeam: number;
     maxPlayersPerTeam: number;
     maxParticipants: number | null;
+    /**
+     * Quantas inscrições **aprovadas** a divisão já tem.
+     *
+     * Só as aprovadas: pendente é candidato e não ocupa vaga, recusado não está
+     * no campeonato. É o número que permite dizer "lotada" antes do clique, em
+     * vez de descobrir no 422 — ver a api#314.
+     *
+     * Opcional porque respostas gravadas antes daquela entrega não o têm.
+     */
+    _count?: { approvedRegistrations: number };
     createdAt: IsoDate;
     updatedAt: IsoDate;
+}
+
+/**
+ * A inscrição de um jogador numa divisão.
+ *
+ * `adminNote` é a justificativa que o organizador escreve ao recusar, e é o que
+ * o jogador lê para saber se adianta tentar de novo. `respondedAt` fica nulo
+ * enquanto a inscrição está `PENDING`.
+ */
+export interface TournamentRegistration {
+    id: string;
+    divisionId: string;
+    userId: string;
+    status: TournamentRegistrationStatus;
+    adminNote: string | null;
+    respondedAt: IsoDate | null;
+    createdAt: IsoDate;
+    /** Vem preenchida em `GET /tournaments/:id/registrations/me`. */
+    division?: Pick<TournamentDivision, "id" | "name" | "level" | "tournamentId">;
 }
 
 /**
