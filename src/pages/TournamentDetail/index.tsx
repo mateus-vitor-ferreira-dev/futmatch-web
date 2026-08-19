@@ -4,6 +4,7 @@ import { toast } from 'sonner'
 import { ArrowLeft, Calendar, MapPin, Users, Trophy, Tag, Layers } from 'lucide-react'
 import TournamentBracket from '../../components/TournamentBracket'
 import DivisionRegistration from '../../components/DivisionRegistration'
+import TournamentRegistrations from '../../components/TournamentRegistrations'
 import { getTournament, getTournamentDivisions } from '../../services/tournaments'
 import { getSportMeta } from '../../hooks/useSports'
 import type { Tournament, TournamentDivision } from '../../types/api'
@@ -47,6 +48,8 @@ export default function TournamentDetail() {
   const [divisions, setDivisions]     = useState<TournamentDivision[]>([])
   const [loading, setLoading]         = useState(true)
   const [showBracket, setShowBracket] = useState(false)
+  /* Some sozinho quando a API responde 403 — ver o TournamentRegistrations. */
+  const [mostrarInscritos, setMostrarInscritos] = useState(true)
 
   const load = useCallback(async () => {
     try {
@@ -184,6 +187,26 @@ export default function TournamentDetail() {
                   */}
                 <DivisionRegistration tournament={tournament} divisions={divisions} />
               </DivisionsSection>
+
+              {/*
+                * O painel de quem organiza (#259). Ele decide sozinho se
+                * aparece: tenta ler os inscritos e se apaga no 403, porque a
+                * regra de quem gerencia mora na API e não é reproduzível aqui
+                * — o `place` que vem no torneio não traz `ownerId`.
+                */}
+              {mostrarInscritos && (
+                <DivisionsSection>
+                  <SectionTitle>
+                    <Users size={15} />
+                    Inscrições
+                  </SectionTitle>
+                  <TournamentRegistrations
+                    tournament={tournament}
+                    divisions={divisions}
+                    onIndisponivel={() => setMostrarInscritos(false)}
+                  />
+                </DivisionsSection>
+              )}
             </>
           )}
 

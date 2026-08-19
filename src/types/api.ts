@@ -373,6 +373,13 @@ export interface TournamentRegistration {
     createdAt: IsoDate;
     /** Vem preenchida em `GET /tournaments/:id/registrations/me`. */
     division?: Pick<TournamentDivision, "id" | "name" | "level" | "tournamentId">;
+    /**
+     * Vem preenchido na lista do organizador
+     * (`GET /tournaments/:id/divisions/:id/registrations`), e só nela — a rota
+     * é protegida por `isTournamentManager`. O `email` está aí porque é como o
+     * organizador reconhece quem ele não conhece pelo nome.
+     */
+    user?: Pick<UserPublic, "id" | "name" | "avatarUrl" | "badge"> & { email: string };
 }
 
 /**
