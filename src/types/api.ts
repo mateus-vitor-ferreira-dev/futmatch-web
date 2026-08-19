@@ -340,6 +340,65 @@ export interface TournamentDivision {
     updatedAt: IsoDate;
 }
 
+/**
+ * Estados de uma inscrição. `PENDING` só existe em campeonato cujo modo de
+ * inscrição exige aprovação — nos outros ela já nasce `APPROVED`.
+ */
+export type TournamentRegistrationStatus = "PENDING" | "APPROVED" | "REJECTED";
+
+/** Estados de uma partida do chaveamento, na ordem em que acontecem. */
+export type TournamentMatchStatus = "PENDING" | "SCHEDULED" | "IN_PROGRESS" | "FINISHED" | "WALKOVER";
+
+/**
+ * Um lado da partida.
+ *
+ * O `id` é o da **inscrição**, e não o do usuário: a partida referencia
+ * `TournamentRegistration`, porque quem joga o campeonato é quem se inscreveu
+ * nele. O `user` vem junto porque a tela mostra nome, e não id de inscrição.
+ */
+export interface TournamentMatchSide {
+    id: string;
+    status: TournamentRegistrationStatus;
+    user: Pick<UserPublic, "id" | "name" | "avatarUrl" | "badge">;
+}
+
+/**
+ * Uma partida do chaveamento.
+ *
+ * `round` começa em 1 e cresce até a final; `orderInRound` dá a posição dentro
+ * da rodada. É esse par que mantém o desenho da chave estável entre requests — a
+ * API já devolve a lista ordenada por ele, e quem consome não precisa reordenar.
+ *
+ * Quase tudo é anulável de propósito: a partida existe na chave antes de saber
+ * quem joga, onde e quando. E `winnerId` preenchido com placar vazio não é
+ * inconsistência — é o `WALKOVER`, vitória sem jogo, que é justamente o motivo
+ * de o vencedor ser gravado em vez de derivado do placar.
+ */
+export interface TournamentMatch {
+    id: string;
+    divisionId: string;
+    round: number;
+    orderInRound: number;
+    participantAId: string | null;
+    participantBId: string | null;
+    /** Para onde o vencedor avança. `null` na final. */
+    nextMatchId: string | null;
+    courtId: string | null;
+    scheduledAt: IsoDate | null;
+    status: TournamentMatchStatus;
+    scoreA: number | null;
+    scoreB: number | null;
+    winnerId: string | null;
+    refereeId: string | null;
+    participantA: TournamentMatchSide | null;
+    participantB: TournamentMatchSide | null;
+    winner: TournamentMatchSide | null;
+    court: Pick<Court, "id" | "name" | "type"> | null;
+    referee: Pick<UserPublic, "id" | "name" | "avatarUrl" | "badge"> | null;
+    createdAt: IsoDate;
+    updatedAt: IsoDate;
+}
+
 export interface Tournament {
     id: string;
     name: string;

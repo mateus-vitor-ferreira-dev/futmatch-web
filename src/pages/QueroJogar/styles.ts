@@ -6,6 +6,28 @@ export const Container = styled.div`
   margin: 0 auto;
 `
 
+/**
+ * Voltar, no mesmo desenho do `BackBtn` do detalhe da pelada — botão de texto
+ * com a seta, sem moldura. Copiado de propósito: é o gesto que a pessoa já
+ * aprendeu nas outras telas, e um botão diferente aqui pareceria outra coisa.
+ */
+export const BackBtn = styled.button`
+  display: flex;
+  align-items: center;
+  gap: ${({ theme }) => theme.spacing[2]};
+  background: none;
+  border: none;
+  color: ${({ theme }) => theme.colors.textSecondary};
+  font-size: ${({ theme }) => theme.fontSizes.sm};
+  font-weight: ${({ theme }) => theme.fontWeights.medium};
+  cursor: pointer;
+  padding: 0;
+  margin-bottom: ${({ theme }) => theme.spacing[4]};
+  transition: color 0.15s;
+
+  &:hover { color: ${({ theme }) => theme.colors.textPrimary}; }
+`
+
 export const Header = styled.div`
   margin-bottom: ${({ theme }) => theme.spacing[6]};
 

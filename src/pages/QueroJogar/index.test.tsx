@@ -13,7 +13,33 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { renderWithProviders, screen, waitFor, within } from '../../test/render'
 import { criaPelada, criaParticipante, criaUsuario, criaBuscaDePeladas, envelope, erroDaApi } from '../../test/factories'
 import { marcarSessao } from '../../services/api'
+import { Routes, Route, Link } from 'react-router-dom'
 import QueroJogar from './index'
+
+/**
+ * Espião sobre o `useNavigate`, e não substituto dele.
+ *
+ * Afirmar para onde o botão de voltar leva exige ver a chamada — o destino não
+ * deixa rastro na tela quando é `-1`. Mas trocar o hook por um `vi.fn()` puro
+ * quebraria o `<Link>` do router, que também navega por ele, e é o `Link` que
+ * empilha a segunda entrada de que o teste do "volta uma página" depende.
+ *
+ * Então o espião registra e **repassa**: a navegação acontece de verdade.
+ */
+const navegar = vi.fn()
+vi.mock('react-router-dom', async (original) => {
+  const real = await original<typeof import('react-router-dom')>()
+  return {
+    ...real,
+    useNavigate: () => {
+      const navegarDeVerdade = real.useNavigate()
+      return (...args: Parameters<typeof navegarDeVerdade>) => {
+        navegar(...args)
+        return navegarDeVerdade(...(args as [never]))
+      }
+    },
+  }
+})
 
 vi.mock('../../services/playerService')
 vi.mock('../../services/auth')
@@ -280,5 +306,43 @@ describe('QueroJogar — entrar no jogo', () => {
 
     expect(await screen.findByText('7 / 10 confirmados')).toBeInTheDocument()
     expect(screen.getByText('3 vagas restantes')).toBeInTheDocument()
+  })
+})
+
+describe('QueroJogar — voltar', () => {
+  it('volta uma página quando há para onde voltar dentro do app', async () => {
+    buscaEventos.mockResolvedValue(criaBuscaDePeladas([criaPelada()]))
+
+    // A pilha precisa ser empilhada de verdade: `initialEntries` com duas rotas
+    // não serve, porque a entrada atual continua sendo a inicial da sessão e o
+    // router dá `key: 'default'` a ela do mesmo jeito. Só um PUSH cria a chave
+    // nova que o componente usa para decidir.
+    const { user } = renderWithProviders(
+      <Routes>
+        <Route path="/home" element={<Link to="/quero-jogar">Ir para Quero Jogar</Link>} />
+        <Route path="/quero-jogar" element={<QueroJogar />} />
+      </Routes>,
+      { route: '/home' },
+    )
+
+    await user.click(screen.getByText('Ir para Quero Jogar'))
+    await esperaResultados()
+
+    await user.click(screen.getByRole('button', { name: /Voltar/ }))
+    expect(navegar).toHaveBeenLastCalledWith(-1)
+    // E voltou de fato: a tela anterior está de novo na frente.
+    expect(await screen.findByText('Ir para Quero Jogar')).toBeInTheDocument()
+  })
+
+  it('vai para a home quando esta é a primeira tela da sessão', async () => {
+    buscaEventos.mockResolvedValue(criaBuscaDePeladas([criaPelada()]))
+
+    // Uma entrada só: a pessoa abriu a URL direto ou recarregou. Um `-1` daqui
+    // sairia do Só+1, e um "Voltar" que fecha o produto não é voltar.
+    const { user } = renderWithProviders(<QueroJogar />, { route: '/quero-jogar' })
+    await esperaResultados()
+
+    await user.click(screen.getByRole('button', { name: /Voltar/ }))
+    expect(navegar).toHaveBeenCalledWith('/home')
   })
 })
