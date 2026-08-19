@@ -56,6 +56,9 @@ export default function Profile() {
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [uploading, setUploading]     = useState(false)
   const [uploadError, setUploadError] = useState('')
+  /** Erro do PATCH de perfil. Fica na tela, e não num toast que some: quem viu
+   *  falhar precisa reler o motivo enquanto decide o que fazer. Ver #242. */
+  const [saveError, setSaveError] = useState('')
   const cloudinaryReady = Boolean(env.cloudinaryCloud && env.cloudinaryPreset)
 
   // ── Tabs ──────────────────────────────────────────────────────────────────
@@ -107,12 +110,7 @@ export default function Profile() {
     if (user) {
       resetProfile({
         name:      user.name      ?? '',
-        /*
-         * ⚠️ `phone` não existe no modelo User nem no updateProfileSchema da
-         * API. O campo é preenchido, enviado no PATCH /users/me, descartado
-         * pelo stripUnknown e nunca salvo — o telefone jamais persistiu.
-         */
-        phone:     (user as { phone?: string }).phone ?? '',
+        phone:     user.phone     ?? '',
         pixKey:    user.pixKey    ?? '',
         avatarUrl: user.avatarUrl ?? '',
         marketingOptIn: user.marketingOptIn ?? false,
@@ -161,9 +159,28 @@ export default function Profile() {
       return
     }
 
-    await usersService.updateMe(Object.fromEntries(alterado))
-    await refreshUser()
-    toast.success('Perfil atualizado com sucesso!')
+    setSaveError('')
+
+    /**
+     * O `try/catch` é o conserto do sintoma que deu nome à #242.
+     *
+     * Sem ele a promise rejeitava e **nada aparecia na tela** — nem toast de
+     * erro, nem mensagem no formulário. O `onSavePassword`, logo abaixo, sempre
+     * tratou. Falhar calado é o que transforma qualquer defeito daqui em "não
+     * está funcionando e não sei por quê", e foi o que custou mais caro na
+     * investigação da própria issue.
+     *
+     * A mensagem sai do `mensagemDeErro`, que lê o corpo da API quando existe —
+     * um 422 de telefone inválido vira a frase que o schema escreveu, e não um
+     * "algo deu errado" genérico.
+     */
+    try {
+      await usersService.updateMe(Object.fromEntries(alterado))
+      await refreshUser()
+      toast.success('Perfil atualizado com sucesso!')
+    } catch (err) {
+      setSaveError(mensagemDeErro(err, 'Erro ao salvar o perfil.'))
+    }
   }
 
   // ── Formulário de nova senha (passo 2) ────────────────────────────────────
@@ -313,6 +330,8 @@ export default function Profile() {
                 Quero receber novidades, dicas e comunicações de marketing da Só+1.
               </ConsentField>
             </FormGrid>
+
+            {saveError && <FieldError role="alert">{saveError}</FieldError>}
 
             <SaveBtn type="submit" disabled={savingProfile}>
               {savingProfile ? 'Salvando...' : 'Salvar alterações'}

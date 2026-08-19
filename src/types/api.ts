@@ -124,6 +124,12 @@ export interface UserPublic {
 
 export interface UserMe extends UserPublic {
     email: string;
+    /**
+     * Privado, e só existe nas duas visões de "eu" — `/auth/me` e `/users/me`.
+     * `UserPublic` não tem telefone de propósito: qualquer pessoa abre o perfil
+     * de qualquer outra. Ver api#319.
+     */
+    phone: string | null;
     pixKey: string | null;
     marketingOptIn: boolean;
     stats?: UserStats;

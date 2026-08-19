@@ -7,6 +7,7 @@ import type { ApiEnvelope, CompetitionLevel, CourtType, SportProfile, UserMe } f
 export interface UpdateProfileInput {
   name?: string
   avatarUrl?: string | null
+  phone?: string | null
   pixKey?: string | null
   marketingOptIn?: boolean
   currentPassword?: string
