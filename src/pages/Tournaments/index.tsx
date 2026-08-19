@@ -22,7 +22,7 @@ import { mensagemDeErro } from '../../utils/apiError'
 import {
   Container, PageHeader, Title, Subtitle, CreateButton,
   FiltersBar, FilterChip,
-  Grid, TournamentCard, CardTop, TournamentName, StatusBadge,
+  Grid, TournamentCard, CardTop, TournamentName, SportIcon, StatusBadge,
   CardMeta, MetaRow, ViewBracketBtn,
   BracketSection, BracketTitle,
   Modal, ModalBox, ModalHeader, ModalTitle, CloseBtn,
@@ -283,8 +283,15 @@ export default function Tournaments() {
   const { sports } = useSports()
   const canCreate  = user?.role === 'OWNER' || user?.role === 'ADMIN'
 
-  const sportLabels = useMemo(() =>
-    Object.fromEntries(sports.map(s => [s.id, `${s.icon} ${s.label}`])),
+  /**
+   * Ícone e rótulo separados, e não a string `"🎾 Beach Tennis"` de antes.
+   *
+   * O cartão usa os dois em lugares diferentes: o ícone é o que aparece, e o
+   * rótulo é o que o `title` e o `aria-label` carregam. Concatenados, o cartão
+   * teria de fatiar a string de volta para separá-los.
+   */
+  const sportMeta = useMemo(
+    () => Object.fromEntries(sports.map(s => [s.id, { icon: s.icon, label: s.label }])),
     [sports]
   )
   const sportOptions = useMemo(() =>
@@ -457,11 +464,18 @@ export default function Tournaments() {
               // lista e precisa aparecer com o nome certo.
               const fmt = { label: rotuloDoFormato(t.format) }
               const divCount = t._count?.divisions ?? 0
+              // Modalidade que a API devolve e o catálogo não conhece cai no
+              // próprio código, que é feio mas legível — melhor que um ícone
+              // genérico dizendo a modalidade errada.
+              const modalidade = sportMeta[t.sportType] ?? { icon: '🏆', label: t.sportType }
               return (
                 <TournamentCard key={t.id} onClick={() => navigate(`/torneios/${t.id}`)}>
                   <CardTop>
                     <TournamentName>
-                      {sportLabels[t.sportType] ?? t.sportType} {t.name}
+                      <SportIcon role="img" title={modalidade.label} aria-label={modalidade.label}>
+                        {modalidade.icon}
+                      </SportIcon>
+                      {t.name}
                     </TournamentName>
                     <StatusBadge $status={t.status}>
                       {STATUS_LABELS[t.status] ?? t.status}
