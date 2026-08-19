@@ -7,6 +7,7 @@ import type {
   TournamentDivision,
   TournamentFormat,
   TournamentMatch,
+  TournamentRegistration,
   TournamentStatus,
 } from '../types/api'
 
@@ -95,4 +96,43 @@ export function createDivision(
   data: CreateDivisionInput,
 ): Promise<ApiEnvelope<TournamentDivision>> {
   return api.post(`/tournaments/${tournamentId}/divisions`, data).then((r) => r.data)
+}
+
+/**
+ * Inscreve o dono do token na divisão. **Sem corpo** — quem se inscreve é quem
+ * está autenticado, e mandar um `userId` daria a impressão de que dá para
+ * inscrever outra pessoa.
+ *
+ * Recusa com 422 quando o campeonato não está `OPEN`, a janela fechou, a
+ * divisão lotou ou o campeonato é por equipe; com 409 quando já existe
+ * inscrição viva. A tela lê o `code` para dizer qual dos casos foi.
+ */
+export function registerInDivision(
+  tournamentId: string,
+  divisionId: string,
+): Promise<ApiEnvelope<TournamentRegistration>> {
+  return api
+    .post(`/tournaments/${tournamentId}/divisions/${divisionId}/registrations`)
+    .then((r) => r.data)
+}
+
+/** As inscrições do próprio usuário neste campeonato, uma por divisão. */
+export function getMyRegistrations(
+  tournamentId: string,
+): Promise<ApiEnvelope<TournamentRegistration[]>> {
+  return api.get(`/tournaments/${tournamentId}/registrations/me`).then((r) => r.data)
+}
+
+/**
+ * Cancela a inscrição. Só enquanto o campeonato estiver `OPEN`: depois disso a
+ * lista de inscritos é o que gera o chaveamento, e sair viraria buraco na chave.
+ */
+export function cancelRegistration(
+  tournamentId: string,
+  divisionId: string,
+  registrationId: string,
+): Promise<ApiEnvelope<TournamentRegistration>> {
+  return api
+    .delete(`/tournaments/${tournamentId}/divisions/${divisionId}/registrations/${registrationId}`)
+    .then((r) => r.data)
 }

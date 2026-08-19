@@ -188,25 +188,6 @@ export const SectionTitle = styled.div`
   color: ${({ theme }) => theme.colors.textPrimary};
 `
 
-export const DivisionList = styled.div`
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-`
-
-export const DivisionTag = styled.span`
-  padding: 5px 12px;
-  border-radius: ${({ theme }) => theme.radii.full};
-  background: ${({ theme }) => theme.colors.primary};
-  color: #fff;
-  font-size: ${({ theme }) => theme.fontSizes.xs};
-  font-weight: ${({ theme }) => theme.fontWeights.medium};
-
-  span {
-    opacity: 0.8;
-  }
-`
-
 export const BracketSection = styled.div`
   display: flex;
   flex-direction: column;

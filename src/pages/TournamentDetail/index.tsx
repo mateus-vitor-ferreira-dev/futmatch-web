@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom'
 import { toast } from 'sonner'
 import { ArrowLeft, Calendar, MapPin, Users, Trophy, Tag, Layers } from 'lucide-react'
 import TournamentBracket from '../../components/TournamentBracket'
+import DivisionRegistration from '../../components/DivisionRegistration'
 import { getTournament, getTournamentDivisions } from '../../services/tournaments'
 import { getSportMeta } from '../../hooks/useSports'
 import type { Tournament, TournamentDivision } from '../../types/api'
@@ -11,7 +12,7 @@ import {
   TournamentName, PlaceName, StatusBadge,
   Body, InfoGrid, InfoItem, InfoIcon, InfoLabel, InfoValue,
   Divider, FormatCard, FormatIcon, FormatDesc, FormatHint,
-  DivisionsSection, SectionTitle, DivisionList, DivisionTag,
+  DivisionsSection, SectionTitle,
   BracketSection, LoadingBox,
 } from './styles'
 import type { BadgeTone } from './styles'
@@ -31,14 +32,6 @@ const FORMAT_META = {
   GROUPS_AND_KNOCKOUT: { icon: '🎯', label: 'Grupos + Eliminatório',  desc: 'Fase de grupos seguida de eliminatória entre os melhores.',      hint: 'Mínimo recomendado: 4 times.' },
   DOUBLE_ELIMINATION:  { icon: '🔁', label: 'Dupla Eliminação',       desc: 'Cada time precisa perder duas vezes para ser eliminado.',         hint: 'Mínimo recomendado: 4 times.' },
   SWISS:               { icon: '♟️', label: 'Sistema Suíço',          desc: 'Rodadas pareadas por desempenho — ninguém é eliminado até o fim.', hint: 'Flexível, mínimo 4 times.' },
-}
-
-const LEVEL_LABEL = {
-  BEGINNER:     'Iniciante',
-  INTERMEDIATE: 'Intermediário',
-  AMATEUR:      'Amador',
-  ADVANCED:     'Avançado',
-  PROFESSIONAL: 'Profissional',
 }
 
 function fmtDate(d: string | null | undefined): string {
@@ -183,16 +176,13 @@ export default function TournamentDetail() {
                   <Layers size={15} />
                   {divisions.length} categoria{divisions.length !== 1 ? 's' : ''}
                 </SectionTitle>
-                <DivisionList>
-                  {divisions.map(div => (
-                    <DivisionTag key={div.id}>
-                      {div.name}
-                      {div.level && div.level !== 'AMATEUR' && (
-                        <span> · {LEVEL_LABEL[div.level] ?? div.level}</span>
-                      )}
-                    </DivisionTag>
-                  ))}
-                </DivisionList>
+                {/*
+                  * As categorias deixaram de ser etiqueta e viraram lugar onde
+                  * se entra (#258). Cada uma diz quantas vagas restam, em que
+                  * estado está a inscrição de quem olha, e por que o botão não
+                  * está disponível quando não está.
+                  */}
+                <DivisionRegistration tournament={tournament} divisions={divisions} />
               </DivisionsSection>
             </>
           )}
