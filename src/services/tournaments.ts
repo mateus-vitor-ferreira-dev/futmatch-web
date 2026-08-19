@@ -8,6 +8,7 @@ import type {
   TournamentFormat,
   TournamentMatch,
   TournamentRegistration,
+  RefereeingMatch,
   TournamentStatus,
 } from '../types/api'
 
@@ -186,5 +187,33 @@ export function rejectRegistration(
       // gravaria uma justificativa em branco que a tela do jogador exibiria.
       { adminNote: adminNote?.trim() ? adminNote.trim() : null },
     )
+    .then((r) => r.data)
+}
+
+/** As partidas em que o usuário logado foi designado árbitro, de todos os campeonatos. */
+export function getRefereeingMatches(): Promise<ApiEnvelope<RefereeingMatch[]>> {
+  return api.get('/tournaments/matches/refereeing').then((r) => r.data)
+}
+
+/**
+ * O resultado da partida: placar dos dois lados **ou** o vencedor do W.O.,
+ * nunca os dois juntos.
+ *
+ * O schema da api recusa o corpo ambíguo, e recusa também o empate — mata-mata
+ * precisa de alguém para subir de rodada. O front barra os dois antes de enviar,
+ * mas a regra continua sendo da API: barrar aqui é cortesia, não autoridade.
+ */
+export type MatchResultInput =
+  | { scoreA: number; scoreB: number }
+  | { walkoverWinnerId: string }
+
+export function submitMatchResult(
+  tournamentId: string,
+  divisionId: string,
+  matchId: string,
+  resultado: MatchResultInput,
+): Promise<ApiEnvelope<TournamentMatch>> {
+  return api
+    .patch(`/tournaments/${tournamentId}/divisions/${divisionId}/matches/${matchId}/result`, resultado)
     .then((r) => r.data)
 }
