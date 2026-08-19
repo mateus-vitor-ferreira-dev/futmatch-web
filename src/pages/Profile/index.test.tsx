@@ -7,6 +7,7 @@
  * o nome apagar o PIX de quem nunca encostou nele.
  */
 import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { AxiosError } from 'axios'
 import { renderWithProviders, screen, waitFor } from '../../test/render'
 import { criaUsuario, envelope } from '../../test/factories'
 import { SESSION_HINT_KEY, marcarSessao } from '../../services/api'
@@ -119,5 +120,102 @@ describe('Perfil — exclusão de conta', () => {
       currentPassword: 'senha123',
     }))
     await waitFor(() => expect(localStorage.getItem(SESSION_HINT_KEY)).toBeNull())
+  })
+})
+
+
+/**
+ * As três causas da #242, cada uma com o seu teste.
+ *
+ * O relato de produção era "alterar um único campo não funciona", e a
+ * investigação achou três defeitos distintos com o mesmo sintoma. Dois moravam
+ * na API (o telefone que não existia — api#319 — e o `/auth/me` que não
+ * devolvia o consentimento — api#320) e já foram publicados. O terceiro é este
+ * arquivo: **o erro engolido**, que é o que fazia qualquer um dos outros dois
+ * parecer "não está funcionando e não sei por quê".
+ */
+describe('Perfil — a #242', () => {
+  it('mostra o erro na tela quando o PATCH falha', async () => {
+    // AxiosError de verdade: o `mensagemDeErro` só lê o corpo da API quando o
+    // erro é um, e um objeto com a mesma forma cairia no fallback genérico —
+    // o teste passaria sem provar que a mensagem da API chega à tela.
+    updateMe.mockRejectedValueOnce(
+      new AxiosError('Request failed', '422', undefined, undefined, {
+        status: 422,
+        data: { success: false, message: 'Telefone deve ter DDD e entre 10 e 15 dígitos' },
+      } as never),
+    )
+
+    const { user } = await abrePerfil()
+    const nome = screen.getByPlaceholderText(CAMPO_NOME)
+    await user.clear(nome)
+    await user.type(nome, 'Outro Nome')
+    await user.click(screen.getByRole('button', { name: 'Salvar alterações' }))
+
+    // Antes disto a promise rejeitava e a tela não dizia nada — nem toast, nem
+    // mensagem. Falhar calado é o defeito que dá nome à issue.
+    expect(await screen.findByRole('alert')).toHaveTextContent(
+      'Telefone deve ter DDD e entre 10 e 15 dígitos',
+    )
+  })
+
+  it('limpa o erro anterior quando a pessoa tenta de novo e dá certo', async () => {
+    updateMe.mockRejectedValueOnce(new Error('rede caiu'))
+
+    const { user } = await abrePerfil()
+    const nome = screen.getByPlaceholderText(CAMPO_NOME)
+    await user.clear(nome)
+    await user.type(nome, 'Outro Nome')
+    const salvar = screen.getByRole('button', { name: 'Salvar alterações' })
+    await user.click(salvar)
+    await screen.findByRole('alert')
+
+    // Erro que sobra na tela depois de dar certo é pior que erro nenhum.
+    await user.click(salvar)
+    await waitFor(() => expect(screen.queryByRole('alert')).not.toBeInTheDocument())
+  })
+
+  it('o telefone vem do usuário e viaja no PATCH', async () => {
+    // O valor guardado é a string COMBINADA que o PhoneInput monta, com o DDI
+    // dentro. Foi montar o fixture assim que revelou a api#323: a validação da
+    // API exigia 10 ou 11 dígitos e teria recusado os 13 que isto tem.
+    getMe.mockResolvedValue(
+      envelope(criaUsuario({ pixKey: 'mateus@pix.com', phone: '+55 (21) 2222-3333' })),
+    )
+
+    const { user } = await abrePerfil()
+    // `find`, e não `get`: o PhoneInput sincroniza o número local a partir do
+    // `value` num useEffect próprio, então ele se preenche um tick DEPOIS do
+    // resto do formulário. Com `get` este teste falhava uma vez a cada três —
+    // e a corrida é do componente, não do teste.
+    const telefone = await screen.findByDisplayValue('(21) 2222-3333')
+
+    await user.clear(telefone)
+    await user.type(telefone, '21999998888')
+    await user.click(screen.getByRole('button', { name: 'Salvar alterações' }))
+
+    await waitFor(() => expect(updateMe).toHaveBeenCalledTimes(1))
+    // Com o DDI que o componente acrescenta, e sem nenhum outro campo junto.
+    expect(updateMe).toHaveBeenCalledWith({ phone: '+55 (21) 99999-8888' })
+  })
+
+  it('o checkbox de marketing abre marcado para quem optou, e dá para desmarcar', async () => {
+    getMe.mockResolvedValue(
+      envelope(criaUsuario({ pixKey: 'mateus@pix.com', marketingOptIn: true })),
+    )
+
+    const { user } = await abrePerfil()
+    const optIn = screen.getByRole('checkbox', { name: /quero receber novidades/i })
+
+    // O `/auth/me` não devolvia o campo, o formulário lia `?? false` e o
+    // checkbox abria desmarcado para quem tinha optado por receber. Quem queria
+    // SAIR não conseguia: já estava desmarcado, o campo não ficava sujo, e o
+    // formulário só manda campo sujo. Ver api#320.
+    expect(optIn).toBeChecked()
+
+    await user.click(optIn)
+    await user.click(screen.getByRole('button', { name: 'Salvar alterações' }))
+
+    await waitFor(() => expect(updateMe).toHaveBeenCalledWith({ marketingOptIn: false }))
   })
 })

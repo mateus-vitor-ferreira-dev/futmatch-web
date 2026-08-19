@@ -33,6 +33,7 @@ export function criaUsuario(over: Partial<UserMe> = {}): UserMe {
     role: 'PLAYER',
     createdAt: '2026-01-10T12:00:00.000Z',
     email: 'mateus@exemplo.com',
+    phone: null,
     pixKey: null,
     marketingOptIn: false,
     ...over,
