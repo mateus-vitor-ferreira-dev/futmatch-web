@@ -219,7 +219,12 @@ export default function TournamentDetail() {
             >
               🏆 Chaveamento {showBracket ? '▲' : '▼'}
             </SectionTitle>
-            {showBracket && id && <TournamentBracket tournamentId={id} />}
+            {showBracket && id && (
+              /* `mostrarInscritos` é o sinal de que o 403 NÃO veio — ou seja,
+                 quem olha gerencia este campeonato. O mesmo sinal libera o
+                 lançamento de placar pelos cartões da chave (#261). */
+              <TournamentBracket tournamentId={id} podeLancar={mostrarInscritos} />
+            )}
           </BracketSection>
         </Body>
       </Container>

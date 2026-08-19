@@ -6,11 +6,12 @@ import type {
   TournamentMatchSide,
 } from '../../types/api'
 import { getTournamentDivisions, getDivisionMatches } from '../../services/tournaments'
+import LancarPlacar from '../LancarPlacar'
 import {
   Wrapper, DivisionTitle, LevelBadge,
   EmptyBracket, LoadingBracket,
   BracketGrid, Round, RoundLabel, MatchesColumn, MatchSlot, MatchCard,
-  TeamRow, TeamName, Score, StatusTag, MatchMeta, Connector,
+  TeamRow, TeamName, Score, StatusTag, MatchMeta, Connector, BotaoDeResultado,
 } from './styles'
 
 const LEVEL_LABELS: Record<CompetitionLevel, string> = {
@@ -136,7 +137,22 @@ function LadoDoConfronto({
   )
 }
 
-function CartaoDoConfronto({ partida }: { partida: TournamentMatch }) {
+function CartaoDoConfronto({
+  partida, tournamentId, podeLancar, onLancado,
+}: {
+  partida: TournamentMatch
+  tournamentId: string
+  /**
+   * Se quem olha pode lançar o resultado desta partida.
+   *
+   * Vem da página, que descobre isso do mesmo jeito que o painel de inscrições:
+   * **pelo 403**. A regra de quem gerencia mora na API e não é reproduzível
+   * aqui — o `place` que vem no torneio não traz `ownerId`. Ver a #259.
+   */
+  podeLancar?: boolean
+  onLancado?: (atualizada: TournamentMatch) => void
+}) {
+  const [lancando, setLancando] = useState(false)
   // Comparado por id de INSCRIÇÃO, e não de usuário: é a inscrição que a
   // partida referencia, e a mesma pessoa pode estar inscrita em duas divisões.
   const venceuA = partida.winnerId !== null && partida.winnerId === partida.participantAId
@@ -148,6 +164,7 @@ function CartaoDoConfronto({ partida }: { partida: TournamentMatch }) {
     partida.referee && `árb. ${partida.referee.name}`,
   ].filter(Boolean) as string[]
 
+  const encerrada = partida.status === 'FINISHED' || partida.status === 'WALKOVER'
   const temRodape = partida.status === 'IN_PROGRESS' || partida.status === 'WALKOVER' || detalhes.length > 0
 
   return (
@@ -162,6 +179,32 @@ function CartaoDoConfronto({ partida }: { partida: TournamentMatch }) {
               destacado acima, então a etiqueta é o que explica. */}
           {partida.status === 'WALKOVER' && <StatusTag $tone="wo">W.O.</StatusTag>}
           {detalhes.join(' · ')}
+        </MatchMeta>
+      )}
+
+      {/*
+        * Quem organiza lança o placar por aqui (#261). A API permite porque
+        * árbitro falta — e um campeonato sem árbitro designado não teria como
+        * fechar partida nenhuma pelo app.
+        *
+        * Só aparece na partida que ainda não terminou e que já tem os dois
+        * lados: nas outras o formulário seria um 422 esperando o clique.
+        */}
+      {podeLancar && !encerrada && partida.participantAId && partida.participantBId && (
+        <MatchMeta>
+          {lancando ? (
+            <LancarPlacar
+              tournamentId={tournamentId}
+              divisionId={partida.divisionId}
+              match={partida}
+              onLancado={(atualizada) => { setLancando(false); onLancado?.(atualizada) }}
+              onCancelar={() => setLancando(false)}
+            />
+          ) : (
+            <BotaoDeResultado type="button" onClick={() => setLancando(true)}>
+              Lançar placar
+            </BotaoDeResultado>
+          )}
         </MatchMeta>
       )}
     </MatchCard>
@@ -182,7 +225,13 @@ function CartaoDoConfronto({ partida }: { partida: TournamentMatch }) {
  * vindo da API. Divisão sem chave continua dizendo que não tem chave, em vez de
  * simular uma.
  */
-export default function TournamentBracket({ tournamentId }: { tournamentId: string }) {
+export default function TournamentBracket({
+  tournamentId, podeLancar,
+}: {
+  tournamentId: string
+  /** Quem gerencia o campeonato lança placar pelos cartões — ver #261. */
+  podeLancar?: boolean
+}) {
   const [divisions, setDivisions] = useState<TournamentDivision[]>([])
   const [chavePorDivisao, setChavePorDivisao] = useState<Record<string, TournamentMatch[]>>({})
   const [loading, setLoading] = useState(true)
@@ -275,7 +324,20 @@ export default function TournamentBracket({ tournamentId }: { tournamentId: stri
                       {faixasDaRodada(rodadas, indice).map((faixa, posicao) => (
                         <MatchSlot key={faixa[0]?.id ?? `vazia-${posicao}`} data-testid="faixa-da-chave">
                           {faixa.map((partida) => (
-                            <CartaoDoConfronto key={partida.id} partida={partida} />
+                            <CartaoDoConfronto
+                              key={partida.id}
+                              partida={partida}
+                              tournamentId={tournamentId}
+                              podeLancar={podeLancar}
+                              onLancado={(atualizada) =>
+                                setChavePorDivisao((atual) => ({
+                                  ...atual,
+                                  [division.id]: (atual[division.id] ?? []).map((p) =>
+                                    p.id === atualizada.id ? { ...p, ...atualizada } : p,
+                                  ),
+                                }))
+                              }
+                            />
                           ))}
                         </MatchSlot>
                       ))}

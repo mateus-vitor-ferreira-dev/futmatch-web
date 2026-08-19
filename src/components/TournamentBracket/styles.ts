@@ -199,3 +199,14 @@ export const MatchMeta = styled.div`
   font-size: ${({ theme }) => theme.fontSizes.xs};
   color: ${({ theme }) => theme.colors.textMuted};
 `
+
+export const BotaoDeResultado = styled.button`
+  border: 1px solid ${({ theme }) => theme.colors.primary};
+  background: transparent;
+  color: ${({ theme }) => theme.colors.primary};
+  border-radius: ${({ theme }) => theme.radii.sm};
+  padding: 4px 10px;
+  font-size: ${({ theme }) => theme.fontSizes.xs};
+  font-weight: ${({ theme }) => theme.fontWeights.semibold};
+  cursor: pointer;
+`

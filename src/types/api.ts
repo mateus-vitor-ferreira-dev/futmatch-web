@@ -441,6 +441,19 @@ export interface TournamentMatch {
     updatedAt: IsoDate;
 }
 
+/**
+ * A partida como ela volta em `GET /tournaments/matches/refereeing`.
+ *
+ * A rota inclui divisão e campeonato porque a lista do árbitro atravessa
+ * campeonatos: sem o nome de cada um, ele saberia o placar a lançar e não
+ * saberia de qual torneio.
+ */
+export interface RefereeingMatch extends TournamentMatch {
+    division: Pick<TournamentDivision, "id" | "name"> & {
+        tournament: Pick<Tournament, "id" | "name" | "status">;
+    };
+}
+
 export interface Tournament {
     id: string;
     name: string;
