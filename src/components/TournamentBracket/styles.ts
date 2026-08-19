@@ -8,7 +8,7 @@ export const Wrapper = styled.div`
 
 export const BracketGrid = styled.div`
   display: flex;
-  align-items: flex-start;
+  align-items: stretch;
   gap: 0;
   min-width: fit-content;
 `
@@ -30,12 +30,34 @@ export const RoundLabel = styled.div`
   text-align: center;
 `
 
-export const MatchesColumn = styled.div<{ $gap?: string; }>`
+export const MatchesColumn = styled.div`
   display: flex;
   flex-direction: column;
-  gap: ${({ $gap }) => $gap || '16px'};
+  flex: 1;
   width: 100%;
   padding: 0 8px;
+`
+
+/**
+ * Uma faixa da coluna: o espaço vertical de UMA vaga da chave.
+ *
+ * Todas as faixas de todas as rodadas valem `flex: 1`, e é isso que alinha o
+ * bracket sozinho: a rodada seguinte tem metade das vagas, então cada faixa
+ * dela ocupa a altura de duas da anterior e o confronto cai na altura de quem
+ * o alimenta. Era o que o gap dobrado fazia — só que ele assumia que toda
+ * rodada estava cheia, e com bye a primeira não está.
+ *
+ * `space-around` é o que distribui: duas partidas na faixa caem em 1/4 e 3/4,
+ * uma sozinha centraliza, e nenhuma deixa o espaço vazio no lugar certo.
+ */
+export const MatchSlot = styled.div`
+  display: flex;
+  flex-direction: column;
+  justify-content: space-around;
+  align-items: stretch;
+  flex: 1;
+  gap: 12px;
+  padding: 8px 0;
 `
 
 export const MatchCard = styled.div`

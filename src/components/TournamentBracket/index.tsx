@@ -9,7 +9,7 @@ import { getTournamentDivisions, getDivisionMatches } from '../../services/tourn
 import {
   Wrapper, DivisionTitle, LevelBadge,
   EmptyBracket, LoadingBracket,
-  BracketGrid, Round, RoundLabel, MatchesColumn, MatchCard,
+  BracketGrid, Round, RoundLabel, MatchesColumn, MatchSlot, MatchCard,
   TeamRow, TeamName, Score, StatusTag, MatchMeta, Connector,
 } from './styles'
 
@@ -53,6 +53,57 @@ function agruparPorRodada(partidas: TournamentMatch[]): TournamentMatch[][] {
   }
 
   return [...porRodada.values()]
+}
+
+/**
+ * As faixas verticais de uma rodada — uma por vaga da chave, na ordem.
+ *
+ * Da segunda rodada em diante a resposta é trivial: a API cria essas rodadas
+ * **inteiras e vazias**, então vaga e partida são a mesma coisa e cada faixa
+ * tem exatamente um confronto.
+ *
+ * A primeira rodada é o caso torto, e é o motivo desta função existir. A
+ * `bracket.ts` não cria a partida de bye — quem passa direto já nasce dentro da
+ * vaga da segunda rodada, de propósito, para a tela não desenhar um jogo que
+ * ninguém jogou. O efeito colateral é que a primeira rodada tem MENOS partidas
+ * que vagas, e as que sobraram vêm renumeradas de 1 em diante: o `orderInRound`
+ * delas não diz mais em que altura da chave elas estão.
+ *
+ * Quem sabe dizer é o `nextMatchId`. Montamos a coluna a partir das vagas da
+ * SEGUNDA rodada, e não da lista de partidas: cada faixa é uma vaga de destino,
+ * e dentro dela vão os confrontos que a alimentam — dois no caso comum, um
+ * quando o outro lado veio de bye, nenhum quando os dois vieram. A faixa vazia
+ * é o que mantém o resto na altura certa; sem ela, a chave inteira escorrega
+ * para cima a partir do primeiro bye.
+ */
+function faixasDaRodada(rodadas: TournamentMatch[][], indice: number): TournamentMatch[][] {
+  const daRodada = rodadas[indice]
+
+  // Chave de dois inscritos: uma rodada só, que já é a final. Não há segunda
+  // rodada de onde tirar vaga, e também não há bye possível.
+  if (indice > 0 || rodadas.length === 1) return daRodada.map((partida) => [partida])
+
+  const proximaRodada = rodadas[1]
+  const porDestino = new Map<string, TournamentMatch[]>()
+
+  for (const partida of daRodada) {
+    if (!partida.nextMatchId) continue
+    const irmas = porDestino.get(partida.nextMatchId)
+    if (irmas) irmas.push(partida)
+    else porDestino.set(partida.nextMatchId, [partida])
+  }
+
+  const faixas = proximaRodada.map((destino) => porDestino.get(destino.id) ?? [])
+
+  // Rede: partida da primeira rodada que não achou destino continua na tela, em
+  // faixa própria. Some-la seria esconder um confronto real por causa de um dado
+  // inesperado — a chave sai torta, mas ninguém deixa de ver o jogo.
+  const acomodadas = new Set(faixas.flat().map((p) => p.id))
+  for (const partida of daRodada) {
+    if (!acomodadas.has(partida.id)) faixas.push([partida])
+  }
+
+  return faixas
 }
 
 const formatarQuando = (iso: string) =>
@@ -215,14 +266,18 @@ export default function TournamentBracket({ tournamentId }: { tournamentId: stri
             ) : (
               <BracketGrid>
                 {rodadas.map((partidas, indice) => (
-                  <Round key={partidas[0].round}>
+                  <Round key={partidas[0].round} data-testid="rodada-da-chave">
                     <RoundLabel>{rotuloDaFase(partidas[0].round, rodadas.length)}</RoundLabel>
-                    {/* O espaçamento dobra a cada rodada para os confrontos
-                        ficarem na altura de quem os alimenta — é a forma de
-                        bracket, e é para isso que `MatchesColumn` tem o `$gap`. */}
-                    <MatchesColumn $gap={`${16 * 2 ** indice}px`}>
-                      {partidas.map((partida) => (
-                        <CartaoDoConfronto key={partida.id} partida={partida} />
+                    {/* Uma faixa por vaga da chave, todas com o mesmo peso. A
+                        altura de cada confronto sai daí, e não de um gap
+                        calculado — ver `faixasDaRodada`. */}
+                    <MatchesColumn>
+                      {faixasDaRodada(rodadas, indice).map((faixa, posicao) => (
+                        <MatchSlot key={faixa[0]?.id ?? `vazia-${posicao}`} data-testid="faixa-da-chave">
+                          {faixa.map((partida) => (
+                            <CartaoDoConfronto key={partida.id} partida={partida} />
+                          ))}
+                        </MatchSlot>
                       ))}
                     </MatchesColumn>
                   </Round>
