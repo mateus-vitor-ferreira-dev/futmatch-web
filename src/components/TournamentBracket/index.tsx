@@ -12,6 +12,7 @@ import {
   EmptyBracket, LoadingBracket,
   BracketGrid, Round, RoundLabel, MatchesColumn, MatchSlot, MatchCard,
   TeamRow, TeamName, Score, StatusTag, MatchMeta, Connector, BotaoDeResultado,
+  ChampionCard, ChampionTrophy, ChampionName,
 } from './styles'
 
 const LEVEL_LABELS: Record<CompetitionLevel, string> = {
@@ -105,6 +106,37 @@ function faixasDaRodada(rodadas: TournamentMatch[][], indice: number): Tournamen
   }
 
   return faixas
+}
+
+/**
+ * O campeão da divisão — ou `null`, que é a resposta na esmagadora maioria das
+ * vezes em que alguém abre a chave.
+ *
+ * A final é a partida que **não aponta para lugar nenhum**: `nextMatchId` nulo.
+ * É essa a condição, e não "a última rodada": bye e chave de 2 mexem na
+ * contagem de rodadas, e nenhum dos dois mexe em quem é a final.
+ *
+ * Duas partidas sem destino é dado quebrado — e aí ninguém é coroado. Escolher
+ * uma delas seria anunciar como campeão o vencedor de uma partida qualquer, que
+ * é pior que não anunciar nada. A chave fica sem a caixa, e o resto continua na
+ * tela.
+ */
+function campeaoDaDivisao(partidas: TournamentMatch[]): TournamentMatchSide | null {
+  const semDestino = partidas.filter((partida) => partida.nextMatchId === null)
+  if (semDestino.length !== 1) return null
+
+  const final = semDestino[0]
+  if (final.status !== 'FINISHED' && final.status !== 'WALKOVER') return null
+
+  /*
+   * O vencedor vem gravado da API, e é o único lugar de onde ele sai. Deduzir
+   * por `scoreA > scoreB` pareceria equivalente e não é: o W.O. não tem placar,
+   * e é justamente ele que a caixa precisa coroar sem ter o que comparar.
+   *
+   * Vindo nulo — final encerrada sem vencedor, que a API não produz — a caixa
+   * não aparece. Melhor a chave sem coroa do que uma coroa vazia.
+   */
+  return final.winner
 }
 
 const formatarQuando = (iso: string) =>
@@ -224,6 +256,9 @@ function CartaoDoConfronto({
  * não mudou é a regra** — nada com cara de participante aparece na tela sem ter
  * vindo da API. Divisão sem chave continua dizendo que não tem chave, em vez de
  * simular uma.
+ *
+ * A caixa de campeão voltou na #292, e agora ela obedece à mesma regra: só
+ * aparece quando a final fechou, e o nome sai do `winner` que a API gravou.
  */
 export default function TournamentBracket({
   tournamentId, podeLancar,
@@ -293,7 +328,9 @@ export default function TournamentBracket({
   return (
     <Wrapper>
       {divisions.map((division) => {
-        const rodadas = agruparPorRodada(chavePorDivisao[division.id] ?? [])
+        const partidasDaDivisao = chavePorDivisao[division.id] ?? []
+        const rodadas = agruparPorRodada(partidasDaDivisao)
+        const campeao = campeaoDaDivisao(partidasDaDivisao)
 
         return (
           <div key={division.id} style={{ marginBottom: '32px' }}>
@@ -344,7 +381,33 @@ export default function TournamentBracket({
                     </MatchesColumn>
                   </Round>
                 ))}
-                {rodadas.length > 1 && <Connector aria-hidden>›</Connector>}
+                {/* A seta separa colunas: entre rodadas, e entre a final e
+                    o campeão. Numa chave de 2 é ela que liga o único
+                    confronto à coroa. */}
+                {(rodadas.length > 1 || campeao) && <Connector aria-hidden>›</Connector>}
+
+                {/*
+                  * A coluna do campeão é uma coluna da chave como as outras —
+                  * `Round`, `MatchesColumn` e um `MatchSlot` de `flex: 1` —, e é
+                  * isso que a deixa na altura da final sem nenhuma conta.
+                  *
+                  * O que ela NÃO tem é o `data-testid` de rodada: ela não é uma
+                  * fase do torneio, e contá-la como tal faria a chave de 4 dizer
+                  * que tem três rodadas.
+                  */}
+                {campeao && (
+                  <Round data-testid="coluna-do-campeao">
+                    <RoundLabel>Campeão</RoundLabel>
+                    <MatchesColumn>
+                      <MatchSlot>
+                        <ChampionCard>
+                          <ChampionTrophy aria-hidden>🏆</ChampionTrophy>
+                          <ChampionName>{campeao.user.name}</ChampionName>
+                        </ChampionCard>
+                      </MatchSlot>
+                    </MatchesColumn>
+                  </Round>
+                )}
               </BracketGrid>
             )}
           </div>

@@ -111,6 +111,51 @@ export const Connector = styled.div`
   align-self: stretch;
 `
 
+/**
+ * A caixa do campeão, na coluna que vem depois da final.
+ *
+ * Não reaproveita o `MatchCard` de propósito: confronto tem dois lados e placar,
+ * campeão tem um nome só. Reusar o cartão do confronto daria uma caixa de uma
+ * linha, que na chave lê como partida pela metade — que é o que a linha "A
+ * definir" existe para evitar.
+ *
+ * A altura não é definida aqui. Ela sai do `MatchSlot` que envolve a caixa,
+ * igual à de qualquer confronto: a coluna do campeão é uma coluna da chave como
+ * as outras, só que com uma vaga em vez de duas. É o que a mantém na altura da
+ * final sem nenhum cálculo — ver o comentário do `MatchSlot`.
+ */
+export const ChampionCard = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 12px;
+  text-align: center;
+  background: ${({ theme }) => theme.colors.primarySubtle};
+  border: 1px solid ${({ theme }) => theme.colors.primary};
+  border-radius: ${({ theme }) => theme.radii.md};
+  box-shadow: ${({ theme }) => theme.shadows.sm};
+`
+
+export const ChampionTrophy = styled.span`
+  font-size: 1.5rem;
+  line-height: 1;
+`
+
+/**
+ * O nome quebra em vez de virar reticências, ao contrário do `TeamName`.
+ *
+ * No confronto o nome divide a linha com o placar e cortar é o mal menor. Aqui
+ * ele é a resposta que a pessoa foi buscar na tela, e "Juliana Pra…" não é
+ * resposta.
+ */
+export const ChampionName = styled.span`
+  font-size: ${({ theme }) => theme.fontSizes.sm};
+  font-weight: ${({ theme }) => theme.fontWeights.bold};
+  color: ${({ theme }) => theme.colors.primaryDark};
+  overflow-wrap: anywhere;
+`
+
 export const DivisionTitle = styled.div`
   font-size: ${({ theme }) => theme.fontSizes.sm};
   font-weight: ${({ theme }) => theme.fontWeights.semibold};
