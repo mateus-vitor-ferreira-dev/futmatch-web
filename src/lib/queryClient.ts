@@ -47,6 +47,11 @@ export const chaves = {
     participando: () => ['eventos', 'participando'] as const,
     criados:      () => ['eventos', 'criados'] as const,
   },
+  times: {
+    meus:    () => ['times', 'meus'] as const,
+    porId:   (teamId: string) => ['times', teamId] as const,
+    peladas: (teamId: string) => ['times', teamId, 'peladas'] as const,
+  },
   quadras: () => ['quadras'] as const,
   perfisEsportivos: () => ['perfis-esportivos'] as const,
   estatisticas: () => ['estatisticas'] as const,

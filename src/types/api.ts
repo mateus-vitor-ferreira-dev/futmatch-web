@@ -204,6 +204,69 @@ export interface Court {
     updatedAt: IsoDate;
 }
 
+/** Um jogador como o time o mostra: identidade e reputação, nunca contato. */
+export type TeamPlayer = Pick<UserPublic, "id" | "name" | "nickname" | "avatarUrl" | "badge"> & {
+    badges?: UserBadge[];
+};
+
+export interface TeamMember {
+    id: string;
+    userId: string;
+    joinedAt: IsoDate;
+    user: TeamPlayer;
+}
+
+/**
+ * O time como `GET /teams/:id` devolve.
+ *
+ * O capitão aparece duas vezes de propósito, em `captain` e dentro de
+ * `members`: o primeiro é quem manda, o segundo é quem está no time. Derivar um
+ * do outro aqui repetiria no front uma regra que já é da api.
+ */
+export interface Team {
+    id: string;
+    name: string;
+    sport: CourtType;
+    city: string;
+    captainId: string;
+    captain: TeamPlayer;
+    members: TeamMember[];
+    createdAt: IsoDate;
+    updatedAt: IsoDate;
+}
+
+/**
+ * O time como `GET /users/me/teams` devolve: sem a lista de membros, com a
+ * contagem. É o suficiente para o cartão, e evita carregar o time inteiro N
+ * vezes numa listagem.
+ */
+export interface TeamSummary {
+    id: string;
+    name: string;
+    sport: CourtType;
+    city: string;
+    captainId: string;
+    captain: TeamPlayer;
+    _count: { members: number };
+    createdAt: IsoDate;
+}
+
+/** Uma pelada do time, no recorte de cartão que `GET /teams/:id/peladas` traz. */
+export interface TeamPelada {
+    id: string;
+    date: IsoDate;
+    status: PeladaStatus;
+    maxPlayers: number;
+    priorityUntil: IsoDate | null;
+    court: {
+        id: string;
+        name: string;
+        type: CourtType;
+        place: { id: string; name: string; city: string; neighborhood: string };
+    };
+    _count: { participations: number };
+}
+
 export interface PeladaParticipant {
     userId: string;
     user: Pick<UserPublic, "id" | "name" | "nickname" | "avatarUrl">;
