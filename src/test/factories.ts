@@ -18,6 +18,11 @@ import type {
   PeladaSearchResult,
   UserMe,
   ApiEnvelope,
+  Team,
+  TeamInvite,
+  TeamPelada,
+  TeamPlayer,
+  TeamSummary,
 } from '../types/api'
 
 /** Data fixa e no futuro: teste que depende de "agora" falha sozinho um dia. */
@@ -172,6 +177,96 @@ export function criaJogadorSorteado(over: Partial<DrawPlayer> = {}): DrawPlayer 
     badge: null,
     position: null,
     skill: { valor: 50, estimado: false },
+    ...over,
+  }
+}
+
+/** Um jogador no recorte que o time mostra: identidade e selo, nunca contato. */
+export function criaJogadorDeTime(over: Partial<TeamPlayer> = {}): TeamPlayer {
+  return {
+    id: 'user-1',
+    name: 'Jogador Teste',
+    nickname: null,
+    avatarUrl: null,
+    badge: null,
+    ...over,
+  }
+}
+
+export function criaTime(over: Partial<Team> = {}): Team {
+  const capitao = over.captain ?? criaJogadorDeTime({ id: 'capitao-1', name: 'Capitão' })
+  return {
+    id: 'time-1',
+    name: 'Os Boleiros',
+    sport: 'FUTSAL',
+    city: 'Campinas',
+    captainId: capitao.id,
+    captain: capitao,
+    members: [{ id: 'membro-do-capitao', userId: capitao.id, joinedAt: DATA_FUTURA, user: capitao }],
+    createdAt: DATA_FUTURA,
+    updatedAt: DATA_FUTURA,
+    ...over,
+  }
+}
+
+/** O time como a listagem o traz: sem membros, com a contagem. */
+export function criaResumoDeTime(over: Partial<TeamSummary> = {}): TeamSummary {
+  const capitao = over.captain ?? criaJogadorDeTime({ id: 'capitao-1', name: 'Capitão' })
+  return {
+    id: 'time-1',
+    name: 'Os Boleiros',
+    sport: 'FUTSAL',
+    city: 'Campinas',
+    captainId: capitao.id,
+    captain: capitao,
+    _count: { members: 3 },
+    createdAt: DATA_FUTURA,
+    ...over,
+  }
+}
+
+export function criaPeladaDeTime(over: Partial<TeamPelada> = {}): TeamPelada {
+  return {
+    id: 'pelada-do-time-1',
+    date: DATA_FUTURA,
+    status: 'WAITING',
+    maxPlayers: 14,
+    priorityUntil: null,
+    court: {
+      id: 'quadra-1',
+      name: 'Quadra 1',
+      type: 'FUTSAL',
+      place: { id: 'local-1', name: 'Arena Teste', city: 'Campinas', neighborhood: 'Centro' },
+    },
+    _count: { participations: 5 },
+    ...over,
+  }
+}
+
+/**
+ * Um convite em aberto. `expired` vem da api, e por isso é campo da fixture —
+ * derivá-lo de `expiresAt` aqui repetiria no teste a conta que o servidor faz.
+ */
+export function criaConviteDeTime(over: Partial<TeamInvite> = {}): TeamInvite {
+  const quemConvidou = over.invitedBy ?? criaJogadorDeTime({ id: 'capitao-1', name: 'Alex Souza' })
+  return {
+    id: 'convite-1',
+    teamId: 'time-1',
+    invitedUserId: 'user-1',
+    invitedById: quemConvidou.id,
+    status: 'PENDING',
+    expiresAt: DATA_FUTURA,
+    respondedAt: null,
+    createdAt: '2027-03-01T10:00:00.000Z',
+    expired: false,
+    team: {
+      id: 'time-1',
+      name: 'Os Boleiros',
+      sport: 'FUTSAL',
+      city: 'Campinas',
+      captain: quemConvidou,
+    },
+    invitedBy: quemConvidou,
     ...over,
   }
 }

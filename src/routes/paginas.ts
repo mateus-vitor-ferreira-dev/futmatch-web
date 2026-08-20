@@ -51,6 +51,7 @@ const CARREGADORES = {
   '/minhas-peladas':   () => import('../pages/MinhasPeladas'),
   '/historico':        () => import('../pages/Historico'),
   '/avaliacoes':       () => import('../pages/Avaliacoes'),
+  '/times':            () => import('../pages/Times'),
   '/admin/dashboard':  () => import('../pages/Admin/Dashboard'),
   '/admin/users':      () => import('../pages/Admin/Users'),
   '/admin/requests':   () => import('../pages/Admin/Requests'),
@@ -128,6 +129,7 @@ export const Tournaments      = lazyWithRetry(CARREGADORES['/torneios'])
 export const MinhasPeladas    = lazyWithRetry(CARREGADORES['/minhas-peladas'])
 export const Historico        = lazyWithRetry(CARREGADORES['/historico'])
 export const Avaliacoes       = lazyWithRetry(CARREGADORES['/avaliacoes'])
+export const Times            = lazyWithRetry(CARREGADORES['/times'])
 export const AdminDashboard   = lazyWithRetry(CARREGADORES['/admin/dashboard'])
 export const AdminUsers       = lazyWithRetry(CARREGADORES['/admin/users'])
 export const AdminRequests    = lazyWithRetry(CARREGADORES['/admin/requests'])
@@ -141,5 +143,6 @@ export const OwnerRequests    = lazyWithRetry(CARREGADORES['/owner/requests'])
 
 // Rotas com parâmetro: fora do registro porque não partem do menu.
 export const PeladaDetail     = lazyWithRetry(() => import('../pages/PeladaDetail'))
+export const TimeDetail       = lazyWithRetry(() => import('../pages/TimeDetail'))
 export const TournamentDetail = lazyWithRetry(() => import('../pages/TournamentDetail'))
 export const OwnerCourts      = lazyWithRetry(() => import('../pages/Owner/Courts'))

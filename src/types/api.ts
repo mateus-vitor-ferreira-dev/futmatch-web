@@ -44,7 +44,9 @@ export type NotificationType =
     | "PELADA_FULL"
     | "PELADA_CANCELLED"
     | "PELADA_FINISHED"
-    | "ATTENDANCE_CONFIRMED";
+    | "ATTENDANCE_CONFIRMED"
+    | "TEAM_INVITE"
+    | "TEAM_PELADA_CREATED";
 
 export type TournamentStatus =
     | "DRAFT"
@@ -202,6 +204,92 @@ export interface Court {
     place?: PlaceSummary & { owner?: { id: string; name: string } | null };
     createdAt: IsoDate;
     updatedAt: IsoDate;
+}
+
+/** Um jogador como o time o mostra: identidade e reputação, nunca contato. */
+export type TeamPlayer = Pick<UserPublic, "id" | "name" | "nickname" | "avatarUrl" | "badge"> & {
+    badges?: UserBadge[];
+};
+
+export interface TeamMember {
+    id: string;
+    userId: string;
+    joinedAt: IsoDate;
+    user: TeamPlayer;
+}
+
+/**
+ * O time como `GET /teams/:id` devolve.
+ *
+ * O capitão aparece duas vezes de propósito, em `captain` e dentro de
+ * `members`: o primeiro é quem manda, o segundo é quem está no time. Derivar um
+ * do outro aqui repetiria no front uma regra que já é da api.
+ */
+export interface Team {
+    id: string;
+    name: string;
+    sport: CourtType;
+    city: string;
+    captainId: string;
+    captain: TeamPlayer;
+    members: TeamMember[];
+    createdAt: IsoDate;
+    updatedAt: IsoDate;
+}
+
+/**
+ * O time como `GET /users/me/teams` devolve: sem a lista de membros, com a
+ * contagem. É o suficiente para o cartão, e evita carregar o time inteiro N
+ * vezes numa listagem.
+ */
+export interface TeamSummary {
+    id: string;
+    name: string;
+    sport: CourtType;
+    city: string;
+    captainId: string;
+    captain: TeamPlayer;
+    _count: { members: number };
+    createdAt: IsoDate;
+}
+
+export type TeamInviteStatus = "PENDING" | "ACCEPTED" | "DECLINED" | "EXPIRED";
+
+/**
+ * Um convite em aberto, como `GET /users/me/team-invites` o devolve.
+ *
+ * `expired` vem calculado pela api, e não é deduzido do `expiresAt` aqui: com o
+ * navegador medindo o prazo pelo próprio relógio, um aparelho com a hora errada
+ * mostraria como válido um convite que a api recusa.
+ */
+export interface TeamInvite {
+    id: string;
+    teamId: string;
+    invitedUserId: string;
+    invitedById: string;
+    status: TeamInviteStatus;
+    expiresAt: IsoDate;
+    respondedAt: IsoDate | null;
+    createdAt: IsoDate;
+    expired: boolean;
+    team: Pick<Team, "id" | "name" | "sport" | "city"> & { captain: TeamPlayer };
+    invitedBy: TeamPlayer;
+}
+
+/** Uma pelada do time, no recorte de cartão que `GET /teams/:id/peladas` traz. */
+export interface TeamPelada {
+    id: string;
+    date: IsoDate;
+    status: PeladaStatus;
+    maxPlayers: number;
+    priorityUntil: IsoDate | null;
+    court: {
+        id: string;
+        name: string;
+        type: CourtType;
+        place: { id: string; name: string; city: string; neighborhood: string };
+    };
+    _count: { participations: number };
 }
 
 export interface PeladaParticipant {
