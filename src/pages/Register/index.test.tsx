@@ -191,3 +191,73 @@ describe('Login — destino por papel', () => {
     expect(localStorage.getItem(SESSION_HINT_KEY)).toBe('1')
   })
 })
+
+/**
+ * O retorno para onde a pessoa estava indo — #302.
+ *
+ * Quem chega por um link de convite passa por esta tela no meio do caminho. Sem
+ * o `next`, o cadastro a joga na home — o vazamento que a #229 descreveu:
+ * *"a pessoa clica no convite, é obrigada a se cadastrar, e o cadastro a joga
+ * na home sem nenhuma relação com o que ela veio fazer"*.
+ */
+describe('Login — voltar para onde a pessoa estava indo', () => {
+  function abreLoginCom(next: string) {
+    const rota = `/login?next=${encodeURIComponent(next)}`
+    const resultado = renderWithProviders(<Register initialMode="login" />, { route: rota })
+    const formulario = resultado.container.querySelector('form')!
+    return {
+      ...resultado,
+      email: screen.getByPlaceholderText('seu@email.com'),
+      senha: screen.getByPlaceholderText('Sua senha'),
+      entrar: within(formulario).getByRole('button', { name: 'Entrar' }),
+    }
+  }
+
+  async function entra(campos: ReturnType<typeof abreLoginCom>) {
+    await campos.user.type(campos.email, 'mateus@exemplo.com')
+    await campos.user.type(campos.senha, 'segredo123')
+    await campos.user.click(campos.entrar)
+  }
+
+  beforeEach(() => {
+    login.mockResolvedValue(
+      envelope({ token: 'token-novo', user: criaUsuario({ role: 'PLAYER' }) }),
+    )
+  })
+
+  it('volta para a pelada, com o convite dentro', async () => {
+    const destino = '/pelada/pelada-1?convite=token-abc'
+    const campos = abreLoginCom(destino)
+
+    await entra(campos)
+
+    // O `replace` é de propósito: o login não fica no histórico, senão o botão
+    // "voltar" do navegador devolve a pessoa para uma tela de login que ela já
+    // passou — e o `PublicRoute` a manda de volta na hora.
+    await waitFor(() => expect(navega).toHaveBeenCalledWith(destino, { replace: true }))
+  })
+
+  it('sem next, o destino continua sendo o do papel', async () => {
+    const campos = abreLogin()
+
+    await entra(campos)
+
+    await waitFor(() => expect(navega).toHaveBeenCalledWith('/home'))
+  })
+
+  it.each([
+    ['//site-de-fora.com',          'URL absoluta disfarçada de caminho'],
+    ['https://site-de-fora.com',    'URL absoluta declarada'],
+    ['javascript:alert(1)',         'esquema executável'],
+  ])('ignora %s — %s', async (destinoMalicioso) => {
+    const campos = abreLoginCom(destinoMalicioso)
+
+    await entra(campos)
+
+    // **A tela de login não pode virar redirecionador aberto.** Um `next` que
+    // aponta para fora transformaria um link do próprio domínio numa ponte para
+    // phishing: a vítima confere o domínio, confia, e sai em outro lugar.
+    await waitFor(() => expect(navega).toHaveBeenCalledWith('/home'))
+    expect(navega).not.toHaveBeenCalledWith(destinoMalicioso, expect.anything())
+  })
+})

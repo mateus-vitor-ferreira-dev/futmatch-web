@@ -197,8 +197,18 @@ export const playerService = {
   },
 
   // --- DETALHE DE EVENTO ---
-  getEvent: async (eventId: string): Promise<ApiEnvelope<Pelada>> => {
-    const { data } = await api.get(`/events/${eventId}`)
+  /**
+   * O detalhe da pelada, com ou sem sessão.
+   *
+   * `convite` é o token do link (api#225). Vai como query, e só quando existe:
+   * é ele que abre a pelada `BY_LINK` ou `PRIVATE` para quem não chegaria nela
+   * de outro jeito — inclusive para quem ainda não tem conta, que é a razão de
+   * o convite existir.
+   */
+  getEvent: async (eventId: string, convite?: string): Promise<ApiEnvelope<Pelada>> => {
+    const { data } = await api.get(`/events/${eventId}`, {
+      params: convite ? { convite } : undefined,
+    })
     return data
   },
 

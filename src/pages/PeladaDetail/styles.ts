@@ -296,6 +296,18 @@ export const SectionTitle = styled.h3`
   margin: 0 0 ${({ theme }) => theme.spacing[3]};
 `
 
+/**
+ * A contagem que o visitante sem sessão vê no lugar da lista (#302).
+ *
+ * Ocupa o lugar da lista, e não o de um aviso: quem está deslogado não precisa
+ * saber que existe uma lista escondida — precisa saber quantas vagas foram.
+ */
+export const ParticipantsCount = styled.p`
+  font-size: 0.875rem;
+  color: #6b7280;
+  margin: 0;
+`
+
 export const ParticipantList = styled.div`
   display: flex;
   flex-direction: column;
