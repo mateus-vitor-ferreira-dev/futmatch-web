@@ -217,7 +217,15 @@ export const CopyBtn = styled.button`
   &:hover { background: ${({ theme }) => theme.colors.primaryHover}; }
 `
 
-export const JoinBtn = styled.button<{ $full?: boolean; $joined?: boolean; }>`
+/**
+ * `$bloqueado` é o botão barrado pelo portão de entrada (#230).
+ *
+ * Compartilha o visual neutro do `$full` de propósito — os dois querem dizer
+ * "não é para você clicar aqui" —, mas é prop própria porque o motivo é outro:
+ * lotado muda quando alguém sai, e requisito não. Reaproveitar o `$full` faria
+ * a tela chamar de "cheia" uma pelada com vaga sobrando.
+ */
+export const JoinBtn = styled.button<{ $full?: boolean; $joined?: boolean; $bloqueado?: boolean; }>`
   width: 100%;
   padding: ${({ theme }) => theme.spacing[4]};
   border-radius: ${({ theme }) => theme.radii.lg};
@@ -230,12 +238,12 @@ export const JoinBtn = styled.button<{ $full?: boolean; $joined?: boolean; }>`
   align-items: center;
   justify-content: center;
   gap: ${({ theme }) => theme.spacing[2]};
-  background: ${({ $joined, $full, theme }) =>
-    $joined ? theme.colors.successLight :
-    $full   ? theme.colors.borderLight  : theme.colors.primary};
-  color: ${({ $joined, $full, theme }) =>
-    $joined ? theme.colors.primaryDark  :
-    $full   ? theme.colors.textMuted    : '#fff'};
+  background: ${({ $joined, $full, $bloqueado, theme }) =>
+    $joined              ? theme.colors.successLight :
+    $full || $bloqueado  ? theme.colors.borderLight  : theme.colors.primary};
+  color: ${({ $joined, $full, $bloqueado, theme }) =>
+    $joined              ? theme.colors.primaryDark  :
+    $full || $bloqueado  ? theme.colors.textMuted    : '#fff'};
   opacity: ${({ disabled }) => disabled ? 0.75 : 1};
   &:hover:not(:disabled) { background: ${({ $joined, theme }) => $joined ? theme.colors.successLight : theme.colors.primaryHover}; }
 `
@@ -487,4 +495,12 @@ export const ModalConfirmBtn = styled.button`
 
   &:hover:not(:disabled) { opacity: 0.88; }
   &:disabled { opacity: 0.5; cursor: not-allowed; }
+`
+
+/** O motivo de o botão de entrar estar desabilitado (#230). */
+export const MotivoDoPortao = styled.p`
+  margin: 8px 0 0;
+  text-align: center;
+  font-size: ${({ theme }) => theme.fontSizes.sm};
+  color: ${({ theme }) => theme.colors.textSecondary};
 `

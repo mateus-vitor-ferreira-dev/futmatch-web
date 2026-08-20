@@ -36,6 +36,7 @@ import { toast } from 'sonner'
 const buscaPelada = vi.mocked(playerService.getEvent)
 const entraNaPelada = vi.mocked(playerService.joinEvent)
 const saiDaPelada = vi.mocked(playerService.leaveEvent)
+const consultaEntrada = vi.mocked(playerService.checkEntry)
 
 const USUARIO = criaUsuario({ id: 'user-1', name: 'Mateus' })
 
@@ -45,6 +46,9 @@ beforeEach(() => {
   vi.mocked(authService.getMe).mockResolvedValue(envelope(USUARIO))
   vi.mocked(notificationService.list).mockResolvedValue([])
   entraNaPelada.mockResolvedValue(envelope({ userId: 'user-1' } as never))
+  // Sem requisito e liberado: é o que a esmagadora maioria das peladas devolve,
+  // e mantém todos os testes anteriores descrevendo o mesmo cenário de sempre.
+  consultaEntrada.mockResolvedValue(envelope({ allowed: true, failures: [], requirements: [] }))
   saiDaPelada.mockResolvedValue(envelope({ remainingPlayers: 0 } as never))
 })
 
@@ -868,5 +872,127 @@ describe('PeladaDetail — sorteio contra uma API anterior', () => {
     await user.click(screen.getByRole('button', { name: /refazer sorteio/i }))
 
     expect(await screen.findByRole('heading', { name: 'Times Sorteados' })).toBeInTheDocument()
+  })
+})
+
+/**
+ * O portão na tela (#230).
+ *
+ * O critério central da issue é o terceiro: **o botão aparece desabilitado com
+ * o motivo, em vez de falhar depois do clique**. Requisito que só vira erro
+ * depois do clique é uma armadilha — o jogador não sabe se é regra, defeito ou
+ * implicância com ele.
+ */
+describe('PeladaDetail — os requisitos antes do clique', () => {
+  const COM_REQUISITO = {
+    ...criaPelada({ id: 'pelada-1' }),
+    requirements: [{ type: 'MIN_MATCHES_PLAYED' as const, params: { min: 10 } }],
+  }
+
+  it('mostra as regras da pelada antes de qualquer clique', async () => {
+    buscaPelada.mockResolvedValue(envelope(COM_REQUISITO))
+
+    abrePelada()
+
+    expect(await screen.findByTestId('requisitos-da-pelada')).toBeInTheDocument()
+    expect(screen.getByText('Ter jogado ao menos 10 peladas')).toBeInTheDocument()
+  })
+
+  it('desabilita o botão com o motivo, em vez de deixar o clique falhar', async () => {
+    buscaPelada.mockResolvedValue(envelope(COM_REQUISITO))
+    consultaEntrada.mockResolvedValue(
+      envelope({
+        allowed: false,
+        failures: [
+          {
+            code: 'REQUIREMENT_MIN_MATCHES_PLAYED',
+            message: 'Esta pelada exige 10 peladas jogadas, e você tem 3.',
+            numeros: { exigido: 10, atual: 3 },
+          },
+        ],
+        requirements: [
+          {
+            type: 'MIN_MATCHES_PLAYED' as const,
+            params: { min: 10 },
+            met: false,
+            failure: {
+              code: 'REQUIREMENT_MIN_MATCHES_PLAYED',
+              message: 'Esta pelada exige 10 peladas jogadas, e você tem 3.',
+              numeros: { exigido: 10, atual: 3 },
+            },
+          },
+        ],
+      }),
+    )
+
+    abrePelada()
+
+    const botao = await screen.findByRole('button', { name: /não atende aos requisitos/i })
+    expect(botao).toBeDisabled()
+
+    // A frase é a da API, e ela diz o exigido E o que a pessoa tem. "Você não
+    // pode entrar" sozinho soaria como julgamento; com os dois números, soa
+    // como a regra da pelada que é.
+    expect(screen.getByText('Esta pelada exige 10 peladas jogadas, e você tem 3.')).toBeInTheDocument()
+    expect(entraNaPelada).not.toHaveBeenCalled()
+  })
+
+  it('o motivo é lido junto com o botão, e não como texto solto', async () => {
+    buscaPelada.mockResolvedValue(envelope(COM_REQUISITO))
+    consultaEntrada.mockResolvedValue(
+      envelope({
+        allowed: false,
+        failures: [{ code: 'REQUIREMENT_MIN_MATCHES_PLAYED', message: 'Faltam peladas.' }],
+        requirements: [
+          { type: 'MIN_MATCHES_PLAYED' as const, params: { min: 10 }, met: false,
+            failure: { code: 'REQUIREMENT_MIN_MATCHES_PLAYED', message: 'Faltam peladas.' } },
+        ],
+      }),
+    )
+
+    abrePelada()
+
+    const botao = await screen.findByRole('button', { name: /não atende aos requisitos/i })
+    const descrito = botao.getAttribute('aria-describedby')
+    expect(descrito).toBeTruthy()
+    expect(document.getElementById(descrito!)).toHaveTextContent('Faltam peladas.')
+  })
+
+  it('quem atende continua com o botão normal', async () => {
+    buscaPelada.mockResolvedValue(envelope(COM_REQUISITO))
+    consultaEntrada.mockResolvedValue(
+      envelope({
+        allowed: true,
+        failures: [],
+        requirements: [{ type: 'MIN_MATCHES_PLAYED' as const, params: { min: 10 }, met: true }],
+      }),
+    )
+
+    abrePelada()
+
+    expect(await screen.findByRole('button', { name: /Entrar na partida/i })).toBeEnabled()
+  })
+
+  it('pelada sem requisito não ganha enfeite nenhum', async () => {
+    buscaPelada.mockResolvedValue(envelope(criaPelada({ id: 'pelada-1' })))
+
+    abrePelada()
+
+    await screen.findByRole('button', { name: /Entrar na partida/i })
+    // A esmagadora maioria das peladas continua sem regra, e o caso comum não
+    // pode ganhar caixa nova por causa do raro.
+    expect(screen.queryByTestId('requisitos-da-pelada')).not.toBeInTheDocument()
+  })
+
+  it('falha na consulta ao portão não bloqueia o botão', async () => {
+    buscaPelada.mockResolvedValue(envelope(COM_REQUISITO))
+    consultaEntrada.mockRejectedValue(new Error('rede caiu'))
+
+    abrePelada()
+
+    // Sem resposta, a tela volta a se comportar como antes desta issue: o
+    // clique tenta e a API decide. Barrar por falta de informação inventaria
+    // uma recusa que ninguém verificou.
+    expect(await screen.findByRole('button', { name: /Entrar na partida/i })).toBeEnabled()
   })
 })

@@ -5,15 +5,16 @@ import { ArrowLeft, Calendar, Clock, MapPin, Users, DollarSign, Copy, CheckCircl
 import { useAuth } from '../../contexts/AuthContext'
 import { playerService, MAX_MOTIVO_SAIDA } from '../../services/playerService'
 import { getSportMeta } from '../../hooks/useSports'
-import type { CourtType, Pelada, PeladaStatus } from '../../types/api'
+import type { CourtType, EntryVerdict, Pelada, PeladaStatus } from '../../types/api'
 import { mensagemDeErro } from '../../utils/apiError'
+import RequisitosDaPelada from '../../components/RequisitosDaPelada'
 import { SorteioDeTimes } from '../../components/SorteioDeTimes'
 import { SortearBtn } from '../../components/SorteioDeTimes/styles'
 import {
   Container, BackBtn, Card, CardHeader, SportIcon, HeaderInfo,
   CourtName, PlaceName, StatusBadge,
   Body, InfoGrid, InfoItem, InfoIcon, InfoLabel, InfoValue,
-  Divider, ProgressSection, ProgressLabel, ProgressText, VagasText,
+  Divider, MotivoDoPortao, ProgressSection, ProgressLabel, ProgressText, VagasText,
   ProgressBar, ProgressFill,
   PixBox, PixLabel, PixKey, CopyBtn,
   JoinBtn, OrganizerActions, ActionBtn, OrganizerTag,
@@ -45,7 +46,7 @@ function buildMapsUrl(event: Pelada): string | null {
 export default function PeladaDetail() {
   const { eventId } = useParams<{ eventId: string }>()
   const navigate = useNavigate()
-  const { user } = useAuth()
+  const { user, isAuthenticated } = useAuth()
 
   const [event, setEvent]               = useState<Pelada | null>(null)
   const [loading, setLoading]           = useState(true)
@@ -55,6 +56,7 @@ export default function PeladaDetail() {
   const [motivoSaida, setMotivoSaida]   = useState('')
   const [saindo, setSaindo]             = useState(false)
   const [sorteando, setSorteando]       = useState(false)
+  const [veredito, setVeredito]         = useState<EntryVerdict | null>(null)
 
   const load = useCallback(async () => {
     try {
@@ -70,6 +72,28 @@ export default function PeladaDetail() {
 
   useEffect(() => { load() }, [load])
 
+  /**
+   * Pergunta ao portão se este jogador pode entrar — sem tentar entrar.
+   *
+   * Recarrega junto com a pelada: entrar, sair ou a pelada encher mudam a
+   * resposta, e um veredito velho na tela é pior que nenhum.
+   *
+   * Falhar aqui não pode derrubar a página nem bloquear o botão: sem resposta,
+   * a tela volta a se comportar como antes desta issue — o clique tenta, e a
+   * API decide. Barrar por falta de informação inventaria uma recusa.
+   */
+  useEffect(() => {
+    if (!event || !isAuthenticated) { setVeredito(null); return }
+
+    let cancelado = false
+    playerService
+      .checkEntry(event.courtId, event.id)
+      .then((res) => { if (!cancelado) setVeredito(res.data) })
+      .catch(() => { if (!cancelado) setVeredito(null) })
+
+    return () => { cancelado = true }
+  }, [event, isAuthenticated])
+
   if (loading) return <><LoadingBox>Carregando...</LoadingBox></>
   if (!event)  return null
 
@@ -82,6 +106,17 @@ export default function PeladaDetail() {
   const isJoined        = participations.some(p => p.userId === user?.id)
   const isOrganizer     = event.organizer?.id === user?.id
   const canJoin         = !isJoined && !isFull && (event.status === 'WAITING' || event.status === 'FULL')
+  const requisitos      = event.requirements ?? []
+  /**
+   * O portão barra quem não atende, e a tela precisa saber ANTES do clique.
+   *
+   * `veredito` é `null` até a consulta responder, e continua `null` para quem
+   * não tem sessão — a rota exige autenticação, porque a resposta é sobre um
+   * jogador específico. Nesse caso a lista de requisitos ainda aparece, só sem
+   * o "você atende": é o que o `requirements` da própria pelada permite (#332).
+   */
+  const barradoPeloPortao = veredito !== null && !veredito.allowed && !isJoined && !isOrganizer
+  const motivoDoPortao    = veredito?.failures.find((f) => f.code.startsWith('REQUIREMENT_'))?.message ?? null
   // O organizador não sai da própria pelada — para ele a saída é cancelar ou
   // finalizar, que já estão nas ações abaixo. A API também recusa sair de
   // pelada finalizada ou cancelada, e a tela não oferece o que ela recusaria.
@@ -245,13 +280,34 @@ export default function PeladaDetail() {
 
             <Divider />
 
+            {/*
+              * As regras de entrada, antes de qualquer clique (#230).
+              *
+              * Aparecem para quem quer que veja a pelada — inclusive deslogado,
+              * porque vêm no corpo dela (api#332). O "você atende" só aparece
+              * com sessão, que é o que a consulta ao portão exige.
+              *
+              * Pelada sem requisito não renderiza nada: o caso comum não ganha
+              * enfeite por causa do raro.
+              */}
+            {requisitos.length > 0 && (
+              <>
+                <RequisitosDaPelada requirements={requisitos} veredito={veredito} />
+                <Divider />
+              </>
+            )}
+
             {/* Botão de entrar */}
             {event.status !== 'FINISHED' && event.status !== 'CANCELLED' && !isOrganizer && (
               <JoinBtn
                 $joined={isJoined}
                 $full={isFull && !isJoined}
-                disabled={!canJoin || joining}
+                $bloqueado={barradoPeloPortao}
+                disabled={!canJoin || joining || barradoPeloPortao}
                 onClick={handleJoin}
+                /* O motivo viaja junto do botão para o leitor de tela lê-lo com
+                   ele, e não como um texto solto em outro canto da página. */
+                aria-describedby={barradoPeloPortao && motivoDoPortao ? 'motivo-do-portao' : undefined}
               >
                 {isJoined ? (
                   <><CheckCircle size={18} /> Você está confirmado</>
@@ -259,10 +315,23 @@ export default function PeladaDetail() {
                   'Jogo lotado'
                 ) : joining ? (
                   'Entrando...'
+                ) : barradoPeloPortao ? (
+                  'Você ainda não atende aos requisitos'
                 ) : (
                   <><Users size={18} /> Entrar na partida</>
                 )}
               </JoinBtn>
+            )}
+
+            {/*
+              * Por que o botão está desabilitado — escrito, e não adivinhado.
+              *
+              * A frase é a da API, e ela diz o exigido E o que a pessoa tem.
+              * "Você não pode entrar" sozinho soaria como julgamento; com os
+              * dois números, soa como a regra da pelada que é.
+              */}
+            {barradoPeloPortao && motivoDoPortao && (
+              <MotivoDoPortao id="motivo-do-portao">{motivoDoPortao}</MotivoDoPortao>
             )}
 
             {/* Sair da partida */}

@@ -209,6 +209,49 @@ export interface PeladaParticipant {
     user: Pick<UserPublic, "id" | "name" | "nickname" | "avatarUrl">;
 }
 
+/** Um requisito de entrada configurado na pelada. */
+export interface PeladaRequirement {
+    type: PeladaRequirementType;
+    /** O formato depende do tipo. Os três de reputação usam `{ min: number }`. */
+    params: { min?: number } | null;
+}
+
+export type PeladaRequirementType =
+    | "MIN_ATTENDANCE_RATE"
+    | "MIN_AVERAGE_RATING"
+    | "MIN_MATCHES_PLAYED"
+    | "BADGE";
+
+/** Um motivo de recusa do portão de entrada. */
+export interface EntryFailure {
+    /** Código estável. É por ele que a tela decide o que mostrar, não pela frase. */
+    code: string;
+    message: string;
+    /** Só nas recusas de reputação: os mesmos valores da frase, em número. */
+    numeros?: { exigido: number; atual: number };
+}
+
+/** Como um requisito saiu da avaliação deste jogador. */
+export interface EntryRequirementResult {
+    type: PeladaRequirementType;
+    params: { min?: number } | null;
+    met: boolean;
+    failure?: EntryFailure;
+}
+
+/**
+ * A resposta de `GET .../participations/entry`.
+ *
+ * **Sempre 200, mesmo quando a resposta é não** — perguntar não é ser recusado.
+ * `requirements` vem vazio para o organizador, que não se submete aos próprios
+ * requisitos.
+ */
+export interface EntryVerdict {
+    allowed: boolean;
+    failures: EntryFailure[];
+    requirements: EntryRequirementResult[];
+}
+
 export interface Pelada {
     id: string;
     date: IsoDate;
@@ -221,6 +264,14 @@ export interface Pelada {
     court?: Pick<Court, "id" | "name" | "type"> & { place: PlaceSummary };
     organizer?: Pick<UserPublic, "id" | "name" | "avatarUrl">;
     participations?: PeladaParticipant[];
+    /**
+     * As regras de entrada da pelada, na leitura pública (api#332).
+     *
+     * Vem sempre — lista vazia quando não há requisito —, e é o que permite a
+     * tela mostrar a barra a quem **não está logado**: a consulta de entrada
+     * exige sessão, porque a resposta dela é sobre um jogador específico.
+     */
+    requirements?: PeladaRequirement[];
     _count?: { participations: number };
     createdAt: IsoDate;
     updatedAt: IsoDate;
