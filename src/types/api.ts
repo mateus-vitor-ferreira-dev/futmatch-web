@@ -44,7 +44,9 @@ export type NotificationType =
     | "PELADA_FULL"
     | "PELADA_CANCELLED"
     | "PELADA_FINISHED"
-    | "ATTENDANCE_CONFIRMED";
+    | "ATTENDANCE_CONFIRMED"
+    | "TEAM_INVITE"
+    | "TEAM_PELADA_CREATED";
 
 export type TournamentStatus =
     | "DRAFT"
@@ -249,6 +251,29 @@ export interface TeamSummary {
     captain: TeamPlayer;
     _count: { members: number };
     createdAt: IsoDate;
+}
+
+export type TeamInviteStatus = "PENDING" | "ACCEPTED" | "DECLINED" | "EXPIRED";
+
+/**
+ * Um convite em aberto, como `GET /users/me/team-invites` o devolve.
+ *
+ * `expired` vem calculado pela api, e não é deduzido do `expiresAt` aqui: com o
+ * navegador medindo o prazo pelo próprio relógio, um aparelho com a hora errada
+ * mostraria como válido um convite que a api recusa.
+ */
+export interface TeamInvite {
+    id: string;
+    teamId: string;
+    invitedUserId: string;
+    invitedById: string;
+    status: TeamInviteStatus;
+    expiresAt: IsoDate;
+    respondedAt: IsoDate | null;
+    createdAt: IsoDate;
+    expired: boolean;
+    team: Pick<Team, "id" | "name" | "sport" | "city"> & { captain: TeamPlayer };
+    invitedBy: TeamPlayer;
 }
 
 /** Uma pelada do time, no recorte de cartão que `GET /teams/:id/peladas` traz. */

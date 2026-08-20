@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { toast } from 'sonner'
-import { ArrowLeft, Crown, MapPin, Users, Calendar, Trash2, Pencil } from 'lucide-react'
+import { ArrowLeft, Crown, MapPin, Users, Calendar, Trash2, Pencil, UserPlus } from 'lucide-react'
 import { useAuth } from '../../contexts/AuthContext'
 import { useSports, getSportMeta } from '../../hooks/useSports'
 import { teamsService } from '../../services/teams'
@@ -81,6 +81,23 @@ export default function TimeDetail() {
     onError: (err: unknown) => setErroEdicao(mensagemDeErro(err)),
   })
 
+  const [convite, setConvite] = useState<string | null>(null)
+  const [erroConvite, setErroConvite] = useState<string | null>(null)
+  const campoEmail = useRef<HTMLInputElement>(null)
+
+  useEffect(() => {
+    if (convite !== null) campoEmail.current?.focus()
+  }, [convite])
+
+  const convidar = useMutation({
+    mutationFn: (email: string) => teamsService.convidar(teamId, email),
+    onSuccess: () => {
+      setConvite(null)
+      toast.success('Convite enviado. A pessoa recebe um aviso no app.')
+    },
+    onError: (err: unknown) => setErroConvite(mensagemDeErro(err)),
+  })
+
   const apagar = useMutation({
     mutationFn: () => teamsService.apagar(teamId),
     onSuccess: () => {
@@ -90,6 +107,16 @@ export default function TimeDetail() {
     },
     onError: (err: unknown) => toast.error(mensagemDeErro(err)),
   })
+
+  function enviarConvite(evento: React.FormEvent) {
+    evento.preventDefault()
+    setErroConvite(null)
+
+    const email = (convite ?? '').trim()
+    if (!email) return setErroConvite('Informe o e-mail de quem você quer chamar.')
+
+    convidar.mutate(email)
+  }
 
   function abrirEdicao() {
     if (!time.data) return
@@ -183,6 +210,9 @@ export default function TimeDetail() {
         */}
         {souCapitao && (
           <CaptainActions>
+            <CreateButton type="button" onClick={() => { setErroConvite(null); setConvite('') }}>
+              <UserPlus size={16} aria-hidden="true" /> Convidar jogador
+            </CreateButton>
             <SecondaryButton type="button" onClick={abrirEdicao}>
               <Pencil size={16} aria-hidden="true" /> Editar time
             </SecondaryButton>
@@ -269,6 +299,57 @@ export default function TimeDetail() {
           </PeladaList>
         )}
       </Section>
+
+      {convite !== null && (
+        <ModalOverlay
+          onClick={() => setConvite(null)}
+          onKeyDown={(e) => { if (e.key === 'Escape') setConvite(null) }}
+        >
+          <ModalContent
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="titulo-convidar"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h2 id="titulo-convidar">Convidar jogador</h2>
+
+            <Form onSubmit={enviarConvite} noValidate>
+              <label htmlFor="email-do-convidado">
+                E-mail da conta no Só+1
+                <input
+                  id="email-do-convidado"
+                  ref={campoEmail}
+                  type="email"
+                  value={convite}
+                  onChange={(e) => setConvite(e.target.value)}
+                  placeholder="jogador@exemplo.com"
+                />
+              </label>
+
+              {/*
+                A api só convida quem já tem conta — o convite vira notificação,
+                e notificação precisa de destinatário. Dizer isso aqui evita que
+                o capitão tente convidar quem ainda não se cadastrou e receba um
+                404 que não explica nada.
+              */}
+              <span className="detalhe">
+                A pessoa precisa já ter conta no Só+1. O convite vale 7 dias.
+              </span>
+
+              {erroConvite && <span className="erro" role="alert">{erroConvite}</span>}
+
+              <ButtonGroup>
+                <SecondaryButton type="button" onClick={() => setConvite(null)}>
+                  Cancelar
+                </SecondaryButton>
+                <CreateButton type="submit" disabled={convidar.isPending}>
+                  {convidar.isPending ? 'Enviando…' : 'Enviar convite'}
+                </CreateButton>
+              </ButtonGroup>
+            </Form>
+          </ModalContent>
+        </ModalOverlay>
+      )}
 
       {edicao && (
         <ModalOverlay

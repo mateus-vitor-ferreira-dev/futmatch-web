@@ -19,6 +19,7 @@ import type {
   UserMe,
   ApiEnvelope,
   Team,
+  TeamInvite,
   TeamPelada,
   TeamPlayer,
   TeamSummary,
@@ -238,6 +239,34 @@ export function criaPeladaDeTime(over: Partial<TeamPelada> = {}): TeamPelada {
       place: { id: 'local-1', name: 'Arena Teste', city: 'Campinas', neighborhood: 'Centro' },
     },
     _count: { participations: 5 },
+    ...over,
+  }
+}
+
+/**
+ * Um convite em aberto. `expired` vem da api, e por isso é campo da fixture —
+ * derivá-lo de `expiresAt` aqui repetiria no teste a conta que o servidor faz.
+ */
+export function criaConviteDeTime(over: Partial<TeamInvite> = {}): TeamInvite {
+  const quemConvidou = over.invitedBy ?? criaJogadorDeTime({ id: 'capitao-1', name: 'Alex Souza' })
+  return {
+    id: 'convite-1',
+    teamId: 'time-1',
+    invitedUserId: 'user-1',
+    invitedById: quemConvidou.id,
+    status: 'PENDING',
+    expiresAt: DATA_FUTURA,
+    respondedAt: null,
+    createdAt: '2027-03-01T10:00:00.000Z',
+    expired: false,
+    team: {
+      id: 'time-1',
+      name: 'Os Boleiros',
+      sport: 'FUTSAL',
+      city: 'Campinas',
+      captain: quemConvidou,
+    },
+    invitedBy: quemConvidou,
     ...over,
   }
 }
