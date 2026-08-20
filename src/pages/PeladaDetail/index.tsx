@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
-import { useParams, useNavigate } from 'react-router-dom'
+import { useParams, useNavigate, useSearchParams, useLocation, Link } from 'react-router-dom'
 import { toast } from 'sonner'
 import { ArrowLeft, Calendar, Clock, MapPin, Users, DollarSign, Copy, CheckCircle, Crown, Flag, XCircle, ExternalLink, LogOut, Shuffle } from 'lucide-react'
 import { useAuth } from '../../contexts/AuthContext'
@@ -20,6 +20,7 @@ import {
   JoinBtn, OrganizerActions, ActionBtn, OrganizerTag,
   ParticipantsSection, SectionTitle,
   ParticipantList, ParticipantItem, Avatar, ParticipantName, ParticipantNickname,
+  ParticipantsCount,
   MapLink, LoadingBox,
   LeaveBtn, Modal, ModalOverlay, ModalBox, ModalTitle,
   ReasonInput, ReasonCounter, ModalActions, ModalCancelBtn, ModalConfirmBtn,
@@ -46,7 +47,18 @@ function buildMapsUrl(event: Pelada): string | null {
 export default function PeladaDetail() {
   const { eventId } = useParams<{ eventId: string }>()
   const navigate = useNavigate()
-  const { user, isAuthenticated } = useAuth()
+  const location = useLocation()
+  const [searchParams] = useSearchParams()
+  const { user, isAuthenticated, loading: verificandoSessao } = useAuth()
+
+  /**
+   * O token do link de convite, quando a pessoa chegou por um (api#225).
+   *
+   * É o que abre a pelada `BY_LINK` ou `PRIVATE` para quem não chegaria nela de
+   * outro jeito. Sem ele a API responde 404 — o mesmo 404 de pelada que não
+   * existe, de propósito, para quem chuta um token não descobrir nada.
+   */
+  const convite = searchParams.get('convite') ?? undefined
 
   const [event, setEvent]               = useState<Pelada | null>(null)
   const [loading, setLoading]           = useState(true)
@@ -60,15 +72,23 @@ export default function PeladaDetail() {
 
   const load = useCallback(async () => {
     try {
-      const res = await playerService.getEvent(eventId!)
+      const res = await playerService.getEvent(eventId!, convite)
       setEvent(res.data)
     } catch {
       toast.error('Partida não encontrada.')
+      // Continua indo para a busca, inclusive para o visitante: `/quero-jogar`
+      // é rota privada, e o `PrivateRoute` o encaminha para o login. Mesmo
+      // destino, um salto a mais.
+      //
+      // **`isAuthenticated` não pode entrar nas dependências daqui.** Ele vira
+      // `true` quando a verificação de sessão termina, e isso remontaria o
+      // `load` e refaria a busca da pelada — duas requisições em toda abertura
+      // de página, e a segunda chegando depois de a tela já ter renderizado.
       navigate('/quero-jogar', { replace: true })
     } finally {
       setLoading(false)
     }
-  }, [eventId, navigate])
+  }, [eventId, convite, navigate])
 
   useEffect(() => { load() }, [load])
 
@@ -123,6 +143,38 @@ export default function PeladaDetail() {
   const canLeave        = isJoined && !isOrganizer && (event.status === 'WAITING' || event.status === 'FULL')
   const canChangeStatus = isOrganizer && (event.status === 'WAITING' || event.status === 'FULL')
   const showPix         = (isJoined || isOrganizer) && event.pixKey
+
+  /**
+   * Para onde o cadastro devolve a pessoa (#302).
+   *
+   * Leva a busca junto, porque é nela que mora o `?convite=`: sem ele, quem
+   * chegou por link de pelada `PRIVATE` voltaria do cadastro para um 404.
+   *
+   * É o critério que a #229 nomeou antes de saber a causa — *"a pessoa clica no
+   * convite, é obrigada a se cadastrar, e o cadastro a joga na home"*.
+   */
+  const voltarPraCa = `${location.pathname}${location.search}`
+
+  /**
+   * A lista de participantes é só para quem tem sessão.
+   *
+   * O visitante vê a contagem, que é o que ajuda a decidir se quer entrar —
+   * nome, apelido e avatar de doze desconhecidos não ajudam, e um link de
+   * convite é encaminhável para qualquer lugar. Decisão registrada na #302, e
+   * escolhida por ser a reversível: abrir depois é fácil, fechar depois já
+   * vazou.
+   */
+  const mostraParticipantes = isAuthenticated && participations.length > 0
+
+  /**
+   * O visitante, **depois** de a sessão ter sido verificada.
+   *
+   * Sem esperar o `loading`, quem tem sessão veria por um instante a tela do
+   * visitante — o botão "Entre para participar" e a contagem no lugar da lista
+   * — para tudo trocar meio segundo depois. É o mesmo motivo de o
+   * `PrivateRoute` devolver `null` enquanto verifica.
+   */
+  const visitante = !verificandoSessao && !isAuthenticated
   const sport           = getSportMeta(event.court?.type as CourtType)
   const status          = STATUS_LABEL[event.status] ?? { label: event.status, emoji: '⚪' }
   const mapsUrl         = buildMapsUrl(event)
@@ -297,8 +349,30 @@ export default function PeladaDetail() {
               </>
             )}
 
+            {/*
+              * Sem sessão, o botão não tenta entrar — ele diz o que falta.
+              *
+              * Entrar continua exigindo login, e deixar o clique falhar contra
+              * o 401 seria esconder isso atrás de um erro. O caminho leva o
+              * endereço desta pelada junto, com o `?convite=` dentro.
+              */}
+            {visitante && event.status !== 'FINISHED' && event.status !== 'CANCELLED' && (
+              /* Link, e não botão com `onClick`: é navegação, e um link de
+                 verdade ganha o menu do botão direito, o abrir em nova aba e o
+                 papel certo no leitor de tela — de graça. */
+              <JoinBtn
+                as={Link}
+                to={`/login?next=${encodeURIComponent(voltarPraCa)}`}
+                $joined={false}
+                $full={isFull}
+                $bloqueado={false}
+              >
+                <Users size={18} /> Entre para participar
+              </JoinBtn>
+            )}
+
             {/* Botão de entrar */}
-            {event.status !== 'FINISHED' && event.status !== 'CANCELLED' && !isOrganizer && (
+            {isAuthenticated && event.status !== 'FINISHED' && event.status !== 'CANCELLED' && !isOrganizer && (
               <JoinBtn
                 $joined={isJoined}
                 $full={isFull && !isJoined}
@@ -380,8 +454,24 @@ export default function PeladaDetail() {
               </>
             )}
 
+            {/*
+              * A contagem, para quem não tem sessão — ver `mostraParticipantes`.
+              *
+              * Some quando ninguém confirmou ainda: "0 de 20" não é informação
+              * que mude a decisão de alguém, e a barra de progresso logo acima
+              * já contou a mesma história.
+              */}
+            {visitante && count > 0 && (
+              <ParticipantsSection>
+                <SectionTitle>Participantes confirmados</SectionTitle>
+                <ParticipantsCount>
+                  {count} de {maxPlayers} confirmado{count !== 1 ? 's' : ''}
+                </ParticipantsCount>
+              </ParticipantsSection>
+            )}
+
             {/* Participantes */}
-            {participations.length > 0 && (
+            {mostraParticipantes && (
               <ParticipantsSection>
                 <SectionTitle>Participantes confirmados</SectionTitle>
                 <ParticipantList>

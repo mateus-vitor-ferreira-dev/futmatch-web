@@ -1,6 +1,6 @@
 import { Suspense, useMemo } from 'react'
 import type { ReactNode } from 'react'
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
+import { BrowserRouter, Routes, Route, Navigate, Outlet } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
 import MainLayout from '../components/MainLayout'
 import DashboardLayout from '../components/DashboardLayout'
@@ -54,6 +54,29 @@ function PrivateRoute({ children }: { children: ReactNode }) {
   const { isAuthenticated, loading } = useAuth()
   if (loading) return null
   return isAuthenticated ? <>{children}</> : <Navigate to="/login" replace />
+}
+
+/**
+ * A página da pelada é a única rota que existe **dos dois lados do login**.
+ *
+ * Ela precisa abrir para quem não tem conta: é o que o convite por link promete
+ * (api#225), e é o que deixa as regras de entrada serem lidas antes do cadastro
+ * (api#332). Ver a #302.
+ *
+ * Quem tem sessão continua vendo a pelada dentro do app, com a sidebar. Quem
+ * não tem vê a página sozinha — o menu do `MainLayout` só leva a lugares que
+ * exigem login, e oferecê-lo a um visitante seria uma fila de becos sem saída.
+ */
+function PeladaShell() {
+  const { isAuthenticated, loading } = useAuth()
+  if (loading) return null
+  if (isAuthenticated) return <MainLayout />
+
+  return (
+    <Suspense fallback={<FullPageLoader />}>
+      <Outlet />
+    </Suspense>
+  )
 }
 
 function AdminRoute({ children }: { children: ReactNode }) {
@@ -116,7 +139,6 @@ export default function AppRoutes() {
           <Route path="/minhas-peladas"  element={<MinhasPeladas />} />
           <Route path="/historico"       element={<Historico />} />
           <Route path="/avaliacoes"      element={<Avaliacoes />} />
-          <Route path="/pelada/:eventId" element={<PeladaDetail />} />
         </Route>
 
         {/* Painel Admin */}
@@ -151,6 +173,12 @@ export default function AppRoutes() {
         </Route>
 
         {/* Fallback */}
+        {/* Fora do bloco privado de propósito — ver `PeladaShell`. A rota
+            precisa vir antes do catch-all, que manda tudo para o login. */}
+        <Route element={<PeladaShell />}>
+          <Route path="/pelada/:eventId" element={<PeladaDetail />} />
+        </Route>
+
         <Route path="*" element={<Navigate to="/login" replace />} />
       </Routes>
     </BrowserRouter>
