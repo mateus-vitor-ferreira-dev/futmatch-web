@@ -8,6 +8,7 @@ import { playerService } from '../../services/playerService'
 import { chaves } from '../../lib/queryClient'
 import { useSports, getSportMeta } from '../../hooks/useSports'
 import { SkeletonCard } from '../../components/Skeleton'
+import { EtiquetaDeRequisitos } from '../../components/RequisitosDaPelada'
 import { mensagemDeErro } from '../../utils/apiError'
 import type { EventFilters } from '../../services/events'
 import type { CourtType, Pelada } from '../../types/api'
@@ -368,6 +369,16 @@ export default function QueroJogar() {
                   </div>
                   <span className="badge">{getSportMeta(event.court?.type as CourtType).icon} {getSportMeta(event.court?.type as CourtType).label}</span>
                 </CardHeader>
+
+                {/*
+                  * Uma linha só dizendo que a pelada TEM regra (#230).
+                  *
+                  * O card não diz se este jogador passa: a busca não consulta o
+                  * portão por pelada, e fazer isso seria uma requisição por
+                  * resultado. O detalhe é que responde essa pergunta — aqui o
+                  * papel é a pessoa não abrir a pelada achando que é aberta.
+                  */}
+                <EtiquetaDeRequisitos requirements={event.requirements ?? []} />
 
                 <InfoRow><Calendar size={14} /> {new Date(event.date).toLocaleDateString('pt-BR')}</InfoRow>
                 <InfoRow>

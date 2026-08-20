@@ -9,6 +9,7 @@ import type {
   PeladaStatus,
   Review,
   UserStats,
+  EntryVerdict,
 } from '../types/api'
 import type { CourtFilters } from './courts'
 import type { Court } from '../types/api'
@@ -49,6 +50,24 @@ export const playerService = {
   // --- QUERO JOGAR ---
   searchEvents: async (params?: EventFilters): Promise<ApiEnvelope<PeladaSearchResult>> => {
     const { data } = await api.get('/events', { params })
+    return data
+  },
+
+  /**
+   * Pergunta se o usuário logado pode entrar — **sem tentar entrar**.
+   *
+   * Responde 200 inclusive quando a resposta é não: `allowed: false` com a
+   * lista de motivos é uma resposta bem-sucedida à pergunta feita. É esta rota
+   * que evita a armadilha de o jogador só descobrir a regra tomando erro
+   * depois do clique.
+   *
+   * Exige sessão, porque a resposta é sobre um jogador específico. Quem não
+   * está logado lê as regras pelo `requirements` da própria pelada.
+   */
+  checkEntry: async (courtId: string, eventId: string): Promise<ApiEnvelope<EntryVerdict>> => {
+    const { data } = await api.get(
+      `/courts/${courtId}/events/${eventId}/participations/entry`
+    )
     return data
   },
 
