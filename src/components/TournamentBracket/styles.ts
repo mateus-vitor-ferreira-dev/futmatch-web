@@ -111,6 +111,85 @@ export const Connector = styled.div`
   align-self: stretch;
 `
 
+/**
+ * A caixa do campeão, na coluna que vem depois da final.
+ *
+ * Não reaproveita o `MatchCard` de propósito: confronto tem dois lados e placar,
+ * campeão tem um nome só. Reusar o cartão do confronto daria uma caixa de uma
+ * linha, que na chave lê como partida pela metade — que é o que a linha "A
+ * definir" existe para evitar.
+ *
+ * A altura não é definida aqui. Ela sai do `MatchSlot` que envolve a caixa,
+ * igual à de qualquer confronto: a coluna do campeão é uma coluna da chave como
+ * as outras, só que com uma vaga em vez de duas. É o que a mantém na altura da
+ * final sem nenhum cálculo — ver o comentário do `MatchSlot`.
+ */
+export const ChampionCard = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 12px;
+  text-align: center;
+  background: ${({ theme }) => theme.colors.primarySubtle};
+  border: 1px solid ${({ theme }) => theme.colors.primary};
+  border-radius: ${({ theme }) => theme.radii.md};
+  box-shadow: ${({ theme }) => theme.shadows.sm};
+`
+
+export const ChampionTrophy = styled.span`
+  font-size: 1.5rem;
+  line-height: 1;
+`
+
+/**
+ * O nome quebra em vez de virar reticências, ao contrário do `TeamName`.
+ *
+ * No confronto o nome divide a linha com o placar e cortar é o mal menor. Aqui
+ * ele é a resposta que a pessoa foi buscar na tela, e "Juliana Pra…" não é
+ * resposta.
+ */
+export const ChampionName = styled.span`
+  font-size: ${({ theme }) => theme.fontSizes.sm};
+  font-weight: ${({ theme }) => theme.fontWeights.bold};
+  color: ${({ theme }) => theme.colors.primaryDark};
+  overflow-wrap: anywhere;
+`
+
+/**
+ * A disputa de terceiro lugar, fora da chave.
+ *
+ * Ela sai do bracket de propósito. A gramática do bracket é "o vencedor flui
+ * para a direita", e esta partida não alimenta nada nem é alimentada por
+ * vencedor nenhum — ela vive dos perdedores das semifinais. Uma coluna entre a
+ * final e o campeão a leria como um estágio do torneio que ela não é.
+ */
+export const ThirdPlaceSection = styled.div`
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid ${({ theme }) => theme.colors.borderLight};
+`
+
+export const ThirdPlaceLabel = styled.div`
+  font-size: ${({ theme }) => theme.fontSizes.xs};
+  font-weight: ${({ theme }) => theme.fontWeights.semibold};
+  color: ${({ theme }) => theme.colors.textMuted};
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-bottom: 12px;
+`
+
+/**
+ * A largura de uma coluna da chave, e não a da tela.
+ *
+ * O cartão do confronto é desenhado para caber numa coluna de `Round`; solto
+ * num bloco de largura livre ele esticaria de ponta a ponta e deixaria de
+ * parecer o que é.
+ */
+export const ThirdPlaceCard = styled.div`
+  max-width: 210px;
+`
+
 export const DivisionTitle = styled.div`
   font-size: ${({ theme }) => theme.fontSizes.sm};
   font-weight: ${({ theme }) => theme.fontWeights.semibold};
