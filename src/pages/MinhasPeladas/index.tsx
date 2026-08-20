@@ -12,11 +12,11 @@ import { Grid, Card, CardHeader, InfoRow, ProgressBarContainer, ProgressBar, Spo
 import { mensagemDeErro } from '../../utils/apiError'
 import type { Court, Participation, Pelada, PeladaStatus } from '../../types/api'
 import { SorteioDeTimes } from '../../components/SorteioDeTimes'
+import { ConfirmacaoDePresencas } from '../../components/ConfirmacaoDePresencas'
 import { SortearBtn } from '../../components/SorteioDeTimes/styles'
 import {
   Container, PageHeader, CreateButton, Tabs, Tab, PixBox,
   ModalOverlay, ModalContent, Form, ButtonGroup,
-  DrawModalOverlay, DrawModalContent,
 } from './styles'
 
 const STATUS_LABELS: Record<string, string> = {
@@ -49,10 +49,6 @@ export default function MinhasPeladas() {
 
   // Presença
   const [attendanceEvent, setAttendanceEvent]           = useState<Pelada | null>(null)
-  const [attendanceParticipants, setAttendanceParticipants] = useState<Participation[]>([])
-  const [attendanceMap, setAttendanceMap]               = useState<Record<string, boolean>>({})
-  const [loadingAttendance, setLoadingAttendance]       = useState(false)
-  const [savingAttendance, setSavingAttendance]         = useState(false)
 
   const { register, handleSubmit, reset } = useForm<FormularioPelada>()
 
@@ -114,54 +110,6 @@ export default function MinhasPeladas() {
     toast.success('Chave PIX copiada!')
   }
 
-
-  const openAttendance = async (ev: Pelada) => {
-    setAttendanceEvent(ev)
-    setLoadingAttendance(true)
-    try {
-      const res = await playerService.getEventParticipants(ev.courtId, ev.id)
-      const participants = res.data ?? []
-      setAttendanceParticipants(participants)
-      const initial: Record<string, boolean> = {}
-      participants.forEach((p: Participation) => {
-        const id = p.userId ?? p.user?.id
-        if (id) initial[id] = p.attended !== false
-      })
-      setAttendanceMap(initial)
-    } catch {
-      toast.error('Erro ao carregar participantes.')
-      setAttendanceEvent(null)
-    } finally {
-      setLoadingAttendance(false)
-    }
-  }
-
-  const closeAttendance = () => {
-    setAttendanceEvent(null)
-    setAttendanceParticipants([])
-    setAttendanceMap({})
-  }
-
-  const saveAttendance = async () => {
-    if (!attendanceEvent) return
-    setSavingAttendance(true)
-    try {
-      await Promise.all(
-        attendanceParticipants.map((p) => {
-          const uid = p.userId ?? p.user?.id
-          return playerService.confirmAttendance(
-            attendanceEvent.courtId, attendanceEvent.id, uid, attendanceMap[uid] ?? true
-          )
-        })
-      )
-      toast.success('Presenças confirmadas!')
-      closeAttendance()
-    } catch {
-      toast.error('Erro ao salvar presenças.')
-    } finally {
-      setSavingAttendance(false)
-    }
-  }
 
   const handleUpdateStatus = async (ev: Pelada, status: PeladaStatus) => {
     const label = status === 'FINISHED' ? 'finalizar' : 'cancelar'
@@ -264,7 +212,7 @@ export default function MinhasPeladas() {
                       )}
                       {ev.status === 'FINISHED' && (
                         <button
-                          onClick={(e) => { e.stopPropagation(); openAttendance(ev) }}
+                          onClick={(e) => { e.stopPropagation(); setAttendanceEvent(ev) }}
                           style={{ width: '100%', marginTop: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, padding: '8px 12px', borderRadius: 8, border: '1px solid #3b82f6', background: '#eff6ff', color: '#1d4ed8', fontWeight: 600, fontSize: 13, cursor: 'pointer' }}
                         >
                           <CheckSquare size={13} /> Confirmar Presenças
@@ -334,65 +282,12 @@ export default function MinhasPeladas() {
           <SorteioDeTimes partida={drawEvent} onClose={() => setDrawEvent(null)} />
         )}
 
-        {/* Modal Confirmar Presenças */}
+        {/* O mesmo componente usado no detalhe da partida (#280). */}
         {attendanceEvent && (
-          <DrawModalOverlay onClick={closeAttendance}>
-            <DrawModalContent onClick={(e) => e.stopPropagation()}>
-              <h2>Confirmar Presenças</h2>
-              <p style={{ color: '#6b7280', marginBottom: 20 }}>
-                {attendanceEvent.court?.place?.name} — {new Date(attendanceEvent.date).toLocaleDateString('pt-BR')}
-              </p>
-
-              {loadingAttendance ? (
-                <p style={{ textAlign: 'center', color: '#6b7280', padding: 24 }}>Carregando participantes...</p>
-              ) : attendanceParticipants.length === 0 ? (
-                <p style={{ textAlign: 'center', color: '#6b7280', padding: 24 }}>Nenhum participante encontrado.</p>
-              ) : (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 20, maxHeight: 320, overflowY: 'auto' }}>
-                  {attendanceParticipants.map((p) => {
-                    const uid = p.userId ?? p.user?.id ?? ''
-                    // `p.name` não existe em Participation — o nome vem sempre
-                    // do usuário aninhado; o fallback antigo nunca resolvia.
-                    const name = p.user?.name ?? uid
-                    const present = attendanceMap[uid] ?? true
-                    return (
-                      <div
-                        key={uid}
-                        onClick={() => setAttendanceMap((m) => ({ ...m, [uid]: !present }))}
-                        style={{
-                          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                          padding: '10px 14px', borderRadius: 8, cursor: 'pointer',
-                          border: `1px solid ${present ? '#22c55e' : '#e5e7eb'}`,
-                          background: present ? '#f0fdf4' : '#f9fafb',
-                        }}
-                      >
-                        <span style={{ fontWeight: 600, fontSize: 14, color: '#111827' }}>{name}</span>
-                        <span style={{
-                          fontSize: 12, fontWeight: 700, padding: '3px 10px', borderRadius: 999,
-                          background: present ? '#dcfce7' : '#f3f4f6',
-                          color: present ? '#15803d' : '#6b7280',
-                        }}>
-                          {present ? 'Presente' : 'Ausente'}
-                        </span>
-                      </div>
-                    )
-                  })}
-                </div>
-              )}
-
-              <ButtonGroup>
-                <button type="button" className="cancel" onClick={closeAttendance}>Cancelar</button>
-                <button
-                  type="button"
-                  className="submit"
-                  onClick={saveAttendance}
-                  disabled={savingAttendance || loadingAttendance || attendanceParticipants.length === 0}
-                >
-                  {savingAttendance ? 'Salvando...' : 'Salvar Presenças'}
-                </button>
-              </ButtonGroup>
-            </DrawModalContent>
-          </DrawModalOverlay>
+          <ConfirmacaoDePresencas
+            partida={attendanceEvent}
+            onClose={() => setAttendanceEvent(null)}
+          />
         )}
       </Container>
     </>

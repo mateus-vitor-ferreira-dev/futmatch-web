@@ -163,18 +163,3 @@ export const ButtonGroup = styled.div`
     }
   }
 `
-
-/**
- * O sorteio virou componente na #266 e levou os estilos junto — o botão, a
- * casca do modal, os cartões de time e o layout de confronto agora moram em
- * `components/SorteioDeTimes/styles.ts`.
- *
- * A casca é reexportada porque o modal de "Confirmar Presenças", logo abaixo
- * nesta tela, ainda a usa. Reexportar mantém UMA definição: copiar garantiria
- * que uma das duas ficaria para trás na próxima mudança — que é exatamente o
- * que a #266 veio consertar.
- */
-export {
-  ModalOverlay as DrawModalOverlay,
-  ModalContent as DrawModalContent,
-} from '../../components/SorteioDeTimes/styles'

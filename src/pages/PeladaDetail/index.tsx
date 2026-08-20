@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useParams, useNavigate, useSearchParams, useLocation, Link } from 'react-router-dom'
 import { toast } from 'sonner'
-import { ArrowLeft, Calendar, Clock, MapPin, Users, DollarSign, Copy, CheckCircle, Crown, Flag, XCircle, ExternalLink, LogOut, Shuffle, Share2 } from 'lucide-react'
+import { ArrowLeft, Calendar, Clock, MapPin, Users, DollarSign, Copy, CheckCircle, Crown, Flag, XCircle, ExternalLink, LogOut, Shuffle, Share2, CheckSquare } from 'lucide-react'
 import { useAuth } from '../../contexts/AuthContext'
 import { playerService, MAX_MOTIVO_SAIDA } from '../../services/playerService'
 import { getSportMeta } from '../../hooks/useSports'
@@ -10,6 +10,7 @@ import { mensagemDeErro, codigoDeErro } from '../../utils/apiError'
 import RequisitosDaPelada from '../../components/RequisitosDaPelada'
 import { SorteioDeTimes } from '../../components/SorteioDeTimes'
 import CompartilharPelada from '../../components/CompartilharPelada'
+import { ConfirmacaoDePresencas } from '../../components/ConfirmacaoDePresencas'
 import { SortearBtn } from '../../components/SorteioDeTimes/styles'
 import {
   Container, BackBtn, Card, CardHeader, SportIcon, HeaderInfo,
@@ -96,6 +97,7 @@ export default function PeladaDetail() {
   const [saindo, setSaindo]             = useState(false)
   const [sorteando, setSorteando]       = useState(false)
   const [compartilhando, setCompartilhando] = useState(false)
+  const [confirmandoPresencas, setConfirmandoPresencas] = useState(false)
   /** O motivo de o link não abrir a pelada, quando é o link que falhou (#229). */
   const [linkInvalido, setLinkInvalido]  = useState<MotivoDoLink | null>(null)
   const [veredito, setVeredito]         = useState<EntryVerdict | null>(null)
@@ -527,6 +529,12 @@ export default function PeladaDetail() {
               </>
             )}
 
+            {isOrganizer && event.status === 'FINISHED' && (
+              <SortearBtn onClick={() => setConfirmandoPresencas(true)}>
+                <CheckSquare size={14} /> Confirmar Presenças
+              </SortearBtn>
+            )}
+
             {/*
               * A contagem, para quem não tem sessão — ver `mostraParticipantes`.
               *
@@ -582,6 +590,14 @@ export default function PeladaDetail() {
 
       {compartilhando && (
         <CompartilharPelada pelada={event} onFechar={() => setCompartilhando(false)} />
+      )}
+
+      {confirmandoPresencas && (
+        <ConfirmacaoDePresencas
+          partida={event}
+          onClose={() => setConfirmandoPresencas(false)}
+          onSaved={load}
+        />
       )}
 
       {/* Confirmação de saída — sair por clique errado libera uma vaga que o
