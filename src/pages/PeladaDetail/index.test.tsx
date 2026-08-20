@@ -98,7 +98,8 @@ describe('PeladaDetail — contagem de vagas', () => {
 
     abrePelada()
 
-    await waitFor(() => expect(buscaPelada).toHaveBeenCalledWith('pelada-1'))
+    await waitFor(() => // O segundo argumento é o token do convite, ausente quando não há um na URL.
+    expect(buscaPelada).toHaveBeenCalledWith('pelada-1', undefined))
   })
 })
 
@@ -994,5 +995,120 @@ describe('PeladaDetail — os requisitos antes do clique', () => {
     // clique tenta e a API decide. Barrar por falta de informação inventaria
     // uma recusa que ninguém verificou.
     expect(await screen.findByRole('button', { name: /Entrar na partida/i })).toBeEnabled()
+  })
+})
+
+/**
+ * O visitante sem sessão — #302.
+ *
+ * A rota estava atrás do `PrivateRoute`, e isso deixava **duas capacidades da
+ * API mortas no front**: as regras de entrada, que a api#332 tornou legíveis
+ * sem sessão de propósito, e o convite por link, que por desenho é aberto por
+ * quem pode não ter conta.
+ *
+ * O que este bloco protege não é só "a página abre": é o recorte do que ela
+ * mostra. A decisão foi registrada na issue — o visitante vê tudo que ajuda a
+ * decidir se quer entrar, e não vê nome de participante.
+ */
+describe('PeladaDetail — visitante sem sessão', () => {
+  /** Sem `marcarSessao()`: o AuthContext resolve para `isAuthenticated` falso. */
+  function abreDeslogado(route = '/pelada/pelada-1') {
+    return renderWithProviders(<PeladaDetail />, { route, path: '/pelada/:eventId' })
+  }
+
+  const COM_GENTE = () =>
+    criaPelada({
+      maxPlayers: 10,
+      participations: [
+        criaParticipante({ userId: 'user-2', user: { id: 'user-2', name: 'Ana Prado', nickname: 'aninha', avatarUrl: null } }),
+        criaParticipante({ userId: 'user-3', user: { id: 'user-3', name: 'Bia Duarte', nickname: null, avatarUrl: null } }),
+      ],
+    })
+
+  beforeEach(() => {
+    localStorage.clear()
+  })
+
+  it('abre a pelada, com o que ajuda a decidir se quer entrar', async () => {
+    buscaPelada.mockResolvedValue(envelope(COM_GENTE()))
+
+    abreDeslogado()
+
+    expect(await screen.findByText('Quadra 1')).toBeInTheDocument()
+    // O nome do local aparece no cabeçalho e no link do mapa — daí o getAllBy.
+    expect(screen.getAllByText(/Arena Sul/).length).toBeGreaterThan(0)
+    // Data, valor e vagas: o que a pessoa precisa para decidir se quer entrar.
+    expect(screen.getByText('2 / 10 confirmados')).toBeInTheDocument()
+  })
+
+  it('não mostra participante por nome, e mostra a contagem no lugar', async () => {
+    buscaPelada.mockResolvedValue(envelope(COM_GENTE()))
+
+    abreDeslogado()
+
+    expect(await screen.findByText('2 de 10 confirmados')).toBeInTheDocument()
+    // O ponto do teste. Um link de convite é encaminhável para qualquer lugar,
+    // e nome de terceiro não ajuda ninguém a decidir se quer jogar.
+    expect(screen.queryByText('Ana Prado')).not.toBeInTheDocument()
+    expect(screen.queryByText('Bia Duarte')).not.toBeInTheDocument()
+    expect(screen.queryByText(/aninha/)).not.toBeInTheDocument()
+  })
+
+  it('não mostra a chave PIX', async () => {
+    buscaPelada.mockResolvedValue(envelope(COM_GENTE()))
+
+    abreDeslogado()
+
+    await screen.findByText('Quadra 1')
+    // Já era verdade antes da #302 — o PIX está atrás de `isJoined || isOrganizer`
+    // —, e é justamente por isso que vale um teste: a rota abriu, e o que
+    // dependia de o visitante nunca chegar aqui precisa continuar de pé.
+    expect(screen.queryByText('chave-pix@exemplo.com')).not.toBeInTheDocument()
+  })
+
+  it('não consulta o portão, que exige sessão', async () => {
+    buscaPelada.mockResolvedValue(envelope(COM_GENTE()))
+
+    abreDeslogado()
+
+    await screen.findByText('Quadra 1')
+    // A resposta do portão é sobre um jogador específico. Sem sessão não há
+    // jogador, e a chamada só renderia 401.
+    expect(consultaEntrada).not.toHaveBeenCalled()
+  })
+
+  it('o botão diz que falta entrar, e leva o endereço da pelada junto', async () => {
+    buscaPelada.mockResolvedValue(envelope(COM_GENTE()))
+
+    abreDeslogado('/pelada/pelada-1?convite=token-abc')
+
+    const link = await screen.findByRole('link', { name: /Entre para participar/i })
+
+    // O `?convite=` viaja junto dentro do `next`: sem ele, quem chegou por link
+    // de pelada privada voltaria do cadastro para um 404.
+    expect(link).toHaveAttribute(
+      'href',
+      `/login?next=${encodeURIComponent('/pelada/pelada-1?convite=token-abc')}`,
+    )
+  })
+
+  it('repassa o token do convite na leitura da pelada', async () => {
+    buscaPelada.mockResolvedValue(envelope(COM_GENTE()))
+
+    abreDeslogado('/pelada/pelada-1?convite=token-abc')
+
+    await waitFor(() => {
+      expect(buscaPelada).toHaveBeenCalledWith('pelada-1', 'token-abc')
+    })
+  })
+
+  it('sem convite na URL, não inventa um', async () => {
+    buscaPelada.mockResolvedValue(envelope(COM_GENTE()))
+
+    abreDeslogado()
+
+    await waitFor(() => {
+      expect(buscaPelada).toHaveBeenCalledWith('pelada-1', undefined)
+    })
   })
 })

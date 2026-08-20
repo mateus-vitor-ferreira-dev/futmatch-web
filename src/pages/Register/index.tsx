@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useForm, Controller } from 'react-hook-form'
 import type { Resolver } from 'react-hook-form'
 import { yupResolver } from '@hookform/resolvers/yup'
@@ -71,6 +71,7 @@ type FormularioAuth = yup.InferType<typeof registerSchema>
  */
 export default function Register({ initialMode = 'register' }) {
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
   const { register: registerUser, login, googleLogin } = useAuth()
 
   const mode = initialMode
@@ -92,13 +93,39 @@ export default function Register({ initialMode = 'register' }) {
     resolver: yupResolver(isRegister ? registerSchema : loginSchema) as unknown as Resolver<FormularioAuth>,
   })
 
+  /**
+   * Para onde voltar depois de entrar, quando alguém mandou a pessoa para cá.
+   *
+   * Quem chega por um link de convite passa por aqui no meio do caminho, e sem
+   * isto o cadastro a jogaria na home — o vazamento que a #229 descreveu e que
+   * a #302 consertou na raiz.
+   *
+   * **Só caminho interno.** Precisa começar com uma barra e não pode começar
+   * com duas: `//outrosite.com` é URL absoluta para o navegador, e aceitá-la
+   * transformaria a tela de login num redirecionador aberto para phishing.
+   */
+  function destinoDeVolta(): string | null {
+    const next = searchParams.get('next')
+    if (!next || !next.startsWith('/') || next.startsWith('//')) return null
+    return next
+  }
+
   /** Troca de modo (login ↔ register) limpando o formulário */
   function switchMode(next: 'login' | 'register') {
     reset()
-    navigate(next === 'login' ? '/login' : '/register')
+    // A query vai junto: trocar de "entrar" para "criar conta" no meio do
+    // caminho não pode perder para onde a pessoa estava indo.
+    const destino = destinoDeVolta()
+    const query = destino ? `?next=${encodeURIComponent(destino)}` : ''
+    navigate(`${next === 'login' ? '/login' : '/register'}${query}`)
   }
 
   function redirectByRole(role: UserRole) {
+    // O destino pedido ganha do padrão do papel — quem foi mandado para cá
+    // estava indo a algum lugar, e a home do papel não é esse lugar.
+    const destino = destinoDeVolta()
+    if (destino) return navigate(destino, { replace: true })
+
     if (role === 'ADMIN')  return navigate('/admin')
     if (role === 'OWNER')  return navigate('/owner')
     return navigate('/home')
