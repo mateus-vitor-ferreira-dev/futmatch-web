@@ -10,6 +10,7 @@ import type { CriarTimeInput } from '../../services/teams'
 import { chaves } from '../../lib/queryClient'
 import { mensagemDeErro } from '../../utils/apiError'
 import { SkeletonCard } from '../../components/Skeleton'
+import ConvitesDeTime from '../../components/ConvitesDeTime'
 import type { CourtType, TeamSummary } from '../../types/api'
 import {
   Container, PageHeader, CreateButton, Grid, TeamCard, CaptainTag,
@@ -90,6 +91,13 @@ export default function Times() {
           Criar time
         </CreateButton>
       </PageHeader>
+
+      {/*
+        Antes da lista: é para cá que a pessoa vem depois da notificação, e um
+        convite abaixo dos times já existentes seria um convite que ela rola
+        para baixo para achar. Some sozinho quando não há convite.
+      */}
+      <ConvitesDeTime />
 
       {isPending && <Grid as="div"><SkeletonCard count={3} /></Grid>}
 

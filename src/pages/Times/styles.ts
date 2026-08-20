@@ -197,6 +197,13 @@ export const Form = styled.form`
     outline-offset: 0;
   }
 
+  .detalhe {
+    color: ${({ theme }) => theme.colors.textSecondary};
+    font-size: ${({ theme }) => theme.fontSizes.xs};
+    font-weight: 400;
+    margin-top: -8px;
+  }
+
   .erro {
     color: ${({ theme }) => theme.colors.error};
     font-size: ${({ theme }) => theme.fontSizes.xs};

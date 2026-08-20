@@ -12,7 +12,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { renderWithProviders, screen, waitFor, within } from '../../test/render'
 import {
-  criaJogadorDeTime, criaPeladaDeTime, criaTime, criaUsuario, envelope, erroDaApi,
+  criaConviteDeTime, criaJogadorDeTime, criaPeladaDeTime, criaTime, criaUsuario, envelope, erroDaApi,
 } from '../../test/factories'
 import { marcarSessao } from '../../services/api'
 import TimeDetail from './index'
@@ -38,6 +38,7 @@ const buscarTime = vi.mocked(teamsService.porId)
 const buscarPeladas = vi.mocked(teamsService.peladas)
 const apagar = vi.mocked(teamsService.apagar)
 const editar = vi.mocked(teamsService.editar)
+const convidar = vi.mocked(teamsService.convidar)
 
 // Nomes de gente, e não "Capitão"/"Membro": com o papel como nome, o selo
 // "Capitão" do cartão colide com o nome do jogador e o teste passa a medir
@@ -141,6 +142,68 @@ describe('Página do time', () => {
       await waitFor(() => expect(apagar).toHaveBeenCalledWith('time-1'))
       await waitFor(() => expect(navegar).toHaveBeenCalledWith('/times'))
       confirmar.mockRestore()
+    })
+
+    it('o capitão vê o botão de convidar', async () => {
+      montar()
+
+      expect(await screen.findByRole('button', { name: /Convidar jogador/ })).toBeInTheDocument()
+    })
+
+    it('membro comum não vê o botão de convidar', async () => {
+      entrarComo(MEMBRO.id)
+
+      montar()
+
+      await screen.findByRole('heading', { name: 'Os Boleiros' })
+      expect(screen.queryByRole('button', { name: /Convidar jogador/ })).not.toBeInTheDocument()
+    })
+
+    it('convida pelo e-mail', async () => {
+      convidar.mockResolvedValue(criaConviteDeTime())
+
+      const { user } = montar()
+      await user.click(await screen.findByRole('button', { name: /Convidar jogador/ }))
+
+      const dialogo = within(screen.getByRole('dialog'))
+      await user.type(dialogo.getByLabelText(/E-mail/), 'novo@jogador.com')
+      await user.click(dialogo.getByRole('button', { name: 'Enviar convite' }))
+
+      await waitFor(() => expect(convidar).toHaveBeenCalledWith('time-1', 'novo@jogador.com'))
+    })
+
+    it('não chama a api com o e-mail vazio', async () => {
+      const { user } = montar()
+      await user.click(await screen.findByRole('button', { name: /Convidar jogador/ }))
+
+      const dialogo = within(screen.getByRole('dialog'))
+      await user.click(dialogo.getByRole('button', { name: 'Enviar convite' }))
+
+      expect(await screen.findByRole('alert')).toHaveTextContent('Informe o e-mail')
+      expect(convidar).not.toHaveBeenCalled()
+    })
+
+    // A api convida quem já tem conta; sem este aviso o capitão tenta chamar
+    // quem não se cadastrou e recebe um 404 que não explica nada.
+    it('avisa que a pessoa precisa ter conta', async () => {
+      const { user } = montar()
+      await user.click(await screen.findByRole('button', { name: /Convidar jogador/ }))
+
+      expect(screen.getByText(/precisa já ter conta no Só\+1/)).toBeInTheDocument()
+    })
+
+    it('mostra o erro da api sem fechar o formulário', async () => {
+      convidar.mockRejectedValue(erroDaApi('Este jogador já está no time', 409))
+
+      const { user } = montar()
+      await user.click(await screen.findByRole('button', { name: /Convidar jogador/ }))
+
+      const dialogo = within(screen.getByRole('dialog'))
+      await user.type(dialogo.getByLabelText(/E-mail/), 'ja@esta.com')
+      await user.click(dialogo.getByRole('button', { name: 'Enviar convite' }))
+
+      expect(await screen.findByRole('alert')).toHaveTextContent('Este jogador já está no time')
+      expect(screen.getByRole('dialog')).toBeInTheDocument()
     })
 
     it('edita o time pelo formulário', async () => {

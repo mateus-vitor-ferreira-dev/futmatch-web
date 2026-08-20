@@ -1,5 +1,5 @@
 import api from './api'
-import type { ApiEnvelope, CourtType, Team, TeamPelada, TeamSummary } from '../types/api'
+import type { ApiEnvelope, CourtType, Team, TeamInvite, TeamPelada, TeamSummary } from '../types/api'
 
 /**
  * Times fixos (api#202).
@@ -40,4 +40,23 @@ export const teamsService = {
   /** Só para quem é do time — fora dele a api responde 403. */
   peladas: (teamId: string) =>
     api.get<ApiEnvelope<TeamPelada[]>>(`/teams/${teamId}/peladas`).then(desembrulhar),
+
+  /**
+   * Convida por e-mail. A api também aceita `userId`, e as duas formas são
+   * exclusivas — mandar as duas juntas é 422. Aqui é sempre e-mail porque é o
+   * que o capitão tem na mão; o id serviria a um convite disparado do perfil
+   * de um jogador, que não existe ainda.
+   */
+  convidar: (teamId: string, email: string) =>
+    api.post<ApiEnvelope<TeamInvite>>(`/teams/${teamId}/invites`, { email }).then(desembrulhar),
+
+  /** Os convites que o jogador ainda não respondeu, vencidos inclusive. */
+  meusConvites: () =>
+    api.get<ApiEnvelope<TeamInvite[]>>('/users/me/team-invites').then(desembrulhar),
+
+  aceitarConvite: (inviteId: string) =>
+    api.patch<ApiEnvelope<TeamInvite>>(`/team-invites/${inviteId}/accept`).then(desembrulhar),
+
+  recusarConvite: (inviteId: string) =>
+    api.patch<ApiEnvelope<TeamInvite>>(`/team-invites/${inviteId}/decline`).then(desembrulhar),
 }
