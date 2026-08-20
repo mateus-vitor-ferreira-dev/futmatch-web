@@ -10,7 +10,7 @@ import PlanGate from '../components/PlanGate'
 import {
   Register, ForgotPassword, ResetPassword, OwnerAccess,
   Home, Profile, QueroJogar, CriarPelada, Tournaments, MinhasPeladas,
-  Historico, Avaliacoes, PeladaDetail, TournamentDetail,
+  Historico, Avaliacoes, PeladaDetail, TournamentDetail, Times, TimeDetail,
   AdminDashboard, AdminUsers, AdminRequests, AdminPlaces,
   OwnerDashboard, OwnerPlans, OwnerPlaces, OwnerInventory, OwnerEquipment, OwnerRequests, OwnerCourts,
 } from './paginas'
@@ -139,6 +139,8 @@ export default function AppRoutes() {
           <Route path="/minhas-peladas"  element={<MinhasPeladas />} />
           <Route path="/historico"       element={<Historico />} />
           <Route path="/avaliacoes"      element={<Avaliacoes />} />
+          <Route path="/times"           element={<Times />} />
+          <Route path="/times/:teamId"   element={<TimeDetail />} />
         </Route>
 
         {/* Painel Admin */}
