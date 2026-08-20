@@ -13,6 +13,7 @@ import {
   BracketGrid, Round, RoundLabel, MatchesColumn, MatchSlot, MatchCard,
   TeamRow, TeamName, Score, StatusTag, MatchMeta, Connector, BotaoDeResultado,
   ChampionCard, ChampionTrophy, ChampionName,
+  ThirdPlaceSection, ThirdPlaceLabel, ThirdPlaceCard,
 } from './styles'
 
 const LEVEL_LABELS: Record<CompetitionLevel, string> = {
@@ -35,6 +36,42 @@ const FASES_FINAIS = ['Final', 'Semifinal', 'Quartas de final', 'Oitavas de fina
 
 function rotuloDaFase(round: number, totalDeRodadas: number): string {
   return FASES_FINAIS[totalDeRodadas - round] ?? `${round}ª rodada`
+}
+
+/**
+ * Separa a disputa de terceiro lugar (api#304) do resto da chave.
+ *
+ * **Esta função é a correção inteira desta issue.** A partida de 3º tem
+ * `nextMatchId` nulo como a final, e enquanto ela ficava na lista da chave duas
+ * coisas quebravam: a última rodada passava a ter duas vagas, e o
+ * `faixasDaRodada` criava uma faixa vazia na rodada anterior; e o
+ * `campeaoDaDivisao` encontrava duas partidas sem destino, disparando contra
+ * dado legítimo a rede que existia para dado quebrado.
+ *
+ * Tirando-a antes, `agruparPorRodada`, `faixasDaRodada` e `campeaoDaDivisao`
+ * continuam exatamente como estavam — a última rodada volta a ter só a final.
+ *
+ * Quem diz qual partida é a disputa é o `loserNextMatchId` das semifinais, e
+ * não a posição dela na rodada: é o dado que a api grava para isso, e ele
+ * continua certo no dia em que a forma da chave mudar.
+ */
+function separaDisputaDeTerceiro(partidas: TournamentMatch[]): {
+  daChave: TournamentMatch[]
+  disputa: TournamentMatch | null
+} {
+  const apontadas = new Set(
+    partidas.map((p) => p.loserNextMatchId).filter((id): id is string => id !== null),
+  )
+
+  if (apontadas.size === 0) return { daChave: partidas, disputa: null }
+
+  return {
+    daChave: partidas.filter((p) => !apontadas.has(p.id)),
+    // Uma só, sempre: as duas semifinais apontam para a mesma partida. Se um dia
+    // vierem duas, a primeira é desenhada e a outra fica de fora do bloco — e
+    // some do lugar onde apareceria torta.
+    disputa: partidas.find((p) => apontadas.has(p.id)) ?? null,
+  }
 }
 
 /**
@@ -120,6 +157,10 @@ function faixasDaRodada(rodadas: TournamentMatch[][], indice: number): Tournamen
  * uma delas seria anunciar como campeão o vencedor de uma partida qualquer, que
  * é pior que não anunciar nada. A chave fica sem a caixa, e o resto continua na
  * tela.
+ *
+ * A disputa de terceiro (api#304) **não** cai nessa rede: ela sai da lista antes
+ * de chegar aqui, no `separaDisputaDeTerceiro`. O que sobra sem destino continua
+ * sendo só a final.
  */
 function campeaoDaDivisao(partidas: TournamentMatch[]): TournamentMatchSide | null {
   const semDestino = partidas.filter((partida) => partida.nextMatchId === null)
@@ -328,9 +369,21 @@ export default function TournamentBracket({
   return (
     <Wrapper>
       {divisions.map((division) => {
-        const partidasDaDivisao = chavePorDivisao[division.id] ?? []
-        const rodadas = agruparPorRodada(partidasDaDivisao)
-        const campeao = campeaoDaDivisao(partidasDaDivisao)
+        const { daChave, disputa } = separaDisputaDeTerceiro(chavePorDivisao[division.id] ?? [])
+        const rodadas = agruparPorRodada(daChave)
+        const campeao = campeaoDaDivisao(daChave)
+
+        // Um só para os dois lugares que lançam placar: os cartões da chave e o
+        // da disputa de terceiro. Guarda a partida ATUALIZADA na lista original
+        // da divisão — a que ainda tem a disputa dentro —, porque é dela que a
+        // separação sai de novo no render seguinte.
+        const aoLancar = (atualizada: TournamentMatch) =>
+          setChavePorDivisao((atual) => ({
+            ...atual,
+            [division.id]: (atual[division.id] ?? []).map((p) =>
+              p.id === atualizada.id ? { ...p, ...atualizada } : p,
+            ),
+          }))
 
         return (
           <div key={division.id} style={{ marginBottom: '32px' }}>
@@ -366,14 +419,7 @@ export default function TournamentBracket({
                               partida={partida}
                               tournamentId={tournamentId}
                               podeLancar={podeLancar}
-                              onLancado={(atualizada) =>
-                                setChavePorDivisao((atual) => ({
-                                  ...atual,
-                                  [division.id]: (atual[division.id] ?? []).map((p) =>
-                                    p.id === atualizada.id ? { ...p, ...atualizada } : p,
-                                  ),
-                                }))
-                              }
+                              onLancado={aoLancar}
                             />
                           ))}
                         </MatchSlot>
@@ -409,6 +455,32 @@ export default function TournamentBracket({
                   </Round>
                 )}
               </BracketGrid>
+            )}
+
+            {/*
+              * A disputa de terceiro fica FORA do bracket, num bloco próprio.
+              *
+              * No bracket o vencedor flui para a direita; esta partida não
+              * alimenta nada e não é alimentada por vencedor nenhum — ela vive
+              * dos perdedores das semifinais. Uma coluna entre a final e o
+              * campeão a leria como um estágio do torneio que ela não é.
+              *
+              * O cartão é o mesmo `CartaoDoConfronto` do resto: quem organiza
+              * precisa lançar o placar dela como lança o de qualquer outra, e a
+              * partida ainda segura o campeonato aberto até ser jogada.
+              */}
+            {disputa && (
+              <ThirdPlaceSection data-testid="disputa-de-terceiro">
+                <ThirdPlaceLabel>Disputa de 3º lugar</ThirdPlaceLabel>
+                <ThirdPlaceCard>
+                  <CartaoDoConfronto
+                    partida={disputa}
+                    tournamentId={tournamentId}
+                    podeLancar={podeLancar}
+                    onLancado={aoLancar}
+                  />
+                </ThirdPlaceCard>
+              </ThirdPlaceSection>
             )}
           </div>
         )

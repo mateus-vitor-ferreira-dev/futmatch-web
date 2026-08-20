@@ -394,6 +394,15 @@ export interface TournamentDivision {
     maxPlayersPerTeam: number;
     maxParticipants: number | null;
     /**
+     * Se a chave desta divisão tem disputa de terceiro lugar (api#304).
+     *
+     * A tela não decide nada por ele: quem diz que a partida existe é o
+     * `loserNextMatchId` das semifinais, e a api ignora o pedido quando as duas
+     * semis não são partida de verdade. Ligado aqui e ausente na chave são
+     * estados possíveis ao mesmo tempo, e é a chave que manda.
+     */
+    thirdPlaceMatch: boolean;
+    /**
      * Quantas inscrições **aprovadas** a divisão já tem.
      *
      * Só as aprovadas: pendente é candidato e não ocupa vaga, recusado não está
@@ -476,6 +485,15 @@ export interface TournamentMatch {
     participantBId: string | null;
     /** Para onde o vencedor avança. `null` na final. */
     nextMatchId: string | null;
+    /**
+     * Para onde o **perdedor** vai: a disputa de terceiro lugar (api#304).
+     * Preenchido só nas semifinais, e só quando a divisão pediu a partida.
+     *
+     * É por ele que a tela identifica a disputa — a partida apontada por algum
+     * `loserNextMatchId` é ela. Ler pela posição na rodada seria mais curto e
+     * dependeria de uma convenção que o dado não expressa.
+     */
+    loserNextMatchId: string | null;
     courtId: string | null;
     scheduledAt: IsoDate | null;
     status: TournamentMatchStatus;

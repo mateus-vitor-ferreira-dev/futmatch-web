@@ -156,6 +156,40 @@ export const ChampionName = styled.span`
   overflow-wrap: anywhere;
 `
 
+/**
+ * A disputa de terceiro lugar, fora da chave.
+ *
+ * Ela sai do bracket de propósito. A gramática do bracket é "o vencedor flui
+ * para a direita", e esta partida não alimenta nada nem é alimentada por
+ * vencedor nenhum — ela vive dos perdedores das semifinais. Uma coluna entre a
+ * final e o campeão a leria como um estágio do torneio que ela não é.
+ */
+export const ThirdPlaceSection = styled.div`
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid ${({ theme }) => theme.colors.borderLight};
+`
+
+export const ThirdPlaceLabel = styled.div`
+  font-size: ${({ theme }) => theme.fontSizes.xs};
+  font-weight: ${({ theme }) => theme.fontWeights.semibold};
+  color: ${({ theme }) => theme.colors.textMuted};
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-bottom: 12px;
+`
+
+/**
+ * A largura de uma coluna da chave, e não a da tela.
+ *
+ * O cartão do confronto é desenhado para caber numa coluna de `Round`; solto
+ * num bloco de largura livre ele esticaria de ponta a ponta e deixaria de
+ * parecer o que é.
+ */
+export const ThirdPlaceCard = styled.div`
+  max-width: 210px;
+`
+
 export const DivisionTitle = styled.div`
   font-size: ${({ theme }) => theme.fontSizes.sm};
   font-weight: ${({ theme }) => theme.fontWeights.semibold};

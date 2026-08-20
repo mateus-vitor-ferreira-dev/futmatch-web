@@ -35,6 +35,7 @@ function partida(over: Partial<TournamentMatch> = {}): TournamentMatch {
     id: 'm1', divisionId: 'div-1', round: 1, orderInRound: 1,
     participantAId: 'insc-1', participantBId: 'insc-2',
     nextMatchId: 'm-final', courtId: null, scheduledAt: null,
+    loserNextMatchId: null,
     status: 'SCHEDULED', scoreA: null, scoreB: null, winnerId: null, refereeId: 'u-arb',
     participantA: juliana, participantB: marcelo, winner: null, court: null, referee: null,
     createdAt: '2026-08-01T10:00:00.000Z', updatedAt: '2026-08-01T10:00:00.000Z',

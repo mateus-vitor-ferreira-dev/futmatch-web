@@ -38,6 +38,7 @@ function divisao(over: Partial<TournamentDivision> = {}): TournamentDivision {
     maxPlayersPerTeam: 2,
     // 8 vagas era exatamente o que fazia a simulação montar quartas de final.
     maxParticipants: 8,
+    thirdPlaceMatch: false,
     createdAt: '2026-08-01T10:00:00.000Z',
     updatedAt: '2026-08-01T10:00:00.000Z',
     ...over,
@@ -58,6 +59,7 @@ function partida(over: Partial<TournamentMatch> = {}): TournamentMatch {
     participantAId: null,
     participantBId: null,
     nextMatchId: null,
+    loserNextMatchId: null,
     courtId: null,
     scheduledAt: null,
     status: 'PENDING',
@@ -655,5 +657,166 @@ describe('TournamentBracket — o campeão da divisão', () => {
       rodadas.map((r) => r.querySelectorAll('[data-testid="faixa-da-chave"]').length),
     ).toEqual([1, 1])
     expect(screen.queryByText(/Quartas/)).not.toBeInTheDocument()
+  })
+})
+
+/**
+ * A disputa de terceiro lugar — web#304, saindo da api#304.
+ *
+ * A partida de 3º tem `nextMatchId` nulo **como a final**, e é aí que ela
+ * quebrava duas coisas de uma vez: a caixa de campeão sumia (a rede da #292
+ * contra dado quebrado disparava contra dado legítimo) e a chave desalinhava.
+ *
+ * A correção é separá-la antes de montar o bracket. Por isso o teste mais
+ * importante deste bloco não é o da caixa nova: são os dois que provam que a
+ * chave e o campeão voltaram a se comportar como antes dela existir.
+ */
+describe('TournamentBracket — a disputa de terceiro lugar', () => {
+  const comChave = (partidas: TournamentMatch[]) => {
+    buscaDivisoes.mockResolvedValue({ success: true, data: [divisao()] })
+    buscaPartidas.mockResolvedValue({ success: true, data: partidas })
+  }
+
+  const rita  = lado('insc-5', 'Rita Almeida')
+  const tiago = lado('insc-6', 'Tiago Nunes')
+
+  /**
+   * A chave de 4 com disputa: as duas semis apontam o perdedor para `terceiro`,
+   * que vive na rodada da final — exatamente como a api#304 gera.
+   */
+  const chaveComDisputa = (over: Partial<TournamentMatch> = {}): TournamentMatch[] => [
+    { ...CHAVE_DE_QUATRO[0], loserNextMatchId: 'terceiro-1' },
+    { ...CHAVE_DE_QUATRO[1], loserNextMatchId: 'terceiro-1' },
+    CHAVE_DE_QUATRO[2],
+    partida({
+      id: 'terceiro-1', round: 2, orderInRound: 2, nextMatchId: null,
+      participantA: aline, participantAId: 'insc-2',
+      participantB: caio,  participantBId: 'insc-4',
+      ...over,
+    }),
+  ]
+
+  it('desenha a disputa fora da chave, com título próprio', async () => {
+    comChave(chaveComDisputa())
+
+    renderWithProviders(<TournamentBracket tournamentId="torneio-1" />)
+
+    const bloco = await screen.findByTestId('disputa-de-terceiro')
+    expect(within(bloco).getByText('Disputa de 3º lugar')).toBeInTheDocument()
+    expect(within(bloco).getByText('Aline Duarte')).toBeInTheDocument()
+    expect(within(bloco).getByText('Caio Peçanha')).toBeInTheDocument()
+  })
+
+  it('o campeão volta a aparecer — era ele que sumia', async () => {
+    comChave(chaveComDisputa())
+
+    renderWithProviders(<TournamentBracket tournamentId="torneio-1" />)
+
+    // Antes desta issue eram DUAS partidas sem destino, e a rede da #292 se
+    // recusava a coroar. Com a disputa fora da lista, sobra só a final.
+    const caixa = await screen.findByTestId('coluna-do-campeao')
+    expect(within(caixa).getByText('Juliana Prado')).toBeInTheDocument()
+  })
+
+  it('a chave não ganha faixa vazia por causa dela', async () => {
+    comChave(chaveComDisputa())
+
+    renderWithProviders(<TournamentBracket tournamentId="torneio-1" />)
+
+    await screen.findByTestId('disputa-de-terceiro')
+
+    // Duas rodadas com uma faixa cada, igual à chave de 4 sem disputa. Com a
+    // partida de 3º dentro da última rodada, a primeira ganhava uma faixa vazia
+    // que não correspondia a confronto nenhum, e a chave escorregava.
+    const rodadas = screen.getAllByTestId('rodada-da-chave')
+    expect(rodadas).toHaveLength(2)
+    expect(
+      rodadas.map((r) => r.querySelectorAll('[data-testid="faixa-da-chave"]').length),
+    ).toEqual([1, 1])
+  })
+
+  it('a disputa não vira uma fase do torneio', async () => {
+    comChave(chaveComDisputa())
+
+    renderWithProviders(<TournamentBracket tournamentId="torneio-1" />)
+
+    await screen.findByTestId('disputa-de-terceiro')
+    // A chave continua sendo semifinal e final. Contá-la como rodada faria a
+    // conta de trás para frente rebatizar a final de "Semifinal".
+    expect(screen.getByText('Semifinal')).toBeInTheDocument()
+    expect(screen.getByText('Final')).toBeInTheDocument()
+    expect(screen.queryByText(/Quartas/)).not.toBeInTheDocument()
+  })
+
+  it('a disputa não aparece dentro do bracket', async () => {
+    comChave(chaveComDisputa())
+
+    renderWithProviders(<TournamentBracket tournamentId="torneio-1" />)
+
+    await screen.findByTestId('disputa-de-terceiro')
+
+    // Três cartões dentro da chave — as duas semifinais e a final —, e não
+    // quatro. Contar cartão é o que discrimina: os nomes da disputa também
+    // aparecem nas semifinais que os dois perderam, então procurar por nome
+    // passaria com a partida no lugar errado.
+    const cartoes = screen
+      .getAllByTestId('faixa-da-chave')
+      .flatMap((faixa) => [...faixa.children])
+
+    expect(cartoes).toHaveLength(3)
+    expect(cartoes.some((c) => c.textContent?.includes('Disputa'))) .toBe(false)
+  })
+
+  it('divisão sem disputa continua exatamente como estava', async () => {
+    comChave(CHAVE_DE_QUATRO)
+
+    renderWithProviders(<TournamentBracket tournamentId="torneio-1" />)
+
+    await screen.findByTestId('coluna-do-campeao')
+    expect(screen.queryByTestId('disputa-de-terceiro')).not.toBeInTheDocument()
+  })
+
+  it('a disputa ainda aberta aparece, e não coroa ninguém por engano', async () => {
+    comChave(chaveComDisputa({ status: 'SCHEDULED', winner: null, winnerId: null }))
+
+    renderWithProviders(<TournamentBracket tournamentId="torneio-1" />)
+
+    // A final já fechou, então o campeão aparece mesmo com a disputa pendente —
+    // são coisas diferentes, e a api encerra o campeonato só quando as duas
+    // acabam.
+    const caixa = await screen.findByTestId('coluna-do-campeao')
+    expect(within(caixa).getByText('Juliana Prado')).toBeInTheDocument()
+    expect(screen.getByTestId('disputa-de-terceiro')).toBeInTheDocument()
+  })
+
+  it('a rede contra dado quebrado continua de pé', async () => {
+    // Três sem destino: a disputa sai da lista, e ainda sobram duas. Aí ninguém
+    // é coroado — que é a regra da #292, e ela não pode ter sido afrouxada.
+    comChave([
+      { ...CHAVE_DE_QUATRO[0], nextMatchId: null, loserNextMatchId: 'terceiro-1' },
+      { ...CHAVE_DE_QUATRO[1], loserNextMatchId: 'terceiro-1' },
+      CHAVE_DE_QUATRO[2],
+      partida({
+        id: 'terceiro-1', round: 2, orderInRound: 2, nextMatchId: null,
+        participantA: rita, participantAId: 'insc-5',
+        participantB: tiago, participantBId: 'insc-6',
+      }),
+    ])
+
+    renderWithProviders(<TournamentBracket tournamentId="torneio-1" />)
+
+    await screen.findByTestId('disputa-de-terceiro')
+    expect(screen.queryByTestId('coluna-do-campeao')).not.toBeInTheDocument()
+  })
+
+  it('quem organiza lança o placar da disputa como lança o de qualquer partida', async () => {
+    comChave(chaveComDisputa({ status: 'SCHEDULED', winner: null, winnerId: null }))
+
+    renderWithProviders(<TournamentBracket tournamentId="torneio-1" podeLancar />)
+
+    // A disputa segura o campeonato aberto até ser jogada: sem o botão aqui,
+    // fechá-la exigiria sair do app.
+    const bloco = await screen.findByTestId('disputa-de-terceiro')
+    expect(within(bloco).getByRole('button', { name: 'Lançar placar' })).toBeInTheDocument()
   })
 })

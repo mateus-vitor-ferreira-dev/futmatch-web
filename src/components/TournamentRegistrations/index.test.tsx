@@ -46,7 +46,7 @@ function divisao(over: Partial<TournamentDivision> = {}): TournamentDivision {
   return {
     id: 'div-1', tournamentId: 't1', name: 'Masculino A', description: null,
     genderRestriction: null, ageRestriction: null, level: 'AMATEUR',
-    minPlayersPerTeam: 1, maxPlayersPerTeam: 2, maxParticipants: 8,
+    minPlayersPerTeam: 1, maxPlayersPerTeam: 2, maxParticipants: 8, thirdPlaceMatch: false,
     createdAt: '2026-08-01T10:00:00.000Z', updatedAt: '2026-08-01T10:00:00.000Z',
     ...over,
   }

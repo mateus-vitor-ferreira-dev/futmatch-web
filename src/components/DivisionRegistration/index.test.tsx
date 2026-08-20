@@ -73,6 +73,7 @@ function divisao(over: Partial<TournamentDivision> = {}): TournamentDivision {
     minPlayersPerTeam: 1,
     maxPlayersPerTeam: 1,
     maxParticipants: 8,
+    thirdPlaceMatch: false,
     _count: { approvedRegistrations: 3 },
     createdAt: '2026-08-01T10:00:00.000Z',
     updatedAt: '2026-08-01T10:00:00.000Z',

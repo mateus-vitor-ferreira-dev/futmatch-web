@@ -31,6 +31,7 @@ function partida(over: Partial<RefereeingMatch> = {}): RefereeingMatch {
     id: 'm1', divisionId: 'div-1', round: 1, orderInRound: 1,
     participantAId: 'insc-1', participantBId: 'insc-2',
     nextMatchId: null, courtId: 'q1', scheduledAt: '2026-09-01T15:00:00.000Z',
+    loserNextMatchId: null,
     status: 'SCHEDULED', scoreA: null, scoreB: null, winnerId: null, refereeId: 'u-arb',
     participantA: lado('insc-1', 'Juliana Prado'),
     participantB: lado('insc-2', 'Marcelo Vidal'),
