@@ -12,7 +12,7 @@
  * trouxer a simulação de volta, por saudade do visual.
  */
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { screen, waitFor } from '@testing-library/react'
+import { screen, waitFor, within } from '@testing-library/react'
 import { renderWithProviders } from '../../test/render'
 import { lightTheme } from '../../styles/theme'
 import TournamentBracket from './index'
@@ -195,7 +195,9 @@ describe('TournamentBracket — chaveamento vindo da API', () => {
 
     renderWithProviders(<TournamentBracket tournamentId="torneio-1" />)
 
-    expect(await screen.findAllByText('Juliana Prado')).toHaveLength(2) // semifinal e final
+    // Semifinal, final e a caixa de campeão: a final da CHAVE_DE_QUATRO está
+    // encerrada, e desde a #292 quem a vence aparece também fora da chave.
+    expect(await screen.findAllByText('Juliana Prado')).toHaveLength(3)
     expect(screen.getByText('Aline Duarte')).toBeInTheDocument()
     expect(screen.getByText('Caio Peçanha')).toBeInTheDocument()
     expect(screen.queryByText(/ainda não foi gerado/)).not.toBeInTheDocument()
@@ -223,8 +225,11 @@ describe('TournamentBracket — chaveamento vindo da API', () => {
 
     expect(await screen.findByText('15')).toBeInTheDocument()
     expect(screen.getByText('9')).toBeInTheDocument()
-    expect(screen.getByText('Juliana Prado')).toHaveStyle({ color: lightTheme.colors.primaryDark })
-    expect(screen.getByText('Marcelo Vidal')).not.toHaveStyle({ color: lightTheme.colors.primaryDark })
+    // Procurado dentro da rodada, e não na tela toda: esta final está encerrada,
+    // então a caixa de campeão da #292 também está lá com o nome da Juliana.
+    const rodada = screen.getByTestId('rodada-da-chave')
+    expect(within(rodada).getByText('Juliana Prado')).toHaveStyle({ color: lightTheme.colors.primaryDark })
+    expect(within(rodada).getByText('Marcelo Vidal')).not.toHaveStyle({ color: lightTheme.colors.primaryDark })
   })
 
   it('escreve "A definir" no lado que a chave ainda não conhece', async () => {
@@ -270,7 +275,10 @@ describe('TournamentBracket — chaveamento vindo da API', () => {
     renderWithProviders(<TournamentBracket tournamentId="torneio-1" />)
 
     expect(await screen.findByText('W.O.')).toBeInTheDocument()
-    expect(screen.getByText('Juliana Prado')).toHaveStyle({ color: lightTheme.colors.primaryDark })
+    // Dentro da rodada: partida única é partida sem destino, ou seja, é a final
+    // — e W.O. encerrado também acende a caixa de campeão da #292.
+    const rodada = screen.getByTestId('rodada-da-chave')
+    expect(within(rodada).getByText('Juliana Prado')).toHaveStyle({ color: lightTheme.colors.primaryDark })
   })
 
   it('etiqueta a partida que está rolando agora', async () => {
@@ -512,5 +520,140 @@ describe('TournamentBracket — a forma da chave', () => {
 
     expect(await screen.findByText('Marcelo Vidal')).toBeInTheDocument()
     expect(screen.getByText('Caio Peçanha')).toBeInTheDocument()
+  })
+})
+
+/**
+ * A caixa de campeão — #292.
+ *
+ * Ela já existiu, alimentada por participante inventado, e saiu junto com a
+ * simulação na #256. Voltou porque o dado passou a existir: a api#270 fez o
+ * placar fechar a partida e gravar o vencedor.
+ *
+ * **O teste que importa aqui é o de quando ela NÃO aparece.** Coroar cedo é o
+ * jeito de esta caixa reencenar a #256 — um lugar reservado na tela para um
+ * campeão que ainda não existe é o começo de alguém preenchê-lo com qualquer
+ * coisa.
+ */
+describe('TournamentBracket — o campeão da divisão', () => {
+  const comChave = (partidas: TournamentMatch[]) => {
+    buscaDivisoes.mockResolvedValue({ success: true, data: [divisao()] })
+    buscaPartidas.mockResolvedValue({ success: true, data: partidas })
+  }
+
+  /** A chave de 4 com a final em outro estado, e o resto igual. */
+  const chaveComFinal = (over: Partial<TournamentMatch>): TournamentMatch[] => [
+    CHAVE_DE_QUATRO[0],
+    CHAVE_DE_QUATRO[1],
+    { ...CHAVE_DE_QUATRO[2], ...over },
+  ]
+
+  const caixaDoCampeao = () => screen.queryByTestId('coluna-do-campeao')
+
+  it('coroa quem a API gravou como vencedor da final', async () => {
+    comChave(CHAVE_DE_QUATRO)
+
+    renderWithProviders(<TournamentBracket tournamentId="torneio-1" />)
+
+    const caixa = await screen.findByTestId('coluna-do-campeao')
+    expect(within(caixa).getByText('Juliana Prado')).toBeInTheDocument()
+    expect(within(caixa).getByText('Campeão')).toBeInTheDocument()
+  })
+
+  it('coroa no W.O. também: é vitória, mesmo sem placar', async () => {
+    comChave(chaveComFinal({
+      status: 'WALKOVER', scoreA: null, scoreB: null,
+      winner: marcelo, winnerId: 'insc-3',
+    }))
+
+    renderWithProviders(<TournamentBracket tournamentId="torneio-1" />)
+
+    // Não há placar para comparar: o nome só pode ter saído do `winner`.
+    const caixa = await screen.findByTestId('coluna-do-campeao')
+    expect(within(caixa).getByText('Marcelo Vidal')).toBeInTheDocument()
+  })
+
+  it('chave de 2: a única rodada é a final, e ela coroa igual', async () => {
+    comChave([
+      partida({
+        id: 'final-1', round: 1, orderInRound: 1, nextMatchId: null,
+        participantA: juliana, participantAId: 'insc-1',
+        participantB: aline, participantBId: 'insc-2',
+        winner: aline, winnerId: 'insc-2',
+        status: 'FINISHED', scoreA: 9, scoreB: 15,
+      }),
+    ])
+
+    renderWithProviders(<TournamentBracket tournamentId="torneio-1" />)
+
+    // Ler a final pelo `nextMatchId`, e não pela contagem de rodadas, é o que
+    // faz este caso não precisar de nada especial.
+    const caixa = await screen.findByTestId('coluna-do-campeao')
+    expect(within(caixa).getByText('Aline Duarte')).toBeInTheDocument()
+  })
+
+  it.each(['PENDING', 'SCHEDULED', 'IN_PROGRESS'] as const)(
+    'final em %s não desenha caixa nenhuma — nem vazia, nem "a definir"',
+    async (status) => {
+      comChave(chaveComFinal({ status, winner: null, winnerId: null, scoreA: null, scoreB: null }))
+
+      renderWithProviders(<TournamentBracket tournamentId="torneio-1" />)
+
+      await screen.findByText('Semifinal')
+      expect(caixaDoCampeao()).not.toBeInTheDocument()
+      expect(screen.queryByText('Campeão')).not.toBeInTheDocument()
+    },
+  )
+
+  it('não coroa quando a final fechou e o vencedor não veio na resposta', async () => {
+    // `winnerId` preenchido com `winner` nulo é resposta que a API não produz.
+    // Se produzir, a caixa fica de fora: o nome sai de `winner.user.name` e de
+    // mais lugar nenhum — nunca do lado que marcou mais, que aqui é o 15 x 9.
+    comChave(chaveComFinal({ winner: null }))
+
+    renderWithProviders(<TournamentBracket tournamentId="torneio-1" />)
+
+    await screen.findByText('Semifinal')
+    expect(caixaDoCampeao()).not.toBeInTheDocument()
+  })
+
+  it('não coroa ninguém quando duas partidas não apontam para lugar nenhum', async () => {
+    // Dado quebrado: a semifinal perdeu o destino e virou uma segunda candidata
+    // a final. Coroar a vencedora dela seria anunciar a campeã de um torneio que
+    // não acabou — e a semifinal é a primeira da lista, então "pega a primeira"
+    // erraria exatamente aqui.
+    comChave([{ ...CHAVE_DE_QUATRO[0], nextMatchId: null }, CHAVE_DE_QUATRO[1], CHAVE_DE_QUATRO[2]])
+
+    renderWithProviders(<TournamentBracket tournamentId="torneio-1" />)
+
+    await screen.findByText('Aline Duarte')
+    expect(caixaDoCampeao()).not.toBeInTheDocument()
+  })
+
+  it('divisão sem chaveamento continua exatamente como estava', async () => {
+    comChave([])
+
+    renderWithProviders(<TournamentBracket tournamentId="torneio-1" />)
+
+    expect(await screen.findByText(/ainda não foi gerado/)).toBeInTheDocument()
+    expect(caixaDoCampeao()).not.toBeInTheDocument()
+  })
+
+  it('a coluna do campeão não é uma rodada, e a chave não escorrega por causa dela', async () => {
+    comChave(CHAVE_DE_QUATRO)
+
+    renderWithProviders(<TournamentBracket tournamentId="torneio-1" />)
+
+    await screen.findByTestId('coluna-do-campeao')
+
+    // Duas rodadas, uma faixa em cada — exatamente o que a chave de 4 desenhava
+    // antes da caixa existir. Ela entra fora dessa contagem, e por isso não
+    // renomeia fase nenhuma nem mexe na altura de quem já estava lá.
+    const rodadas = screen.getAllByTestId('rodada-da-chave')
+    expect(rodadas).toHaveLength(2)
+    expect(
+      rodadas.map((r) => r.querySelectorAll('[data-testid="faixa-da-chave"]').length),
+    ).toEqual([1, 1])
+    expect(screen.queryByText(/Quartas/)).not.toBeInTheDocument()
   })
 })
