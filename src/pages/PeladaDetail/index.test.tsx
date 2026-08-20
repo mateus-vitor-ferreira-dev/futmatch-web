@@ -7,7 +7,7 @@
  * entrar (a pelada não enche).
  */
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { renderWithProviders, screen, waitFor, fireEvent } from '../../test/render'
+import { renderWithProviders, screen, waitFor, fireEvent, within } from '../../test/render'
 import {
   criaJogadorSorteado,
   criaParticipante,
@@ -1110,5 +1110,88 @@ describe('PeladaDetail — visitante sem sessão', () => {
     await waitFor(() => {
       expect(buscaPelada).toHaveBeenCalledWith('pelada-1', undefined)
     })
+  })
+})
+
+/**
+ * O link de convite que não vale mais — #229.
+ *
+ * A API distingue os três motivos de propósito, porque **o que a pessoa faz em
+ * seguida muda em cada caso**: pedir um link novo, pedir mais vagas no link, ou
+ * procurar o organizador. A tela repete a distinção pelo mesmo motivo.
+ *
+ * O outro ponto do bloco é o negativo: token chutado continua caindo no 404
+ * comum, e o 404 não pode virar uma tela que confirme que a pelada existe.
+ */
+describe('PeladaDetail — link de convite inválido', () => {
+  beforeEach(() => {
+    localStorage.clear()
+  })
+
+  const abreComConvite = () =>
+    renderWithProviders(<PeladaDetail />, {
+      route: '/pelada/pelada-1?convite=token-morto',
+      path: '/pelada/:eventId',
+    })
+
+  it.each([
+    ['INVITE_REVOKED',   /foi cancelado/i,     /revogou o link/i],
+    ['INVITE_EXPIRED',   /expirou/i,           /tinha prazo/i],
+    ['INVITE_EXHAUSTED', /usado o bastante/i,  /limite de entradas/i],
+  ])('%s ganha tela própria, com o que fazer em seguida', async (code, titulo, explicacao) => {
+    buscaPelada.mockRejectedValue(erroDaApi('link inválido', 403, code))
+
+    abreComConvite()
+
+    const caixa = await screen.findByTestId('link-invalido')
+    expect(within(caixa).getByText(titulo)).toBeInTheDocument()
+    expect(within(caixa).getByText(explicacao)).toBeInTheDocument()
+  })
+
+  it('não manda a pessoa para a busca com um toast — o motivo fica na tela', async () => {
+    buscaPelada.mockRejectedValue(erroDaApi('link inválido', 403, 'INVITE_REVOKED'))
+
+    abreComConvite()
+
+    await screen.findByTestId('link-invalido')
+    // Quem chegou por um link morto precisa poder ler o motivo com calma e
+    // mostrá-lo para quem mandou o link. Toast some.
+    expect(toast.error).not.toHaveBeenCalled()
+  })
+
+  it('token chutado continua caindo no comportamento de pelada inexistente', async () => {
+    // A API responde 404 — o mesmo de sempre — para token que não existe ou que
+    // foi emitido para outra pelada. É isso que impede sondar pelada privada no
+    // chute, e a tela não pode transformar esse 404 numa confirmação.
+    buscaPelada.mockRejectedValue(erroDaApi('não encontrada', 404, 'EVENT_NOT_FOUND'))
+
+    abreComConvite()
+
+    await waitFor(() => expect(toast.error).toHaveBeenCalledWith('Partida não encontrada.'))
+    expect(screen.queryByTestId('link-invalido')).not.toBeInTheDocument()
+  })
+})
+
+describe('PeladaDetail — chamar gente', () => {
+  it('o organizador tem o botão de compartilhar', async () => {
+    buscaPelada.mockResolvedValue(envelope(criaPelada({
+      organizerId: USUARIO.id,
+      organizer: { id: USUARIO.id, name: USUARIO.name, avatarUrl: null },
+    })))
+
+    renderWithProviders(<PeladaDetail />, { route: '/pelada/pelada-1', path: '/pelada/:eventId' })
+
+    // Vem antes de "Sortear Times": é a ação de quando a pelada ainda não
+    // encheu, e é a razão de o organizador abrir esta tela faltando gente.
+    expect(await screen.findByRole('button', { name: /chamar gente/i })).toBeInTheDocument()
+  })
+
+  it('quem não organiza não tem o botão', async () => {
+    buscaPelada.mockResolvedValue(envelope(criaPelada()))
+
+    renderWithProviders(<PeladaDetail />, { route: '/pelada/pelada-1', path: '/pelada/:eventId' })
+
+    await screen.findByText('Quadra 1')
+    expect(screen.queryByRole('button', { name: /chamar gente/i })).not.toBeInTheDocument()
   })
 })

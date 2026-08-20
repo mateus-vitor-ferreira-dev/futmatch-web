@@ -1,14 +1,15 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useParams, useNavigate, useSearchParams, useLocation, Link } from 'react-router-dom'
 import { toast } from 'sonner'
-import { ArrowLeft, Calendar, Clock, MapPin, Users, DollarSign, Copy, CheckCircle, Crown, Flag, XCircle, ExternalLink, LogOut, Shuffle } from 'lucide-react'
+import { ArrowLeft, Calendar, Clock, MapPin, Users, DollarSign, Copy, CheckCircle, Crown, Flag, XCircle, ExternalLink, LogOut, Shuffle, Share2 } from 'lucide-react'
 import { useAuth } from '../../contexts/AuthContext'
 import { playerService, MAX_MOTIVO_SAIDA } from '../../services/playerService'
 import { getSportMeta } from '../../hooks/useSports'
 import type { CourtType, EntryVerdict, Pelada, PeladaStatus } from '../../types/api'
-import { mensagemDeErro } from '../../utils/apiError'
+import { mensagemDeErro, codigoDeErro } from '../../utils/apiError'
 import RequisitosDaPelada from '../../components/RequisitosDaPelada'
 import { SorteioDeTimes } from '../../components/SorteioDeTimes'
+import CompartilharPelada from '../../components/CompartilharPelada'
 import { SortearBtn } from '../../components/SorteioDeTimes/styles'
 import {
   Container, BackBtn, Card, CardHeader, SportIcon, HeaderInfo,
@@ -22,6 +23,7 @@ import {
   ParticipantList, ParticipantItem, Avatar, ParticipantName, ParticipantNickname,
   ParticipantsCount,
   MapLink, LoadingBox,
+  LinkInvalidoBox, LinkInvalidoTitulo, LinkInvalidoTexto,
   LeaveBtn, Modal, ModalOverlay, ModalBox, ModalTitle,
   ReasonInput, ReasonCounter, ModalActions, ModalCancelBtn, ModalConfirmBtn,
 } from './styles'
@@ -31,6 +33,31 @@ const STATUS_LABEL = {
   FULL:      { label: 'Lotado',     emoji: '🟡' },
   FINISHED:  { label: 'Finalizado', emoji: '🔵' },
   CANCELLED: { label: 'Cancelado',  emoji: '🔴' },
+}
+
+/**
+ * Os três jeitos de um link de convite parar de valer (#229).
+ *
+ * Cada um manda a pessoa para um lugar diferente — pedir um link novo, pedir
+ * mais vagas no link, ou procurar o organizador —, e é por isso que a API os
+ * distingue em vez de devolver um "link inválido" genérico. A tela repete a
+ * distinção pelo mesmo motivo.
+ */
+type MotivoDoLink = { titulo: string; explicacao: string }
+
+const MOTIVOS_DO_LINK: Record<string, MotivoDoLink> = {
+  INVITE_REVOKED: {
+    titulo: 'Este convite foi cancelado',
+    explicacao: 'Quem organiza a pelada revogou o link. Fale com essa pessoa para receber um novo.',
+  },
+  INVITE_EXPIRED: {
+    titulo: 'Este convite expirou',
+    explicacao: 'O link tinha prazo e ele já passou. Peça um link novo a quem organiza a pelada.',
+  },
+  INVITE_EXHAUSTED: {
+    titulo: 'Este convite já foi usado o bastante',
+    explicacao: 'O link tinha um limite de entradas e ele acabou. Quem organiza pode gerar outro.',
+  },
 }
 
 function buildMapsUrl(event: Pelada): string | null {
@@ -68,13 +95,26 @@ export default function PeladaDetail() {
   const [motivoSaida, setMotivoSaida]   = useState('')
   const [saindo, setSaindo]             = useState(false)
   const [sorteando, setSorteando]       = useState(false)
+  const [compartilhando, setCompartilhando] = useState(false)
+  /** O motivo de o link não abrir a pelada, quando é o link que falhou (#229). */
+  const [linkInvalido, setLinkInvalido]  = useState<MotivoDoLink | null>(null)
   const [veredito, setVeredito]         = useState<EntryVerdict | null>(null)
 
   const load = useCallback(async () => {
     try {
       const res = await playerService.getEvent(eventId!, convite)
       setEvent(res.data)
-    } catch {
+    } catch (err) {
+      // Link que EXISTE para esta pelada e não vale mais responde 403 com o
+      // motivo. Quem chuta um token qualquer continua tomando o 404 comum — a
+      // API é explícita nisso, e é o que impede sondar pelada privada no chute.
+      const motivo = MOTIVOS_DO_LINK[codigoDeErro(err) ?? '']
+      if (motivo) {
+        setLinkInvalido(motivo)
+        setLoading(false)
+        return
+      }
+
       toast.error('Partida não encontrada.')
       // Continua indo para a busca, inclusive para o visitante: `/quero-jogar`
       // é rota privada, e o `PrivateRoute` o encaminha para o login. Mesmo
@@ -115,6 +155,33 @@ export default function PeladaDetail() {
   }, [event, isAuthenticated])
 
   if (loading) return <><LoadingBox>Carregando...</LoadingBox></>
+
+  /*
+   * O link falhou — e a tela diz qual dos três motivos foi.
+   *
+   * Vem antes do `!event` porque aqui a pelada não carregou de propósito: não é
+   * ausência de dado, é uma recusa com nome. Mandar essa pessoa para a busca
+   * com um toast de "não encontrada" trocaria uma instrução por um beco.
+   */
+  if (linkInvalido) {
+    return (
+      <Container>
+        <BackBtn onClick={() => navigate('/')}>
+          <ArrowLeft size={16} /> Ir para o início
+        </BackBtn>
+        <Card>
+          <Body>
+            <LinkInvalidoBox data-testid="link-invalido">
+              <span aria-hidden>🔗</span>
+              <LinkInvalidoTitulo>{linkInvalido.titulo}</LinkInvalidoTitulo>
+              <LinkInvalidoTexto>{linkInvalido.explicacao}</LinkInvalidoTexto>
+            </LinkInvalidoBox>
+          </Body>
+        </Card>
+      </Container>
+    )
+  }
+
   if (!event)  return null
 
   const participations  = event.participations ?? []
@@ -433,6 +500,12 @@ export default function PeladaDetail() {
             */}
             {canChangeStatus && (
               <>
+                {/* Chamar gente vem antes de sortear: é a ação de quando a
+                    pelada ainda não encheu, e é a razão de o organizador abrir
+                    esta tela enquanto faltam jogadores (#229). */}
+                <SortearBtn onClick={() => setCompartilhando(true)}>
+                  <Share2 size={14} /> Chamar gente
+                </SortearBtn>
                 <SortearBtn onClick={() => setSorteando(true)}>
                   <Shuffle size={14} /> Sortear Times
                 </SortearBtn>
@@ -505,6 +578,10 @@ export default function PeladaDetail() {
           não divergirem (#266). */}
       {sorteando && (
         <SorteioDeTimes partida={event} onClose={() => setSorteando(false)} />
+      )}
+
+      {compartilhando && (
+        <CompartilharPelada pelada={event} onFechar={() => setCompartilhando(false)} />
       )}
 
       {/* Confirmação de saída — sair por clique errado libera uma vaga que o
