@@ -115,7 +115,7 @@ export function criaBuscaDePeladas(
  * formato cai no ramo do fallback — o teste passaria a afirmar a mensagem
  * padrão em vez da mensagem da API, sem nunca acusar nada.
  */
-export function erroDaApi(message: string, status = 400): AxiosError {
+export function erroDaApi(message: string, status = 400, code?: string): AxiosError {
   return new AxiosError(
     message,
     String(status),
@@ -124,7 +124,11 @@ export function erroDaApi(message: string, status = 400): AxiosError {
     {
       status,
       statusText: '',
-      data: { success: false, message },
+      // O `code` é opcional porque a maioria das recusas se explica pela
+      // mensagem. Quando a tela decide algo pelo código — o `codigoDeErro` do
+      // `apiError` —, é ele que o teste precisa mandar, e não o status: dois
+      // 403 diferentes levam a telas diferentes.
+      data: { success: false, message, ...(code ? { code } : {}) },
       headers: {},
       config: { headers: {} },
     } as unknown as AxiosResponse,
