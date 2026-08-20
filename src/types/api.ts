@@ -382,6 +382,31 @@ export interface NotificationList {
     unreadCount: number;
 }
 
+/**
+ * Um link de convite da pelada (api#225).
+ *
+ * `expiresAt` e `maxUses` nulos são **sem validade** e **sem limite**, e não
+ * "vencido" ou "zero" — mesma convenção que o `Plan` usa.
+ *
+ * `uses` conta **entrada**, e não abertura: contar visualização faria o convite
+ * morrer com gente só espiando o horário. Pelo mesmo motivo o número não volta
+ * atrás quando alguém sai da pelada nem quando o link é revogado.
+ */
+export interface PeladaInvite {
+    id: string;
+    peladaId: string;
+    token: string;
+    expiresAt: IsoDate | null;
+    maxUses: number | null;
+    uses: number;
+    revokedAt: IsoDate | null;
+    createdAt: IsoDate;
+    /** O link pronto para colar, montado pela API sobre o endereço do app. */
+    url: string;
+    /** Quantas entradas ainda cabem. Nulo quando o link não tem limite. */
+    remainingUses: number | null;
+}
+
 export interface TournamentDivision {
     id: string;
     tournamentId: string;

@@ -516,3 +516,35 @@ export const MotivoDoPortao = styled.p`
   font-size: ${({ theme }) => theme.fontSizes.sm};
   color: ${({ theme }) => theme.colors.textSecondary};
 `
+
+/**
+ * A tela de link de convite que não vale mais (#229).
+ *
+ * Ocupa o corpo do cartão em vez de virar um toast: o toast some, e quem chegou
+ * por um link morto precisa poder ler o motivo com calma e mostrá-lo para quem
+ * mandou o link.
+ */
+export const LinkInvalidoBox = styled.div`
+  text-align: center;
+  padding: 48px 20px;
+
+  span {
+    font-size: 2.5rem;
+    display: block;
+    margin-bottom: 16px;
+  }
+`
+
+export const LinkInvalidoTitulo = styled.h2`
+  font-size: 1.125rem;
+  color: #111827;
+  margin: 0 0 8px;
+`
+
+export const LinkInvalidoTexto = styled.p`
+  font-size: 0.875rem;
+  color: #6b7280;
+  margin: 0;
+  max-width: 340px;
+  margin-inline: auto;
+`
