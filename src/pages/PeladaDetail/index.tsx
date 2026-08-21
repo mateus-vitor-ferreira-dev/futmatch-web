@@ -10,6 +10,7 @@ import { mensagemDeErro, codigoDeErro } from '../../utils/apiError'
 import RequisitosDaPelada from '../../components/RequisitosDaPelada'
 import { SorteioDeTimes } from '../../components/SorteioDeTimes'
 import CompartilharPelada from '../../components/CompartilharPelada'
+import { MarcaDeVisibilidade } from '../../components/MarcaDeVisibilidade'
 import { ConfirmacaoDePresencas } from '../../components/ConfirmacaoDePresencas'
 import { SortearBtn } from '../../components/SorteioDeTimes/styles'
 import {
@@ -321,6 +322,7 @@ export default function PeladaDetail() {
               <CourtName>{event.court?.name || 'Quadra'}</CourtName>
               <PlaceName>{event.court?.place?.name}{event.court?.place?.city ? ` · ${event.court.place.city}` : ''}</PlaceName>
             </HeaderInfo>
+            <MarcaDeVisibilidade visibility={event.visibility} />
             <StatusBadge $status={event.status}>
               {status.emoji} {status.label}
             </StatusBadge>

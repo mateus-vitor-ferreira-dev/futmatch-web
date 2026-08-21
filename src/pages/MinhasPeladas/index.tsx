@@ -22,6 +22,7 @@ import { SorteioDeTimes } from '../../components/SorteioDeTimes'
 import { ConfirmacaoDePresencas } from '../../components/ConfirmacaoDePresencas'
 import { ConfiguracaoDeAcesso } from '../../components/ConfiguracaoDeAcesso'
 import { RegrasDaPelada } from '../../components/RegrasDaPelada'
+import { MarcaDeVisibilidade } from '../../components/MarcaDeVisibilidade'
 import { teamsService } from '../../services/teams'
 import { SortearBtn } from '../../components/SorteioDeTimes/styles'
 import {
@@ -247,9 +248,12 @@ export default function MinhasPeladas() {
                       <h3>{ev.court?.place?.name || 'Local'}</h3>
                       <span style={{ fontSize: 12, color: '#6b7280' }}>{ev.court?.name}</span>
                     </div>
-                    <span className="badge" style={{ color: '#f59e0b', background: '#fef3c7' }}>
-                      {STATUS_LABELS[ev.status] ?? ev.status}
-                    </span>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
+                      <MarcaDeVisibilidade visibility={ev.visibility} />
+                      <span className="badge" style={{ color: '#f59e0b', background: '#fef3c7' }}>
+                        {STATUS_LABELS[ev.status] ?? ev.status}
+                      </span>
+                    </div>
                   </CardHeader>
 
                   <InfoRow><Calendar /> {new Date(ev.date).toLocaleDateString('pt-BR')}</InfoRow>
