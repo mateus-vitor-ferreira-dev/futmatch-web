@@ -7,6 +7,7 @@ import * as yup from 'yup'
 import { toast } from 'sonner'
 import { Camera, Loader, LogOut } from 'lucide-react'
 import { PhoneInput, PasswordInput, PerfilEsportivo } from '../../components'
+import { EnderecoDoJogador } from '../../components/EnderecoDoJogador'
 import { useAuth } from '../../contexts/AuthContext'
 import * as usersService from '../../services/users'
 import { uploadImage } from '../../services/cloudinary'
@@ -301,6 +302,7 @@ export default function Profile() {
 
         {/* Tab: Dados Pessoais */}
         {activeTab === 'personal' && (
+          <>
           <Form onSubmit={handleProfile(onSaveProfile)}>
             <FormGrid>
               <Field>
@@ -337,6 +339,14 @@ export default function Profile() {
               {savingProfile ? 'Salvando...' : 'Salvar alterações'}
             </SaveBtn>
           </Form>
+
+          <SectionDivider />
+
+          {/* O endereço mora aqui, e não numa aba própria (#221): ele é dado
+              pessoal como o telefone, e uma aba só para ele daria a entender
+              que é uma etapa do cadastro — sendo que é opcional. */}
+          <EnderecoDoJogador />
+          </>
         )}
 
         {/* Tab: Modalidades — o dado que o sorteio equilibrado consome (#214) */}

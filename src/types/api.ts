@@ -134,12 +134,50 @@ export interface UserMe extends UserPublic {
     phone: string | null;
     pixKey: string | null;
     marketingOptIn: boolean;
+    /**
+     * O endereço do jogador, só na visão de "eu" (api#215).
+     *
+     * É CEP, cidade e UF — e nada mais. Rua e número ficam de fora de
+     * propósito: o CEP resolve a distância com precisão de quadra, e um raio em
+     * quilômetros não aproveita mais que isso. Guardar o endereço completo
+     * ampliaria o que precisa ser protegido sob LGPD sem melhorar a consulta.
+     *
+     * As coordenadas são derivadas na API, ao salvar. Endereço sem elas não
+     * existe: a API recusa em vez de guardar torto.
+     */
+    address?: EnderecoDoJogador;
     stats?: UserStats;
     _count?: {
         peladasCreated: number;
         participations: number;
         reviewsReceived: number;
     };
+}
+
+/** O endereço do jogador — CEP, cidade e UF, com as coordenadas derivadas. */
+export interface EnderecoDoJogador {
+    zipCode: string | null;
+    city: string | null;
+    state: string | null;
+    latitude: number | null;
+    longitude: number | null;
+}
+
+/**
+ * O que a consulta de CEP devolve (api#372).
+ *
+ * `street` e `neighborhood` são nulos quando a resposta veio do fallback da
+ * Google — CEP geral de cidade não tem rua nem bairro. É a `fonte` que diz à
+ * tela se os campos vieram vazios por não existirem ou por não terem sido
+ * encontrados.
+ */
+export interface EnderecoDoCep {
+    zipCode: string;
+    street: string | null;
+    neighborhood: string | null;
+    city: string;
+    state: string;
+    fonte: "viacep" | "google" | "cache";
 }
 
 export interface UserStats {
