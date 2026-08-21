@@ -538,3 +538,65 @@ export const SportSelectWrapper = styled.div<{ $active?: boolean; }>`
     font-size: 1rem;
   }
 `
+
+/**
+ * O filtro de raio (#224).
+ *
+ * Fica numa linha própria, e não junto dos outros, porque ele muda **de onde**
+ * a busca parte, e não o que ela devolve — e porque ele pode estar
+ * indisponível, o que nenhum outro filtro fica.
+ */
+export const RaioLinha = styled.div`
+  display: flex;
+  align-items: center;
+  gap: ${({ theme }) => theme.spacing[2]};
+  flex-wrap: wrap;
+`
+
+export const RaioChip = styled.button<{ $ativo: boolean }>`
+  padding: 6px ${({ theme }) => theme.spacing[3]};
+  border-radius: ${({ theme }) => theme.radii.full};
+  border: 1px solid ${({ $ativo, theme }) => ($ativo ? theme.colors.primary : theme.colors.border)};
+  background: ${({ $ativo, theme }) => ($ativo ? theme.colors.primaryLight : theme.colors.bgCard)};
+  color: ${({ $ativo, theme }) => ($ativo ? theme.colors.primaryDark : theme.colors.textSecondary)};
+  font-size: ${({ theme }) => theme.fontSizes.xs};
+  font-weight: ${({ theme }) => theme.fontWeights.semibold};
+  cursor: pointer;
+
+  &:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+  }
+`
+
+export const RaioExplicacao = styled.p`
+  margin: 0;
+  flex-basis: 100%;
+  font-size: ${({ theme }) => theme.fontSizes.xs};
+  color: ${({ theme }) => theme.colors.textMuted};
+  line-height: 1.45;
+
+  button {
+    border: 0;
+    background: none;
+    padding: 0;
+    color: ${({ theme }) => theme.colors.primary};
+    font: inherit;
+    font-weight: ${({ theme }) => theme.fontWeights.semibold};
+    cursor: pointer;
+    text-decoration: underline;
+  }
+`
+
+export const DistanciaBadge = styled.span`
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  border-radius: ${({ theme }) => theme.radii.full};
+  background: ${({ theme }) => theme.colors.primaryLight};
+  color: ${({ theme }) => theme.colors.primaryDark};
+  font-size: ${({ theme }) => theme.fontSizes.xs};
+  font-weight: ${({ theme }) => theme.fontWeights.bold};
+  white-space: nowrap;
+`

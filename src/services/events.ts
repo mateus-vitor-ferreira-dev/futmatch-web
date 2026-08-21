@@ -20,6 +20,17 @@ export interface EventFilters {
   courtType?: CourtType
   page?: number
   limit?: number
+  /**
+   * A busca por raio (api#216). Os três andam juntos: **`radiusKm` sem o ponto
+   * de origem é recusado com 422**, e não ignorado — ignorar devolveria a busca
+   * inteira com cara de ter respeitado o raio.
+   *
+   * Com eles, a resposta vem ordenada por distância e cada pelada traz o
+   * `distanceKm`.
+   */
+  latitude?: number
+  longitude?: number
+  radiusKm?: number
 }
 
 export interface CreateEventInput {
