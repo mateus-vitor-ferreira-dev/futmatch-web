@@ -39,17 +39,11 @@ const LAVRAS = {
   fonte: 'viacep' as const,
 }
 
-function comUsuario(address: Record<string, unknown> | undefined = undefined) {
-  vi.mocked(authService.getMe).mockResolvedValue(
-    envelope(criaUsuario({ id: 'user-1', ...(address ? { address } : {}) }) as never),
-  )
-}
-
 beforeEach(() => {
   vi.clearAllMocks()
   marcarSessao()
   vi.mocked(notificationService.list).mockResolvedValue([])
-  comUsuario()
+  vi.mocked(authService.getMe).mockResolvedValue(envelope(criaUsuario({ id: 'user-1' })))
   consultarCep.mockResolvedValue({ data: envelope(LAVRAS) } as never)
   salvarEndereco.mockResolvedValue({ data: envelope(criaUsuario()) } as never)
   apagarEndereco.mockResolvedValue({} as never)
