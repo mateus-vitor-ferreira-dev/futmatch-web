@@ -134,12 +134,77 @@ export interface UserMe extends UserPublic {
     phone: string | null;
     pixKey: string | null;
     marketingOptIn: boolean;
+    /**
+     * O endereço do jogador, só na visão de "eu" (api#215).
+     *
+     * É CEP, cidade e UF — e nada mais. Rua e número ficam de fora de
+     * propósito: o CEP resolve a distância com precisão de quadra, e um raio em
+     * quilômetros não aproveita mais que isso. Guardar o endereço completo
+     * ampliaria o que precisa ser protegido sob LGPD sem melhorar a consulta.
+     *
+     * As coordenadas são derivadas na API, ao salvar. Endereço sem elas não
+     * existe: a API recusa em vez de guardar torto.
+     */
+    address?: EnderecoDoJogador;
     stats?: UserStats;
     _count?: {
         peladasCreated: number;
         participations: number;
         reviewsReceived: number;
     };
+}
+
+/** O endereço do jogador — CEP, cidade e UF, com as coordenadas derivadas. */
+export interface EnderecoDoJogador {
+    zipCode: string | null;
+    city: string | null;
+    state: string | null;
+    latitude: number | null;
+    longitude: number | null;
+}
+
+/**
+ * O que a consulta de CEP devolve (api#372).
+ *
+ * `street` e `neighborhood` são nulos quando a resposta veio do fallback da
+ * Google — CEP geral de cidade não tem rua nem bairro. É a `fonte` que diz à
+ * tela se os campos vieram vazios por não existirem ou por não terem sido
+ * encontrados.
+ */
+export interface EnderecoDoCep {
+    zipCode: string;
+    street: string | null;
+    neighborhood: string | null;
+    city: string;
+    state: string;
+    fonte: "viacep" | "google" | "cache";
+}
+
+/**
+ * Uma pelada recomendada, com a distância até a origem (api#217).
+ *
+ * `distanceKm` só existe nas respostas que têm origem — recomendação e busca
+ * por raio. A busca textual devolve `Pelada` sem ele, e é por isso que ele é um
+ * tipo próprio em vez de um campo opcional no `Pelada`: opcional daria a
+ * entender que ele pode faltar aqui, e não pode.
+ */
+export interface PeladaProxima extends Pelada {
+    distanceKm: number;
+}
+
+/**
+ * A resposta de `GET /events/recommended` (api#217).
+ *
+ * **`reason` é o que separa os dois vazios.** `NO_LOCATION` quer dizer que o
+ * jogador não tem origem — nem no navegador, nem no perfil — e a tela precisa
+ * convidar, não lamentar. `NO_EVENTS_NEARBY` quer dizer que a busca funcionou e
+ * não há pelada por perto, e aí o caminho é ampliar o raio.
+ */
+export interface Recomendacoes {
+    events: PeladaProxima[];
+    origin: { latitude: number; longitude: number } | null;
+    radiusKm: number;
+    reason?: { code: "NO_LOCATION" | "NO_EVENTS_NEARBY"; message: string };
 }
 
 export interface UserStats {
@@ -450,10 +515,21 @@ export interface EquipmentLoan {
 
 /** Resposta paginada de GET /events. */
 export interface PeladaSearchResult {
-    events: Pelada[];
+    /**
+     * Trazem `distanceKm` **só na busca por raio** (api#216) — na textual não há
+     * origem de onde medir. É por isso que o tipo é `Pelada | PeladaProxima` e
+     * não um `Pelada` com campo opcional: opcional daria a entender que ele pode
+     * faltar na busca por raio, e ali ele nunca falta.
+     */
+    events: Array<Pelada | PeladaProxima>;
     total: number;
     page: number;
     hasMore: boolean;
+}
+
+/** `true` quando a pelada veio de uma busca com origem, e sabe a distância. */
+export function temDistancia(pelada: Pelada | PeladaProxima): pelada is PeladaProxima {
+    return typeof (pelada as PeladaProxima).distanceKm === "number";
 }
 
 export interface Participation {

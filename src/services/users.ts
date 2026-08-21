@@ -1,6 +1,13 @@
 import type { AxiosResponse } from 'axios'
 import api from './api'
-import type { ApiEnvelope, CompetitionLevel, CourtType, SportProfile, UserMe } from '../types/api'
+import type {
+  ApiEnvelope,
+  CompetitionLevel,
+  CourtType,
+  EnderecoDoCep,
+  SportProfile,
+  UserMe,
+} from '../types/api'
 
 /** ⚠️ Devolve a resposta bruta do axios — quem consome escreve `res.data.data`. */
 
@@ -52,3 +59,26 @@ export const upsertSportProfile = (
 
 export const deleteSportProfile = (sport: CourtType): Promise<AxiosResponse<void>> =>
   api.delete(`/users/me/sports/${sport}`)
+
+/**
+ * O endereço do jogador (api#215 e api#372).
+ *
+ * O CEP é opcional: com ele, a API deriva cidade e UF e **ignora** o que for
+ * mandado nesses campos — a mesma decisão que ela toma para as coordenadas.
+ * Sem ele, cidade e UF são obrigatórias.
+ */
+export interface SalvarEnderecoInput {
+  zipCode?: string | null
+  city?: string
+  state?: string
+}
+
+export const salvarEndereco = (
+  dados: SalvarEnderecoInput,
+): Promise<AxiosResponse<ApiEnvelope<UserMe>>> => api.put('/users/me/address', dados)
+
+export const apagarEndereco = (): Promise<AxiosResponse<void>> => api.delete('/users/me/address')
+
+/** Consulta de CEP, para o formulário preencher cidade e UF sozinho (api#372). */
+export const consultarCep = (cep: string): Promise<AxiosResponse<ApiEnvelope<EnderecoDoCep>>> =>
+  api.get(`/cep/${encodeURIComponent(cep)}`)

@@ -346,3 +346,110 @@ describe('QueroJogar — voltar', () => {
     expect(navegar).toHaveBeenCalledWith('/home')
   })
 })
+
+/**
+ * O filtro por distância (#224).
+ *
+ * O teste que carrega esta issue é o de que **os três parâmetros andam juntos**:
+ * a api recusa `radiusKm` sem origem com 422, e não ignora. Um front que
+ * mandasse só o raio veria a busca inteira voltar com cara de ter respeitado o
+ * filtro — e a pessoa concluiria que não há nada perto quando há.
+ */
+describe('QueroJogar — filtro por distância', () => {
+  /** O navegador de mentira: concede na hora, com coordenadas de Lavras. */
+  function comLocalizacao() {
+    Object.defineProperty(globalThis.navigator, 'geolocation', {
+      configurable: true,
+      value: {
+        getCurrentPosition: (ok: PositionCallback) =>
+          ok({ coords: { latitude: -21.24, longitude: -44.99 } } as GeolocationPosition),
+      },
+    })
+  }
+
+  function semLocalizacao() {
+    Object.defineProperty(globalThis.navigator, 'geolocation', { configurable: true, value: undefined })
+  }
+
+  const abreFiltros = async (user: ReturnType<typeof renderWithProviders>['user']) => {
+    await user.click(screen.getByRole('button', { name: /Filtros/ }))
+  }
+
+  it('sem origem, os raios ficam desabilitados e a tela explica por quê', async () => {
+    semLocalizacao()
+    vi.mocked(authService.getMe).mockResolvedValue(envelope(USUARIO))
+    buscaEventos.mockResolvedValue(criaBuscaDePeladas([criaPelada()]))
+
+    const { user } = renderWithProviders(<QueroJogar />)
+    await esperaResultados()
+    await abreFiltros(user)
+
+    // Desabilitado com explicação, e não escondido: sumir faria parecer que o
+    // filtro não existe, e a pessoa não saberia que dá para tê-lo.
+    expect(screen.getByRole('button', { name: '10 km' })).toBeDisabled()
+    expect(screen.getByText(/Precisamos saber de onde você sai/)).toBeInTheDocument()
+  })
+
+  it('com origem, escolher o raio manda origem e raio juntos', async () => {
+    comLocalizacao()
+    localStorage.setItem('so-mais-um:localizacao', 'concedida')
+    buscaEventos.mockResolvedValue(criaBuscaDePeladas([criaPelada()]))
+
+    const { user } = renderWithProviders(<QueroJogar />)
+    await esperaResultados()
+    await abreFiltros(user)
+
+    await user.click(await screen.findByRole('button', { name: '10 km' }))
+
+    await waitFor(() =>
+      expect(buscaEventos).toHaveBeenCalledWith(
+        expect.objectContaining({ latitude: -21.24, longitude: -44.99, radiusKm: 10 }),
+      ),
+    )
+  })
+
+  it('mostra a distância de cada resultado quando a busca tem raio', async () => {
+    comLocalizacao()
+    localStorage.setItem('so-mais-um:localizacao', 'concedida')
+    buscaEventos.mockResolvedValue(criaBuscaDePeladas([{ ...criaPelada(), distanceKm: 3.2 } as never]))
+
+    renderWithProviders(<QueroJogar />)
+    await esperaResultados()
+
+    expect(await screen.findByText('3.2 km')).toBeInTheDocument()
+  })
+
+  it('a busca textual não mostra distância nenhuma', async () => {
+    semLocalizacao()
+    buscaEventos.mockResolvedValue(criaBuscaDePeladas([criaPelada()]))
+
+    renderWithProviders(<QueroJogar />)
+    await esperaResultados()
+
+    // Sem origem não há distância a mostrar, e um "—" seria ruído em toda
+    // busca textual.
+    expect(screen.queryByText(/ km$/)).not.toBeInTheDocument()
+  })
+
+  it('"Qualquer" desliga o raio e a busca volta a ser sem origem', async () => {
+    comLocalizacao()
+    localStorage.setItem('so-mais-um:localizacao', 'concedida')
+    buscaEventos.mockResolvedValue(criaBuscaDePeladas([criaPelada()]))
+
+    const { user } = renderWithProviders(<QueroJogar />)
+    await esperaResultados()
+    await abreFiltros(user)
+    await user.click(await screen.findByRole('button', { name: '25 km' }))
+    await waitFor(() => expect(buscaEventos).toHaveBeenCalledWith(expect.objectContaining({ radiusKm: 25 })))
+
+    await user.click(screen.getByRole('button', { name: 'Qualquer' }))
+
+    await waitFor(() => {
+      const ultima = buscaEventos.mock.calls.at(-1)?.[0]
+      // Os três somem juntos: raio sem origem é 422, e origem sem raio não
+      // filtra nada.
+      expect(ultima).not.toHaveProperty('radiusKm')
+      expect(ultima).not.toHaveProperty('latitude')
+    })
+  })
+})
