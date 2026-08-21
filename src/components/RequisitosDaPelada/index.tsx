@@ -1,9 +1,8 @@
-import type {
-  EntryRequirementResult,
-  EntryVerdict,
-  PeladaRequirement,
-  PeladaRequirementType,
-} from '../../types/api'
+import { useQuery } from '@tanstack/react-query'
+import type { EntryRequirementResult, EntryVerdict, PeladaRequirement } from '../../types/api'
+import { descreveRequisito } from '../../utils/requisitos'
+import { teamsService } from '../../services/teams'
+import { chaves } from '../../lib/queryClient'
 import { Bloco, Titulo, Lista, Item, Marca, Texto, Falta, Etiqueta, ApenasLeitor } from './styles'
 
 interface Props {
@@ -14,22 +13,6 @@ interface Props {
    * se o jogador passa — que é exatamente o que o visitante deslogado vê.
    */
   veredito?: EntryVerdict | null
-}
-
-/** A regra escrita por extenso, a partir do tipo e do `params`. */
-function descreve(type: PeladaRequirementType, min: number | undefined): string {
-  switch (type) {
-    case 'MIN_ATTENDANCE_RATE':
-      // O `params.min` é fração de 0 a 1 — a API não aceita porcentagem, porque
-      // `1` seria ambíguo. A tela é quem traduz para o número que se lê.
-      return `Presença mínima de ${Math.round((min ?? 0) * 100)}%`
-    case 'MIN_AVERAGE_RATING':
-      return `Nota média a partir de ${(min ?? 0).toFixed(1)}`
-    case 'MIN_MATCHES_PLAYED':
-      return min === 1 ? 'Ter jogado ao menos 1 pelada' : `Ter jogado ao menos ${min ?? 0} peladas`
-    case 'BADGE':
-      return 'Selo exigido pelo organizador'
-  }
 }
 
 /**
@@ -75,6 +58,23 @@ function oQueFalta(resultado: EntryRequirementResult): string | null {
  * sem regra nenhuma, e o caso comum não pode ganhar enfeite por causa do raro.
  */
 export default function RequisitosDaPelada({ requirements, veredito }: Props) {
+  /**
+   * O nome do time, quando há requisito de time (api#224).
+   *
+   * O `params` guarda só o id, e a leitura da pelada não devolve o time. Sem o
+   * nome a regra vira "um time que o organizador escolheu", que não é
+   * informação nenhuma — e a rota do time é **pública**, então buscá-la não
+   * fecha esta tela para quem está deslogado, que é justamente quem ela serve.
+   *
+   * Enquanto carrega, e se falhar, a frase genérica continua verdadeira.
+   */
+  const teamId = requirements.find((r) => r.type === 'TEAM_MEMBER')?.params?.teamId
+  const { data: time } = useQuery({
+    queryKey: chaves.times.porId(teamId ?? ''),
+    queryFn: () => teamsService.porId(teamId!),
+    enabled: Boolean(teamId),
+  })
+
   if (requirements.length === 0) return null
 
   const porTipo = new Map(veredito?.requirements.map((r) => [r.type, r]) ?? [])
@@ -96,7 +96,7 @@ export default function RequisitosDaPelada({ requirements, veredito }: Props) {
               <Marca aria-hidden>{estado === 'ok' ? '✓' : estado === 'falta' ? '✕' : '•'}</Marca>
               <Texto>
                 <span>
-                  {descreve(requisito.type, requisito.params?.min)}
+                  {descreveRequisito(requisito.type, requisito.params, time?.name)}
                   {/* O estado vai no texto também, e não só na cor e no símbolo:
                       leitor de tela não lê cor, e o ✓ pode virar "marca de
                       seleção" sem contexto. */}

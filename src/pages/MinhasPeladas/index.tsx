@@ -5,18 +5,29 @@ import { useForm } from 'react-hook-form'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { toast } from 'sonner'
 import { SkeletonCard } from '../../components/Skeleton'
-import { Calendar, Clock, Copy, Plus, Shuffle, Flag, XCircle, CheckSquare } from 'lucide-react'
+import { Calendar, Clock, Copy, Plus, Shuffle, Flag, XCircle, CheckSquare, ShieldCheck } from 'lucide-react'
 import { playerService } from '../../services/playerService'
 import { chaves } from '../../lib/queryClient'
 import { Grid, Card, CardHeader, InfoRow, ProgressBarContainer, ProgressBar, SpotsInfo } from '../QueroJogar/styles'
 import { mensagemDeErro } from '../../utils/apiError'
-import type { Court, Participation, Pelada, PeladaStatus } from '../../types/api'
+import type {
+  Court,
+  Participation,
+  Pelada,
+  PeladaRequirement,
+  PeladaStatus,
+  PeladaVisibility,
+} from '../../types/api'
 import { SorteioDeTimes } from '../../components/SorteioDeTimes'
+import { ConfirmacaoDePresencas } from '../../components/ConfirmacaoDePresencas'
+import { ConfiguracaoDeAcesso } from '../../components/ConfiguracaoDeAcesso'
+import { RegrasDaPelada } from '../../components/RegrasDaPelada'
+import { MarcaDeVisibilidade } from '../../components/MarcaDeVisibilidade'
+import { teamsService } from '../../services/teams'
 import { SortearBtn } from '../../components/SorteioDeTimes/styles'
 import {
   Container, PageHeader, CreateButton, Tabs, Tab, PixBox,
   ModalOverlay, ModalContent, Form, ButtonGroup,
-  DrawModalOverlay, DrawModalContent,
 } from './styles'
 
 const STATUS_LABELS: Record<string, string> = {
@@ -49,10 +60,19 @@ export default function MinhasPeladas() {
 
   // Presença
   const [attendanceEvent, setAttendanceEvent]           = useState<Pelada | null>(null)
-  const [attendanceParticipants, setAttendanceParticipants] = useState<Participation[]>([])
-  const [attendanceMap, setAttendanceMap]               = useState<Record<string, boolean>>({})
-  const [loadingAttendance, setLoadingAttendance]       = useState(false)
-  const [savingAttendance, setSavingAttendance]         = useState(false)
+
+  // Regras de acesso da pelada já criada (#228)
+  const [regrasEvent, setRegrasEvent] = useState<Pelada | null>(null)
+
+  /**
+   * Visibilidade e requisitos do formulário de criação.
+   *
+   * Ficam fora do `react-hook-form` porque não são campos: são duas estruturas
+   * que o `ConfiguracaoDeAcesso` edita inteiras, e registrar uma lista de
+   * requisitos no formulário custaria mais do que o `useState` resolve.
+   */
+  const [visibilidade, setVisibilidade] = useState<PeladaVisibility>('PUBLIC')
+  const [requisitos, setRequisitos] = useState<PeladaRequirement[]>([])
 
   const { register, handleSubmit, reset } = useForm<FormularioPelada>()
 
@@ -86,22 +106,76 @@ export default function MinhasPeladas() {
     enabled: isModalOpen,
   })
 
+  // Os times do organizador, para o requisito "ser do meu time". Só quando o
+  // modal abre, pelo mesmo motivo das quadras.
+  const { data: meusTimes = [] } = useQuery({
+    queryKey: chaves.times.meus(),
+    queryFn: () => teamsService.meusTimes(),
+    enabled: isModalOpen,
+  })
+
   /** Invalida as duas abas: criar ou alterar pelada mexe nas duas listas. */
   const invalidarPeladas = useCallback(() => {
     queryClient.invalidateQueries({ queryKey: ['eventos'] })
   }, [queryClient])
 
+  const fecharCriacao = () => {
+    setIsModalOpen(false)
+    reset()
+    setVisibilidade('PUBLIC')
+    setRequisitos([])
+  }
+
   const onSubmit = async (data: FormularioPelada) => {
+    // Regra impossível de cumprir é recusada pela API com 422, e ali o erro
+    // chegaria depois de a pelada já existir. Barrar antes é o que evita a
+    // pelada criada com metade das regras.
+    const seloSemSelo = requisitos.find((r) => r.type === 'BADGE' && (r.params?.badges?.length ?? 0) === 0)
+    if (seloSemSelo) {
+      toast.error('Marque ao menos um selo, ou remova a regra de selo.')
+      return
+    }
+
     try {
       const payload = {
         date: new Date(`${data.date}T${data.time}:00`).toISOString(),
         maxPlayers: parseInt(data.maxPlayers),
         totalValue: parseFloat(data.totalValue),
         pixKey: data.pixKey,
+        visibility: visibilidade,
       }
-      await playerService.createEvent(data.courtId, payload)
-      setIsModalOpen(false)
-      reset()
+      const criada = await playerService.createEvent(data.courtId, payload)
+
+      /**
+       * Os requisitos vão depois, porque a rota deles é pendurada na pelada e
+       * a pelada precisa existir para ter id.
+       *
+       * Falhar aqui **não desfaz a criação**: a pelada existe, e apagá-la para
+       * "limpar" seria destruir o que deu certo por causa do que não deu. O
+       * aviso diz exatamente isso, e manda o organizador para a edição — que é
+       * onde ele conserta sem recomeçar.
+       */
+      const pelada = criada.data
+      if (pelada && requisitos.length > 0) {
+        try {
+          for (const requisito of requisitos) {
+            await playerService.upsertRequirement(
+              data.courtId,
+              pelada.id,
+              requisito.type,
+              requisito.params ?? {},
+            )
+          }
+        } catch (error) {
+          // Montada, e não delegada ao `mensagemDeErro`: o motivo da API
+          // sozinho parece dizer que a criação falhou, e ela não falhou.
+          toast.error(
+            `A partida foi criada, mas nem todas as regras foram salvas: ${mensagemDeErro(error, 'erro ao salvar a regra')}. Ajuste em "Regras de acesso".`,
+          )
+        }
+      }
+
+      fecharCriacao()
       setActiveTab('created')
       invalidarPeladas()
     } catch (error) {
@@ -114,54 +188,6 @@ export default function MinhasPeladas() {
     toast.success('Chave PIX copiada!')
   }
 
-
-  const openAttendance = async (ev: Pelada) => {
-    setAttendanceEvent(ev)
-    setLoadingAttendance(true)
-    try {
-      const res = await playerService.getEventParticipants(ev.courtId, ev.id)
-      const participants = res.data ?? []
-      setAttendanceParticipants(participants)
-      const initial: Record<string, boolean> = {}
-      participants.forEach((p: Participation) => {
-        const id = p.userId ?? p.user?.id
-        if (id) initial[id] = p.attended !== false
-      })
-      setAttendanceMap(initial)
-    } catch {
-      toast.error('Erro ao carregar participantes.')
-      setAttendanceEvent(null)
-    } finally {
-      setLoadingAttendance(false)
-    }
-  }
-
-  const closeAttendance = () => {
-    setAttendanceEvent(null)
-    setAttendanceParticipants([])
-    setAttendanceMap({})
-  }
-
-  const saveAttendance = async () => {
-    if (!attendanceEvent) return
-    setSavingAttendance(true)
-    try {
-      await Promise.all(
-        attendanceParticipants.map((p) => {
-          const uid = p.userId ?? p.user?.id
-          return playerService.confirmAttendance(
-            attendanceEvent.courtId, attendanceEvent.id, uid, attendanceMap[uid] ?? true
-          )
-        })
-      )
-      toast.success('Presenças confirmadas!')
-      closeAttendance()
-    } catch {
-      toast.error('Erro ao salvar presenças.')
-    } finally {
-      setSavingAttendance(false)
-    }
-  }
 
   const handleUpdateStatus = async (ev: Pelada, status: PeladaStatus) => {
     const label = status === 'FINISHED' ? 'finalizar' : 'cancelar'
@@ -222,9 +248,12 @@ export default function MinhasPeladas() {
                       <h3>{ev.court?.place?.name || 'Local'}</h3>
                       <span style={{ fontSize: 12, color: '#6b7280' }}>{ev.court?.name}</span>
                     </div>
-                    <span className="badge" style={{ color: '#f59e0b', background: '#fef3c7' }}>
-                      {STATUS_LABELS[ev.status] ?? ev.status}
-                    </span>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
+                      <MarcaDeVisibilidade visibility={ev.visibility} />
+                      <span className="badge" style={{ color: '#f59e0b', background: '#fef3c7' }}>
+                        {STATUS_LABELS[ev.status] ?? ev.status}
+                      </span>
+                    </div>
                   </CardHeader>
 
                   <InfoRow><Calendar /> {new Date(ev.date).toLocaleDateString('pt-BR')}</InfoRow>
@@ -243,6 +272,9 @@ export default function MinhasPeladas() {
                       </PixBox>
                       {(ev.status === 'WAITING' || ev.status === 'FULL') && (
                         <>
+                          <SortearBtn onClick={(e) => { e.stopPropagation(); setRegrasEvent(ev) }}>
+                            <ShieldCheck size={14} /> Regras de acesso
+                          </SortearBtn>
                           <SortearBtn onClick={(e) => { e.stopPropagation(); setDrawEvent(ev) }}>
                             <Shuffle size={14} /> Sortear Times
                           </SortearBtn>
@@ -264,7 +296,7 @@ export default function MinhasPeladas() {
                       )}
                       {ev.status === 'FINISHED' && (
                         <button
-                          onClick={(e) => { e.stopPropagation(); openAttendance(ev) }}
+                          onClick={(e) => { e.stopPropagation(); setAttendanceEvent(ev) }}
                           style={{ width: '100%', marginTop: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, padding: '8px 12px', borderRadius: 8, border: '1px solid #3b82f6', background: '#eff6ff', color: '#1d4ed8', fontWeight: 600, fontSize: 13, cursor: 'pointer' }}
                         >
                           <CheckSquare size={13} /> Confirmar Presenças
@@ -319,8 +351,20 @@ export default function MinhasPeladas() {
                   <label>Chave PIX (Para receber)</label>
                   <input type="text" {...register('pixKey', { required: true })} placeholder="CPF, Email, Telefone..." />
                 </div>
+
+                {/* Visibilidade e requisitos, na criação (#228). O mesmo
+                    componente edita a pelada já criada, para as duas telas não
+                    divergirem sobre o que cada regra significa. */}
+                <ConfiguracaoDeAcesso
+                  visibilidade={visibilidade}
+                  aoMudarVisibilidade={setVisibilidade}
+                  requisitos={requisitos}
+                  aoMudarRequisitos={setRequisitos}
+                  times={meusTimes}
+                />
+
                 <ButtonGroup>
-                  <button type="button" className="cancel" onClick={() => setIsModalOpen(false)}>Cancelar</button>
+                  <button type="button" className="cancel" onClick={fecharCriacao}>Cancelar</button>
                   <button type="submit" className="submit">Criar jogo</button>
                 </ButtonGroup>
               </Form>
@@ -334,65 +378,21 @@ export default function MinhasPeladas() {
           <SorteioDeTimes partida={drawEvent} onClose={() => setDrawEvent(null)} />
         )}
 
-        {/* Modal Confirmar Presenças */}
+        {/* Regras de acesso da pelada já criada (#228). */}
+        {regrasEvent && (
+          <RegrasDaPelada
+            partida={regrasEvent}
+            onClose={() => setRegrasEvent(null)}
+            onSaved={invalidarPeladas}
+          />
+        )}
+
+        {/* O mesmo componente usado no detalhe da partida (#280). */}
         {attendanceEvent && (
-          <DrawModalOverlay onClick={closeAttendance}>
-            <DrawModalContent onClick={(e) => e.stopPropagation()}>
-              <h2>Confirmar Presenças</h2>
-              <p style={{ color: '#6b7280', marginBottom: 20 }}>
-                {attendanceEvent.court?.place?.name} — {new Date(attendanceEvent.date).toLocaleDateString('pt-BR')}
-              </p>
-
-              {loadingAttendance ? (
-                <p style={{ textAlign: 'center', color: '#6b7280', padding: 24 }}>Carregando participantes...</p>
-              ) : attendanceParticipants.length === 0 ? (
-                <p style={{ textAlign: 'center', color: '#6b7280', padding: 24 }}>Nenhum participante encontrado.</p>
-              ) : (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 20, maxHeight: 320, overflowY: 'auto' }}>
-                  {attendanceParticipants.map((p) => {
-                    const uid = p.userId ?? p.user?.id ?? ''
-                    // `p.name` não existe em Participation — o nome vem sempre
-                    // do usuário aninhado; o fallback antigo nunca resolvia.
-                    const name = p.user?.name ?? uid
-                    const present = attendanceMap[uid] ?? true
-                    return (
-                      <div
-                        key={uid}
-                        onClick={() => setAttendanceMap((m) => ({ ...m, [uid]: !present }))}
-                        style={{
-                          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                          padding: '10px 14px', borderRadius: 8, cursor: 'pointer',
-                          border: `1px solid ${present ? '#22c55e' : '#e5e7eb'}`,
-                          background: present ? '#f0fdf4' : '#f9fafb',
-                        }}
-                      >
-                        <span style={{ fontWeight: 600, fontSize: 14, color: '#111827' }}>{name}</span>
-                        <span style={{
-                          fontSize: 12, fontWeight: 700, padding: '3px 10px', borderRadius: 999,
-                          background: present ? '#dcfce7' : '#f3f4f6',
-                          color: present ? '#15803d' : '#6b7280',
-                        }}>
-                          {present ? 'Presente' : 'Ausente'}
-                        </span>
-                      </div>
-                    )
-                  })}
-                </div>
-              )}
-
-              <ButtonGroup>
-                <button type="button" className="cancel" onClick={closeAttendance}>Cancelar</button>
-                <button
-                  type="button"
-                  className="submit"
-                  onClick={saveAttendance}
-                  disabled={savingAttendance || loadingAttendance || attendanceParticipants.length === 0}
-                >
-                  {savingAttendance ? 'Salvando...' : 'Salvar Presenças'}
-                </button>
-              </ButtonGroup>
-            </DrawModalContent>
-          </DrawModalOverlay>
+          <ConfirmacaoDePresencas
+            partida={attendanceEvent}
+            onClose={() => setAttendanceEvent(null)}
+          />
         )}
       </Container>
     </>

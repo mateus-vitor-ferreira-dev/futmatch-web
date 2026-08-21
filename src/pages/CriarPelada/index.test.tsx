@@ -11,6 +11,7 @@
  * testaria um estado que a aplicação nunca produz sozinha.
  */
 import { describe, it, expect, vi, beforeEach } from 'vitest'
+import type { UserEvent } from '@testing-library/user-event'
 import { renderWithProviders, screen, waitFor } from '../../test/render'
 import { criaUsuario, envelope, erroDaApi } from '../../test/factories'
 import { marcarSessao } from '../../services/api'
@@ -22,15 +23,20 @@ vi.mock('../../services/events')
 vi.mock('../../services/auth')
 vi.mock('../../services/sports')
 vi.mock('../../services/notificationService')
+vi.mock('../../services/playerService')
+vi.mock('../../services/teams')
 
 import { searchCourts } from '../../services/courts'
 import { createEvent } from '../../services/events'
+import { playerService } from '../../services/playerService'
+import { teamsService } from '../../services/teams'
 import * as authService from '../../services/auth'
 import { getSports } from '../../services/sports'
 import { notificationService } from '../../services/notificationService'
 
 const buscaQuadras = vi.mocked(searchCourts)
 const criaEvento = vi.mocked(createEvent)
+const anexaRequisito = vi.mocked(playerService.upsertRequirement)
 
 const QUADRA: Court = {
   id: 'quadra-1',
@@ -51,6 +57,8 @@ beforeEach(() => {
   vi.mocked(getSports).mockRejectedValue(erroDaApi('sem sports', 503))
   vi.mocked(notificationService.list).mockResolvedValue([])
   buscaQuadras.mockResolvedValue(envelope([QUADRA]))
+  vi.mocked(teamsService.meusTimes).mockResolvedValue([])
+  anexaRequisito.mockResolvedValue(envelope({ type: 'MIN_MATCHES_PLAYED', params: { min: 5 } }))
 })
 
 /**
@@ -257,5 +265,93 @@ describe('CriarPelada — envio', () => {
     await user.click(campos.enviar)
 
     expect(await screen.findByText(/erro ao criar partida/i)).toBeInTheDocument()
+  })
+})
+
+/**
+ * Visibilidade e requisitos, na criação (#228).
+ *
+ * O que carrega este bloco é a **ordem**: o requisito é pendurado na pelada, e
+ * a pelada precisa existir para ter id. A consequência é que a criação pode dar
+ * certo e a regra não — e o teste que importa é o de que, nesse caso, a partida
+ * criada **continua criada**. Apagá-la para "limpar" destruiria o que deu certo
+ * por causa do que não deu.
+ */
+describe('CriarPelada — quem vê e quem entra', () => {
+  async function preencheEEnvia(container: HTMLElement, user: UserEvent) {
+    const campos = preenche(container)
+    await user.type(campos.data, '2027-03-11T19:00')
+    await user.type(campos.vagas, '10')
+    await user.type(campos.valor, '100')
+    await user.type(campos.pix, 'pix@arena.com')
+    await user.click(campos.enviar)
+  }
+
+  it('cria pública por padrão, sem regra nenhuma', async () => {
+    const { user, container } = await vaiAteOFormulario()
+
+    await preencheEEnvia(container, user)
+
+    await waitFor(() => expect(criaEvento).toHaveBeenCalled())
+    expect(criaEvento.mock.calls[0][1]).toMatchObject({ visibility: 'PUBLIC' })
+    // Pelada sem regra é a esmagadora maioria, e ela não pode pagar nenhuma
+    // requisição a mais por causa do caso raro.
+    expect(anexaRequisito).not.toHaveBeenCalled()
+  })
+
+  it('manda a visibilidade escolhida junto da criação', async () => {
+    const { user, container } = await vaiAteOFormulario()
+
+    await user.click(screen.getByRole('radio', { name: /Privada/ }))
+    await preencheEEnvia(container, user)
+
+    await waitFor(() => expect(criaEvento).toHaveBeenCalled())
+    expect(criaEvento.mock.calls[0][1]).toMatchObject({ visibility: 'PRIVATE' })
+  })
+
+  it('anexa os requisitos depois de a partida existir', async () => {
+    criaEvento.mockResolvedValue(envelope({ id: 'pelada-nova' } as never))
+    const { user, container } = await vaiAteOFormulario()
+
+    await user.selectOptions(
+      screen.getByLabelText('Adicionar uma regra de entrada'),
+      'MIN_MATCHES_PLAYED',
+    )
+    await preencheEEnvia(container, user)
+
+    await waitFor(() =>
+      expect(anexaRequisito).toHaveBeenCalledWith('quadra-1', 'pelada-nova', 'MIN_MATCHES_PLAYED', {
+        min: 5,
+      }),
+    )
+    expect(await screen.findByText(/partida criada/i)).toBeInTheDocument()
+  })
+
+  it('a partida continua criada quando a regra falha, e o aviso diz onde consertar', async () => {
+    criaEvento.mockResolvedValue(envelope({ id: 'pelada-nova' } as never))
+    anexaRequisito.mockRejectedValue(erroDaApi('Requisito inválido', 422))
+    const { user, container } = await vaiAteOFormulario()
+
+    await user.selectOptions(
+      screen.getByLabelText('Adicionar uma regra de entrada'),
+      'MIN_MATCHES_PLAYED',
+    )
+    await preencheEEnvia(container, user)
+
+    // Chega ao passo de confirmação: a partida existe.
+    expect(await screen.findByText(/partida criada/i)).toBeInTheDocument()
+    expect(screen.getByText(/nem todas as regras foram salvas/i)).toBeInTheDocument()
+  })
+
+  it('não deixa criar com a regra de selo vazia', async () => {
+    const { user, container } = await vaiAteOFormulario()
+
+    await user.selectOptions(screen.getByLabelText('Adicionar uma regra de entrada'), 'BADGE')
+    await preencheEEnvia(container, user)
+
+    // A API responderia 422 — depois de a partida existir. Barrar aqui é o que
+    // evita a partida criada com metade das regras.
+    expect(await screen.findByText(/Marque ao menos um selo/)).toBeInTheDocument()
+    expect(criaEvento).not.toHaveBeenCalled()
   })
 })

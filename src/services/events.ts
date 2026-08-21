@@ -1,5 +1,12 @@
 import api from './api'
-import type { ApiEnvelope, CourtType, Pelada, PeladaSearchResult, PeladaStatus } from '../types/api'
+import type {
+  ApiEnvelope,
+  CourtType,
+  Pelada,
+  PeladaSearchResult,
+  PeladaStatus,
+  PeladaVisibility,
+} from '../types/api'
 
 /** ⚠️ Devolve o ENVELOPE da API — quem consome escreve `res.data`. */
 
@@ -19,6 +26,8 @@ export interface CreateEventInput {
   maxPlayers: number
   totalValue: number
   pixKey: string
+  /** Omitido, a API grava `PUBLIC` — o comportamento que existia antes do campo. */
+  visibility?: PeladaVisibility
 }
 
 export function searchEvents(filters?: EventFilters): Promise<ApiEnvelope<PeladaSearchResult>> {
