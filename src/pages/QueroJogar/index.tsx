@@ -2,10 +2,12 @@ import { useState, useMemo } from 'react'
 import { useInfiniteQuery, useQueryClient } from '@tanstack/react-query'
 import { useSearchParams, useNavigate, useLocation } from 'react-router-dom'
 import { toast } from 'sonner'
-import { ArrowLeft, Search, Calendar, Clock, CheckCircle, MapPin, SlidersHorizontal, X } from 'lucide-react'
+import { ArrowLeft, Search, Calendar, Clock, CheckCircle, MapPin, SlidersHorizontal, X, Navigation } from 'lucide-react'
 import { useAuth } from '../../contexts/AuthContext'
 import { playerService } from '../../services/playerService'
 import { chaves } from '../../lib/queryClient'
+import { useOrigemDeLocalizacao } from '../../hooks/useOrigemDeLocalizacao'
+import { temDistancia } from '../../types/api'
 import { useSports, getSportMeta } from '../../hooks/useSports'
 import { SkeletonCard } from '../../components/Skeleton'
 import { EtiquetaDeRequisitos } from '../../components/RequisitosDaPelada'
@@ -22,6 +24,7 @@ import {
   AdvancedFilters, FilterRow, FilterGroup, FilterLabel,
   FilterSelect, FilterToggle, FiltersBtn, ActiveFilterBadge, ClearBtn,
   PriceSliderWrapper,
+  RaioLinha, RaioChip, RaioExplicacao, DistanciaBadge,
 } from './styles'
 
 function buildGoogleMapsUrl(event: Pelada): string | null {
@@ -78,6 +81,18 @@ export default function QueroJogar() {
   const [filterCity, setFilterCity]     = useState('')
   const [filterVagas, setFilterVagas]   = useState(false)
 
+  /**
+   * O raio da busca (#224). `0` quer dizer "sem raio", e não "raio zero".
+   *
+   * Ele é filtro de servidor: a api é quem sabe as coordenadas de cada espaço,
+   * e quem devolve os resultados já ordenados por distância. Filtrar aqui
+   * exigiria trazer a cidade inteira para o navegador.
+   */
+  const [raioKm, setRaioKm] = useState(0)
+  const { origem, estado: estadoDaOrigem, pedirLocalizacao, podePedir } = useOrigemDeLocalizacao()
+  const temOrigem = origem !== null
+  const raioAtivo = temOrigem && raioKm > 0
+
   /*
    * courtType e city são filtros server-side: entram na chave de cache, então
    * mudar de filtro busca do zero e voltar a um filtro já visto vem do cache,
@@ -85,7 +100,14 @@ export default function QueroJogar() {
    * viviam num useState que sumia ao trocar de rota, e voltar para cá recomeçava
    * da página 1.
    */
-  const filtrosServidor = { courtType: selectedSport || undefined, city: filterCity || undefined }
+  const filtrosServidor = {
+    courtType: selectedSport || undefined,
+    city: filterCity || undefined,
+    // A origem entra na chave junto do raio: a mesma busca a partir de outro
+    // ponto é outra busca, e reaproveitar o cache mostraria distâncias de onde
+    // a pessoa não está.
+    ...(raioAtivo && { latitude: origem.latitude, longitude: origem.longitude, radiusKm: raioKm }),
+  }
 
   const {
     data: paginas,
@@ -100,6 +122,13 @@ export default function QueroJogar() {
       const params: EventFilters = { status: 'WAITING', page: pageParam, limit: 20 }
       if (selectedSport) params.courtType = selectedSport as CourtType
       if (filterCity)    params.city      = filterCity
+      if (raioAtivo) {
+        // Os três juntos, sempre: `radiusKm` sem origem é 422 na api, e não
+        // uma busca sem raio.
+        params.latitude  = origem.latitude
+        params.longitude = origem.longitude
+        params.radiusKm  = raioKm
+      }
       const res = await playerService.searchEvents(params)
       return {
         eventos: (res.data?.events ?? res.data ?? []) as Pelada[],
@@ -155,6 +184,7 @@ export default function QueroJogar() {
     filterArena,
     filterCity,
     filterVagas,
+    raioAtivo,
   ].filter(Boolean).length
 
   function clearFilters() {
@@ -164,6 +194,7 @@ export default function QueroJogar() {
     setFilterArena('')
     setFilterCity('')
     setFilterVagas(false)
+    setRaioKm(0)
   }
 
   const handleJoin = async (courtId: string, eventId: string) => {
@@ -336,6 +367,48 @@ export default function QueroJogar() {
                   </ClearBtn>
                 )}
               </FilterRow>
+
+              {/* Distância (#224). Linha própria: ele muda de ONDE a busca
+                  parte, e é o único filtro que pode estar indisponível. */}
+              <FilterRow>
+                <FilterGroup style={{ flexBasis: '100%' }}>
+                  <FilterLabel>Distância de você</FilterLabel>
+                  <RaioLinha>
+                    {[0, 5, 10, 25, 50].map((km) => (
+                      <RaioChip
+                        key={km}
+                        type="button"
+                        $ativo={raioKm === km}
+                        disabled={!temOrigem}
+                        aria-pressed={raioKm === km}
+                        onClick={() => setRaioKm(km)}
+                      >
+                        {km === 0 ? 'Qualquer' : `${km} km`}
+                      </RaioChip>
+                    ))}
+
+                    {!temOrigem && (
+                      <RaioExplicacao>
+                        Precisamos saber de onde você sai para medir a distância.{' '}
+                        {podePedir ? (
+                          <button type="button" onClick={pedirLocalizacao}>
+                            usar minha localização
+                          </button>
+                        ) : estadoDaOrigem === 'indisponivel' ? (
+                          'Este navegador não informa localização — '
+                        ) : (
+                          'Você não liberou a localização — '
+                        )}
+                        {!podePedir && (
+                          <button type="button" onClick={() => navigate('/perfil')}>
+                            salve seu endereço no perfil
+                          </button>
+                        )}
+                      </RaioExplicacao>
+                    )}
+                  </RaioLinha>
+                </FilterGroup>
+              </FilterRow>
             </AdvancedFilters>
           )}
         </FiltersArea>
@@ -367,7 +440,17 @@ export default function QueroJogar() {
                       {event.court?.place?.neighborhood}, {event.court?.place?.city}
                     </span>
                   </div>
-                  <span className="badge">{getSportMeta(event.court?.type as CourtType).icon} {getSportMeta(event.court?.type as CourtType).label}</span>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap', justifyContent: 'flex-end' }}>
+                    {/* Só na busca por raio: sem origem não há distância a
+                        mostrar, e um "—" no lugar seria ruído em toda busca
+                        textual. */}
+                    {temDistancia(event) && (
+                      <DistanciaBadge>
+                        <Navigation size={11} aria-hidden /> {event.distanceKm} km
+                      </DistanciaBadge>
+                    )}
+                    <span className="badge">{getSportMeta(event.court?.type as CourtType).icon} {getSportMeta(event.court?.type as CourtType).label}</span>
+                  </div>
                 </CardHeader>
 
                 {/*

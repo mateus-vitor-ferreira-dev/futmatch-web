@@ -515,10 +515,21 @@ export interface EquipmentLoan {
 
 /** Resposta paginada de GET /events. */
 export interface PeladaSearchResult {
-    events: Pelada[];
+    /**
+     * Trazem `distanceKm` **só na busca por raio** (api#216) — na textual não há
+     * origem de onde medir. É por isso que o tipo é `Pelada | PeladaProxima` e
+     * não um `Pelada` com campo opcional: opcional daria a entender que ele pode
+     * faltar na busca por raio, e ali ele nunca falta.
+     */
+    events: Array<Pelada | PeladaProxima>;
     total: number;
     page: number;
     hasMore: boolean;
+}
+
+/** `true` quando a pelada veio de uma busca com origem, e sabe a distância. */
+export function temDistancia(pelada: Pelada | PeladaProxima): pelada is PeladaProxima {
+    return typeof (pelada as PeladaProxima).distanceKm === "number";
 }
 
 export interface Participation {
