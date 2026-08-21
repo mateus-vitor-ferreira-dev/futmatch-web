@@ -180,6 +180,33 @@ export interface EnderecoDoCep {
     fonte: "viacep" | "google" | "cache";
 }
 
+/**
+ * Uma pelada recomendada, com a distância até a origem (api#217).
+ *
+ * `distanceKm` só existe nas respostas que têm origem — recomendação e busca
+ * por raio. A busca textual devolve `Pelada` sem ele, e é por isso que ele é um
+ * tipo próprio em vez de um campo opcional no `Pelada`: opcional daria a
+ * entender que ele pode faltar aqui, e não pode.
+ */
+export interface PeladaProxima extends Pelada {
+    distanceKm: number;
+}
+
+/**
+ * A resposta de `GET /events/recommended` (api#217).
+ *
+ * **`reason` é o que separa os dois vazios.** `NO_LOCATION` quer dizer que o
+ * jogador não tem origem — nem no navegador, nem no perfil — e a tela precisa
+ * convidar, não lamentar. `NO_EVENTS_NEARBY` quer dizer que a busca funcionou e
+ * não há pelada por perto, e aí o caminho é ampliar o raio.
+ */
+export interface Recomendacoes {
+    events: PeladaProxima[];
+    origin: { latitude: number; longitude: number } | null;
+    radiusKm: number;
+    reason?: { code: "NO_LOCATION" | "NO_EVENTS_NEARBY"; message: string };
+}
+
 export interface UserStats {
     averageStars: number | null;
     totalReviews: number;

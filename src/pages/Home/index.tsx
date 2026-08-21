@@ -6,6 +6,7 @@ import { useAuth } from '../../contexts/AuthContext'
 import { playerService } from '../../services/playerService'
 import { chaves } from '../../lib/queryClient'
 import { useSports, getSportMeta } from '../../hooks/useSports'
+import { PeladasPerto } from '../../components/PeladasPerto'
 import type { CourtType } from '../../types/api'
 import {
   PageWrapper,
@@ -223,6 +224,12 @@ export default function Home() {
         </TabsWrapper>
 
         {/* Jogos disponíveis — conteúdo dominante */}
+        {/* Antes dos jogos em destaque (#223): o que está perto interessa mais
+            que o que está em destaque, e enterrá-la embaixo faria a seção
+            valer o mesmo que a busca — que é justamente o caminho que ela
+            veio encurtar. */}
+        <PeladasPerto />
+
         <SectionBlock>
           <SectionHeader>
             <div>
