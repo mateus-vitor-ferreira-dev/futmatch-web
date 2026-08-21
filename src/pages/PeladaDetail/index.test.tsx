@@ -103,6 +103,32 @@ describe('PeladaDetail — contagem de vagas', () => {
   })
 })
 
+describe('PeladaDetail — confirmação de presenças', () => {
+  it('oferece a ação ao organizador quando a partida terminou', async () => {
+    buscaPelada.mockResolvedValue(envelope(criaPelada({
+      status: 'FINISHED',
+      organizerId: 'user-1',
+      organizer: { id: 'user-1', name: 'Mateus', avatarUrl: null },
+    })))
+    vi.mocked(playerService.getEventParticipants).mockResolvedValue(envelope([]))
+
+    const { user } = abrePelada()
+    await user.click(await screen.findByRole('button', { name: 'Confirmar Presenças' }))
+
+    expect(await screen.findByRole('dialog', { name: 'Confirmar Presenças' })).toBeInTheDocument()
+    expect(playerService.getEventParticipants).toHaveBeenCalledWith('quadra-1', 'pelada-1')
+  })
+
+  it('não oferece a ação a quem não é o organizador', async () => {
+    buscaPelada.mockResolvedValue(envelope(criaPelada({ status: 'FINISHED' })))
+
+    abrePelada()
+
+    await screen.findByText(/Finalizado/)
+    expect(screen.queryByRole('button', { name: 'Confirmar Presenças' })).not.toBeInTheDocument()
+  })
+})
+
 describe('PeladaDetail — botão de entrar', () => {
   it('deixa entrar quando há vaga e o usuário está de fora', async () => {
     buscaPelada.mockResolvedValue(
