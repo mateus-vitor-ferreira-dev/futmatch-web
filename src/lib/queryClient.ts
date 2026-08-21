@@ -46,6 +46,15 @@ export const chaves = {
     busca:       (filtros: unknown) => ['eventos', 'busca', filtros] as const,
     participando: () => ['eventos', 'participando'] as const,
     criados:      () => ['eventos', 'criados'] as const,
+    /**
+     * As recomendadas dependem da ORIGEM e do raio (#223).
+     *
+     * A origem entra na chave porque a resposta muda com ela: quem estava em
+     * casa e abriu o app na quadra precisa de outra lista, e reaproveitar o
+     * cache mostraria distâncias de onde a pessoa não está mais.
+     */
+    recomendadas: (origem: { latitude: number; longitude: number } | null, raioKm: number) =>
+      ['eventos', 'recomendadas', origem?.latitude ?? null, origem?.longitude ?? null, raioKm] as const,
   },
   times: {
     meus:    () => ['times', 'meus'] as const,

@@ -6,6 +6,7 @@ import type {
   PeladaSearchResult,
   PeladaStatus,
   PeladaVisibility,
+  Recomendacoes,
 } from '../types/api'
 
 /** ⚠️ Devolve o ENVELOPE da API — quem consome escreve `res.data`. */
@@ -51,4 +52,20 @@ export function createEvent(
 
 export function getEvent(courtId: string, eventId: string): Promise<ApiEnvelope<Pelada>> {
   return api.get(`/courts/${courtId}/events/${eventId}`).then((r) => r.data)
+}
+
+/**
+ * As peladas recomendadas (api#217).
+ *
+ * As coordenadas são **opcionais**: quando não vão, a API usa o endereço salvo
+ * no perfil. O front manda as do navegador quando as tem, porque são mais
+ * exatas e mais atuais que um CEP de cadastro.
+ */
+export function recommendedEvents(params?: {
+  latitude?: number
+  longitude?: number
+  radiusKm?: number
+  limit?: number
+}): Promise<ApiEnvelope<Recomendacoes>> {
+  return api.get('/events/recommended', { params }).then((r) => r.data)
 }
