@@ -9,7 +9,7 @@
 // ─── Enums (espelham os enums do Prisma no backend) ──────────────────────────
 
 export type UserRole = "PLAYER" | "OWNER" | "ADMIN";
-export type UserBadge = "CONFIAVEL" | "CRAQUE" | "ORGANIZADOR_NATO";
+export type UserBadge = "CONFIAVEL" | "CRAQUE" | "ORGANIZADOR_NATO" | "PONTUAL";
 
 export type CourtType =
     | "SOCIETY"
@@ -297,18 +297,43 @@ export interface PeladaParticipant {
     user: Pick<UserPublic, "id" | "name" | "nickname" | "avatarUrl">;
 }
 
+/**
+ * O `params` de um requisito, com o campo de cada tipo.
+ *
+ * Os três de reputação usam `min`; o `BADGE` usa `badges` e o `TEAM_MEMBER`,
+ * `teamId`. Ficam num tipo só, com tudo opcional, porque é assim que a API os
+ * devolve — `JSONB` sem discriminante — e um union discriminado aqui daria a
+ * falsa impressão de que a API garante a combinação.
+ */
+export interface PeladaRequirementParams {
+    /** `MIN_ATTENDANCE_RATE` (fração de 0 a 1), `MIN_AVERAGE_RATING`, `MIN_MATCHES_PLAYED`. */
+    min?: number;
+    /** `BADGE`: passa quem tem **qualquer um** da lista (api#380). */
+    badges?: UserBadge[];
+    /** `TEAM_MEMBER`: o time de que o jogador precisa ser membro (api#224). */
+    teamId?: string;
+}
+
 /** Um requisito de entrada configurado na pelada. */
 export interface PeladaRequirement {
     type: PeladaRequirementType;
-    /** O formato depende do tipo. Os três de reputação usam `{ min: number }`. */
-    params: { min?: number } | null;
+    params: PeladaRequirementParams | null;
 }
 
 export type PeladaRequirementType =
     | "MIN_ATTENDANCE_RATE"
     | "MIN_AVERAGE_RATING"
     | "MIN_MATCHES_PLAYED"
-    | "BADGE";
+    | "BADGE"
+    | "TEAM_MEMBER";
+
+/**
+ * Como se chega numa pelada — não quem pode entrar nela (api#220).
+ *
+ * O outro eixo são os requisitos, e os dois são independentes de propósito:
+ * "pública, mas só para quem costuma aparecer" é combinação legítima.
+ */
+export type PeladaVisibility = "PUBLIC" | "LINK" | "PRIVATE";
 
 /** Um motivo de recusa do portão de entrada. */
 export interface EntryFailure {
@@ -322,7 +347,7 @@ export interface EntryFailure {
 /** Como um requisito saiu da avaliação deste jogador. */
 export interface EntryRequirementResult {
     type: PeladaRequirementType;
-    params: { min?: number } | null;
+    params: PeladaRequirementParams | null;
     met: boolean;
     failure?: EntryFailure;
 }
@@ -349,6 +374,8 @@ export interface Pelada {
     pixKey: string;
     courtId: string;
     organizerId: string;
+    /** Como se chega nesta pelada (api#220). `PUBLIC` é o padrão da API. */
+    visibility?: PeladaVisibility;
     court?: Pick<Court, "id" | "name" | "type"> & { place: PlaceSummary };
     organizer?: Pick<UserPublic, "id" | "name" | "avatarUrl">;
     participations?: PeladaParticipant[];

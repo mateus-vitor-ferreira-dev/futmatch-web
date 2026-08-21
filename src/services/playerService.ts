@@ -10,6 +10,10 @@ import type {
   Review,
   UserStats,
   EntryVerdict,
+  PeladaRequirement,
+  PeladaRequirementParams,
+  PeladaRequirementType,
+  PeladaVisibility,
 } from '../types/api'
 import type { CourtFilters } from './courts'
 import type { Court } from '../types/api'
@@ -210,6 +214,61 @@ export const playerService = {
       params: convite ? { convite } : undefined,
     })
     return data
+  },
+
+  // --- REGRAS DE ACESSO DA PELADA (organizador) ---
+
+  /**
+   * A visibilidade, no `PATCH` da própria pelada (api#220).
+   *
+   * Os requisitos são rotas separadas porque são uma coleção, e não um campo:
+   * cada tipo entra e sai sozinho. Trocar a visibilidade não mexe em requisito
+   * nenhum, e vice-versa — os dois eixos são independentes de propósito.
+   */
+  updateEventVisibility: async (
+    courtId: string,
+    eventId: string,
+    visibility: PeladaVisibility,
+  ): Promise<ApiEnvelope<Pelada>> => {
+    const { data } = await api.patch(`/courts/${courtId}/events/${eventId}`, { visibility })
+    return data
+  },
+
+  /** Só o organizador lê a lista completa — a API responde 403 para o resto. */
+  listRequirements: async (
+    courtId: string,
+    eventId: string,
+  ): Promise<ApiEnvelope<PeladaRequirement[]>> => {
+    const { data } = await api.get(`/courts/${courtId}/events/${eventId}/requirements`)
+    return data
+  },
+
+  /**
+   * Anexa ou substitui um requisito. Um por tipo, e reenviar o mesmo substitui.
+   *
+   * Param impossível de cumprir volta 422 com `REQUIREMENT_PARAMS_INVALID` —
+   * nota mínima 6 numa escala de 5, time que não existe. O erro é da
+   * configuração, e é aqui que ele precisa aparecer.
+   */
+  upsertRequirement: async (
+    courtId: string,
+    eventId: string,
+    type: PeladaRequirementType,
+    params: PeladaRequirementParams,
+  ): Promise<ApiEnvelope<PeladaRequirement>> => {
+    const { data } = await api.put(
+      `/courts/${courtId}/events/${eventId}/requirements/${type}`,
+      { params },
+    )
+    return data
+  },
+
+  deleteRequirement: async (
+    courtId: string,
+    eventId: string,
+    type: PeladaRequirementType,
+  ): Promise<void> => {
+    await api.delete(`/courts/${courtId}/events/${eventId}/requirements/${type}`)
   },
 
   // --- STATUS DO EVENTO (organizador) ---

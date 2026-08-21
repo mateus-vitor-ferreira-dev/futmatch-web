@@ -5,14 +5,24 @@ import { useForm } from 'react-hook-form'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { toast } from 'sonner'
 import { SkeletonCard } from '../../components/Skeleton'
-import { Calendar, Clock, Copy, Plus, Shuffle, Flag, XCircle, CheckSquare } from 'lucide-react'
+import { Calendar, Clock, Copy, Plus, Shuffle, Flag, XCircle, CheckSquare, ShieldCheck } from 'lucide-react'
 import { playerService } from '../../services/playerService'
 import { chaves } from '../../lib/queryClient'
 import { Grid, Card, CardHeader, InfoRow, ProgressBarContainer, ProgressBar, SpotsInfo } from '../QueroJogar/styles'
 import { mensagemDeErro } from '../../utils/apiError'
-import type { Court, Participation, Pelada, PeladaStatus } from '../../types/api'
+import type {
+  Court,
+  Participation,
+  Pelada,
+  PeladaRequirement,
+  PeladaStatus,
+  PeladaVisibility,
+} from '../../types/api'
 import { SorteioDeTimes } from '../../components/SorteioDeTimes'
 import { ConfirmacaoDePresencas } from '../../components/ConfirmacaoDePresencas'
+import { ConfiguracaoDeAcesso } from '../../components/ConfiguracaoDeAcesso'
+import { RegrasDaPelada } from '../../components/RegrasDaPelada'
+import { teamsService } from '../../services/teams'
 import { SortearBtn } from '../../components/SorteioDeTimes/styles'
 import {
   Container, PageHeader, CreateButton, Tabs, Tab, PixBox,
@@ -50,6 +60,19 @@ export default function MinhasPeladas() {
   // Presença
   const [attendanceEvent, setAttendanceEvent]           = useState<Pelada | null>(null)
 
+  // Regras de acesso da pelada já criada (#228)
+  const [regrasEvent, setRegrasEvent] = useState<Pelada | null>(null)
+
+  /**
+   * Visibilidade e requisitos do formulário de criação.
+   *
+   * Ficam fora do `react-hook-form` porque não são campos: são duas estruturas
+   * que o `ConfiguracaoDeAcesso` edita inteiras, e registrar uma lista de
+   * requisitos no formulário custaria mais do que o `useState` resolve.
+   */
+  const [visibilidade, setVisibilidade] = useState<PeladaVisibility>('PUBLIC')
+  const [requisitos, setRequisitos] = useState<PeladaRequirement[]>([])
+
   const { register, handleSubmit, reset } = useForm<FormularioPelada>()
 
   // Limpa o ?action=criar da URL após abrir o modal
@@ -82,22 +105,76 @@ export default function MinhasPeladas() {
     enabled: isModalOpen,
   })
 
+  // Os times do organizador, para o requisito "ser do meu time". Só quando o
+  // modal abre, pelo mesmo motivo das quadras.
+  const { data: meusTimes = [] } = useQuery({
+    queryKey: chaves.times.meus(),
+    queryFn: () => teamsService.meusTimes(),
+    enabled: isModalOpen,
+  })
+
   /** Invalida as duas abas: criar ou alterar pelada mexe nas duas listas. */
   const invalidarPeladas = useCallback(() => {
     queryClient.invalidateQueries({ queryKey: ['eventos'] })
   }, [queryClient])
 
+  const fecharCriacao = () => {
+    setIsModalOpen(false)
+    reset()
+    setVisibilidade('PUBLIC')
+    setRequisitos([])
+  }
+
   const onSubmit = async (data: FormularioPelada) => {
+    // Regra impossível de cumprir é recusada pela API com 422, e ali o erro
+    // chegaria depois de a pelada já existir. Barrar antes é o que evita a
+    // pelada criada com metade das regras.
+    const seloSemSelo = requisitos.find((r) => r.type === 'BADGE' && (r.params?.badges?.length ?? 0) === 0)
+    if (seloSemSelo) {
+      toast.error('Marque ao menos um selo, ou remova a regra de selo.')
+      return
+    }
+
     try {
       const payload = {
         date: new Date(`${data.date}T${data.time}:00`).toISOString(),
         maxPlayers: parseInt(data.maxPlayers),
         totalValue: parseFloat(data.totalValue),
         pixKey: data.pixKey,
+        visibility: visibilidade,
       }
-      await playerService.createEvent(data.courtId, payload)
-      setIsModalOpen(false)
-      reset()
+      const criada = await playerService.createEvent(data.courtId, payload)
+
+      /**
+       * Os requisitos vão depois, porque a rota deles é pendurada na pelada e
+       * a pelada precisa existir para ter id.
+       *
+       * Falhar aqui **não desfaz a criação**: a pelada existe, e apagá-la para
+       * "limpar" seria destruir o que deu certo por causa do que não deu. O
+       * aviso diz exatamente isso, e manda o organizador para a edição — que é
+       * onde ele conserta sem recomeçar.
+       */
+      const pelada = criada.data
+      if (pelada && requisitos.length > 0) {
+        try {
+          for (const requisito of requisitos) {
+            await playerService.upsertRequirement(
+              data.courtId,
+              pelada.id,
+              requisito.type,
+              requisito.params ?? {},
+            )
+          }
+        } catch (error) {
+          // Montada, e não delegada ao `mensagemDeErro`: o motivo da API
+          // sozinho parece dizer que a criação falhou, e ela não falhou.
+          toast.error(
+            `A partida foi criada, mas nem todas as regras foram salvas: ${mensagemDeErro(error, 'erro ao salvar a regra')}. Ajuste em "Regras de acesso".`,
+          )
+        }
+      }
+
+      fecharCriacao()
       setActiveTab('created')
       invalidarPeladas()
     } catch (error) {
@@ -191,6 +268,9 @@ export default function MinhasPeladas() {
                       </PixBox>
                       {(ev.status === 'WAITING' || ev.status === 'FULL') && (
                         <>
+                          <SortearBtn onClick={(e) => { e.stopPropagation(); setRegrasEvent(ev) }}>
+                            <ShieldCheck size={14} /> Regras de acesso
+                          </SortearBtn>
                           <SortearBtn onClick={(e) => { e.stopPropagation(); setDrawEvent(ev) }}>
                             <Shuffle size={14} /> Sortear Times
                           </SortearBtn>
@@ -267,8 +347,20 @@ export default function MinhasPeladas() {
                   <label>Chave PIX (Para receber)</label>
                   <input type="text" {...register('pixKey', { required: true })} placeholder="CPF, Email, Telefone..." />
                 </div>
+
+                {/* Visibilidade e requisitos, na criação (#228). O mesmo
+                    componente edita a pelada já criada, para as duas telas não
+                    divergirem sobre o que cada regra significa. */}
+                <ConfiguracaoDeAcesso
+                  visibilidade={visibilidade}
+                  aoMudarVisibilidade={setVisibilidade}
+                  requisitos={requisitos}
+                  aoMudarRequisitos={setRequisitos}
+                  times={meusTimes}
+                />
+
                 <ButtonGroup>
-                  <button type="button" className="cancel" onClick={() => setIsModalOpen(false)}>Cancelar</button>
+                  <button type="button" className="cancel" onClick={fecharCriacao}>Cancelar</button>
                   <button type="submit" className="submit">Criar jogo</button>
                 </ButtonGroup>
               </Form>
@@ -280,6 +372,15 @@ export default function MinhasPeladas() {
             partida usa, para os dois não divergirem (#266). */}
         {drawEvent && (
           <SorteioDeTimes partida={drawEvent} onClose={() => setDrawEvent(null)} />
+        )}
+
+        {/* Regras de acesso da pelada já criada (#228). */}
+        {regrasEvent && (
+          <RegrasDaPelada
+            partida={regrasEvent}
+            onClose={() => setRegrasEvent(null)}
+            onSaved={invalidarPeladas}
+          />
         )}
 
         {/* O mesmo componente usado no detalhe da partida (#280). */}

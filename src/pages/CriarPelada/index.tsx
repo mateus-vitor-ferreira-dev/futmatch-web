@@ -1,13 +1,18 @@
 import { useState, useEffect, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useQuery } from '@tanstack/react-query'
 import { useForm, useWatch } from 'react-hook-form'
 import { yupResolver } from '@hookform/resolvers/yup'
 import * as yup from 'yup'
 import { useSports } from '../../hooks/useSports'
 import { searchCourts } from '../../services/courts'
 import { createEvent } from '../../services/events'
-import type { Court, Place } from '../../types/api'
+import { playerService } from '../../services/playerService'
+import { teamsService } from '../../services/teams'
+import { chaves } from '../../lib/queryClient'
+import type { Court, PeladaRequirement, PeladaVisibility, Place } from '../../types/api'
 import { mensagemDeErro } from '../../utils/apiError'
+import { ConfiguracaoDeAcesso } from '../../components/ConfiguracaoDeAcesso'
 import {
   Container, PageHeader, Title, Subtitle,
   StepIndicator, Step, StepDot, StepLine,
@@ -73,6 +78,18 @@ export default function CriarPelada() {
   const [submitting, setSubmitting]     = useState(false)
   const [error, setError]               = useState<string | null>(null)
 
+  // Visibilidade e requisitos de entrada (#228). Ficam fora do `react-hook-form`
+  // porque não são campos: são duas estruturas que o `ConfiguracaoDeAcesso`
+  // edita inteiras.
+  const [visibilidade, setVisibilidade] = useState<PeladaVisibility>('PUBLIC')
+  const [requisitos, setRequisitos]     = useState<PeladaRequirement[]>([])
+
+  /** Os times do organizador, para o requisito "ser do meu time" (api#224). */
+  const { data: meusTimes = [] } = useQuery({
+    queryKey: chaves.times.meus(),
+    queryFn: () => teamsService.meusTimes(),
+  })
+
   // Sub-etapas do step 0
   const [filterSport, setFilterSport]   = useState('')   // CourtType enum value
   const [filterPlace, setFilterPlace]   = useState<Place | null>(null) // objeto place
@@ -125,6 +142,18 @@ export default function CriarPelada() {
 
   const onSubmit = async (data: FormValues) => {
     if (!selectedCourt) return
+
+    // Regra impossível de cumprir é recusada pela API com 422, e ali o erro
+    // chegaria depois de a partida já existir. Barrar antes é o que evita a
+    // partida criada com metade das regras.
+    const seloSemSelo = requisitos.find(
+      (r) => r.type === 'BADGE' && (r.params?.badges?.length ?? 0) === 0,
+    )
+    if (seloSemSelo) {
+      setError('Marque ao menos um selo, ou remova a regra de selo.')
+      return
+    }
+
     setSubmitting(true)
     setError(null)
     try {
@@ -133,8 +162,41 @@ export default function CriarPelada() {
         date:       new Date(data.date).toISOString(),
         maxPlayers: Number(data.maxPlayers),
         totalValue: Number(data.totalValue),
+        visibility: visibilidade,
       }
-      await createEvent(selectedCourt.id, payload)
+      const criada = await createEvent(selectedCourt.id, payload)
+
+      /**
+       * Os requisitos vão depois, porque a rota deles é pendurada na partida e
+       * a partida precisa existir para ter id.
+       *
+       * Falhar aqui **não desfaz a criação**, e o passo de confirmação aparece
+       * do mesmo jeito: a partida existe, e apagá-la para "limpar" destruiria o
+       * que deu certo por causa do que não deu. O aviso diz o que ficou pela
+       * metade e onde consertar.
+       */
+      const pelada = criada.data
+      if (pelada && requisitos.length > 0) {
+        try {
+          for (const requisito of requisitos) {
+            await playerService.upsertRequirement(
+              selectedCourt.id,
+              pelada.id,
+              requisito.type,
+              requisito.params ?? {},
+            )
+          }
+        } catch (err) {
+          // A frase é montada, e não delegada ao `mensagemDeErro`: o motivo da
+          // API ("Requisito inválido") é útil e insuficiente — sozinho, ele
+          // parece dizer que a criação falhou. O que a pessoa precisa saber
+          // primeiro é que a partida existe, e onde terminar a configuração.
+          setError(
+            `A partida foi criada, mas nem todas as regras foram salvas: ${mensagemDeErro(err, 'erro ao salvar a regra')}. Ajuste em "Regras de acesso", nas suas peladas.`,
+          )
+        }
+      }
+
       setStep(2)
     } catch (err) {
       setError(mensagemDeErro(err, 'Erro ao criar partida. Tente novamente.'))
@@ -356,6 +418,18 @@ export default function CriarPelada() {
                 <HintMsg>Os jogadores usarão essa chave para pagar a partida.</HintMsg>
               </Field>
 
+              {/* Quem vê e quem entra (#228). O mesmo componente edita a pelada
+                  já criada, para as duas telas não divergirem sobre o que cada
+                  regra significa. */}
+              <ConfiguracaoDeAcesso
+                visibilidade={visibilidade}
+                aoMudarVisibilidade={setVisibilidade}
+                requisitos={requisitos}
+                aoMudarRequisitos={setRequisitos}
+                times={meusTimes}
+                desabilitado={submitting}
+              />
+
               {error && (
                 <ErrorMsg style={{ padding: '10px', background: '#fff5f5', borderRadius: '6px' }}>
                   ⚠️ {error}
@@ -384,6 +458,21 @@ export default function CriarPelada() {
                 Sua partida foi aberta em <strong>{selectedCourt?.name}</strong>.
                 Compartilhe com seus amigos para completar as vagas!
               </p>
+
+              {/*
+                O erro aparece AQUI também, e não só na etapa 1 (#228).
+                A criação pode dar certo e a regra não — o requisito é pendurado
+                na pelada, que precisa existir antes. Nesse caso a tela avança
+                para cá, e um aviso que ficasse na etapa anterior seria um aviso
+                que ninguém lê: a pessoa sairia achando que a pelada está
+                fechada quando ela está aberta para qualquer um.
+              */}
+              {error && (
+                <ErrorMsg style={{ padding: '10px', background: '#fff5f5', borderRadius: '6px' }}>
+                  ⚠️ {error}
+                </ErrorMsg>
+              )}
+
               <SuccessActions>
                 <SecondaryBtn onClick={() => navigate('/minhas-peladas')}>
                   Ver Minhas Partidas
