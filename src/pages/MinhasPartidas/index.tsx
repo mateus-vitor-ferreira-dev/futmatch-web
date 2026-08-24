@@ -13,15 +13,15 @@ import { mensagemDeErro } from '../../utils/apiError'
 import type {
   Court,
   Participation,
-  Pelada,
-  PeladaRequirement,
-  PeladaStatus,
-  PeladaVisibility,
+  Partida,
+  PartidaRequirement,
+  PartidaStatus,
+  PartidaVisibility,
 } from '../../types/api'
 import { SorteioDeTimes } from '../../components/SorteioDeTimes'
 import { ConfirmacaoDePresencas } from '../../components/ConfirmacaoDePresencas'
 import { ConfiguracaoDeAcesso } from '../../components/ConfiguracaoDeAcesso'
-import { RegrasDaPelada } from '../../components/RegrasDaPelada'
+import { RegrasDaPartida } from '../../components/RegrasDaPartida'
 import { MarcaDeVisibilidade } from '../../components/MarcaDeVisibilidade'
 import { teamsService } from '../../services/teams'
 import { SortearBtn } from '../../components/SorteioDeTimes/styles'
@@ -37,7 +37,7 @@ const STATUS_LABELS: Record<string, string> = {
   CANCELLED: 'Cancelado',
 }
 
-interface FormularioPelada {
+interface FormularioPartida {
   date: string
   time: string
   maxPlayers: string
@@ -46,7 +46,7 @@ interface FormularioPelada {
   courtId: string
 }
 
-export default function MinhasPeladas() {
+export default function MinhasPartidas() {
   const navigate = useNavigate()
   const queryClient = useQueryClient()
   const [searchParams, setSearchParams] = useSearchParams()
@@ -56,13 +56,13 @@ export default function MinhasPeladas() {
 
   // Sorteio — a partida aberta no modal. O resto do estado (quantidade,
   // resultado, carregando) vive dentro do SorteioDeTimes.
-  const [drawEvent, setDrawEvent] = useState<Pelada | null>(null)
+  const [drawEvent, setDrawEvent] = useState<Partida | null>(null)
 
   // Presença
-  const [attendanceEvent, setAttendanceEvent]           = useState<Pelada | null>(null)
+  const [attendanceEvent, setAttendanceEvent]           = useState<Partida | null>(null)
 
   // Regras de acesso da pelada já criada (#228)
-  const [regrasEvent, setRegrasEvent] = useState<Pelada | null>(null)
+  const [regrasEvent, setRegrasEvent] = useState<Partida | null>(null)
 
   /**
    * Visibilidade e requisitos do formulário de criação.
@@ -71,10 +71,10 @@ export default function MinhasPeladas() {
    * que o `ConfiguracaoDeAcesso` edita inteiras, e registrar uma lista de
    * requisitos no formulário custaria mais do que o `useState` resolve.
    */
-  const [visibilidade, setVisibilidade] = useState<PeladaVisibility>('PUBLIC')
-  const [requisitos, setRequisitos] = useState<PeladaRequirement[]>([])
+  const [visibilidade, setVisibilidade] = useState<PartidaVisibility>('PUBLIC')
+  const [requisitos, setRequisitos] = useState<PartidaRequirement[]>([])
 
-  const { register, handleSubmit, reset } = useForm<FormularioPelada>()
+  const { register, handleSubmit, reset } = useForm<FormularioPartida>()
 
   // Limpa o ?action=criar da URL após abrir o modal
   useEffect(() => {
@@ -85,10 +85,10 @@ export default function MinhasPeladas() {
 
   /**
    * A aba "participating" devolve Participation[] (com a pelada aninhada) e a
-   * "created" devolve Pelada[]. Cada aba tem a própria entrada de cache, então
+   * "created" devolve Partida[]. Cada aba tem a própria entrada de cache, então
    * alternar entre elas ida e volta não refaz a busca.
    */
-  const { data: events = [], isPending: loading } = useQuery<Array<Pelada | Participation>>({
+  const { data: events = [], isPending: loading } = useQuery<Array<Partida | Participation>>({
     queryKey: activeTab === 'participating' ? chaves.eventos.participando() : chaves.eventos.criados(),
     queryFn: async () => {
       const res = activeTab === 'participating'
@@ -126,7 +126,7 @@ export default function MinhasPeladas() {
     setRequisitos([])
   }
 
-  const onSubmit = async (data: FormularioPelada) => {
+  const onSubmit = async (data: FormularioPartida) => {
     // Regra impossível de cumprir é recusada pela API com 422, e ali o erro
     // chegaria depois de a pelada já existir. Barrar antes é o que evita a
     // pelada criada com metade das regras.
@@ -189,7 +189,7 @@ export default function MinhasPeladas() {
   }
 
 
-  const handleUpdateStatus = async (ev: Pelada, status: PeladaStatus) => {
+  const handleUpdateStatus = async (ev: Partida, status: PartidaStatus) => {
     const label = status === 'FINISHED' ? 'finalizar' : 'cancelar'
     if (!window.confirm(`Tem certeza que deseja ${label} esta partida?`)) return
     try {
@@ -214,7 +214,7 @@ export default function MinhasPeladas() {
             estreitada por modalidade e estabelecimento antes de chegar na quadra,
             enquanto o modal despeja o `GET /courts` inteiro num `select` só. Ver #268.
           */}
-          <CreateButton onClick={() => navigate('/criar-pelada')}>
+          <CreateButton onClick={() => navigate('/criar-partida')}>
             <Plus size={18} style={{ display: 'inline', marginRight: 4, verticalAlign: 'middle' }} />
             Criar Jogo
           </CreateButton>
@@ -232,7 +232,7 @@ export default function MinhasPeladas() {
         {loading ? <SkeletonCard count={3} /> : (
           <Grid>
             {events.map((event) => {
-              const ev = ('pelada' in event && event.pelada ? event.pelada : event) as Pelada
+              const ev = ('pelada' in event && event.pelada ? event.pelada : event) as Partida
               if (!ev || !ev.id) return null
 
               const currentPlayers = ev._count?.participations || 0
@@ -242,7 +242,7 @@ export default function MinhasPeladas() {
               return (
                 // O cartão inteiro navega para o detalhe, então todo controle dentro dele
                 // precisa de stopPropagation — senão o modal abre e fecha no mesmo clique.
-                <Card key={ev.id} onClick={() => navigate(`/pelada/${ev.id}`)} style={{ cursor: 'pointer' }}>
+                <Card key={ev.id} onClick={() => navigate(`/partida/${ev.id}`)} style={{ cursor: 'pointer' }}>
                   <CardHeader>
                     <div>
                       <h3>{ev.court?.place?.name || 'Local'}</h3>
@@ -380,7 +380,7 @@ export default function MinhasPeladas() {
 
         {/* Regras de acesso da pelada já criada (#228). */}
         {regrasEvent && (
-          <RegrasDaPelada
+          <RegrasDaPartida
             partida={regrasEvent}
             onClose={() => setRegrasEvent(null)}
             onSaved={invalidarPeladas}

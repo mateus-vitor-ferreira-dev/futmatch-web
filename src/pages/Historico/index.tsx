@@ -6,7 +6,7 @@ import { useAuth } from '../../contexts/AuthContext'
 import { playerService } from '../../services/playerService'
 import { mensagemDeErro } from '../../utils/apiError'
 import type { ReviewProgress } from '../../services/playerService'
-import type { Participation, Pelada, ReviewTag, UserStats } from '../../types/api'
+import type { Participation, Partida, ReviewTag, UserStats } from '../../types/api'
 import {
   Container, StatsCard, HistoryList, HistoryCard,
   EvalModalOverlay, EvalModalContent, ParticipantRow,
@@ -14,7 +14,7 @@ import {
 } from './styles'
 
 const TAG_OPTIONS = [
-  { label: 'Craque da Pelada', value: 'CRAQUE_DA_PELADA' },
+  { label: 'Craque da Partida', value: 'CRAQUE_DA_PELADA' },
   { label: 'Joga Fácil',       value: 'JOGA_FACIL'       },
   { label: 'Passa de Ano',     value: 'PASSA_DE_ANO'     },
   { label: 'Pontual',          value: 'PONTUAL'           },
@@ -39,7 +39,7 @@ export default function Historico() {
   const [loading, setLoading] = useState(true)
 
   // Modal de avaliação
-  const [evalEvent, setEvalEvent] = useState<Pelada | null>(null)
+  const [evalEvent, setEvalEvent] = useState<Partida | null>(null)
   const [participants, setParticipants] = useState<Participation[]>([])
   /** Avaliação em edição, indexada por userId do avaliado. */
   const [evaluations, setEvaluations] = useState<Record<string, AvaliacaoEmEdicao>>({})

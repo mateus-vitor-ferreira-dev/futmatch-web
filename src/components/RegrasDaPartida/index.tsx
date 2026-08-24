@@ -4,7 +4,7 @@ import { toast } from 'sonner'
 import { playerService } from '../../services/playerService'
 import { teamsService } from '../../services/teams'
 import { chaves } from '../../lib/queryClient'
-import type { Pelada, PeladaRequirement, PeladaVisibility } from '../../types/api'
+import type { Partida, PartidaRequirement, PartidaVisibility } from '../../types/api'
 import { mensagemDeErro } from '../../utils/apiError'
 import { ConfiguracaoDeAcesso } from '../ConfiguracaoDeAcesso'
 import {
@@ -17,13 +17,13 @@ import {
 } from './styles'
 
 interface Props {
-  partida: Pelada
+  partida: Partida
   onClose: () => void
   onSaved?: () => void
 }
 
 /** O que precisa ser dito antes de salvar, quando a regra é impossível de cumprir. */
-function problema(requisitos: PeladaRequirement[]): string | null {
+function problema(requisitos: PartidaRequirement[]): string | null {
   const selo = requisitos.find((r) => r.type === 'BADGE')
   if (selo && (selo.params?.badges?.length ?? 0) === 0) {
     return 'Marque ao menos um selo, ou remova a regra de selo.'
@@ -50,10 +50,10 @@ function problema(requisitos: PeladaRequirement[]): string | null {
  * funcionaria e custaria uma escrita por regra a cada confirmação, inclusive
  * quando nada mudou.
  */
-export function RegrasDaPelada({ partida, onClose, onSaved }: Props) {
-  const [visibilidade, setVisibilidade] = useState<PeladaVisibility>(partida.visibility ?? 'PUBLIC')
-  const [requisitos, setRequisitos] = useState<PeladaRequirement[]>([])
-  const [originais, setOriginais] = useState<PeladaRequirement[]>([])
+export function RegrasDaPartida({ partida, onClose, onSaved }: Props) {
+  const [visibilidade, setVisibilidade] = useState<PartidaVisibility>(partida.visibility ?? 'PUBLIC')
+  const [requisitos, setRequisitos] = useState<PartidaRequirement[]>([])
+  const [originais, setOriginais] = useState<PartidaRequirement[]>([])
   const [carregando, setCarregando] = useState(true)
   const [erroAoCarregar, setErroAoCarregar] = useState(false)
   const [salvando, setSalvando] = useState(false)

@@ -236,7 +236,7 @@ describe('Página do time', () => {
     })
   })
 
-  describe('Peladas do time', () => {
+  describe('Partidas do time', () => {
     it('lista as peladas com local, situação e vagas', async () => {
       buscarPeladas.mockResolvedValue([
         criaPeladaDeTime({ id: 'p1', status: 'WAITING', maxPlayers: 14, _count: { participations: 5 } }),
@@ -244,7 +244,7 @@ describe('Página do time', () => {
 
       montar()
 
-      const secao = within(await screen.findByRole('region', { name: 'Peladas do time' }))
+      const secao = within(await screen.findByRole('region', { name: 'Partidas do time' }))
       expect(await secao.findByText('Aberta')).toBeInTheDocument()
       expect(secao.getByText('5/14 jogadores')).toBeInTheDocument()
       expect(secao.getByText(/Arena Teste/)).toBeInTheDocument()
@@ -255,8 +255,8 @@ describe('Página do time', () => {
 
       montar()
 
-      const secao = within(await screen.findByRole('region', { name: 'Peladas do time' }))
-      await waitFor(() => expect(secao.getByRole('link')).toHaveAttribute('href', '/pelada/p1'))
+      const secao = within(await screen.findByRole('region', { name: 'Partidas do time' }))
+      await waitFor(() => expect(secao.getByRole('link')).toHaveAttribute('href', '/partida/p1'))
     })
 
     it('time sem pelada mostra o vazio, e não erro', async () => {

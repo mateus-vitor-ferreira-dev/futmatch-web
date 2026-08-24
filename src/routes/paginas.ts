@@ -30,7 +30,7 @@ function lazyWithRetry<T extends ComponentType<any>>(carregar: Carregador<T>) {
 /**
  * Caminho → carregador do chunk.
  *
- * Só rotas estáticas: as com parâmetro (`/torneios/:id`, `/pelada/:eventId`,
+ * Só rotas estáticas: as com parâmetro (`/torneios/:id`, `/partida/:eventId`,
  * `/owner/places/:placeId/courts`) não aparecem no menu, que é de onde o
  * prefetch parte. Caminho desconhecido simplesmente não faz nada.
  */
@@ -46,9 +46,9 @@ const CARREGADORES = {
   '/home':             () => import('../pages/Home'),
   '/perfil':           () => import('../pages/Profile'),
   '/quero-jogar':      () => import('../pages/QueroJogar'),
-  '/criar-pelada':     () => import('../pages/CriarPelada'),
+  '/criar-partida':     () => import('../pages/CriarPartida'),
   '/torneios':         () => import('../pages/Tournaments'),
-  '/minhas-peladas':   () => import('../pages/MinhasPeladas'),
+  '/minhas-partidas':   () => import('../pages/MinhasPartidas'),
   '/historico':        () => import('../pages/Historico'),
   '/avaliacoes':       () => import('../pages/Avaliacoes'),
   '/times':            () => import('../pages/Times'),
@@ -124,9 +124,9 @@ export const OwnerAccess      = lazyWithRetry(CARREGADORES['/seja-parceiro'])
 export const Home             = lazyWithRetry(CARREGADORES['/home'])
 export const Profile          = lazyWithRetry(CARREGADORES['/perfil'])
 export const QueroJogar       = lazyWithRetry(CARREGADORES['/quero-jogar'])
-export const CriarPelada      = lazyWithRetry(CARREGADORES['/criar-pelada'])
+export const CriarPartida      = lazyWithRetry(CARREGADORES['/criar-partida'])
 export const Tournaments      = lazyWithRetry(CARREGADORES['/torneios'])
-export const MinhasPeladas    = lazyWithRetry(CARREGADORES['/minhas-peladas'])
+export const MinhasPartidas    = lazyWithRetry(CARREGADORES['/minhas-partidas'])
 export const Historico        = lazyWithRetry(CARREGADORES['/historico'])
 export const Avaliacoes       = lazyWithRetry(CARREGADORES['/avaliacoes'])
 export const Times            = lazyWithRetry(CARREGADORES['/times'])
@@ -142,7 +142,7 @@ export const OwnerEquipment   = lazyWithRetry(CARREGADORES['/owner/equipment'])
 export const OwnerRequests    = lazyWithRetry(CARREGADORES['/owner/requests'])
 
 // Rotas com parâmetro: fora do registro porque não partem do menu.
-export const PeladaDetail     = lazyWithRetry(() => import('../pages/PeladaDetail'))
+export const PartidaDetail     = lazyWithRetry(() => import('../pages/PartidaDetail'))
 export const TimeDetail       = lazyWithRetry(() => import('../pages/TimeDetail'))
 export const TournamentDetail = lazyWithRetry(() => import('../pages/TournamentDetail'))
 export const OwnerCourts      = lazyWithRetry(() => import('../pages/Owner/Courts'))
