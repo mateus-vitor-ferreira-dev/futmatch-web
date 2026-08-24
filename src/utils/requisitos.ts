@@ -1,4 +1,4 @@
-import type { PeladaRequirementParams, PeladaRequirementType, PeladaVisibility, UserBadge } from '../types/api'
+import type { PartidaRequirementParams, PartidaRequirementType, PartidaVisibility, UserBadge } from '../types/api'
 
 /**
  * O vocabulário das regras de entrada, num lugar só (#228).
@@ -27,7 +27,7 @@ export const TODOS_OS_SELOS = Object.keys(SELOS) as UserBadge[]
  * escolhe errado publica para a cidade inteira uma pelada que queria fechada.
  */
 export const VISIBILIDADES: Array<{
-  valor: PeladaVisibility
+  valor: PartidaVisibility
   titulo: string
   descricao: string
 }> = [
@@ -50,13 +50,13 @@ export const VISIBILIDADES: Array<{
 
 /** O catálogo de requisitos, na ordem em que a tela os oferece. */
 export const TIPOS_DE_REQUISITO: Array<{
-  tipo: PeladaRequirementType
+  tipo: PartidaRequirementType
   titulo: string
   ajuda: string
 }> = [
   {
     tipo: 'MIN_MATCHES_PLAYED',
-    titulo: 'Peladas já jogadas',
+    titulo: 'Partidas já jogadas',
     ajuda: 'Conta as presenças confirmadas. Quem está começando não passa — é o único que não perdoa o estreante.',
   },
   {
@@ -89,8 +89,8 @@ export const TIPOS_DE_REQUISITO: Array<{
  * quem não sabe recebe a frase genérica, que continua verdadeira.
  */
 export function descreveRequisito(
-  type: PeladaRequirementType,
-  params: PeladaRequirementParams | null | undefined,
+  type: PartidaRequirementType,
+  params: PartidaRequirementParams | null | undefined,
   nomeDoTime?: string,
 ): string {
   const min = params?.min
@@ -128,10 +128,10 @@ export function descreveRequisito(
  * Os cortes são deliberadamente conservadores. Avisar demais ensina a ignorar o
  * aviso, e um aviso ignorado é pior que nenhum.
  */
-export function avisoDeRestricao(requisitos: Array<{ type: PeladaRequirementType; params: PeladaRequirementParams | null }>): string | null {
+export function avisoDeRestricao(requisitos: Array<{ type: PartidaRequirementType; params: PartidaRequirementParams | null }>): string | null {
   if (requisitos.length === 0) return null
 
-  const de = (tipo: PeladaRequirementType) => requisitos.find((r) => r.type === tipo)
+  const de = (tipo: PartidaRequirementType) => requisitos.find((r) => r.type === tipo)
 
   // Time fecha a pelada por completo: nenhum outro requisito muda o alcance
   // depois dele, e por isso ele fala primeiro.

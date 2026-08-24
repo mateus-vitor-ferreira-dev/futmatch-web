@@ -24,7 +24,7 @@ import { ThemeContextProvider } from '../contexts/ThemeContext'
 import { AuthProvider } from '../contexts/AuthContext'
 
 export interface RenderWithProvidersOptions extends Omit<RenderOptions, 'wrapper'> {
-  /** Rota inicial do MemoryRouter. Ex.: `/pelada/42`. Padrão: `/`. */
+  /** Rota inicial do MemoryRouter. Ex.: `/partida/42`. Padrão: `/`. */
   route?: string
   /**
    * Padrão da rota, quando o componente lê parâmetro da URL com `useParams`.
@@ -33,9 +33,9 @@ export interface RenderWithProvidersOptions extends Omit<RenderOptions, 'wrapper
    * caminho e padrão, então sem `path` o `useParams()` devolve `{}` e o
    * componente quebra numa falha que não parece ter nada a ver com rota.
    *
-   *   renderWithProviders(<PeladaDetail />, {
-   *     route: '/pelada/42',
-   *     path:  '/pelada/:eventId',
+   *   renderWithProviders(<PartidaDetail />, {
+   *     route: '/partida/42',
+   *     path:  '/partida/:eventId',
    *   })
    */
   path?: string

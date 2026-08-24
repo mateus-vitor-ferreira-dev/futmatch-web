@@ -12,13 +12,13 @@ export { default as OwnerPlaces } from './Owner/Places'
 export { default as OwnerRequests } from './Owner/Requests'
 
 export { default as QueroJogar } from './QueroJogar'
-export { default as MinhasPeladas } from './MinhasPeladas'
+export { default as MinhasPartidas } from './MinhasPartidas'
 export { default as Historico } from './Historico'
 
 export { default as AdminDashboard } from './Admin/Dashboard'
 export { default as OwnerDashboard } from './Owner/Dashboard'
 
-export { default as CriarPelada }   from './CriarPelada'
+export { default as CriarPartida }   from './CriarPartida'
 export { default as Tournaments }   from './Tournaments'
 export { default as Avaliacoes }    from './Avaliacoes'
 export { default as Times } from './Times'

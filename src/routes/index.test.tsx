@@ -31,10 +31,10 @@ vi.mock('./paginas', () => {
     Register: ({ initialMode }: { initialMode?: string }) => <div>tela de {initialMode}</div>,
     ForgotPassword: stub('ForgotPassword'), ResetPassword: stub('ResetPassword'),
     OwnerAccess: stub('OwnerAccess'), Home: stub('Home'), Profile: stub('Profile'),
-    QueroJogar: stub('QueroJogar'), CriarPelada: stub('CriarPelada'),
-    Tournaments: stub('Tournaments'), MinhasPeladas: stub('MinhasPeladas'),
+    QueroJogar: stub('QueroJogar'), CriarPartida: stub('CriarPartida'),
+    Tournaments: stub('Tournaments'), MinhasPartidas: stub('MinhasPartidas'),
     Historico: stub('Historico'), Avaliacoes: stub('Avaliacoes'),
-    PeladaDetail: stub('PeladaDetail'), TournamentDetail: stub('TournamentDetail'),
+    PartidaDetail: stub('PartidaDetail'), TournamentDetail: stub('TournamentDetail'),
     Times: stub('Times'), TimeDetail: stub('TimeDetail'),
     AdminDashboard: stub('AdminDashboard'), AdminUsers: stub('AdminUsers'),
     AdminRequests: stub('AdminRequests'), AdminPlaces: stub('AdminPlaces'),
@@ -94,23 +94,23 @@ describe('rota raiz', () => {
 describe('rota da pelada', () => {
     beforeEach(() => {
         auth.estado = { user: null, loading: false, isAuthenticated: false }
-        window.history.pushState({}, '', '/pelada/pelada-1')
+        window.history.pushState({}, '', '/partida/pelada-1')
     })
 
     it('abre para quem não tem sessão, sem passar pelo login', async () => {
         render(<AppRoutes />)
 
-        expect(await screen.findByText('PeladaDetail')).toBeInTheDocument()
-        expect(window.location.pathname).toBe('/pelada/pelada-1')
+        expect(await screen.findByText('PartidaDetail')).toBeInTheDocument()
+        expect(window.location.pathname).toBe('/partida/pelada-1')
         expect(screen.queryByText('tela de login')).not.toBeInTheDocument()
     })
 
     it('preserva a query, que é onde mora o token do convite', async () => {
-        window.history.pushState({}, '', '/pelada/pelada-1?convite=token-abc')
+        window.history.pushState({}, '', '/partida/pelada-1?convite=token-abc')
 
         render(<AppRoutes />)
 
-        await screen.findByText('PeladaDetail')
+        await screen.findByText('PartidaDetail')
         expect(window.location.search).toBe('?convite=token-abc')
     })
 
@@ -133,7 +133,7 @@ describe('rota da pelada', () => {
         // Sem isto, quem tem sessão veria a versão de visitante piscar antes de
         // a verificação terminar.
         await waitFor(() => {
-            expect(screen.queryByText('PeladaDetail')).not.toBeInTheDocument()
+            expect(screen.queryByText('PartidaDetail')).not.toBeInTheDocument()
             expect(screen.queryByText('MainLayout')).not.toBeInTheDocument()
         })
     })
@@ -147,5 +147,51 @@ describe('rota da pelada', () => {
         // exporia muito mais peladas e muito mais gente de uma vez.
         await waitFor(() => expect(window.location.pathname).toBe('/login'))
         expect(screen.queryByText('QueroJogar')).not.toBeInTheDocument()
+    })
+})
+
+/**
+ * As rotas antigas, depois da #329.
+ *
+ * O rename só é seguro se o link que já saiu continuar abrindo. `/pelada/:id`
+ * é a URL que circula no grupo do WhatsApp: quem clica nela não é quem tem
+ * como reportar que quebrou, então a regressão seria silenciosa.
+ *
+ * O caso da query não é hipótese. É a api que monta o link do convite, em
+ * `invite.service.ts`, como `${APP_URL}/pelada/${id}?c=<token>` — o `?c=` é a
+ * credencial de entrada. Um redirect que preservasse só o `:eventId` abriria a
+ * página sem o convite, e a partida responde 404 para quem não é de dentro.
+ */
+describe('rotas antigas da #329', () => {
+    beforeEach(() => {
+        auth.estado = { user: null, loading: false, isAuthenticated: false }
+    })
+
+    it('/pelada/:eventId leva para /partida/:eventId, com o id preservado', async () => {
+        window.history.pushState({}, '', '/pelada/pelada-1')
+
+        render(<AppRoutes />)
+
+        expect(await screen.findByText('PartidaDetail')).toBeInTheDocument()
+        expect(window.location.pathname).toBe('/partida/pelada-1')
+    })
+
+    it('leva o token do convite junto, e não só o id', async () => {
+        window.history.pushState({}, '', '/pelada/pelada-1?c=token-abc')
+
+        render(<AppRoutes />)
+
+        await screen.findByText('PartidaDetail')
+        expect(window.location.pathname).toBe('/partida/pelada-1')
+        expect(window.location.search).toBe('?c=token-abc')
+    })
+
+    it('/criar-pelada e /minhas-peladas continuam abrindo para quem tem sessão', async () => {
+        auth.estado = { user: { role: 'USER' }, loading: false, isAuthenticated: true }
+        window.history.pushState({}, '', '/criar-pelada')
+
+        render(<AppRoutes />)
+
+        await waitFor(() => expect(window.location.pathname).toBe('/criar-partida'))
     })
 })

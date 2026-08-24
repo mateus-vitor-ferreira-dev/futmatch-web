@@ -1,5 +1,5 @@
 import api from './api'
-import type { ApiEnvelope, CourtType, Team, TeamInvite, TeamPelada, TeamSummary } from '../types/api'
+import type { ApiEnvelope, CourtType, Team, TeamInvite, TeamPartida, TeamSummary } from '../types/api'
 
 /**
  * Times fixos (api#202).
@@ -39,7 +39,7 @@ export const teamsService = {
 
   /** Só para quem é do time — fora dele a api responde 403. */
   peladas: (teamId: string) =>
-    api.get<ApiEnvelope<TeamPelada[]>>(`/teams/${teamId}/peladas`).then(desembrulhar),
+    api.get<ApiEnvelope<TeamPartida[]>>(`/teams/${teamId}/peladas`).then(desembrulhar),
 
   /**
    * Convida por e-mail. A api também aceita `userId`, e as duas formas são

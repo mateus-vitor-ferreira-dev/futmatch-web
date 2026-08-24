@@ -1,6 +1,6 @@
 import { Suspense, useMemo } from 'react'
 import type { ReactNode } from 'react'
-import { BrowserRouter, Routes, Route, Navigate, Outlet } from 'react-router-dom'
+import { BrowserRouter, Routes, Route, Navigate, Outlet, useParams, useLocation } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
 import MainLayout from '../components/MainLayout'
 import DashboardLayout from '../components/DashboardLayout'
@@ -9,8 +9,8 @@ import { useSubscription } from '../hooks/useSubscription'
 import PlanGate from '../components/PlanGate'
 import {
   Register, ForgotPassword, ResetPassword, OwnerAccess,
-  Home, Profile, QueroJogar, CriarPelada, Tournaments, MinhasPeladas,
-  Historico, Avaliacoes, PeladaDetail, TournamentDetail, Times, TimeDetail,
+  Home, Profile, QueroJogar, CriarPartida, Tournaments, MinhasPartidas,
+  Historico, Avaliacoes, PartidaDetail, TournamentDetail, Times, TimeDetail,
   AdminDashboard, AdminUsers, AdminRequests, AdminPlaces,
   OwnerDashboard, OwnerPlans, OwnerPlaces, OwnerInventory, OwnerEquipment, OwnerRequests, OwnerCourts,
 } from './paginas'
@@ -67,7 +67,30 @@ function PrivateRoute({ children }: { children: ReactNode }) {
  * não tem vê a página sozinha — o menu do `MainLayout` só leva a lugares que
  * exigem login, e oferecê-lo a um visitante seria uma fila de becos sem saída.
  */
-function PeladaShell() {
+/**
+ * As rotas antigas continuam abrindo (#329).
+ *
+ * `/pelada/:eventId` é a URL que o jogador cola no grupo do WhatsApp. Ela já
+ * saiu, e quem clica nela não é quem tem como reportar que quebrou — link morto
+ * é a regressão que ninguém vê acontecer. O `:eventId` é preservado, e o
+ * redirect não tem prazo para sair.
+ *
+ * `Navigate` sozinho não serve aqui: ele não interpola parâmetro de rota, e
+ * mandaria o visitante para a string literal `/partida/:eventId`.
+ *
+ * A query string vai junto, e isso não é zelo: o convite por link chega como
+ * `/pelada/<id>?c=<token>` — é a api que monta essa URL, em `invite.service.ts`
+ * —, e o `?c=` é a credencial de entrada. Redirect que só preserva o `:eventId`
+ * abre a página e perde o convite, com a partida respondendo 404 para quem não
+ * é de dentro. O `hash` vai pelo mesmo motivo: custa nada e não se perde.
+ */
+function RedirecionaParaPartida() {
+  const { eventId } = useParams()
+  const { search, hash } = useLocation()
+  return <Navigate to={`/partida/${eventId}${search}${hash}`} replace />
+}
+
+function PartidaShell() {
   const { isAuthenticated, loading } = useAuth()
   if (loading) return null
   if (isAuthenticated) return <MainLayout />
@@ -133,10 +156,10 @@ export default function AppRoutes() {
           <Route path="/home"            element={<Home />} />
           <Route path="/perfil"          element={<Profile />} />
           <Route path="/quero-jogar"     element={<QueroJogar />} />
-          <Route path="/criar-pelada"    element={<CriarPelada />} />
+          <Route path="/criar-partida"    element={<CriarPartida />} />
           <Route path="/torneios"        element={<Tournaments />} />
           <Route path="/torneios/:id"    element={<TournamentDetail />} />
-          <Route path="/minhas-peladas"  element={<MinhasPeladas />} />
+          <Route path="/minhas-partidas"  element={<MinhasPartidas />} />
           <Route path="/historico"       element={<Historico />} />
           <Route path="/avaliacoes"      element={<Avaliacoes />} />
           <Route path="/times"           element={<Times />} />
@@ -175,11 +198,18 @@ export default function AppRoutes() {
         </Route>
 
         {/* Fallback */}
-        {/* Fora do bloco privado de propósito — ver `PeladaShell`. A rota
+        {/* Fora do bloco privado de propósito — ver `PartidaShell`. A rota
             precisa vir antes do catch-all, que manda tudo para o login. */}
-        <Route element={<PeladaShell />}>
-          <Route path="/pelada/:eventId" element={<PeladaDetail />} />
+        <Route element={<PartidaShell />}>
+          <Route path="/partida/:eventId" element={<PartidaDetail />} />
         </Route>
+
+        {/* Rotas antigas, só para link que já saiu — ver `RedirecionaParaPartida`.
+            Navegação nova aponta direto para o nome novo; nenhum link interno
+            passa por aqui. */}
+        <Route path="/pelada/:eventId"  element={<RedirecionaParaPartida />} />
+        <Route path="/criar-pelada"     element={<Navigate to="/criar-partida" replace />} />
+        <Route path="/minhas-peladas"   element={<Navigate to="/minhas-partidas" replace />} />
 
         <Route path="*" element={<Navigate to="/login" replace />} />
       </Routes>

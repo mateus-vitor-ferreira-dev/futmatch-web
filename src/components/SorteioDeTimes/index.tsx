@@ -3,7 +3,7 @@ import { Shuffle } from 'lucide-react'
 import { toast } from 'sonner'
 import { playerService } from '../../services/playerService'
 import { mensagemDeErro } from '../../utils/apiError'
-import type { DrawMode, DrawResult, DrawTeam, Pelada } from '../../types/api'
+import type { DrawMode, DrawResult, DrawTeam, Partida } from '../../types/api'
 import {
   ModalOverlay, ModalContent, Subtitulo, CampoQuantidade, AcoesDoModal,
   DrawResultHeader, TeamGrid, TeamCard, TeamHeader, PlayerItem,
@@ -57,7 +57,7 @@ function CartaoDoTime({ time, indice }: { time: DrawTeam; indice: number }) {
 
 interface SorteioDeTimesProps {
   /** A partida cujos confirmados vão para os times. */
-  partida: Pelada
+  partida: Partida
   /** Fecha o modal. Quem renderiza decide o que fazer depois. */
   onClose: () => void
 }

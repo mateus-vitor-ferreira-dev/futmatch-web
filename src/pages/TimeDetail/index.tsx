@@ -12,14 +12,14 @@ import { Skeleton } from '../../components/Skeleton'
 import {
   SecondaryButton, CreateButton, ModalOverlay, ModalContent, Form, ButtonGroup,
 } from '../Times/styles'
-import type { CourtType, PeladaStatus, TeamMember, TeamPelada } from '../../types/api'
+import type { CourtType, PartidaStatus, TeamMember, TeamPartida } from '../../types/api'
 import {
   Container, BackLink, Hero, CaptainActions, Section,
   MemberList, MemberCard, CaptainBadge,
-  PeladaList, PeladaCard, StatusChip, EmptyState, ErrorState,
+  PartidaList, PartidaCard, StatusChip, EmptyState, ErrorState,
 } from './styles'
 
-const STATUS: Record<PeladaStatus, { label: string; tom: 'aberta' | 'cheia' | 'fim' | 'cancelada' }> = {
+const STATUS: Record<PartidaStatus, { label: string; tom: 'aberta' | 'cheia' | 'fim' | 'cancelada' }> = {
   WAITING:   { label: 'Aberta',     tom: 'aberta' },
   FULL:      { label: 'Lotada',     tom: 'cheia' },
   FINISHED:  { label: 'Finalizada', tom: 'fim' },
@@ -250,7 +250,7 @@ export default function TimeDetail() {
       </Section>
 
       <Section aria-labelledby="titulo-peladas">
-        <h2 id="titulo-peladas">Peladas do time</h2>
+        <h2 id="titulo-peladas">Partidas do time</h2>
 
         {!souMembro && (
           <EmptyState>As peladas deste time são visíveis para quem é do time.</EmptyState>
@@ -272,12 +272,12 @@ export default function TimeDetail() {
         )}
 
         {souMembro && peladas.data && peladas.data.length > 0 && (
-          <PeladaList>
-            {peladas.data.map((pelada: TeamPelada) => {
+          <PartidaList>
+            {peladas.data.map((pelada: TeamPartida) => {
               const situacao = STATUS[pelada.status]
               return (
-                <PeladaCard key={pelada.id}>
-                  <Link to={`/pelada/${pelada.id}`}>
+                <PartidaCard key={pelada.id}>
+                  <Link to={`/partida/${pelada.id}`}>
                     <div>
                       <div className="quando">
                         <Calendar size={14} aria-hidden="true" /> {formatarData(pelada.date)}
@@ -293,10 +293,10 @@ export default function TimeDetail() {
                       </div>
                     </div>
                   </Link>
-                </PeladaCard>
+                </PartidaCard>
               )
             })}
-          </PeladaList>
+          </PartidaList>
         )}
       </Section>
 
