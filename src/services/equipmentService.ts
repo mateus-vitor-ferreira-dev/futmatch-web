@@ -56,4 +56,4 @@ export const searchBorrowers = async (placeId: string, search = ''): Promise<Equ
   (await api.get(`/places/${placeId}/equipment/borrowers`, { params: { search } })).data.data
 
 export const listPeladas = async (placeId: string): Promise<EquipmentPartida[]> =>
-  (await api.get(`/places/${placeId}/equipment/peladas`)).data.data
+  (await api.get(`/places/${placeId}/equipment/events`)).data.data

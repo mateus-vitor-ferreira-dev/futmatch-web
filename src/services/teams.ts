@@ -39,7 +39,7 @@ export const teamsService = {
 
   /** Só para quem é do time — fora dele a api responde 403. */
   peladas: (teamId: string) =>
-    api.get<ApiEnvelope<TeamPartida[]>>(`/teams/${teamId}/peladas`).then(desembrulhar),
+    api.get<ApiEnvelope<TeamPartida[]>>(`/teams/${teamId}/events`).then(desembrulhar),
 
   /**
    * Convida por e-mail. A api também aceita `userId`, e as duas formas são
