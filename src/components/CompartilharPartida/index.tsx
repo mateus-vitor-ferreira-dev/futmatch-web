@@ -3,7 +3,7 @@ import { toast } from 'sonner'
 import { Copy, Share2, Link2 } from 'lucide-react'
 import { criarConvite, listarConvites, revogarConvite } from '../../services/invites'
 import { mensagemDeErro } from '../../utils/apiError'
-import type { Pelada, PeladaInvite } from '../../types/api'
+import type { Partida, PartidaInvite } from '../../types/api'
 import {
   ModalOverlay, ModalContent, Subtitulo,
   LinkBox, LinkTexto, Acoes, BotaoPrincipal, BotaoSecundario,
@@ -19,7 +19,7 @@ import {
  * não pensar. As três condições são as mesmas três recusas da API — revogado,
  * vencido e esgotado.
  */
-function estaValendo(convite: PeladaInvite, agora = Date.now()): boolean {
+function estaValendo(convite: PartidaInvite, agora = Date.now()): boolean {
   if (convite.revokedAt) return false
   if (convite.expiresAt && new Date(convite.expiresAt).getTime() <= agora) return false
   if (convite.remainingUses !== null && convite.remainingUses <= 0) return false
@@ -30,7 +30,7 @@ const formataData = (iso: string) =>
   new Intl.DateTimeFormat('pt-BR', { dateStyle: 'short' }).format(new Date(iso))
 
 /** O que este link ainda oferece, em uma linha. */
-function descreve(convite: PeladaInvite): string {
+function descreve(convite: PartidaInvite): string {
   const partes = [
     convite.maxUses === null ? 'usos ilimitados' : `${convite.uses} de ${convite.maxUses} usos`,
     convite.expiresAt ? `vence ${formataData(convite.expiresAt)}` : 'sem validade',
@@ -39,7 +39,7 @@ function descreve(convite: PeladaInvite): string {
 }
 
 /** Por que este link parou de valer — a mesma distinção que a API faz. */
-function motivoDeEstarInativo(convite: PeladaInvite, agora = Date.now()): string {
+function motivoDeEstarInativo(convite: PartidaInvite, agora = Date.now()): string {
   if (convite.revokedAt) return 'revogado'
   if (convite.expiresAt && new Date(convite.expiresAt).getTime() <= agora) return 'expirado'
   return 'esgotado'
@@ -54,14 +54,14 @@ function motivoDeEstarInativo(convite: PeladaInvite, agora = Date.now()): string
  * Validade e limite existem na API e ficam para quem precisar deles — pedi-los
  * de todo mundo cobraria duas decisões de quem só quer chamar os amigos.
  */
-export default function CompartilharPelada({
+export default function CompartilharPartida({
   pelada, onFechar,
 }: {
-  pelada: Pelada
+  pelada: Partida
   onFechar: () => void
 }) {
-  const [convites, setConvites] = useState<PeladaInvite[]>([])
-  const [convite, setConvite]   = useState<PeladaInvite | null>(null)
+  const [convites, setConvites] = useState<PartidaInvite[]>([])
+  const [convite, setConvite]   = useState<PartidaInvite | null>(null)
   const [carregando, setCarregando] = useState(true)
   const [revogando, setRevogando]   = useState<string | null>(null)
 

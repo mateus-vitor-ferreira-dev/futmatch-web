@@ -31,14 +31,14 @@ describe('renderWithProviders', () => {
   })
 
   it('posiciona o componente na rota pedida', () => {
-    renderWithProviders(<MostraParametro />, { route: '/pelada/42' })
-    expect(screen.getByText(/em \/pelada\/42/)).toBeInTheDocument()
+    renderWithProviders(<MostraParametro />, { route: '/partida/42' })
+    expect(screen.getByText(/em \/partida\/42/)).toBeInTheDocument()
   })
 
   it('preenche useParams quando o padrão da rota é informado', () => {
     renderWithProviders(<MostraParametro />, {
-      route: '/pelada/42',
-      path: '/pelada/:eventId',
+      route: '/partida/42',
+      path: '/partida/:eventId',
     })
     expect(screen.getByText(/pelada 42/)).toBeInTheDocument()
   })

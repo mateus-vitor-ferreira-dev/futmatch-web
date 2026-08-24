@@ -30,7 +30,7 @@ import {
 const RAIOS = [10, 25, 50, 100]
 
 /**
- * "Peladas perto de você", na home (#223 e #222).
+ * "Partidas perto de você", na home (#223 e #222).
  *
  * A recomendação existe na API desde a api#217 e **ninguém a via**: para chegar
  * nela o jogador precisava ir à busca e montar um filtro. Ela só vira produto
@@ -51,7 +51,7 @@ const RAIOS = [10, 25, 50, 100]
  * pedida sem contexto é negada quase sempre, e navegador nenhum pergunta de
  * novo — é uma chance só.
  */
-export function PeladasPerto() {
+export function PartidasPerto() {
   const navigate = useNavigate()
   const { origem, estado, pedindo, pedirLocalizacao, podePedir } = useOrigemDeLocalizacao()
   const [raioKm, setRaioKm] = useState(RAIOS[0])
@@ -80,7 +80,7 @@ export function PeladasPerto() {
     <Bloco aria-labelledby="titulo-perto">
       <Cabecalho>
         <div>
-          <Titulo id="titulo-perto">Peladas perto de você</Titulo>
+          <Titulo id="titulo-perto">Partidas perto de você</Titulo>
           <Subtitulo>
             {estado === 'pronto' && recomendacoes?.events.length
               ? `Num raio de ${raioKm} km${origem?.fonte === 'endereco' ? ', a partir do seu endereço' : ''}`
@@ -134,12 +134,12 @@ export function PeladasPerto() {
               <Cartao
                 key={pelada.id}
                 type="button"
-                onClick={() => navigate(`/pelada/${pelada.id}`)}
-                aria-label={`${pelada.court?.place?.name ?? 'Pelada'}, a ${pelada.distanceKm} km`}
+                onClick={() => navigate(`/partida/${pelada.id}`)}
+                aria-label={`${pelada.court?.place?.name ?? 'Partida'}, a ${pelada.distanceKm} km`}
               >
                 <TopoDoCartao>
                   <Local>
-                    {esporte.icon} {pelada.court?.place?.name ?? 'Pelada'}
+                    {esporte.icon} {pelada.court?.place?.name ?? 'Partida'}
                   </Local>
                   <Distancia>
                     <Navigation size={11} aria-hidden />

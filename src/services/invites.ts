@@ -1,5 +1,5 @@
 import api from './api'
-import type { ApiEnvelope, PeladaInvite } from '../types/api'
+import type { ApiEnvelope, PartidaInvite } from '../types/api'
 
 /** ⚠️ Devolve o ENVELOPE da API — quem consome escreve `res.data`. */
 
@@ -18,7 +18,7 @@ export function criarConvite(
   courtId: string,
   eventId: string,
   dados: CriarConviteInput = {},
-): Promise<ApiEnvelope<PeladaInvite>> {
+): Promise<ApiEnvelope<PartidaInvite>> {
   return api.post(rota(courtId, eventId), dados).then((r) => r.data)
 }
 
@@ -26,7 +26,7 @@ export function criarConvite(
 export function listarConvites(
   courtId: string,
   eventId: string,
-): Promise<ApiEnvelope<PeladaInvite[]>> {
+): Promise<ApiEnvelope<PartidaInvite[]>> {
   return api.get(rota(courtId, eventId)).then((r) => r.data)
 }
 
@@ -39,6 +39,6 @@ export function revogarConvite(
   courtId: string,
   eventId: string,
   inviteId: string,
-): Promise<ApiEnvelope<PeladaInvite>> {
+): Promise<ApiEnvelope<PartidaInvite>> {
   return api.delete(`${rota(courtId, eventId)}/${inviteId}`).then((r) => r.data)
 }

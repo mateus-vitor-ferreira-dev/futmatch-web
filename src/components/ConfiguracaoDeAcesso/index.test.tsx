@@ -10,7 +10,7 @@
 import { describe, expect, it, vi } from 'vitest'
 import { fireEvent, renderWithProviders, screen } from '../../test/render'
 import { criaResumoDeTime } from '../../test/factories'
-import type { PeladaRequirement } from '../../types/api'
+import type { PartidaRequirement } from '../../types/api'
 import { ConfiguracaoDeAcesso } from './index'
 
 function monta(over: Partial<Parameters<typeof ConfiguracaoDeAcesso>[0]> = {}) {
@@ -71,11 +71,11 @@ describe('ConfiguracaoDeAcesso — quem entra', () => {
     // A API aceita um requisito por tipo, e reenviar substitui. Oferecer o tipo
     // como "adicionar" faria o organizador achar que está somando.
     const select = screen.getByLabelText('Adicionar uma regra de entrada')
-    expect(select).not.toHaveTextContent('Peladas já jogadas')
+    expect(select).not.toHaveTextContent('Partidas já jogadas')
   })
 
   it('remove a regra pelo botão', async () => {
-    const requisitos: PeladaRequirement[] = [{ type: 'MIN_AVERAGE_RATING', params: { min: 4 } }]
+    const requisitos: PartidaRequirement[] = [{ type: 'MIN_AVERAGE_RATING', params: { min: 4 } }]
     const { user, aoMudarRequisitos } = monta({ requisitos })
 
     await user.click(screen.getByRole('button', { name: 'Remover regra: Nota média' }))
@@ -84,7 +84,7 @@ describe('ConfiguracaoDeAcesso — quem entra', () => {
   })
 
   it('converte a presença de porcentagem para a fração que a API espera', () => {
-    const requisitos: PeladaRequirement[] = [{ type: 'MIN_ATTENDANCE_RATE', params: { min: 0.7 } }]
+    const requisitos: PartidaRequirement[] = [{ type: 'MIN_ATTENDANCE_RATE', params: { min: 0.7 } }]
     const { aoMudarRequisitos } = monta({ requisitos })
 
     const campo = screen.getByLabelText('Presença mínima (%)')
@@ -104,7 +104,7 @@ describe('ConfiguracaoDeAcesso — quem entra', () => {
   })
 
   it('marca e desmarca selos', async () => {
-    const requisitos: PeladaRequirement[] = [{ type: 'BADGE', params: { badges: ['CRAQUE'] } }]
+    const requisitos: PartidaRequirement[] = [{ type: 'BADGE', params: { badges: ['CRAQUE'] } }]
     const { user, aoMudarRequisitos } = monta({ requisitos })
 
     expect(screen.getByRole('checkbox', { name: 'Craque' })).toBeChecked()

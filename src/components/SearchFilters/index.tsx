@@ -6,7 +6,7 @@ export function SearchFilters() {
 
   async function handleBuscar() {
     const resultado = await searchEvents({ city: cidade })
-    console.log('Peladas encontradas:', resultado)
+    console.log('Partidas encontradas:', resultado)
   }
 
   return (

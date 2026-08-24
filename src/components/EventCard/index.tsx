@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import type { CourtType, PeladaStatus } from '../../types/api'
+import type { CourtType, PartidaStatus } from '../../types/api'
 import styled, { keyframes } from 'styled-components'
 import { getSportMeta } from '../../hooks/useSports'
 
@@ -140,7 +140,7 @@ const InfoRow = styled.div`
   padding-bottom: 8px;
 `
 
-const StatusBadge = styled.span<{ $status?: PeladaStatus }>`
+const StatusBadge = styled.span<{ $status?: PartidaStatus }>`
   font-size: 0.65rem;
   font-weight: 700;
   padding: 3px 8px;
@@ -163,7 +163,7 @@ const StatusBadge = styled.span<{ $status?: PeladaStatus }>`
 `
 
 /**
- * Forma que este card espera — ACHATADA, diferente do `Pelada` que a API
+ * Forma que este card espera — ACHATADA, diferente do `Partida` que a API
  * devolve: aqui `place`/`courtName`/`city` são strings soltas e `participations`
  * é um número, enquanto a API aninha tudo sob `court.place` e devolve
  * `participations` como array.
@@ -177,7 +177,7 @@ export interface EventCardData {
   courtName: string
   city: string
   type: CourtType
-  status: PeladaStatus
+  status: PartidaStatus
   date: string
   maxPlayers: number
   /** Contagem de participantes, não a lista. */
