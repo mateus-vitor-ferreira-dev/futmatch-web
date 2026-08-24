@@ -38,14 +38,34 @@ export type ReviewTag =
     | "FAIR_PLAY"
     | "BOA_COMUNICACAO";
 
+/**
+ * Os dois conjuntos de nomes convivem — é a janela da api#393.
+ *
+ * A api passou a gravar e emitir os nomes com `MATCH_`, e converteu por
+ * migration o que já estava no banco. Os `PELADA_` ficam aqui porque a api
+ * mantém os valores no enum durante a janela, e porque cliente antigo em cache
+ * pode ter recebido os dois — aceitar ambos é o que faz o front migrar sem
+ * depender do release da api.
+ *
+ * Nada no app **ramifica** nesses valores hoje: nenhum componente lê
+ * `notification.type`, e o sino renderiza título e corpo. Esta união é
+ * declaração de compilação, não comportamento — por isso a janela custa uma
+ * linha e não um `if`.
+ *
+ * Os `PELADA_` saem junto com a issue de limpeza que fechar a janela na api.
+ */
 export type NotificationType =
     | "PLAYER_JOINED"
     | "PLAYER_LEFT"
+    | "MATCH_FULL"
+    | "MATCH_CANCELLED"
+    | "MATCH_FINISHED"
+    | "ATTENDANCE_CONFIRMED"
+    | "TEAM_INVITE"
+    | "TEAM_MATCH_CREATED"
     | "PELADA_FULL"
     | "PELADA_CANCELLED"
     | "PELADA_FINISHED"
-    | "ATTENDANCE_CONFIRMED"
-    | "TEAM_INVITE"
     | "TEAM_PELADA_CREATED";
 
 export type TournamentStatus =
