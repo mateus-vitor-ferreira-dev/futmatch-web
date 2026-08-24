@@ -4,16 +4,16 @@ import type {
   DrawMode,
   DrawResult,
   Participation,
-  Pelada,
-  PeladaSearchResult,
-  PeladaStatus,
+  Partida,
+  PartidaSearchResult,
+  PartidaStatus,
   Review,
   UserStats,
   EntryVerdict,
-  PeladaRequirement,
-  PeladaRequirementParams,
-  PeladaRequirementType,
-  PeladaVisibility,
+  PartidaRequirement,
+  PartidaRequirementParams,
+  PartidaRequirementType,
+  PartidaVisibility,
 } from '../types/api'
 import type { CourtFilters } from './courts'
 import type { Court } from '../types/api'
@@ -52,7 +52,7 @@ export const MAX_MOTIVO_SAIDA = 200
 
 export const playerService = {
   // --- QUERO JOGAR ---
-  searchEvents: async (params?: EventFilters): Promise<ApiEnvelope<PeladaSearchResult>> => {
+  searchEvents: async (params?: EventFilters): Promise<ApiEnvelope<PartidaSearchResult>> => {
     const { data } = await api.get('/events', { params })
     return data
   },
@@ -103,7 +103,7 @@ export const playerService = {
   },
 
   // --- MEUS JOGOS ---
-  getMyCreatedEvents: async (params?: EventFilters): Promise<ApiEnvelope<Pelada[]>> => {
+  getMyCreatedEvents: async (params?: EventFilters): Promise<ApiEnvelope<Partida[]>> => {
     const { data } = await api.get('/events/my/created', { params })
     return data
   },
@@ -113,7 +113,7 @@ export const playerService = {
     return data
   },
 
-  createEvent: async (courtId: string, payload: CreateEventInput): Promise<ApiEnvelope<Pelada>> => {
+  createEvent: async (courtId: string, payload: CreateEventInput): Promise<ApiEnvelope<Partida>> => {
     const { data } = await api.post(`/courts/${courtId}/events`, payload)
     return data
   },
@@ -209,7 +209,7 @@ export const playerService = {
    * de outro jeito — inclusive para quem ainda não tem conta, que é a razão de
    * o convite existir.
    */
-  getEvent: async (eventId: string, convite?: string): Promise<ApiEnvelope<Pelada>> => {
+  getEvent: async (eventId: string, convite?: string): Promise<ApiEnvelope<Partida>> => {
     const { data } = await api.get(`/events/${eventId}`, {
       params: convite ? { convite } : undefined,
     })
@@ -228,8 +228,8 @@ export const playerService = {
   updateEventVisibility: async (
     courtId: string,
     eventId: string,
-    visibility: PeladaVisibility,
-  ): Promise<ApiEnvelope<Pelada>> => {
+    visibility: PartidaVisibility,
+  ): Promise<ApiEnvelope<Partida>> => {
     const { data } = await api.patch(`/courts/${courtId}/events/${eventId}`, { visibility })
     return data
   },
@@ -238,7 +238,7 @@ export const playerService = {
   listRequirements: async (
     courtId: string,
     eventId: string,
-  ): Promise<ApiEnvelope<PeladaRequirement[]>> => {
+  ): Promise<ApiEnvelope<PartidaRequirement[]>> => {
     const { data } = await api.get(`/courts/${courtId}/events/${eventId}/requirements`)
     return data
   },
@@ -253,9 +253,9 @@ export const playerService = {
   upsertRequirement: async (
     courtId: string,
     eventId: string,
-    type: PeladaRequirementType,
-    params: PeladaRequirementParams,
-  ): Promise<ApiEnvelope<PeladaRequirement>> => {
+    type: PartidaRequirementType,
+    params: PartidaRequirementParams,
+  ): Promise<ApiEnvelope<PartidaRequirement>> => {
     const { data } = await api.put(
       `/courts/${courtId}/events/${eventId}/requirements/${type}`,
       { params },
@@ -266,7 +266,7 @@ export const playerService = {
   deleteRequirement: async (
     courtId: string,
     eventId: string,
-    type: PeladaRequirementType,
+    type: PartidaRequirementType,
   ): Promise<void> => {
     await api.delete(`/courts/${courtId}/events/${eventId}/requirements/${type}`)
   },
@@ -275,8 +275,8 @@ export const playerService = {
   updateEventStatus: async (
     courtId: string,
     eventId: string,
-    status: PeladaStatus,
-  ): Promise<ApiEnvelope<Pelada>> => {
+    status: PartidaStatus,
+  ): Promise<ApiEnvelope<Partida>> => {
     const { data } = await api.patch(
       `/courts/${courtId}/events/${eventId}/status`,
       { status }

@@ -6,7 +6,7 @@ import { useAuth } from '../../contexts/AuthContext'
 import { playerService } from '../../services/playerService'
 import { chaves } from '../../lib/queryClient'
 import { useSports, getSportMeta } from '../../hooks/useSports'
-import { PeladasPerto } from '../../components/PeladasPerto'
+import { PartidasPerto } from '../../components/PartidasPerto'
 import type { CourtType } from '../../types/api'
 import {
   PageWrapper,
@@ -171,7 +171,7 @@ export default function Home() {
             <Search size={18} />
             Encontrar um jogo
           </CTAPrimary>
-          <CTASecondary onClick={() => navigate('/minhas-peladas?action=criar')}>
+          <CTASecondary onClick={() => navigate('/minhas-partidas?action=criar')}>
             <Zap size={18} />
             Criar jogo
           </CTASecondary>
@@ -228,7 +228,7 @@ export default function Home() {
             que o que está em destaque, e enterrá-la embaixo faria a seção
             valer o mesmo que a busca — que é justamente o caminho que ela
             veio encurtar. */}
-        <PeladasPerto />
+        <PartidasPerto />
 
         <SectionBlock>
           <SectionHeader>
@@ -259,7 +259,7 @@ export default function Home() {
                 const pricePerPlayer = getPricePerPlayer(event)
 
                 return (
-                  <GameCardWrapper key={String(event.id)} onClick={() => navigate(`/pelada/${String(event.id)}`)}>
+                  <GameCardWrapper key={String(event.id)} onClick={() => navigate(`/partida/${String(event.id)}`)}>
                     <CardTop>
                       <CardCourtIcon>{sport.icon}</CardCourtIcon>
                       <CardCourtInfo>

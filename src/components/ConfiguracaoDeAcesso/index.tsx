@@ -1,8 +1,8 @@
 import { AlertTriangle, X } from 'lucide-react'
 import type {
-  PeladaRequirement,
-  PeladaRequirementType,
-  PeladaVisibility,
+  PartidaRequirement,
+  PartidaRequirementType,
+  PartidaVisibility,
   TeamSummary,
   UserBadge,
 } from '../../types/api'
@@ -34,17 +34,17 @@ import {
 } from './styles'
 
 interface Props {
-  visibilidade: PeladaVisibility
-  aoMudarVisibilidade: (valor: PeladaVisibility) => void
-  requisitos: PeladaRequirement[]
-  aoMudarRequisitos: (valor: PeladaRequirement[]) => void
+  visibilidade: PartidaVisibility
+  aoMudarVisibilidade: (valor: PartidaVisibility) => void
+  requisitos: PartidaRequirement[]
+  aoMudarRequisitos: (valor: PartidaRequirement[]) => void
   /** Os times de que o organizador é membro. Sem nenhum, o requisito de time não é oferecido. */
   times?: TeamSummary[]
   desabilitado?: boolean
 }
 
 /** O `params` com que cada tipo nasce ao ser adicionado. */
-function paramsIniciais(tipo: PeladaRequirementType, times: TeamSummary[]) {
+function paramsIniciais(tipo: PartidaRequirementType, times: TeamSummary[]) {
   switch (tipo) {
     case 'MIN_ATTENDANCE_RATE':
       return { min: 0.7 }
@@ -87,7 +87,7 @@ export function ConfiguracaoDeAcesso({
     ({ tipo }) => !jaUsados.has(tipo) && (tipo !== 'TEAM_MEMBER' || times.length > 0),
   )
 
-  const trocarParams = (tipo: PeladaRequirementType, params: PeladaRequirement['params']) =>
+  const trocarParams = (tipo: PartidaRequirementType, params: PartidaRequirement['params']) =>
     aoMudarRequisitos(requisitos.map((r) => (r.type === tipo ? { ...r, params } : r)))
 
   const alternarSelo = (atuais: UserBadge[], selo: UserBadge) =>
@@ -187,7 +187,7 @@ export function ConfiguracaoDeAcesso({
 
                     {requisito.type === 'MIN_MATCHES_PLAYED' && (
                       <label>
-                        Peladas já jogadas
+                        Partidas já jogadas
                         <input
                           type="number"
                           min={0}
@@ -251,7 +251,7 @@ export function ConfiguracaoDeAcesso({
               value=""
               disabled={desabilitado}
               onChange={(e) => {
-                const tipo = e.target.value as PeladaRequirementType
+                const tipo = e.target.value as PartidaRequirementType
                 if (!tipo) return
                 aoMudarRequisitos([...requisitos, { type: tipo, params: paramsIniciais(tipo, times) }])
               }}

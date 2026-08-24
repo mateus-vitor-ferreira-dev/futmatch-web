@@ -27,7 +27,7 @@ export type CourtType =
 
 export type CourtStatus = "OPEN" | "CLOSED";
 export type PlaceStatus = "OPEN" | "CLOSED";
-export type PeladaStatus = "WAITING" | "FULL" | "FINISHED" | "CANCELLED";
+export type PartidaStatus = "WAITING" | "FULL" | "FINISHED" | "CANCELLED";
 export type PlaceRequestStatus = "PENDING" | "APPROVED" | "REJECTED";
 
 export type ReviewTag =
@@ -191,11 +191,11 @@ export interface EnderecoDoCep {
  * Uma pelada recomendada, com a distância até a origem (api#217).
  *
  * `distanceKm` só existe nas respostas que têm origem — recomendação e busca
- * por raio. A busca textual devolve `Pelada` sem ele, e é por isso que ele é um
- * tipo próprio em vez de um campo opcional no `Pelada`: opcional daria a
+ * por raio. A busca textual devolve `Partida` sem ele, e é por isso que ele é um
+ * tipo próprio em vez de um campo opcional no `Partida`: opcional daria a
  * entender que ele pode faltar aqui, e não pode.
  */
-export interface PeladaProxima extends Pelada {
+export interface PartidaProxima extends Partida {
     distanceKm: number;
 }
 
@@ -208,7 +208,7 @@ export interface PeladaProxima extends Pelada {
  * não há pelada por perto, e aí o caminho é ampliar o raio.
  */
 export interface Recomendacoes {
-    events: PeladaProxima[];
+    events: PartidaProxima[];
     origin: { latitude: number; longitude: number } | null;
     radiusKm: number;
     reason?: { code: "NO_LOCATION" | "NO_EVENTS_NEARBY"; message: string };
@@ -349,10 +349,10 @@ export interface TeamInvite {
 }
 
 /** Uma pelada do time, no recorte de cartão que `GET /teams/:id/peladas` traz. */
-export interface TeamPelada {
+export interface TeamPartida {
     id: string;
     date: IsoDate;
-    status: PeladaStatus;
+    status: PartidaStatus;
     maxPlayers: number;
     priorityUntil: IsoDate | null;
     court: {
@@ -364,7 +364,7 @@ export interface TeamPelada {
     _count: { participations: number };
 }
 
-export interface PeladaParticipant {
+export interface PartidaParticipant {
     userId: string;
     user: Pick<UserPublic, "id" | "name" | "nickname" | "avatarUrl">;
 }
@@ -377,7 +377,7 @@ export interface PeladaParticipant {
  * devolve — `JSONB` sem discriminante — e um union discriminado aqui daria a
  * falsa impressão de que a API garante a combinação.
  */
-export interface PeladaRequirementParams {
+export interface PartidaRequirementParams {
     /** `MIN_ATTENDANCE_RATE` (fração de 0 a 1), `MIN_AVERAGE_RATING`, `MIN_MATCHES_PLAYED`. */
     min?: number;
     /** `BADGE`: passa quem tem **qualquer um** da lista (api#380). */
@@ -387,12 +387,12 @@ export interface PeladaRequirementParams {
 }
 
 /** Um requisito de entrada configurado na pelada. */
-export interface PeladaRequirement {
-    type: PeladaRequirementType;
-    params: PeladaRequirementParams | null;
+export interface PartidaRequirement {
+    type: PartidaRequirementType;
+    params: PartidaRequirementParams | null;
 }
 
-export type PeladaRequirementType =
+export type PartidaRequirementType =
     | "MIN_ATTENDANCE_RATE"
     | "MIN_AVERAGE_RATING"
     | "MIN_MATCHES_PLAYED"
@@ -405,7 +405,7 @@ export type PeladaRequirementType =
  * O outro eixo são os requisitos, e os dois são independentes de propósito:
  * "pública, mas só para quem costuma aparecer" é combinação legítima.
  */
-export type PeladaVisibility = "PUBLIC" | "LINK" | "PRIVATE";
+export type PartidaVisibility = "PUBLIC" | "LINK" | "PRIVATE";
 
 /** Um motivo de recusa do portão de entrada. */
 export interface EntryFailure {
@@ -418,8 +418,8 @@ export interface EntryFailure {
 
 /** Como um requisito saiu da avaliação deste jogador. */
 export interface EntryRequirementResult {
-    type: PeladaRequirementType;
-    params: PeladaRequirementParams | null;
+    type: PartidaRequirementType;
+    params: PartidaRequirementParams | null;
     met: boolean;
     failure?: EntryFailure;
 }
@@ -437,20 +437,20 @@ export interface EntryVerdict {
     requirements: EntryRequirementResult[];
 }
 
-export interface Pelada {
+export interface Partida {
     id: string;
     date: IsoDate;
-    status: PeladaStatus;
+    status: PartidaStatus;
     maxPlayers: number;
     totalValue: string | number;
     pixKey: string;
     courtId: string;
     organizerId: string;
     /** Como se chega nesta pelada (api#220). `PUBLIC` é o padrão da API. */
-    visibility?: PeladaVisibility;
+    visibility?: PartidaVisibility;
     court?: Pick<Court, "id" | "name" | "type"> & { place: PlaceSummary };
     organizer?: Pick<UserPublic, "id" | "name" | "avatarUrl">;
-    participations?: PeladaParticipant[];
+    participations?: PartidaParticipant[];
     /**
      * As regras de entrada da pelada, na leitura pública (api#332).
      *
@@ -458,7 +458,7 @@ export interface Pelada {
      * tela mostrar a barra a quem **não está logado**: a consulta de entrada
      * exige sessão, porque a resposta dela é sobre um jogador específico.
      */
-    requirements?: PeladaRequirement[];
+    requirements?: PartidaRequirement[];
     _count?: { participations: number };
     createdAt: IsoDate;
     updatedAt: IsoDate;
@@ -484,10 +484,10 @@ export interface EquipmentBorrower {
     avatarUrl: string | null;
 }
 
-export interface EquipmentPelada {
+export interface EquipmentPartida {
     id: string;
     date: IsoDate;
-    status: PeladaStatus;
+    status: PartidaStatus;
     court: { id: string; name: string };
     organizer: EquipmentBorrower;
 }
@@ -521,22 +521,22 @@ export interface EquipmentLoan {
 }
 
 /** Resposta paginada de GET /events. */
-export interface PeladaSearchResult {
+export interface PartidaSearchResult {
     /**
      * Trazem `distanceKm` **só na busca por raio** (api#216) — na textual não há
-     * origem de onde medir. É por isso que o tipo é `Pelada | PeladaProxima` e
-     * não um `Pelada` com campo opcional: opcional daria a entender que ele pode
+     * origem de onde medir. É por isso que o tipo é `Partida | PartidaProxima` e
+     * não um `Partida` com campo opcional: opcional daria a entender que ele pode
      * faltar na busca por raio, e ali ele nunca falta.
      */
-    events: Array<Pelada | PeladaProxima>;
+    events: Array<Partida | PartidaProxima>;
     total: number;
     page: number;
     hasMore: boolean;
 }
 
 /** `true` quando a pelada veio de uma busca com origem, e sabe a distância. */
-export function temDistancia(pelada: Pelada | PeladaProxima): pelada is PeladaProxima {
-    return typeof (pelada as PeladaProxima).distanceKm === "number";
+export function temDistancia(pelada: Partida | PartidaProxima): pelada is PartidaProxima {
+    return typeof (pelada as PartidaProxima).distanceKm === "number";
 }
 
 export interface Participation {
@@ -545,7 +545,7 @@ export interface Participation {
     attended: boolean | null;
     joinedAt: IsoDate;
     user?: UserPublic & { email?: string };
-    pelada?: Pelada;
+    pelada?: Partida;
 }
 
 export interface Review {
@@ -558,7 +558,7 @@ export interface Review {
     reviewedId: string;
     reviewer?: Pick<UserPublic, "id" | "name" | "avatarUrl">;
     reviewed?: Pick<UserPublic, "id" | "name" | "avatarUrl" | "badge">;
-    pelada?: Pick<Pelada, "id" | "date"> & {
+    pelada?: Pick<Partida, "id" | "date"> & {
         court: { id: string; name: string; place: { id: string; name: string } };
     };
     createdAt: IsoDate;
@@ -590,7 +590,7 @@ export interface NotificationList {
  * morrer com gente só espiando o horário. Pelo mesmo motivo o número não volta
  * atrás quando alguém sai da pelada nem quando o link é revogado.
  */
-export interface PeladaInvite {
+export interface PartidaInvite {
     id: string;
     peladaId: string;
     token: string;

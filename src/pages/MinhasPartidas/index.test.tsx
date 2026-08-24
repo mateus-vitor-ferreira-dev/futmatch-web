@@ -4,7 +4,7 @@
  * A tela junta dois papéis no mesmo lugar — o jogador que entrou e o
  * organizador que criou. As duas abas consomem endpoints diferentes que
  * devolvem FORMATOS diferentes: "Participando" traz `Participation[]`, com a
- * pelada aninhada, e "Criados por mim" traz `Pelada[]` direto. O mesmo estado
+ * pelada aninhada, e "Criados por mim" traz `Partida[]` direto. O mesmo estado
  * guarda as duas formas, e quem normaliza é o render.
  *
  * É exatamente o tipo de acoplamento que quebra em silêncio quando alguém
@@ -15,7 +15,7 @@ import { renderWithProviders, screen, waitFor } from '../../test/render'
 import { criaJogadorSorteado, criaPelada, criaSorteio, criaUsuario, envelope, erroDaApi } from '../../test/factories'
 import { marcarSessao } from '../../services/api'
 import type { Participation } from '../../types/api'
-import MinhasPeladas from './index'
+import MinhasPartidas from './index'
 
 // O cartão inteiro navega para o detalhe da pelada. Espionar o `useNavigate` é o
 // único jeito de provar que os botões de dentro dele NÃO disparam essa navegação:
@@ -64,7 +64,7 @@ function participacao(pelada = criaPelada()): Participation {
   }
 }
 
-describe('MinhasPeladas — as duas abas', () => {
+describe('MinhasPartidas — as duas abas', () => {
   it('abre em "Participando" e busca as participações', async () => {
     buscaParticipando.mockResolvedValue(
       envelope([participacao(criaPelada({
@@ -72,7 +72,7 @@ describe('MinhasPeladas — as duas abas', () => {
       }))]),
     )
 
-    renderWithProviders(<MinhasPeladas />)
+    renderWithProviders(<MinhasPartidas />)
 
     expect(await screen.findByText('Arena Sul')).toBeInTheDocument()
     expect(buscaParticipando).toHaveBeenCalled()
@@ -82,18 +82,18 @@ describe('MinhasPeladas — as duas abas', () => {
   it('o + Criar Jogo leva ao assistente, e não abre modal aqui', async () => {
     buscaParticipando.mockResolvedValue(envelope([]))
 
-    const { user } = renderWithProviders(<MinhasPeladas />)
+    const { user } = renderWithProviders(<MinhasPartidas />)
     await waitFor(() => expect(buscaParticipando).toHaveBeenCalled())
     await user.click(screen.getByRole('button', { name: /criar jogo/i }))
 
-    expect(navegar).toHaveBeenCalledWith('/criar-pelada')
+    expect(navegar).toHaveBeenCalledWith('/criar-partida')
     // Havia um segundo fluxo de criação aqui, com o `GET /courts` inteiro num
     // `select` só. O botão não pode voltar a abri-lo. Ver #268.
     expect(screen.queryByRole('heading', { name: 'Criar Jogo' })).not.toBeInTheDocument()
   })
 
   it('trocar de aba busca no outro endpoint', async () => {
-    const { user } = renderWithProviders(<MinhasPeladas />)
+    const { user } = renderWithProviders(<MinhasPartidas />)
     await waitFor(() => expect(buscaParticipando).toHaveBeenCalled())
 
     await user.click(screen.getByRole('button', { name: 'Criados por mim' }))
@@ -109,7 +109,7 @@ describe('MinhasPeladas — as duas abas', () => {
       }))]),
     )
 
-    renderWithProviders(<MinhasPeladas />)
+    renderWithProviders(<MinhasPartidas />)
 
     // Se o `event.pelada || event` parar de funcionar, o card some sem erro.
     expect(await screen.findByText('6 / 10 confirmados')).toBeInTheDocument()
@@ -118,14 +118,14 @@ describe('MinhasPeladas — as duas abas', () => {
   it('não quebra quando a API falha — a tela fica vazia, sem estourar', async () => {
     buscaParticipando.mockRejectedValue(erroDaApi('fora do ar', 500))
 
-    renderWithProviders(<MinhasPeladas />)
+    renderWithProviders(<MinhasPartidas />)
 
     await waitFor(() => expect(buscaParticipando).toHaveBeenCalled())
     expect(screen.getByRole('button', { name: 'Participando' })).toBeInTheDocument()
   })
 })
 
-describe('MinhasPeladas — ações de organizador', () => {
+describe('MinhasPartidas — ações de organizador', () => {
   const PELADA_ABERTA = criaPelada({
     id: 'minha-pelada',
     status: 'WAITING',
@@ -135,7 +135,7 @@ describe('MinhasPeladas — ações de organizador', () => {
 
   async function abreAbaCriados(peladas = [PELADA_ABERTA]) {
     buscaCriadas.mockResolvedValue(envelope(peladas))
-    const resultado = renderWithProviders(<MinhasPeladas />)
+    const resultado = renderWithProviders(<MinhasPartidas />)
     await waitFor(() => expect(buscaParticipando).toHaveBeenCalled())
     await resultado.user.click(screen.getByRole('button', { name: 'Criados por mim' }))
     await screen.findByText('Arena Sul')
@@ -144,7 +144,7 @@ describe('MinhasPeladas — ações de organizador', () => {
 
   it('mostra a chave Pix só na aba de peladas criadas', async () => {
     buscaParticipando.mockResolvedValue(envelope([participacao(PELADA_ABERTA)]))
-    const { user } = renderWithProviders(<MinhasPeladas />)
+    const { user } = renderWithProviders(<MinhasPartidas />)
     await screen.findByText('Arena Sul')
 
     expect(screen.queryByText(/PIX: pix@arena.com/)).not.toBeInTheDocument()
@@ -196,7 +196,7 @@ describe('MinhasPeladas — ações de organizador', () => {
 
     await user.click(screen.getByText('Arena Sul'))
 
-    expect(navegar).toHaveBeenCalledWith('/pelada/minha-pelada')
+    expect(navegar).toHaveBeenCalledWith('/partida/minha-pelada')
   })
 
   it('esconde as ações em pelada cancelada', async () => {
@@ -207,7 +207,7 @@ describe('MinhasPeladas — ações de organizador', () => {
   })
 })
 
-describe('MinhasPeladas — sorteio de times', () => {
+describe('MinhasPartidas — sorteio de times', () => {
   const PELADA = criaPelada({
     id: 'minha-pelada',
     courtId: 'quadra-1',
@@ -217,7 +217,7 @@ describe('MinhasPeladas — sorteio de times', () => {
 
   async function abreSorteio() {
     buscaCriadas.mockResolvedValue(envelope([PELADA]))
-    const resultado = renderWithProviders(<MinhasPeladas />)
+    const resultado = renderWithProviders(<MinhasPartidas />)
     await waitFor(() => expect(buscaParticipando).toHaveBeenCalled())
     await resultado.user.click(screen.getByRole('button', { name: 'Criados por mim' }))
     await resultado.user.click(await screen.findByRole('button', { name: /sortear times/i }))

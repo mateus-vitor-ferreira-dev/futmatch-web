@@ -20,9 +20,9 @@ import {
 const NAV_ITEMS = [
   { to: '/home',           label: 'Início',          icon: Home          },
   { to: '/quero-jogar',    label: 'Quero Jogar',     icon: Search        },
-  { to: '/criar-pelada',   label: 'Criar Partida',   icon: Plus          },
+  { to: '/criar-partida',   label: 'Criar Partida',   icon: Plus          },
   { to: '/torneios',       label: 'Torneios',        icon: Trophy        },
-  { to: '/minhas-peladas', label: 'Minhas Partidas', icon: ClipboardList },
+  { to: '/minhas-partidas', label: 'Minhas Partidas', icon: ClipboardList },
   { to: '/times',          label: 'Meus Times',      icon: Users         },
   { to: '/historico',      label: 'Histórico',       icon: History       },
   { to: '/avaliacoes',     label: 'Avaliações',      icon: Star          },
