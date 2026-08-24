@@ -19,7 +19,7 @@ import { marcarSessao } from '../../services/api'
 import * as eventsService from '../../services/events'
 import * as authService from '../../services/auth'
 import { notificationService } from '../../services/notificationService'
-import { PeladasPerto } from './index'
+import { PartidasPerto } from './index'
 
 vi.mock('../../services/events')
 vi.mock('../../services/auth')
@@ -75,11 +75,11 @@ beforeEach(() => {
   recomendadas.mockResolvedValue(envelope({ events: [], origin: null, radiusKm: 10 }))
 })
 
-describe('PeladasPerto — sem origem', () => {
+describe('PartidasPerto — sem origem', () => {
   it('não dispara o prompt do navegador sozinho', async () => {
     const getCurrentPosition = geolocalizacao('concede')
 
-    renderWithProviders(<PeladasPerto />)
+    renderWithProviders(<PartidasPerto />)
     await screen.findByText(/precisamos saber de onde você sai/i)
 
     // A chance é uma só: negado sem contexto, o navegador não pergunta de novo.
@@ -89,7 +89,7 @@ describe('PeladasPerto — sem origem', () => {
   it('convida em vez de dizer que não há nada por perto', async () => {
     geolocalizacao('concede')
 
-    renderWithProviders(<PeladasPerto />)
+    renderWithProviders(<PartidasPerto />)
 
     expect(await screen.findByRole('button', { name: /Usar minha localização/ })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: /Salvar meu endereço/ })).toBeInTheDocument()
@@ -101,7 +101,7 @@ describe('PeladasPerto — sem origem', () => {
     const getCurrentPosition = geolocalizacao('concede')
     recomendadas.mockResolvedValue(envelope({ events: [perto(1.2)], origin: COORDENADAS, radiusKm: 10 }))
 
-    const { user } = renderWithProviders(<PeladasPerto />)
+    const { user } = renderWithProviders(<PartidasPerto />)
     await user.click(await screen.findByRole('button', { name: /Usar minha localização/ }))
 
     expect(getCurrentPosition).toHaveBeenCalled()
@@ -113,7 +113,7 @@ describe('PeladasPerto — sem origem', () => {
   it('quem nega não vê erro alarmante, e continua podendo usar o endereço', async () => {
     geolocalizacao('nega')
 
-    const { user } = renderWithProviders(<PeladasPerto />)
+    const { user } = renderWithProviders(<PartidasPerto />)
     await user.click(await screen.findByRole('button', { name: /Usar minha localização/ }))
 
     // Negar não é falha: é escolha legítima, e o app segue pelo endereço.
@@ -124,13 +124,13 @@ describe('PeladasPerto — sem origem', () => {
 
   it('a recusa é lembrada entre sessões', async () => {
     geolocalizacao('nega')
-    const { user, unmount } = renderWithProviders(<PeladasPerto />)
+    const { user, unmount } = renderWithProviders(<PartidasPerto />)
     await user.click(await screen.findByRole('button', { name: /Usar minha localização/ }))
     await screen.findByText(/Você não liberou a localização/)
     unmount()
 
     geolocalizacao('concede')
-    renderWithProviders(<PeladasPerto />)
+    renderWithProviders(<PartidasPerto />)
 
     // Oferecer de novo a cada visita é insistir com quem já disse não.
     await screen.findByText(/Você não liberou a localização/)
@@ -140,20 +140,20 @@ describe('PeladasPerto — sem origem', () => {
   it('degrada com clareza onde o navegador não tem a API', async () => {
     geolocalizacao('ausente')
 
-    renderWithProviders(<PeladasPerto />)
+    renderWithProviders(<PartidasPerto />)
 
     expect(await screen.findByText(/navegador não informa localização/i)).toBeInTheDocument()
     expect(screen.queryByRole('button', { name: /Usar minha localização/ })).not.toBeInTheDocument()
   })
 })
 
-describe('PeladasPerto — com origem', () => {
+describe('PartidasPerto — com origem', () => {
   it('usa o endereço salvo quando não há localização do navegador', async () => {
     geolocalizacao('nega')
     comEndereco(-21.24)
     recomendadas.mockResolvedValue(envelope({ events: [perto(3.4)], origin: COORDENADAS, radiusKm: 10 }))
 
-    renderWithProviders(<PeladasPerto />)
+    renderWithProviders(<PartidasPerto />)
 
     await waitFor(() => expect(recomendadas).toHaveBeenCalled())
     expect(await screen.findByText(/a partir do seu endereço/)).toBeInTheDocument()
@@ -164,7 +164,7 @@ describe('PeladasPerto — com origem', () => {
     comEndereco(-21.24)
     recomendadas.mockResolvedValue(envelope({ events: [perto(2.7)], origin: COORDENADAS, radiusKm: 10 }))
 
-    renderWithProviders(<PeladasPerto />)
+    renderWithProviders(<PartidasPerto />)
 
     expect(await screen.findByText('2.7 km')).toBeInTheDocument()
   })
@@ -173,7 +173,7 @@ describe('PeladasPerto — com origem', () => {
     geolocalizacao('nega')
     comEndereco(-21.24)
 
-    const { user } = renderWithProviders(<PeladasPerto />)
+    const { user } = renderWithProviders(<PartidasPerto />)
 
     const ampliar = await screen.findByRole('button', { name: /Procurar em 25 km/ })
     await user.click(ampliar)

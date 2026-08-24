@@ -16,7 +16,7 @@ import { renderWithProviders, screen, waitFor } from '../../test/render'
 import { criaUsuario, envelope, erroDaApi } from '../../test/factories'
 import { marcarSessao } from '../../services/api'
 import type { Court } from '../../types/api'
-import CriarPelada from './index'
+import CriarPartida from './index'
 
 vi.mock('../../services/courts')
 vi.mock('../../services/events')
@@ -68,7 +68,7 @@ beforeEach(() => {
  * para a etapa 1 — é o atalho que o próprio componente implementa.
  */
 async function vaiAteOFormulario() {
-  const resultado = renderWithProviders(<CriarPelada />)
+  const resultado = renderWithProviders(<CriarPartida />)
   const { user } = resultado
 
   await screen.findByRole('button', { name: /Society/ })
@@ -95,16 +95,16 @@ function preenche(container: HTMLElement) {
   }
 }
 
-describe('CriarPelada — chegar ao formulário', () => {
+describe('CriarPartida — chegar ao formulário', () => {
   it('mostra as modalidades das quadras disponíveis', async () => {
-    renderWithProviders(<CriarPelada />)
+    renderWithProviders(<CriarPartida />)
 
     expect(await screen.findByText(/qual modalidade você quer jogar/i)).toBeInTheDocument()
   })
 
   it('avisa quando não há quadra nenhuma cadastrada', async () => {
     buscaQuadras.mockResolvedValue(envelope([]))
-    const { user } = renderWithProviders(<CriarPelada />)
+    const { user } = renderWithProviders(<CriarPartida />)
 
     await user.click(await screen.findByRole('button', { name: /Society/ }))
 
@@ -114,7 +114,7 @@ describe('CriarPelada — chegar ao formulário', () => {
   })
 })
 
-describe('CriarPelada — validação do formulário', () => {
+describe('CriarPartida — validação do formulário', () => {
   it('não envia nada com o formulário vazio e cobra os quatro campos', async () => {
     const { user } = await vaiAteOFormulario()
 
@@ -208,7 +208,7 @@ describe('CriarPelada — validação do formulário', () => {
   })
 })
 
-describe('CriarPelada — envio', () => {
+describe('CriarPartida — envio', () => {
   it('envia os campos convertidos e confirma o sucesso na tela', async () => {
     criaEvento.mockResolvedValue(envelope({ id: 'pelada-nova' } as never))
     const { container, user } = await vaiAteOFormulario()
@@ -277,7 +277,7 @@ describe('CriarPelada — envio', () => {
  * criada **continua criada**. Apagá-la para "limpar" destruiria o que deu certo
  * por causa do que não deu.
  */
-describe('CriarPelada — quem vê e quem entra', () => {
+describe('CriarPartida — quem vê e quem entra', () => {
   async function preencheEEnvia(container: HTMLElement, user: UserEvent) {
     const campos = preenche(container)
     await user.type(campos.data, '2027-03-11T19:00')
@@ -294,7 +294,7 @@ describe('CriarPelada — quem vê e quem entra', () => {
 
     await waitFor(() => expect(criaEvento).toHaveBeenCalled())
     expect(criaEvento.mock.calls[0][1]).toMatchObject({ visibility: 'PUBLIC' })
-    // Pelada sem regra é a esmagadora maioria, e ela não pode pagar nenhuma
+    // Partida sem regra é a esmagadora maioria, e ela não pode pagar nenhuma
     // requisição a mais por causa do caso raro.
     expect(anexaRequisito).not.toHaveBeenCalled()
   })

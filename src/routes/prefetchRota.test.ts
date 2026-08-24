@@ -60,8 +60,8 @@ describe('prefetchRota', () => {
     // silenciosamente não teria prefetch, e ninguém perceberia.
     const { adminNavItems, ownerNavItems } = await import('../constants/navItems')
     const doJogador = [
-      '/home', '/quero-jogar', '/criar-pelada', '/torneios',
-      '/minhas-peladas', '/historico', '/avaliacoes', '/perfil',
+      '/home', '/quero-jogar', '/criar-partida', '/torneios',
+      '/minhas-partidas', '/historico', '/avaliacoes', '/perfil',
     ]
     const doPainel = [...adminNavItems, ...ownerNavItems('ADMIN')].map((i) => i.to)
 

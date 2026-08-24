@@ -5,11 +5,11 @@ import { ArrowLeft, Calendar, Clock, MapPin, Users, DollarSign, Copy, CheckCircl
 import { useAuth } from '../../contexts/AuthContext'
 import { playerService, MAX_MOTIVO_SAIDA } from '../../services/playerService'
 import { getSportMeta } from '../../hooks/useSports'
-import type { CourtType, EntryVerdict, Pelada, PeladaStatus } from '../../types/api'
+import type { CourtType, EntryVerdict, Partida, PartidaStatus } from '../../types/api'
 import { mensagemDeErro, codigoDeErro } from '../../utils/apiError'
-import RequisitosDaPelada from '../../components/RequisitosDaPelada'
+import RequisitosDaPartida from '../../components/RequisitosDaPartida'
 import { SorteioDeTimes } from '../../components/SorteioDeTimes'
-import CompartilharPelada from '../../components/CompartilharPelada'
+import CompartilharPartida from '../../components/CompartilharPartida'
 import { MarcaDeVisibilidade } from '../../components/MarcaDeVisibilidade'
 import { ConfirmacaoDePresencas } from '../../components/ConfirmacaoDePresencas'
 import { SortearBtn } from '../../components/SorteioDeTimes/styles'
@@ -62,7 +62,7 @@ const MOTIVOS_DO_LINK: Record<string, MotivoDoLink> = {
   },
 }
 
-function buildMapsUrl(event: Pelada): string | null {
+function buildMapsUrl(event: Partida): string | null {
   const parts = [
     event.court?.place?.name,
     event.court?.place?.neighborhood,
@@ -73,7 +73,7 @@ function buildMapsUrl(event: Pelada): string | null {
   return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(parts.join(', '))}`
 }
 
-export default function PeladaDetail() {
+export default function PartidaDetail() {
   const { eventId } = useParams<{ eventId: string }>()
   const navigate = useNavigate()
   const location = useLocation()
@@ -89,7 +89,7 @@ export default function PeladaDetail() {
    */
   const convite = searchParams.get('convite') ?? undefined
 
-  const [event, setEvent]               = useState<Pelada | null>(null)
+  const [event, setEvent]               = useState<Partida | null>(null)
   const [loading, setLoading]           = useState(true)
   const [joining, setJoining]           = useState(false)
   const [updatingStatus, setUpdatingStatus] = useState(false)
@@ -288,7 +288,7 @@ export default function PeladaDetail() {
     }
   }
 
-  async function handleStatus(status: PeladaStatus) {
+  async function handleStatus(status: PartidaStatus) {
     const label = status === 'FINISHED' ? 'finalizar' : 'cancelar'
     if (!window.confirm(`Tem certeza que deseja ${label} esta partida?`)) return
     setUpdatingStatus(true)
@@ -410,12 +410,12 @@ export default function PeladaDetail() {
               * porque vêm no corpo dela (api#332). O "você atende" só aparece
               * com sessão, que é o que a consulta ao portão exige.
               *
-              * Pelada sem requisito não renderiza nada: o caso comum não ganha
+              * Partida sem requisito não renderiza nada: o caso comum não ganha
               * enfeite por causa do raro.
               */}
             {requisitos.length > 0 && (
               <>
-                <RequisitosDaPelada requirements={requisitos} veredito={veredito} />
+                <RequisitosDaPartida requirements={requisitos} veredito={veredito} />
                 <Divider />
               </>
             )}
@@ -591,7 +591,7 @@ export default function PeladaDetail() {
       )}
 
       {compartilhando && (
-        <CompartilharPelada pelada={event} onFechar={() => setCompartilhando(false)} />
+        <CompartilharPartida pelada={event} onFechar={() => setCompartilhando(false)} />
       )}
 
       {confirmandoPresencas && (

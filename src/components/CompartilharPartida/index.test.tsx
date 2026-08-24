@@ -8,8 +8,8 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { renderWithProviders, screen, waitFor } from '../../test/render'
 import { criaPelada, envelope, erroDaApi } from '../../test/factories'
-import type { PeladaInvite } from '../../types/api'
-import CompartilharPelada from './index'
+import type { PartidaInvite } from '../../types/api'
+import CompartilharPartida from './index'
 
 vi.mock('../../services/invites')
 vi.mock('sonner', () => ({
@@ -26,7 +26,7 @@ const revoga = vi.mocked(revogarConvite)
 
 const PELADA = criaPelada({ id: 'pelada-1', courtId: 'quadra-1' })
 
-function convite(over: Partial<PeladaInvite> = {}): PeladaInvite {
+function convite(over: Partial<PartidaInvite> = {}): PartidaInvite {
   const token = over.token ?? 'token-abc'
   return {
     id: 'convite-1',
@@ -37,14 +37,14 @@ function convite(over: Partial<PeladaInvite> = {}): PeladaInvite {
     uses: 0,
     revokedAt: null,
     createdAt: '2026-08-20T10:00:00.000Z',
-    url: `https://app.so-mais-um.com/pelada/pelada-1?convite=${token}`,
+    url: `https://app.so-mais-um.com/partida/pelada-1?convite=${token}`,
     remainingUses: null,
     ...over,
   }
 }
 
 function abre() {
-  return renderWithProviders(<CompartilharPelada pelada={PELADA} onFechar={vi.fn()} />)
+  return renderWithProviders(<CompartilharPartida pelada={PELADA} onFechar={vi.fn()} />)
 }
 
 /**
@@ -66,7 +66,7 @@ beforeEach(() => {
   fingeNavigator('share', undefined)
 })
 
-describe('CompartilharPelada — o link em um toque', () => {
+describe('CompartilharPartida — o link em um toque', () => {
   it('cria um link sozinho quando a pelada ainda não tem nenhum', async () => {
     abre()
 
@@ -110,7 +110,7 @@ describe('CompartilharPelada — o link em um toque', () => {
     // qualquer mock posto antes dele. Ler o valor é o que sobrevive a isso — e
     // é o que de fato interessa.
     expect(await navigator.clipboard.readText()).toBe(
-      'https://app.so-mais-um.com/pelada/pelada-1?convite=token-abc',
+      'https://app.so-mais-um.com/partida/pelada-1?convite=token-abc',
     )
     await waitFor(() => expect(toast.success).toHaveBeenCalledWith('Link copiado!'))
   })
@@ -130,7 +130,7 @@ describe('CompartilharPelada — o link em um toque', () => {
   })
 })
 
-describe('CompartilharPelada — o compartilhamento nativo', () => {
+describe('CompartilharPartida — o compartilhamento nativo', () => {
   it('oferece o botão quando o aparelho sabe compartilhar', async () => {
     const share = vi.fn().mockResolvedValue(undefined)
     fingeNavigator('share', share)
@@ -140,7 +140,7 @@ describe('CompartilharPelada — o compartilhamento nativo', () => {
     await user.click(screen.getByRole('button', { name: /^compartilhar$/i }))
 
     expect(share).toHaveBeenCalledWith(expect.objectContaining({
-      url: 'https://app.so-mais-um.com/pelada/pelada-1?convite=token-abc',
+      url: 'https://app.so-mais-um.com/partida/pelada-1?convite=token-abc',
     }))
   })
 
@@ -166,7 +166,7 @@ describe('CompartilharPelada — o compartilhamento nativo', () => {
   })
 })
 
-describe('CompartilharPelada — ver e revogar os links', () => {
+describe('CompartilharPartida — ver e revogar os links', () => {
   it('lista os links da pelada e diz por que cada um parou de valer', async () => {
     lista.mockResolvedValue(envelope([
       convite({ id: 'a', token: 'a' }),

@@ -16,7 +16,7 @@ import type {
   EquipmentBorrower,
   EquipmentCondition,
   EquipmentLoan,
-  EquipmentPelada,
+  EquipmentPartida,
   EquipmentSettlementType,
   Place,
 } from '../../../types/api'
@@ -67,7 +67,7 @@ export default function OwnerEquipment() {
   const [placeId, setPlaceId] = useState(searchParams.get('placeId') ?? '')
   const [items, setItems] = useState<Equipment[]>([])
   const [loans, setLoans] = useState<EquipmentLoan[]>([])
-  const [peladas, setPeladas] = useState<EquipmentPelada[]>([])
+  const [peladas, setPeladas] = useState<EquipmentPartida[]>([])
   const [borrowers, setBorrowers] = useState<EquipmentBorrower[]>([])
   const [borrowerSearch, setBorrowerSearch] = useState('')
   const [loading, setLoading] = useState(true)

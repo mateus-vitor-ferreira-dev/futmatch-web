@@ -10,7 +10,7 @@ import { createEvent } from '../../services/events'
 import { playerService } from '../../services/playerService'
 import { teamsService } from '../../services/teams'
 import { chaves } from '../../lib/queryClient'
-import type { Court, PeladaRequirement, PeladaVisibility, Place } from '../../types/api'
+import type { Court, PartidaRequirement, PartidaVisibility, Place } from '../../types/api'
 import { mensagemDeErro } from '../../utils/apiError'
 import { ConfiguracaoDeAcesso } from '../../components/ConfiguracaoDeAcesso'
 import {
@@ -67,7 +67,7 @@ type FormValues = yup.InferType<typeof schema>
 const STEPS = ['Escolher Quadra', 'Detalhes da Partida', 'Confirmação']
 const MIN_DATE = new Date(Date.now() + 60000).toISOString().slice(0, 16)
 
-export default function CriarPelada() {
+export default function CriarPartida() {
   const navigate   = useNavigate()
   const { sports } = useSports()
 
@@ -81,8 +81,8 @@ export default function CriarPelada() {
   // Visibilidade e requisitos de entrada (#228). Ficam fora do `react-hook-form`
   // porque não são campos: são duas estruturas que o `ConfiguracaoDeAcesso`
   // edita inteiras.
-  const [visibilidade, setVisibilidade] = useState<PeladaVisibility>('PUBLIC')
-  const [requisitos, setRequisitos]     = useState<PeladaRequirement[]>([])
+  const [visibilidade, setVisibilidade] = useState<PartidaVisibility>('PUBLIC')
+  const [requisitos, setRequisitos]     = useState<PartidaRequirement[]>([])
 
   /** Os times do organizador, para o requisito "ser do meu time" (api#224). */
   const { data: meusTimes = [] } = useQuery({
@@ -474,7 +474,7 @@ export default function CriarPelada() {
               )}
 
               <SuccessActions>
-                <SecondaryBtn onClick={() => navigate('/minhas-peladas')}>
+                <SecondaryBtn onClick={() => navigate('/minhas-partidas')}>
                   Ver Minhas Partidas
                 </SecondaryBtn>
                 <PrimaryBtn onClick={() => navigate('/quero-jogar')}>

@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import { toast } from 'sonner'
 import { playerService } from '../../services/playerService'
-import type { Participation, Pelada } from '../../types/api'
+import type { Participation, Partida } from '../../types/api'
 import { mensagemDeErro } from '../../utils/apiError'
 import {
   AcoesDoModal,
@@ -16,7 +16,7 @@ import {
 } from './styles'
 
 interface ConfirmacaoDePresencasProps {
-  partida: Pelada
+  partida: Partida
   onClose: () => void
   onSaved?: () => void
 }

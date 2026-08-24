@@ -1,9 +1,9 @@
 import { Link2, Lock } from 'lucide-react'
-import type { PeladaVisibility } from '../../types/api'
+import type { PartidaVisibility } from '../../types/api'
 import { Marca } from './styles'
 
 interface Props {
-  visibility?: PeladaVisibility
+  visibility?: PartidaVisibility
 }
 
 const MARCAS = {
@@ -22,7 +22,7 @@ const MARCAS = {
 /**
  * A marca de que esta pelada **não está listada** (#227).
  *
- * **Pelada pública não ganha marca nenhuma.** Ela é a esmagadora maioria, e
+ * **Partida pública não ganha marca nenhuma.** Ela é a esmagadora maioria, e
  * carimbar "pública" em todas transformaria o normal em aviso e o aviso em
  * ruído — a marca existe justamente porque `LINK` e `PRIVATE` são a exceção.
  *

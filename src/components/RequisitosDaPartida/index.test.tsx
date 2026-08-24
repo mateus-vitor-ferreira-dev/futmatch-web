@@ -7,7 +7,7 @@
  *
  * Dois testes carregam mais peso:
  *
- * 1. **Pelada sem requisito não renderiza nada.** A esmagadora maioria continua
+ * 1. **Partida sem requisito não renderiza nada.** A esmagadora maioria continua
  *    sem regra, e o caso comum não pode ganhar enfeite por causa do raro.
  * 2. **Sem veredito, a barra ainda aparece.** É o visitante deslogado: a
  *    consulta ao portão exige sessão, e sem os requisitos vindo no corpo da
@@ -15,12 +15,12 @@
  */
 import { describe, it, expect } from 'vitest'
 import { renderWithProviders, screen } from '../../test/render'
-import type { EntryVerdict, PeladaRequirement } from '../../types/api'
-import RequisitosDaPelada, { EtiquetaDeRequisitos } from './index'
+import type { EntryVerdict, PartidaRequirement } from '../../types/api'
+import RequisitosDaPartida, { EtiquetaDeRequisitos } from './index'
 
-const presenca: PeladaRequirement = { type: 'MIN_ATTENDANCE_RATE', params: { min: 0.8 } }
-const jogos: PeladaRequirement = { type: 'MIN_MATCHES_PLAYED', params: { min: 10 } }
-const nota: PeladaRequirement = { type: 'MIN_AVERAGE_RATING', params: { min: 4.5 } }
+const presenca: PartidaRequirement = { type: 'MIN_ATTENDANCE_RATE', params: { min: 0.8 } }
+const jogos: PartidaRequirement = { type: 'MIN_MATCHES_PLAYED', params: { min: 10 } }
+const nota: PartidaRequirement = { type: 'MIN_AVERAGE_RATING', params: { min: 4.5 } }
 
 const veredito = (over: Partial<EntryVerdict> = {}): EntryVerdict => ({
   allowed: false,
@@ -29,16 +29,16 @@ const veredito = (over: Partial<EntryVerdict> = {}): EntryVerdict => ({
   ...over,
 })
 
-describe('RequisitosDaPelada', () => {
+describe('RequisitosDaPartida', () => {
   it('não renderiza nada quando a pelada não tem requisito', () => {
-    const { container } = renderWithProviders(<RequisitosDaPelada requirements={[]} />)
+    const { container } = renderWithProviders(<RequisitosDaPartida requirements={[]} />)
 
     // O caso comum fica exatamente como estava antes desta issue.
     expect(container).toBeEmptyDOMElement()
   })
 
   it('escreve a regra por extenso, traduzindo a fração em porcentagem', () => {
-    renderWithProviders(<RequisitosDaPelada requirements={[presenca]} />)
+    renderWithProviders(<RequisitosDaPartida requirements={[presenca]} />)
 
     // O `params.min` é fração de 0 a 1 porque a API recusa porcentagem — `1`
     // seria ambíguo. Quem traduz para o número que se lê é a tela.
@@ -46,7 +46,7 @@ describe('RequisitosDaPelada', () => {
   })
 
   it('mostra a barra mesmo sem veredito — é o visitante deslogado', () => {
-    renderWithProviders(<RequisitosDaPelada requirements={[jogos]} veredito={null} />)
+    renderWithProviders(<RequisitosDaPartida requirements={[jogos]} veredito={null} />)
 
     expect(screen.getByText('Ter jogado ao menos 10 peladas')).toBeInTheDocument()
     // Sem sessão não há o que dizer sobre este jogador, e a tela não inventa.
@@ -56,7 +56,7 @@ describe('RequisitosDaPelada', () => {
 
   it('diz o que o jogador ATENDE, e não só o que falta', () => {
     renderWithProviders(
-      <RequisitosDaPelada
+      <RequisitosDaPartida
         requirements={[presenca, jogos]}
         veredito={veredito({
           requirements: [
@@ -80,7 +80,7 @@ describe('RequisitosDaPelada', () => {
 
   it('diz quantas peladas faltam, a partir do número e não da frase', () => {
     renderWithProviders(
-      <RequisitosDaPelada
+      <RequisitosDaPartida
         requirements={[jogos]}
         veredito={veredito({
           requirements: [
@@ -106,7 +106,7 @@ describe('RequisitosDaPelada', () => {
 
   it('singular quando falta uma só', () => {
     renderWithProviders(
-      <RequisitosDaPelada
+      <RequisitosDaPartida
         requirements={[{ type: 'MIN_MATCHES_PLAYED', params: { min: 4 } }]}
         veredito={veredito({
           requirements: [
@@ -126,7 +126,7 @@ describe('RequisitosDaPelada', () => {
 
   it('presença e nota dizem onde a pessoa está, sem virar conta', () => {
     renderWithProviders(
-      <RequisitosDaPelada
+      <RequisitosDaPartida
         requirements={[presenca, nota]}
         veredito={veredito({
           requirements: [
@@ -156,7 +156,7 @@ describe('RequisitosDaPelada', () => {
 
   it('requisito sem resultado no veredito fica neutro, e não é dado como falho', () => {
     renderWithProviders(
-      <RequisitosDaPelada
+      <RequisitosDaPartida
         requirements={[presenca]}
         // É o caso do organizador: `requirements` vem vazio porque ele não se
         // submete aos próprios requisitos. Marcar tudo como falho ali seria

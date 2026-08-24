@@ -10,7 +10,7 @@ import {
 } from './styles'
 
 const TAG_LABELS: Record<string, string> = {
-  CRAQUE_DA_PELADA: 'Craque da Pelada',
+  CRAQUE_DA_PELADA: 'Craque da Partida',
   JOGA_FACIL:       'Joga Fácil',
   PASSA_DE_ANO:     'Passa de Ano',
   PONTUAL:          'Pontual',

@@ -14,10 +14,10 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { toast } from 'sonner'
 import { renderWithProviders, screen, waitFor } from '../../test/render'
 import { criaPelada, criaResumoDeTime, envelope, erroDaApi } from '../../test/factories'
-import type { PeladaRequirement } from '../../types/api'
+import type { PartidaRequirement } from '../../types/api'
 import { playerService } from '../../services/playerService'
 import { teamsService } from '../../services/teams'
-import { RegrasDaPelada } from './index'
+import { RegrasDaPartida } from './index'
 
 vi.mock('../../services/playerService')
 vi.mock('../../services/teams')
@@ -30,12 +30,12 @@ const trocarVisibilidade = vi.mocked(playerService.updateEventVisibility)
 
 const partida = criaPelada({ visibility: 'PUBLIC' })
 
-function monta(requisitos: PeladaRequirement[] = []) {
+function monta(requisitos: PartidaRequirement[] = []) {
   listar.mockResolvedValue(envelope(requisitos))
   const onClose = vi.fn()
   const onSaved = vi.fn()
   const { user } = renderWithProviders(
-    <RegrasDaPelada partida={partida} onClose={onClose} onSaved={onSaved} />,
+    <RegrasDaPartida partida={partida} onClose={onClose} onSaved={onSaved} />,
   )
   return { user, onClose, onSaved }
 }
@@ -45,16 +45,16 @@ const salvar = () => screen.getByRole('button', { name: 'Salvar regras' })
 beforeEach(() => {
   vi.clearAllMocks()
   vi.mocked(teamsService.meusTimes).mockResolvedValue([criaResumoDeTime({ id: 'time-1', name: 'Quarta Sagrada' })])
-  anexar.mockResolvedValue(envelope({ type: 'BADGE', params: null } as PeladaRequirement))
+  anexar.mockResolvedValue(envelope({ type: 'BADGE', params: null } as PartidaRequirement))
   remover.mockResolvedValue(undefined)
   trocarVisibilidade.mockResolvedValue(envelope(partida))
 })
 
-describe('RegrasDaPelada', () => {
+describe('RegrasDaPartida', () => {
   it('carrega as regras que a pelada já tem', async () => {
     monta([{ type: 'MIN_MATCHES_PLAYED', params: { min: 8 } }])
 
-    expect(await screen.findByLabelText('Peladas já jogadas')).toHaveValue(8)
+    expect(await screen.findByLabelText('Partidas já jogadas')).toHaveValue(8)
     expect(listar).toHaveBeenCalledWith('quadra-1', 'pelada-1')
   })
 
@@ -67,7 +67,7 @@ describe('RegrasDaPelada', () => {
   it('não escreve nada quando o organizador não mudou nada', async () => {
     const { user } = monta([{ type: 'MIN_MATCHES_PLAYED', params: { min: 8 } }])
 
-    await screen.findByLabelText('Peladas já jogadas')
+    await screen.findByLabelText('Partidas já jogadas')
     await user.click(salvar())
 
     await waitFor(() => expect(toast.success).toHaveBeenCalled())
@@ -136,13 +136,13 @@ describe('RegrasDaPelada', () => {
     listar.mockRejectedValueOnce(erroDaApi('Regras indisponíveis', 503))
     listar.mockResolvedValue(envelope([{ type: 'MIN_MATCHES_PLAYED', params: { min: 3 } }]))
     const onClose = vi.fn()
-    const { user } = renderWithProviders(<RegrasDaPelada partida={partida} onClose={onClose} />)
+    const { user } = renderWithProviders(<RegrasDaPartida partida={partida} onClose={onClose} />)
 
     expect(await screen.findByText('Não foi possível carregar as regras desta pelada.')).toBeInTheDocument()
     expect(onClose).not.toHaveBeenCalled()
 
     await user.click(screen.getByRole('button', { name: 'Tentar novamente' }))
 
-    expect(await screen.findByLabelText('Peladas já jogadas')).toHaveValue(3)
+    expect(await screen.findByLabelText('Partidas já jogadas')).toHaveValue(3)
   })
 })

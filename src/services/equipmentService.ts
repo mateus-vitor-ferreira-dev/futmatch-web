@@ -5,7 +5,7 @@ import type {
   EquipmentBorrower,
   EquipmentCondition,
   EquipmentLoan,
-  EquipmentPelada,
+  EquipmentPartida,
   EquipmentSettlementType,
 } from '../types/api'
 
@@ -55,5 +55,5 @@ export const settleLoan = async (placeId: string, loanId: string, data: Equipmen
 export const searchBorrowers = async (placeId: string, search = ''): Promise<EquipmentBorrower[]> =>
   (await api.get(`/places/${placeId}/equipment/borrowers`, { params: { search } })).data.data
 
-export const listPeladas = async (placeId: string): Promise<EquipmentPelada[]> =>
+export const listPeladas = async (placeId: string): Promise<EquipmentPartida[]> =>
   (await api.get(`/places/${placeId}/equipment/events`)).data.data

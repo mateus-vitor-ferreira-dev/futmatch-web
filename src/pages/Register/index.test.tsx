@@ -6,7 +6,7 @@
  * dono de quadra para a home de jogador é dar a ele um app que não serve para
  * o que ele veio fazer.
  *
- * Diferente do CriarPelada, o formulário aqui tem `noValidate` — quem valida é
+ * Diferente do CriarPartida, o formulário aqui tem `noValidate` — quem valida é
  * o yup, e as mensagens do time são de fato as que aparecem na tela.
  */
 import { describe, it, expect, vi, beforeEach } from 'vitest'
@@ -226,7 +226,7 @@ describe('Login — voltar para onde a pessoa estava indo', () => {
   })
 
   it('volta para a pelada, com o convite dentro', async () => {
-    const destino = '/pelada/pelada-1?convite=token-abc'
+    const destino = '/partida/pelada-1?convite=token-abc'
     const campos = abreLoginCom(destino)
 
     await entra(campos)

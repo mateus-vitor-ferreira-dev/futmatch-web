@@ -18,7 +18,7 @@ import {
   erroDaApi,
 } from '../../test/factories'
 import { marcarSessao } from '../../services/api'
-import PeladaDetail from './index'
+import PartidaDetail from './index'
 
 vi.mock('../../services/playerService')
 vi.mock('../../services/auth')
@@ -54,13 +54,13 @@ beforeEach(() => {
 
 /** Renderiza já na rota da pelada, com o padrão que alimenta o useParams. */
 function abrePelada() {
-  return renderWithProviders(<PeladaDetail />, {
-    route: '/pelada/pelada-1',
-    path: '/pelada/:eventId',
+  return renderWithProviders(<PartidaDetail />, {
+    route: '/partida/pelada-1',
+    path: '/partida/:eventId',
   })
 }
 
-describe('PeladaDetail — contagem de vagas', () => {
+describe('PartidaDetail — contagem de vagas', () => {
   it('mostra confirmados, total e vagas restantes', async () => {
     buscaPelada.mockResolvedValue(
       envelope(criaPelada({ maxPlayers: 10, _count: { participations: 6 } })),
@@ -103,7 +103,7 @@ describe('PeladaDetail — contagem de vagas', () => {
   })
 })
 
-describe('PeladaDetail — confirmação de presenças', () => {
+describe('PartidaDetail — confirmação de presenças', () => {
   it('oferece a ação ao organizador quando a partida terminou', async () => {
     buscaPelada.mockResolvedValue(envelope(criaPelada({
       status: 'FINISHED',
@@ -129,7 +129,7 @@ describe('PeladaDetail — confirmação de presenças', () => {
   })
 })
 
-describe('PeladaDetail — botão de entrar', () => {
+describe('PartidaDetail — botão de entrar', () => {
   it('deixa entrar quando há vaga e o usuário está de fora', async () => {
     buscaPelada.mockResolvedValue(
       envelope(criaPelada({ maxPlayers: 10, _count: { participations: 3 } })),
@@ -190,7 +190,7 @@ describe('PeladaDetail — botão de entrar', () => {
   })
 })
 
-describe('PeladaDetail — ação de entrar', () => {
+describe('PartidaDetail — ação de entrar', () => {
   it('entrar chama a API e a contagem de vagas sobe na tela', async () => {
     buscaPelada
       .mockResolvedValueOnce(envelope(criaPelada({ maxPlayers: 10, _count: { participations: 3 } })))
@@ -254,8 +254,8 @@ describe('PeladaDetail — ação de entrar', () => {
   })
 })
 
-describe('PeladaDetail — sair da pelada', () => {
-  /** Pelada com o usuário confirmado, que é quando o botão de sair existe. */
+describe('PartidaDetail — sair da pelada', () => {
+  /** Partida com o usuário confirmado, que é quando o botão de sair existe. */
   function peladaComOUsuarioDentro(over = {}) {
     return envelope(criaPelada({
       maxPlayers: 10,
@@ -418,7 +418,7 @@ describe('PeladaDetail — sair da pelada', () => {
  * da lista, e o caminho natural — clicar no cartão — levava justamente para
  * onde o botão não estava (#266).
  */
-describe('PeladaDetail — sorteio de times', () => {
+describe('PartidaDetail — sorteio de times', () => {
   const sorteiaTimes = vi.mocked(playerService.drawTeams)
 
   /** Partida em aberto, com o usuário logado como organizador dela. */
@@ -539,7 +539,7 @@ describe('PeladaDetail — sorteio de times', () => {
  * organizador precisava fechar o modal e refazer o caminho inteiro, o que na
  * prática o fazia aceitar um sorteio que ele não gostou.
  */
-describe('PeladaDetail — refazer o sorteio', () => {
+describe('PartidaDetail — refazer o sorteio', () => {
   const sorteiaTimes = vi.mocked(playerService.drawTeams)
 
   function minhaPartida() {
@@ -661,7 +661,7 @@ describe('PeladaDetail — refazer o sorteio', () => {
  * - **o resultado precisa se explicar.** Uma lista de nomes não diz se ficou
  *   justo, e sem isso o organizador não confia no que a tela entregou.
  */
-describe('PeladaDetail — modo de sorteio e equilíbrio', () => {
+describe('PartidaDetail — modo de sorteio e equilíbrio', () => {
   const sorteiaTimes = vi.mocked(playerService.drawTeams)
 
   function minhaPartida() {
@@ -833,7 +833,7 @@ describe('PeladaDetail — modo de sorteio e equilíbrio', () => {
  * O sorteio continua funcionando; o que some é o que aquela versão da API não
  * sabe responder.
  */
-describe('PeladaDetail — sorteio contra uma API anterior', () => {
+describe('PartidaDetail — sorteio contra uma API anterior', () => {
   const sorteiaTimes = vi.mocked(playerService.drawTeams)
 
   /** O que a API devolvia antes da api#206: sem mode, sem balance, sem índices. */
@@ -910,7 +910,7 @@ describe('PeladaDetail — sorteio contra uma API anterior', () => {
  * depois do clique é uma armadilha — o jogador não sabe se é regra, defeito ou
  * implicância com ele.
  */
-describe('PeladaDetail — os requisitos antes do clique', () => {
+describe('PartidaDetail — os requisitos antes do clique', () => {
   const COM_REQUISITO = {
     ...criaPelada({ id: 'pelada-1' }),
     requirements: [{ type: 'MIN_MATCHES_PLAYED' as const, params: { min: 10 } }],
@@ -1036,10 +1036,10 @@ describe('PeladaDetail — os requisitos antes do clique', () => {
  * mostra. A decisão foi registrada na issue — o visitante vê tudo que ajuda a
  * decidir se quer entrar, e não vê nome de participante.
  */
-describe('PeladaDetail — visitante sem sessão', () => {
+describe('PartidaDetail — visitante sem sessão', () => {
   /** Sem `marcarSessao()`: o AuthContext resolve para `isAuthenticated` falso. */
-  function abreDeslogado(route = '/pelada/pelada-1') {
-    return renderWithProviders(<PeladaDetail />, { route, path: '/pelada/:eventId' })
+  function abreDeslogado(route = '/partida/pelada-1') {
+    return renderWithProviders(<PartidaDetail />, { route, path: '/partida/:eventId' })
   }
 
   const COM_GENTE = () =>
@@ -1106,7 +1106,7 @@ describe('PeladaDetail — visitante sem sessão', () => {
   it('o botão diz que falta entrar, e leva o endereço da pelada junto', async () => {
     buscaPelada.mockResolvedValue(envelope(COM_GENTE()))
 
-    abreDeslogado('/pelada/pelada-1?convite=token-abc')
+    abreDeslogado('/partida/pelada-1?convite=token-abc')
 
     const link = await screen.findByRole('link', { name: /Entre para participar/i })
 
@@ -1114,14 +1114,14 @@ describe('PeladaDetail — visitante sem sessão', () => {
     // de pelada privada voltaria do cadastro para um 404.
     expect(link).toHaveAttribute(
       'href',
-      `/login?next=${encodeURIComponent('/pelada/pelada-1?convite=token-abc')}`,
+      `/login?next=${encodeURIComponent('/partida/pelada-1?convite=token-abc')}`,
     )
   })
 
   it('repassa o token do convite na leitura da pelada', async () => {
     buscaPelada.mockResolvedValue(envelope(COM_GENTE()))
 
-    abreDeslogado('/pelada/pelada-1?convite=token-abc')
+    abreDeslogado('/partida/pelada-1?convite=token-abc')
 
     await waitFor(() => {
       expect(buscaPelada).toHaveBeenCalledWith('pelada-1', 'token-abc')
@@ -1149,15 +1149,15 @@ describe('PeladaDetail — visitante sem sessão', () => {
  * O outro ponto do bloco é o negativo: token chutado continua caindo no 404
  * comum, e o 404 não pode virar uma tela que confirme que a pelada existe.
  */
-describe('PeladaDetail — link de convite inválido', () => {
+describe('PartidaDetail — link de convite inválido', () => {
   beforeEach(() => {
     localStorage.clear()
   })
 
   const abreComConvite = () =>
-    renderWithProviders(<PeladaDetail />, {
-      route: '/pelada/pelada-1?convite=token-morto',
-      path: '/pelada/:eventId',
+    renderWithProviders(<PartidaDetail />, {
+      route: '/partida/pelada-1?convite=token-morto',
+      path: '/partida/:eventId',
     })
 
   it.each([
@@ -1198,14 +1198,14 @@ describe('PeladaDetail — link de convite inválido', () => {
   })
 })
 
-describe('PeladaDetail — chamar gente', () => {
+describe('PartidaDetail — chamar gente', () => {
   it('o organizador tem o botão de compartilhar', async () => {
     buscaPelada.mockResolvedValue(envelope(criaPelada({
       organizerId: USUARIO.id,
       organizer: { id: USUARIO.id, name: USUARIO.name, avatarUrl: null },
     })))
 
-    renderWithProviders(<PeladaDetail />, { route: '/pelada/pelada-1', path: '/pelada/:eventId' })
+    renderWithProviders(<PartidaDetail />, { route: '/partida/pelada-1', path: '/partida/:eventId' })
 
     // Vem antes de "Sortear Times": é a ação de quando a pelada ainda não
     // encheu, e é a razão de o organizador abrir esta tela faltando gente.
@@ -1215,7 +1215,7 @@ describe('PeladaDetail — chamar gente', () => {
   it('quem não organiza não tem o botão', async () => {
     buscaPelada.mockResolvedValue(envelope(criaPelada()))
 
-    renderWithProviders(<PeladaDetail />, { route: '/pelada/pelada-1', path: '/pelada/:eventId' })
+    renderWithProviders(<PartidaDetail />, { route: '/partida/pelada-1', path: '/partida/:eventId' })
 
     await screen.findByText('Quadra 1')
     expect(screen.queryByRole('button', { name: /chamar gente/i })).not.toBeInTheDocument()
