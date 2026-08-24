@@ -158,8 +158,8 @@ describe('rota da pelada', () => {
  * como reportar que quebrou, então a regressão seria silenciosa.
  *
  * O caso da query não é hipótese. É a api que monta o link do convite, em
- * `invite.service.ts`, como `${APP_URL}/pelada/${id}?c=<token>` — o `?c=` é a
- * credencial de entrada. Um redirect que preservasse só o `:eventId` abriria a
+ * `invite.service.ts`, como `${APP_URL}/pelada/${id}?convite=<token>` — o
+ * `?convite=` é a credencial de entrada. Um redirect que preservasse só o `:eventId` abriria a
  * página sem o convite, e a partida responde 404 para quem não é de dentro.
  */
 describe('rotas antigas da #329', () => {
@@ -177,13 +177,13 @@ describe('rotas antigas da #329', () => {
     })
 
     it('leva o token do convite junto, e não só o id', async () => {
-        window.history.pushState({}, '', '/pelada/pelada-1?c=token-abc')
+        window.history.pushState({}, '', '/pelada/pelada-1?convite=token-abc')
 
         render(<AppRoutes />)
 
         await screen.findByText('PartidaDetail')
         expect(window.location.pathname).toBe('/partida/pelada-1')
-        expect(window.location.search).toBe('?c=token-abc')
+        expect(window.location.search).toBe('?convite=token-abc')
     })
 
     it('/criar-pelada e /minhas-peladas continuam abrindo para quem tem sessão', async () => {

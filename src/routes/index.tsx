@@ -79,8 +79,8 @@ function PrivateRoute({ children }: { children: ReactNode }) {
  * mandaria o visitante para a string literal `/partida/:eventId`.
  *
  * A query string vai junto, e isso não é zelo: o convite por link chega como
- * `/pelada/<id>?c=<token>` — é a api que monta essa URL, em `invite.service.ts`
- * —, e o `?c=` é a credencial de entrada. Redirect que só preserva o `:eventId`
+ * `/pelada/<id>?convite=<token>` — é a api que monta essa URL, em
+ * `invite.service.ts` —, e o `?convite=` é a credencial de entrada. Redirect que só preserva o `:eventId`
  * abre a página e perde o convite, com a partida respondendo 404 para quem não
  * é de dentro. O `hash` vai pelo mesmo motivo: custa nada e não se perde.
  */
