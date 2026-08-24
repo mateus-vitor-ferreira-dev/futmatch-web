@@ -1,7 +1,7 @@
 /**
  * Fábricas de dados para teste.
  *
- * Um `Pelada` completo tem 13 campos e três objetos aninhados. Montar isso à
+ * Um `Partida` completo tem 13 campos e três objetos aninhados. Montar isso à
  * mão em cada teste enterra o que o teste está de fato verificando debaixo de
  * literal — e, quando o tipo muda, quebra em vinte lugares.
  *
@@ -13,14 +13,14 @@ import type { AxiosResponse } from 'axios'
 import type {
   DrawPlayer,
   DrawResult,
-  Pelada,
-  PeladaParticipant,
-  PeladaSearchResult,
+  Partida,
+  PartidaParticipant,
+  PartidaSearchResult,
   UserMe,
   ApiEnvelope,
   Team,
   TeamInvite,
-  TeamPelada,
+  TeamPartida,
   TeamPlayer,
   TeamSummary,
 } from '../types/api'
@@ -45,7 +45,7 @@ export function criaUsuario(over: Partial<UserMe> = {}): UserMe {
   }
 }
 
-export function criaParticipante(over: Partial<PeladaParticipant> = {}): PeladaParticipant {
+export function criaParticipante(over: Partial<PartidaParticipant> = {}): PartidaParticipant {
   const userId = over.userId ?? 'user-2'
   return {
     userId,
@@ -59,7 +59,7 @@ export function criaParticipante(over: Partial<PeladaParticipant> = {}): PeladaP
   }
 }
 
-export function criaPelada(over: Partial<Pelada> = {}): Pelada {
+export function criaPelada(over: Partial<Partida> = {}): Partida {
   const participations = over.participations ?? []
   return {
     id: 'pelada-1',
@@ -100,9 +100,9 @@ export function envelope<T>(data: T): ApiEnvelope<T> {
 
 /** Resposta paginada de `GET /events`, como o QueroJogar espera. */
 export function criaBuscaDePeladas(
-  events: Pelada[],
-  over: Partial<PeladaSearchResult> = {},
-): ApiEnvelope<PeladaSearchResult> {
+  events: Partida[],
+  over: Partial<PartidaSearchResult> = {},
+): ApiEnvelope<PartidaSearchResult> {
   return envelope({
     events,
     total: events.length,
@@ -225,7 +225,7 @@ export function criaResumoDeTime(over: Partial<TeamSummary> = {}): TeamSummary {
   }
 }
 
-export function criaPeladaDeTime(over: Partial<TeamPelada> = {}): TeamPelada {
+export function criaPeladaDeTime(over: Partial<TeamPartida> = {}): TeamPartida {
   return {
     id: 'pelada-do-time-1',
     date: DATA_FUTURA,

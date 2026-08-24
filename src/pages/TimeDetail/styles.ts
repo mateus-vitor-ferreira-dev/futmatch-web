@@ -140,14 +140,14 @@ export const CaptainBadge = styled.span`
   font-weight: 700;
 `
 
-export const PeladaList = styled.ul`
+export const PartidaList = styled.ul`
   list-style: none;
   display: flex;
   flex-direction: column;
   gap: ${({ theme }) => theme.spacing[3]};
 `
 
-export const PeladaCard = styled.li`
+export const PartidaCard = styled.li`
   background: ${({ theme }) => theme.colors.bgCard};
   border: 1px solid ${({ theme }) => theme.colors.border};
   border-radius: ${({ theme }) => theme.radii.lg};

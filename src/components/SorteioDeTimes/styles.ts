@@ -3,7 +3,7 @@ import styled from 'styled-components'
 /**
  * Estilos do sorteio de times.
  *
- * Moraram em `pages/MinhasPeladas/styles.ts` enquanto o sorteio existia numa
+ * Moraram em `pages/MinhasPartidas/styles.ts` enquanto o sorteio existia numa
  * tela só. Mudaram de casa junto com o modal (#266): o detalhe da partida
  * passou a oferecer o sorteio também, e manter duas cópias garantiria que uma
  * delas ficaria para trás na próxima mudança.

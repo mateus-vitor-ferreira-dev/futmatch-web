@@ -17,7 +17,7 @@ describe('MarcaDeVisibilidade', () => {
   })
 
   it('não marca quando a API não disse a visibilidade', () => {
-    // Pelada antiga, de antes do campo. Inventar "privada" aqui assustaria o
+    // Partida antiga, de antes do campo. Inventar "privada" aqui assustaria o
     // organizador com uma restrição que a pelada não tem.
     const { container } = renderWithProviders(<MarcaDeVisibilidade />)
 

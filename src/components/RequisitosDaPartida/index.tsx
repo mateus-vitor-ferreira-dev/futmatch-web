@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
-import type { EntryRequirementResult, EntryVerdict, PeladaRequirement } from '../../types/api'
+import type { EntryRequirementResult, EntryVerdict, PartidaRequirement } from '../../types/api'
 import { descreveRequisito } from '../../utils/requisitos'
 import { teamsService } from '../../services/teams'
 import { chaves } from '../../lib/queryClient'
@@ -7,7 +7,7 @@ import { Bloco, Titulo, Lista, Item, Marca, Texto, Falta, Etiqueta, ApenasLeitor
 
 interface Props {
   /** As regras da pelada, como vêm na leitura — inclusive para quem não está logado. */
-  requirements: PeladaRequirement[]
+  requirements: PartidaRequirement[]
   /**
    * O veredito, quando há sessão. Sem ele a tela mostra só a barra, sem dizer
    * se o jogador passa — que é exatamente o que o visitante deslogado vê.
@@ -54,10 +54,10 @@ function oQueFalta(resultado: EntryRequirementResult): string | null {
  * jogador se anima, clica, toma recusa e não sabe se é regra, defeito ou
  * implicância com ele. Este componente é o que a #230 opõe a isso.
  *
- * **Pelada sem requisito não renderiza nada.** A esmagadora maioria continua
+ * **Partida sem requisito não renderiza nada.** A esmagadora maioria continua
  * sem regra nenhuma, e o caso comum não pode ganhar enfeite por causa do raro.
  */
-export default function RequisitosDaPelada({ requirements, veredito }: Props) {
+export default function RequisitosDaPartida({ requirements, veredito }: Props) {
   /**
    * O nome do time, quando há requisito de time (api#224).
    *
@@ -120,7 +120,7 @@ export default function RequisitosDaPelada({ requirements, veredito }: Props) {
  * a busca não consulta o portão por pelada. Ele diz só que existe regra, para
  * a pessoa não abrir a pelada achando que é aberta.
  */
-export function EtiquetaDeRequisitos({ requirements }: { requirements: PeladaRequirement[] }) {
+export function EtiquetaDeRequisitos({ requirements }: { requirements: PartidaRequirement[] }) {
   if (requirements.length === 0) return null
 
   return (

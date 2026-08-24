@@ -10,10 +10,10 @@ import { useOrigemDeLocalizacao } from '../../hooks/useOrigemDeLocalizacao'
 import { temDistancia } from '../../types/api'
 import { useSports, getSportMeta } from '../../hooks/useSports'
 import { SkeletonCard } from '../../components/Skeleton'
-import { EtiquetaDeRequisitos } from '../../components/RequisitosDaPelada'
+import { EtiquetaDeRequisitos } from '../../components/RequisitosDaPartida'
 import { mensagemDeErro } from '../../utils/apiError'
 import type { EventFilters } from '../../services/events'
-import type { CourtType, Pelada } from '../../types/api'
+import type { CourtType, Partida } from '../../types/api'
 import type { SportOption } from '../../hooks/useSports'
 import {
   Container, BackBtn, Header, HeaderRow,
@@ -27,7 +27,7 @@ import {
   RaioLinha, RaioChip, RaioExplicacao, DistanciaBadge,
 } from './styles'
 
-function buildGoogleMapsUrl(event: Pelada): string | null {
+function buildGoogleMapsUrl(event: Partida): string | null {
   const parts = [
     // `street` não vem no select de place deste endpoint.
     event.court?.place?.name,
@@ -131,7 +131,7 @@ export default function QueroJogar() {
       }
       const res = await playerService.searchEvents(params)
       return {
-        eventos: (res.data?.events ?? res.data ?? []) as Pelada[],
+        eventos: (res.data?.events ?? res.data ?? []) as Partida[],
         temMais: res.data?.hasMore ?? false,
       }
     },
@@ -421,7 +421,7 @@ export default function QueroJogar() {
         </ResultsCount>
 
         <Grid>
-          {loading ? <SkeletonCard count={3} /> : filteredEvents.map((event: Pelada) => {
+          {loading ? <SkeletonCard count={3} /> : filteredEvents.map((event: Partida) => {
             const currentPlayers = event._count?.participations || 0
             const maxPlayers = event.maxPlayers
             const progress = (currentPlayers / maxPlayers) * 100
@@ -431,7 +431,7 @@ export default function QueroJogar() {
             const mapsUrl = buildGoogleMapsUrl(event)
 
             return (
-              <Card key={event.id} onClick={() => navigate(`/pelada/${event.id}`)} style={{ cursor: 'pointer' }}>
+              <Card key={event.id} onClick={() => navigate(`/partida/${event.id}`)} style={{ cursor: 'pointer' }}>
                 <CardHeader>
                   <div>
                     <h3>{event.court?.place?.name || 'Local'}</h3>

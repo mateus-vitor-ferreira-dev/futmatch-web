@@ -6,7 +6,7 @@ import type { CourtType } from '../../types/api'
 
 /**
  * Evento como este mapa o consome: forma achatada, com lat/lng no próprio
- * evento — não é o `Pelada` da API, que aninha o endereço sob court.place.
+ * evento — não é o `Partida` da API, que aninha o endereço sob court.place.
  */
 export interface MapEvent {
   id: string
