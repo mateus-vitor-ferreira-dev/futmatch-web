@@ -70,7 +70,7 @@ beforeEach(() => {
 /** Aguarda a primeira busca terminar e a contagem de resultados aparecer. */
 async function esperaResultados() {
   await waitFor(() => {
-    expect(screen.queryByText('Buscando jogos...')).not.toBeInTheDocument()
+    expect(screen.queryByText('Buscando partidas...')).not.toBeInTheDocument()
   })
 }
 
@@ -105,7 +105,7 @@ describe('QueroJogar — listagem', () => {
 
     expect(cardDaArena('Arena Sul')).toBeInTheDocument()
     expect(cardDaArena('Quadra do Zé')).toBeInTheDocument()
-    expect(screen.getByText('2 jogos encontrados')).toBeInTheDocument()
+    expect(screen.getByText('2 partidas encontradas')).toBeInTheDocument()
   })
 
   it('concorda no singular quando só há um resultado', async () => {
@@ -113,7 +113,7 @@ describe('QueroJogar — listagem', () => {
 
     renderWithProviders(<QueroJogar />)
 
-    expect(await screen.findByText('1 jogo encontrado')).toBeInTheDocument()
+    expect(await screen.findByText('1 partida encontrada')).toBeInTheDocument()
   })
 
   it('não quebra quando a busca falha — mostra lista vazia', async () => {
@@ -121,7 +121,7 @@ describe('QueroJogar — listagem', () => {
 
     renderWithProviders(<QueroJogar />)
 
-    expect(await screen.findByText('0 jogos encontrados')).toBeInTheDocument()
+    expect(await screen.findByText('0 partidas encontradas')).toBeInTheDocument()
   })
 })
 
@@ -194,7 +194,7 @@ describe('QueroJogar — filtros aplicados sobre o que já veio', () => {
       expect(cardDaArena('Arena Manhã')).not.toBeInTheDocument()
     })
     expect(cardDaArena('Arena Noite')).toBeInTheDocument()
-    expect(screen.getByText('1 jogo encontrado')).toBeInTheDocument()
+    expect(screen.getByText('1 partida encontrada')).toBeInTheDocument()
     // Filtro client-side não pode custar uma ida à API.
     expect(buscaEventos).toHaveBeenCalledTimes(buscasAteAqui)
   })
@@ -233,15 +233,15 @@ describe('QueroJogar — filtros aplicados sobre o que já veio', () => {
 
     await user.click(screen.getByRole('button', { name: /filtros/i }))
     await user.click(screen.getByRole('button', { name: /🌙 Noite/ }))
-    await waitFor(() => expect(screen.getByText('1 jogo encontrado')).toBeInTheDocument())
+    await waitFor(() => expect(screen.getByText('1 partida encontrada')).toBeInTheDocument())
 
     await user.click(screen.getByRole('button', { name: /limpar filtros/i }))
 
-    expect(await screen.findByText('2 jogos encontrados')).toBeInTheDocument()
+    expect(await screen.findByText('2 partidas encontradas')).toBeInTheDocument()
   })
 })
 
-describe('QueroJogar — entrar no jogo', () => {
+describe('QueroJogar — entrar na partida', () => {
   it('bloqueia o botão e avisa quando a partida está lotada', async () => {
     buscaEventos.mockResolvedValue(
       criaBuscaDePartidas([
@@ -252,7 +252,7 @@ describe('QueroJogar — entrar no jogo', () => {
     renderWithProviders(<QueroJogar />)
     await esperaResultados()
 
-    const botao = await screen.findByRole('button', { name: 'Jogo lotado' })
+    const botao = await screen.findByRole('button', { name: 'Partida lotada' })
     expect(botao).toBeDisabled()
     expect(screen.getByText('0 vagas restantes')).toBeInTheDocument()
   })
@@ -284,7 +284,7 @@ describe('QueroJogar — entrar no jogo', () => {
     await esperaResultados()
     const buscasAntes = buscaEventos.mock.calls.length
 
-    await user.click(screen.getByRole('button', { name: 'Entrar no jogo' }))
+    await user.click(screen.getByRole('button', { name: 'Entrar na partida' }))
 
     await waitFor(() => {
       expect(entraNoJogo).toHaveBeenCalledWith('quadra-7', 'partida-9')

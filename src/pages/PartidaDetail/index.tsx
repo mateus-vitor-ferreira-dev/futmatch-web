@@ -457,7 +457,7 @@ export default function PartidaDetail() {
                 {isJoined ? (
                   <><CheckCircle size={18} /> Você está confirmado</>
                 ) : isFull ? (
-                  'Jogo lotado'
+                  'Partida lotada'
                 ) : joining ? (
                   'Entrando...'
                 ) : barradoPeloPortao ? (
@@ -584,7 +584,7 @@ export default function PartidaDetail() {
         </Card>
       </Container>
 
-      {/* O mesmo modal que "Meus Jogos" abre — um componente só, para os dois
+      {/* O mesmo modal que "Minhas Partidas" abre — um componente só, para os dois
           não divergirem (#266). */}
       {sorteando && (
         <SorteioDeTimes partida={event} onClose={() => setSorteando(false)} />
