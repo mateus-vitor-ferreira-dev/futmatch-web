@@ -202,7 +202,7 @@ export default function QueroJogar() {
       await playerService.joinEvent(courtId, eventId)
       queryClient.invalidateQueries({ queryKey: ['eventos'] })
     } catch (error) {
-      toast.error(mensagemDeErro(error, 'Erro ao entrar no jogo'))
+      toast.error(mensagemDeErro(error, 'Erro ao entrar na partida'))
     }
   }
 
@@ -415,8 +415,8 @@ export default function QueroJogar() {
 
         <ResultsCount>
           {loading
-            ? 'Buscando jogos...'
-            : `${filteredEvents.length} jogo${filteredEvents.length !== 1 ? 's' : ''} encontrado${filteredEvents.length !== 1 ? 's' : ''}`
+            ? 'Buscando partidas...'
+            : `${filteredEvents.length} partida${filteredEvents.length !== 1 ? 's' : ''} encontrada${filteredEvents.length !== 1 ? 's' : ''}`
           }
         </ResultsCount>
 
@@ -496,7 +496,7 @@ export default function QueroJogar() {
                 >
                   {isJoined
                     ? <><CheckCircle size={18} /> Você entrou</>
-                    : isFull ? 'Jogo lotado' : 'Entrar no jogo'}
+                    : isFull ? 'Partida lotada' : 'Entrar na partida'}
                 </ActionButton>
               </Card>
             )
@@ -520,7 +520,7 @@ export default function QueroJogar() {
                 opacity: loadingMore ? 0.7 : 1,
               }}
             >
-              {loadingMore ? 'Carregando...' : 'Carregar mais jogos'}
+              {loadingMore ? 'Carregando...' : 'Carregar mais partidas'}
             </button>
           </div>
         )}

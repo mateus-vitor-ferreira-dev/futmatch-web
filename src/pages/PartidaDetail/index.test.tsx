@@ -148,7 +148,7 @@ describe('PartidaDetail — botão de entrar', () => {
 
     abrePartida()
 
-    const botao = await screen.findByRole('button', { name: 'Jogo lotado' })
+    const botao = await screen.findByRole('button', { name: 'Partida lotada' })
     expect(botao).toBeDisabled()
   })
 

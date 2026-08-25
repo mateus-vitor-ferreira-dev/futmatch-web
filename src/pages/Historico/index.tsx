@@ -137,7 +137,7 @@ export default function Historico() {
           </div>
           <div className="stat-item">
             <h2>{history.length}</h2>
-            <p>Jogos Disputados</p>
+            <p>Partidas Disputadas</p>
           </div>
           <div className="stat-item">
             <h2>{reviewSummary.totalReviews ?? 0}</h2>

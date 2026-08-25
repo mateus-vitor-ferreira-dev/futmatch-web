@@ -183,7 +183,7 @@ export default function Home() {
             <StatIconBox>🏆</StatIconBox>
             <StatInfo>
               <StatValue>{totalGames}</StatValue>
-              <StatLabel>Jogos</StatLabel>
+              <StatLabel>Partidas</StatLabel>
             </StatInfo>
           </StatBox>
           <StatBox>
@@ -233,7 +233,7 @@ export default function Home() {
         <SectionBlock>
           <SectionHeader>
             <div>
-              <SectionTitle>Jogos em destaque</SectionTitle>
+              <SectionTitle>Partidas em destaque</SectionTitle>
               <SectionSubtitle>
                 {filteredEvents.length} disponíve{filteredEvents.length !== 1 ? 'is' : 'l'} agora
               </SectionSubtitle>
@@ -241,9 +241,9 @@ export default function Home() {
           </SectionHeader>
 
           {loadingEvents ? (
-            <EmptyState>Carregando jogos...</EmptyState>
+            <EmptyState>Carregando partidas...</EmptyState>
           ) : filteredEvents.length === 0 ? (
-            <EmptyState>Nenhum jogo disponível no momento.</EmptyState>
+            <EmptyState>Nenhuma partida disponível no momento.</EmptyState>
           ) : (
             <GamesGrid>
               {filteredEvents.slice(0, 4).map((event: EventoSolto) => {
