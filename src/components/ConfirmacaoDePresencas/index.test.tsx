@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { toast } from 'sonner'
 import { renderWithProviders, screen, waitFor } from '../../test/render'
-import { criaPelada, criaUsuario, envelope, erroDaApi } from '../../test/factories'
+import { criaPartida, criaUsuario, envelope, erroDaApi } from '../../test/factories'
 import type { Participation } from '../../types/api'
 import { playerService } from '../../services/playerService'
 import { ConfirmacaoDePresencas } from './index'
@@ -11,11 +11,11 @@ vi.mock('sonner', () => ({ toast: { success: vi.fn(), error: vi.fn() } }))
 
 const buscaParticipantes = vi.mocked(playerService.getEventParticipants)
 const confirmaPresenca = vi.mocked(playerService.confirmAttendance)
-const partida = criaPelada({ status: 'FINISHED' })
+const partida = criaPartida({ status: 'FINISHED' })
 
 function participacao(userId: string, name: string, attended: boolean | null): Participation {
   return {
-    peladaId: partida.id,
+    matchId: partida.id,
     userId,
     attended,
     joinedAt: '2026-08-20T12:00:00.000Z',
@@ -47,8 +47,8 @@ describe('ConfirmacaoDePresencas', () => {
     await user.click(screen.getByRole('button', { name: 'Salvar Presenças' }))
 
     await waitFor(() => {
-      expect(confirmaPresenca).toHaveBeenCalledWith('quadra-1', 'pelada-1', 'ana', false)
-      expect(confirmaPresenca).toHaveBeenCalledWith('quadra-1', 'pelada-1', 'bruno', true)
+      expect(confirmaPresenca).toHaveBeenCalledWith('quadra-1', 'partida-1', 'ana', false)
+      expect(confirmaPresenca).toHaveBeenCalledWith('quadra-1', 'partida-1', 'bruno', true)
     })
     expect(onSaved).toHaveBeenCalledOnce()
     expect(onClose).toHaveBeenCalledOnce()

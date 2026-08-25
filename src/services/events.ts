@@ -25,7 +25,7 @@ export interface EventFilters {
    * de origem é recusado com 422**, e não ignorado — ignorar devolveria a busca
    * inteira com cara de ter respeitado o raio.
    *
-   * Com eles, a resposta vem ordenada por distância e cada pelada traz o
+   * Com eles, a resposta vem ordenada por distância e cada partida traz o
    * `distanceKm`.
    */
   latitude?: number
@@ -66,7 +66,7 @@ export function getEvent(courtId: string, eventId: string): Promise<ApiEnvelope<
 }
 
 /**
- * As peladas recomendadas (api#217).
+ * As partidas recomendadas (api#217).
  *
  * As coordenadas são **opcionais**: quando não vão, a API usa o endereço salvo
  * no perfil. O front manda as do navegador quando as tem, porque são mais

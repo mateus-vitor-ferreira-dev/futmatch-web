@@ -1,5 +1,5 @@
 /**
- * As regras da pelada, antes de qualquer clique.
+ * As regras da partida, antes de qualquer clique.
  *
  * Requisito que só aparece como erro depois do clique é uma armadilha: o
  * jogador se anima, clica, toma recusa e não sabe se é regra, defeito ou
@@ -11,7 +11,7 @@
  *    sem regra, e o caso comum não pode ganhar enfeite por causa do raro.
  * 2. **Sem veredito, a barra ainda aparece.** É o visitante deslogado: a
  *    consulta ao portão exige sessão, e sem os requisitos vindo no corpo da
- *    pelada (api#332) ele não veria regra nenhuma.
+ *    partida (api#332) ele não veria regra nenhuma.
  */
 import { describe, it, expect } from 'vitest'
 import { renderWithProviders, screen } from '../../test/render'
@@ -30,7 +30,7 @@ const veredito = (over: Partial<EntryVerdict> = {}): EntryVerdict => ({
 })
 
 describe('RequisitosDaPartida', () => {
-  it('não renderiza nada quando a pelada não tem requisito', () => {
+  it('não renderiza nada quando a partida não tem requisito', () => {
     const { container } = renderWithProviders(<RequisitosDaPartida requirements={[]} />)
 
     // O caso comum fica exatamente como estava antes desta issue.
@@ -48,7 +48,7 @@ describe('RequisitosDaPartida', () => {
   it('mostra a barra mesmo sem veredito — é o visitante deslogado', () => {
     renderWithProviders(<RequisitosDaPartida requirements={[jogos]} veredito={null} />)
 
-    expect(screen.getByText('Ter jogado ao menos 10 peladas')).toBeInTheDocument()
+    expect(screen.getByText('Ter jogado ao menos 10 partidas')).toBeInTheDocument()
     // Sem sessão não há o que dizer sobre este jogador, e a tela não inventa.
     expect(screen.queryByText(/você atende/)).not.toBeInTheDocument()
     expect(screen.queryByText(/você não atende/)).not.toBeInTheDocument()
@@ -78,7 +78,7 @@ describe('RequisitosDaPartida', () => {
     expect(screen.getByText(/— você não atende/)).toBeInTheDocument()
   })
 
-  it('diz quantas peladas faltam, a partir do número e não da frase', () => {
+  it('diz quantas partidas faltam, a partir do número e não da frase', () => {
     renderWithProviders(
       <RequisitosDaPartida
         requirements={[jogos]}
@@ -101,7 +101,7 @@ describe('RequisitosDaPartida', () => {
       />,
     )
 
-    expect(screen.getByText('Faltam 7 peladas para você alcançar.')).toBeInTheDocument()
+    expect(screen.getByText('Faltam 7 partidas para você alcançar.')).toBeInTheDocument()
   })
 
   it('singular quando falta uma só', () => {
@@ -121,7 +121,7 @@ describe('RequisitosDaPartida', () => {
       />,
     )
 
-    expect(screen.getByText('Falta 1 pelada para você alcançar.')).toBeInTheDocument()
+    expect(screen.getByText('Falta 1 partida para você alcançar.')).toBeInTheDocument()
   })
 
   it('presença e nota dizem onde a pessoa está, sem virar conta', () => {

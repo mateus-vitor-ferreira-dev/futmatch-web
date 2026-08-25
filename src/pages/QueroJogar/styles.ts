@@ -7,7 +7,7 @@ export const Container = styled.div`
 `
 
 /**
- * Voltar, no mesmo desenho do `BackBtn` do detalhe da pelada — botão de texto
+ * Voltar, no mesmo desenho do `BackBtn` do detalhe da partida — botão de texto
  * com a seta, sem moldura. Copiado de propósito: é o gesto que a pessoa já
  * aprendeu nas outras telas, e um botão diferente aqui pareceria outra coisa.
  */

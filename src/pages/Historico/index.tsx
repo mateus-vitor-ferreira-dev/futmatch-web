@@ -66,15 +66,15 @@ export default function Historico() {
 
   const openEvaluation = async (event: Participation) => {
     try {
-      const pelada = event.pelada!
+      const partida = event.match!
       const [participantsRes, progressRes] = await Promise.all([
-        playerService.getEventParticipants(pelada.courtId, pelada.id),
-        playerService.getReviewProgress(pelada.courtId, pelada.id).catch(() => null),
+        playerService.getEventParticipants(partida.courtId, partida.id),
+        playerService.getReviewProgress(partida.courtId, partida.id).catch(() => null),
       ])
 
       const others = (participantsRes.data || []).filter((p: Participation) => p.userId !== user?.id)
       setParticipants(others)
-      setEvalEvent(pelada)
+      setEvalEvent(partida)
       setReviewProgress(progressRes?.data || null)
 
       const initialEvals: Record<string, AvaliacaoEmEdicao> = {}
@@ -148,9 +148,9 @@ export default function Historico() {
         <h3>Partidas Concluídas</h3>
         <HistoryList>
           {loading ? <SkeletonList count={4} /> : history.map((event: Participation) => {
-            // A API sempre inclui `pelada` neste endpoint, mas o tipo a marca
+            // A API sempre inclui `partida` neste endpoint, mas o tipo a marca
             // opcional (o include varia por consulta) — daí a guarda.
-            const ev = event.pelada
+            const ev = event.match
             if (!ev) return null
             const sport = ev.court ? getSportMeta(ev.court.type) : { icon: '⚽', label: '—' }
             return (

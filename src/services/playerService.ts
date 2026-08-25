@@ -41,13 +41,13 @@ export interface ReviewProgress {
 
 /** Retorno de `DELETE .../participations` — o que a API devolve ao sair. */
 export interface LeaveResult {
-  pelada: { id: string; date: string; maxPlayers: number }
+  partida: { id: string; date: string; maxPlayers: number }
   remainingPlayers: number
   leftAt: string
   reason?: string
 }
 
-/** Limite do motivo aceito pela API (`leavePeladaSchema`). */
+/** Limite do motivo aceito pela API (`leavePartidaSchema`). */
 export const MAX_MOTIVO_SAIDA = 200
 
 export const playerService = {
@@ -66,7 +66,7 @@ export const playerService = {
    * depois do clique.
    *
    * Exige sessão, porque a resposta é sobre um jogador específico. Quem não
-   * está logado lê as regras pelo `requirements` da própria pelada.
+   * está logado lê as regras pelo `requirements` da própria partida.
    */
   checkEntry: async (courtId: string, eventId: string): Promise<ApiEnvelope<EntryVerdict>> => {
     const { data } = await api.get(
@@ -83,11 +83,11 @@ export const playerService = {
   },
 
   /**
-   * Sai de uma pelada em que o usuário está confirmado.
+   * Sai de uma partida em que o usuário está confirmado.
    *
    * O `reason` é opcional e vai no corpo — a API aceita até 200 caracteres e
    * o devolve na resposta. Quem trata o resto é o backend: recusa sair de
-   * pelada finalizada ou cancelada, devolve o evento de FULL para WAITING (é
+   * partida finalizada ou cancelada, devolve o evento de FULL para WAITING (é
    * o que faz a vaga voltar para a busca) e notifica o organizador.
    */
   leaveEvent: async (
@@ -202,10 +202,10 @@ export const playerService = {
 
   // --- DETALHE DE EVENTO ---
   /**
-   * O detalhe da pelada, com ou sem sessão.
+   * O detalhe da partida, com ou sem sessão.
    *
    * `convite` é o token do link (api#225). Vai como query, e só quando existe:
-   * é ele que abre a pelada `BY_LINK` ou `PRIVATE` para quem não chegaria nela
+   * é ele que abre a partida `BY_LINK` ou `PRIVATE` para quem não chegaria nela
    * de outro jeito — inclusive para quem ainda não tem conta, que é a razão de
    * o convite existir.
    */
@@ -219,7 +219,7 @@ export const playerService = {
   // --- REGRAS DE ACESSO DA PELADA (organizador) ---
 
   /**
-   * A visibilidade, no `PATCH` da própria pelada (api#220).
+   * A visibilidade, no `PATCH` da própria partida (api#220).
    *
    * Os requisitos são rotas separadas porque são uma coleção, e não um campo:
    * cada tipo entra e sai sozinho. Trocar a visibilidade não mexe em requisito

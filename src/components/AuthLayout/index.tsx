@@ -101,7 +101,7 @@ const MAX_CARTOES = 3
  */
 const LIMIARES = {
   jogadores:      50,
-  peladasAbertas:  5,
+  matchesAbertas:  5,
   cidades:         3,
   arenas:          3,
 }
@@ -117,7 +117,7 @@ const LIMIARES = {
  * Duas regras vieram junto:
  *
  * 1. **Rótulo diz o que o dado é.** A rota conta jogadores *cadastrados* e
- *    peladas *abertas*; não existe presença nem recorte de "hoje". Trocar só o
+ *    partidas *abertas*; não existe presença nem recorte de "hoje". Trocar só o
  *    número e manter "online"/"hoje" trocaria uma mentira por outra.
  * 2. **Cartão que não sustenta a afirmação some.** Abaixo do `LIMIARES` ou com
  *    a API fora do ar, ele não aparece — nunca um `0`, nunca um número que
@@ -128,7 +128,7 @@ function montarCartoes(numeros: NumerosPublicos | null): Cartao[] {
     ? []
     : [
         { valor: numeros.jogadores,      minimo: LIMIARES.jogadores,      label: 'jogadores na plataforma' },
-        { valor: numeros.peladasAbertas, minimo: LIMIARES.peladasAbertas, label: 'partidas abertas'        },
+        { valor: numeros.matchesAbertas, minimo: LIMIARES.matchesAbertas, label: 'partidas abertas'        },
         { valor: numeros.arenas,         minimo: LIMIARES.arenas,         label: 'arenas parceiras'        },
         { valor: numeros.cidades,        minimo: LIMIARES.cidades,        label: 'cidades atendidas'       },
       ]

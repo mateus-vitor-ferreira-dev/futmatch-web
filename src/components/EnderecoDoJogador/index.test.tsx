@@ -58,7 +58,7 @@ describe('EnderecoDoJogador', () => {
 
     // Pedir endereço sem dizer para quê é o tipo de campo que a pessoa pula —
     // e endereço que ninguém preenche deixa a recomendação devolvendo vazio.
-    expect(screen.getByText(/achar peladas perto de você/i)).toBeInTheDocument()
+    expect(screen.getByText(/achar partidas perto de você/i)).toBeInTheDocument()
     expect(screen.getByText(/É opcional/)).toBeInTheDocument()
   })
 

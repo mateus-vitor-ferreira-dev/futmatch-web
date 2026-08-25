@@ -167,7 +167,7 @@ export default function AdminUsers() {
                   </UserMeta>
                 </Td>
                 <Td><RoleBadge role={u.role} /></Td>
-                <Td center>{u._count?.peladasCreated ?? 0}</Td>
+                <Td center>{u._count?.matchesCreated ?? 0}</Td>
                 <Td center>{u._count?.placesOwned ?? 0}</Td>
                 <Td>{new Date(u.createdAt).toLocaleDateString('pt-BR')}</Td>
                 <Td>

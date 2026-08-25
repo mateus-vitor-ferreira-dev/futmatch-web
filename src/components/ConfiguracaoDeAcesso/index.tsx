@@ -63,13 +63,13 @@ function paramsIniciais(tipo: PartidaRequirementType, times: TeamSummary[]) {
  * Visibilidade e requisitos de entrada, na mesma tela (#228).
  *
  * **São dois eixos, e a tela existe para eles não se confundirem.** Quem *vê* a
- * pelada e quem *pode entrar* nela decidem coisas diferentes, e "pública, mas
+ * partida e quem *pode entrar* nela decidem coisas diferentes, e "pública, mas
  * só para quem costuma aparecer" é combinação legítima. Por isso são duas
  * seções separadas, cada uma com a própria pergunta escrita por extenso, e não
  * um seletor único de "privacidade".
  *
  * O componente é **controlado**: ele não salva nada. Quem o usa decide quando
- * persistir — na criação, depois de a pelada existir; na edição, ao confirmar.
+ * persistir — na criação, depois de a partida existir; na edição, ao confirmar.
  * É o que permite a mesma tela servir aos dois momentos sem saber de nenhum.
  */
 export function ConfiguracaoDeAcesso({
@@ -98,7 +98,7 @@ export function ConfiguracaoDeAcesso({
   return (
     <>
       <Secao>
-        <Legenda>Quem vê esta pelada</Legenda>
+        <Legenda>Quem vê esta partida</Legenda>
         <Subtexto>É sobre como se chega até ela — não sobre quem pode entrar.</Subtexto>
 
         <Opcoes>
@@ -123,7 +123,7 @@ export function ConfiguracaoDeAcesso({
 
       <Secao>
         <Legenda>Quem pode entrar</Legenda>
-        <Subtexto>Sem nenhuma regra, qualquer pessoa que chegar até a pelada entra.</Subtexto>
+        <Subtexto>Sem nenhuma regra, qualquer pessoa que chegar até a partida entra.</Subtexto>
 
         {requisitos.length === 0 ? (
           <SemRegra>Nenhuma regra por enquanto.</SemRegra>

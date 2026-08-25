@@ -1,17 +1,17 @@
 /**
- * Fluxo crítico: entrar numa pelada.
+ * Fluxo crítico: entrar numa partida.
  *
  * É o momento em que o jogador vira participante — o que o produto existe para
  * fazer. Erro aqui aparece de dois jeitos, e os dois são caros: deixar entrar
- * numa pelada lotada (alguém chega e não tem vaga) ou bloquear quem podia
- * entrar (a pelada não enche).
+ * numa partida lotada (alguém chega e não tem vaga) ou bloquear quem podia
+ * entrar (a partida não enche).
  */
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { renderWithProviders, screen, waitFor, fireEvent, within } from '../../test/render'
 import {
   criaJogadorSorteado,
   criaParticipante,
-  criaPelada,
+  criaPartida,
   criaSorteio,
   criaUsuario,
   envelope,
@@ -33,9 +33,9 @@ import * as authService from '../../services/auth'
 import { notificationService } from '../../services/notificationService'
 import { toast } from 'sonner'
 
-const buscaPelada = vi.mocked(playerService.getEvent)
-const entraNaPelada = vi.mocked(playerService.joinEvent)
-const saiDaPelada = vi.mocked(playerService.leaveEvent)
+const buscaPartida = vi.mocked(playerService.getEvent)
+const entraNaPartida = vi.mocked(playerService.joinEvent)
+const saiDaPartida = vi.mocked(playerService.leaveEvent)
 const consultaEntrada = vi.mocked(playerService.checkEntry)
 
 const USUARIO = criaUsuario({ id: 'user-1', name: 'Mateus' })
@@ -45,84 +45,84 @@ beforeEach(() => {
   marcarSessao()
   vi.mocked(authService.getMe).mockResolvedValue(envelope(USUARIO))
   vi.mocked(notificationService.list).mockResolvedValue([])
-  entraNaPelada.mockResolvedValue(envelope({ userId: 'user-1' } as never))
-  // Sem requisito e liberado: é o que a esmagadora maioria das peladas devolve,
+  entraNaPartida.mockResolvedValue(envelope({ userId: 'user-1' } as never))
+  // Sem requisito e liberado: é o que a esmagadora maioria das partidas devolve,
   // e mantém todos os testes anteriores descrevendo o mesmo cenário de sempre.
   consultaEntrada.mockResolvedValue(envelope({ allowed: true, failures: [], requirements: [] }))
-  saiDaPelada.mockResolvedValue(envelope({ remainingPlayers: 0 } as never))
+  saiDaPartida.mockResolvedValue(envelope({ remainingPlayers: 0 } as never))
 })
 
-/** Renderiza já na rota da pelada, com o padrão que alimenta o useParams. */
-function abrePelada() {
+/** Renderiza já na rota da partida, com o padrão que alimenta o useParams. */
+function abrePartida() {
   return renderWithProviders(<PartidaDetail />, {
-    route: '/partida/pelada-1',
+    route: '/partida/partida-1',
     path: '/partida/:eventId',
   })
 }
 
 describe('PartidaDetail — contagem de vagas', () => {
   it('mostra confirmados, total e vagas restantes', async () => {
-    buscaPelada.mockResolvedValue(
-      envelope(criaPelada({ maxPlayers: 10, _count: { participations: 6 } })),
+    buscaPartida.mockResolvedValue(
+      envelope(criaPartida({ maxPlayers: 10, _count: { participations: 6 } })),
     )
 
-    abrePelada()
+    abrePartida()
 
     expect(await screen.findByText('6 / 10 confirmados')).toBeInTheDocument()
     expect(screen.getByText('4 vagas')).toBeInTheDocument()
   })
 
   it('usa o singular quando resta uma vaga só', async () => {
-    buscaPelada.mockResolvedValue(
-      envelope(criaPelada({ maxPlayers: 10, _count: { participations: 9 } })),
+    buscaPartida.mockResolvedValue(
+      envelope(criaPartida({ maxPlayers: 10, _count: { participations: 9 } })),
     )
 
-    abrePelada()
+    abrePartida()
 
     expect(await screen.findByText('1 vaga')).toBeInTheDocument()
   })
 
   it('anuncia "Lotado" em vez de contar vagas quando enche', async () => {
-    buscaPelada.mockResolvedValue(
-      envelope(criaPelada({ maxPlayers: 10, _count: { participations: 10 } })),
+    buscaPartida.mockResolvedValue(
+      envelope(criaPartida({ maxPlayers: 10, _count: { participations: 10 } })),
     )
 
-    abrePelada()
+    abrePartida()
 
     expect(await screen.findByText('Lotado')).toBeInTheDocument()
     expect(screen.queryByText('0 vagas')).not.toBeInTheDocument()
   })
 
-  it('busca a pelada pelo id que veio da URL', async () => {
-    buscaPelada.mockResolvedValue(envelope(criaPelada()))
+  it('busca a partida pelo id que veio da URL', async () => {
+    buscaPartida.mockResolvedValue(envelope(criaPartida()))
 
-    abrePelada()
+    abrePartida()
 
     await waitFor(() => // O segundo argumento é o token do convite, ausente quando não há um na URL.
-    expect(buscaPelada).toHaveBeenCalledWith('pelada-1', undefined))
+    expect(buscaPartida).toHaveBeenCalledWith('partida-1', undefined))
   })
 })
 
 describe('PartidaDetail — confirmação de presenças', () => {
   it('oferece a ação ao organizador quando a partida terminou', async () => {
-    buscaPelada.mockResolvedValue(envelope(criaPelada({
+    buscaPartida.mockResolvedValue(envelope(criaPartida({
       status: 'FINISHED',
       organizerId: 'user-1',
       organizer: { id: 'user-1', name: 'Mateus', avatarUrl: null },
     })))
     vi.mocked(playerService.getEventParticipants).mockResolvedValue(envelope([]))
 
-    const { user } = abrePelada()
+    const { user } = abrePartida()
     await user.click(await screen.findByRole('button', { name: 'Confirmar Presenças' }))
 
     expect(await screen.findByRole('dialog', { name: 'Confirmar Presenças' })).toBeInTheDocument()
-    expect(playerService.getEventParticipants).toHaveBeenCalledWith('quadra-1', 'pelada-1')
+    expect(playerService.getEventParticipants).toHaveBeenCalledWith('quadra-1', 'partida-1')
   })
 
   it('não oferece a ação a quem não é o organizador', async () => {
-    buscaPelada.mockResolvedValue(envelope(criaPelada({ status: 'FINISHED' })))
+    buscaPartida.mockResolvedValue(envelope(criaPartida({ status: 'FINISHED' })))
 
-    abrePelada()
+    abrePartida()
 
     await screen.findByText(/Finalizado/)
     expect(screen.queryByRole('button', { name: 'Confirmar Presenças' })).not.toBeInTheDocument()
@@ -131,59 +131,59 @@ describe('PartidaDetail — confirmação de presenças', () => {
 
 describe('PartidaDetail — botão de entrar', () => {
   it('deixa entrar quando há vaga e o usuário está de fora', async () => {
-    buscaPelada.mockResolvedValue(
-      envelope(criaPelada({ maxPlayers: 10, _count: { participations: 3 } })),
+    buscaPartida.mockResolvedValue(
+      envelope(criaPartida({ maxPlayers: 10, _count: { participations: 3 } })),
     )
 
-    abrePelada()
+    abrePartida()
 
     const botao = await screen.findByRole('button', { name: /entrar na partida/i })
     expect(botao).toBeEnabled()
   })
 
-  it('bloqueia o botão quando a pelada está lotada', async () => {
-    buscaPelada.mockResolvedValue(
-      envelope(criaPelada({ maxPlayers: 4, _count: { participations: 4 } })),
+  it('bloqueia o botão quando a partida está lotada', async () => {
+    buscaPartida.mockResolvedValue(
+      envelope(criaPartida({ maxPlayers: 4, _count: { participations: 4 } })),
     )
 
-    abrePelada()
+    abrePartida()
 
     const botao = await screen.findByRole('button', { name: 'Jogo lotado' })
     expect(botao).toBeDisabled()
   })
 
   it('bloqueia e confirma quando o usuário já está dentro', async () => {
-    buscaPelada.mockResolvedValue(
-      envelope(criaPelada({
+    buscaPartida.mockResolvedValue(
+      envelope(criaPartida({
         maxPlayers: 10,
         participations: [criaParticipante({ userId: 'user-1' })],
       })),
     )
 
-    abrePelada()
+    abrePartida()
 
     const botao = await screen.findByRole('button', { name: /você está confirmado/i })
     expect(botao).toBeDisabled()
   })
 
-  it('some com o botão para o organizador, que já está na pelada', async () => {
-    buscaPelada.mockResolvedValue(
-      envelope(criaPelada({
+  it('some com o botão para o organizador, que já está na partida', async () => {
+    buscaPartida.mockResolvedValue(
+      envelope(criaPartida({
         organizerId: 'user-1',
         organizer: { id: 'user-1', name: 'Mateus', avatarUrl: null },
       })),
     )
 
-    abrePelada()
+    abrePartida()
 
     expect(await screen.findByText(/você é o organizador desta partida/i)).toBeInTheDocument()
     expect(screen.queryByRole('button', { name: /entrar na partida/i })).not.toBeInTheDocument()
   })
 
-  it('some com o botão em pelada cancelada', async () => {
-    buscaPelada.mockResolvedValue(envelope(criaPelada({ status: 'CANCELLED' })))
+  it('some com o botão em partida cancelada', async () => {
+    buscaPartida.mockResolvedValue(envelope(criaPartida({ status: 'CANCELLED' })))
 
-    abrePelada()
+    abrePartida()
 
     expect(await screen.findByText(/cancelado/i)).toBeInTheDocument()
     expect(screen.queryByRole('button', { name: /entrar na partida/i })).not.toBeInTheDocument()
@@ -192,47 +192,47 @@ describe('PartidaDetail — botão de entrar', () => {
 
 describe('PartidaDetail — ação de entrar', () => {
   it('entrar chama a API e a contagem de vagas sobe na tela', async () => {
-    buscaPelada
-      .mockResolvedValueOnce(envelope(criaPelada({ maxPlayers: 10, _count: { participations: 3 } })))
-      .mockResolvedValue(envelope(criaPelada({
+    buscaPartida
+      .mockResolvedValueOnce(envelope(criaPartida({ maxPlayers: 10, _count: { participations: 3 } })))
+      .mockResolvedValue(envelope(criaPartida({
         maxPlayers: 10,
         participations: [criaParticipante({ userId: 'user-1' })],
         _count: { participations: 4 },
       })))
 
-    const { user } = abrePelada()
+    const { user } = abrePartida()
     expect(await screen.findByText('3 / 10 confirmados')).toBeInTheDocument()
 
     await user.click(screen.getByRole('button', { name: /entrar na partida/i }))
 
-    expect(entraNaPelada).toHaveBeenCalledWith('quadra-1', 'pelada-1')
-    // A tela só reflete a entrada porque recarrega a pelada depois do POST.
+    expect(entraNaPartida).toHaveBeenCalledWith('quadra-1', 'partida-1')
+    // A tela só reflete a entrada porque recarrega a partida depois do POST.
     expect(await screen.findByText('4 / 10 confirmados')).toBeInTheDocument()
     expect(await screen.findByRole('button', { name: /você está confirmado/i })).toBeDisabled()
   })
 
   it('mostra a mensagem da API quando entrar falha', async () => {
-    buscaPelada.mockResolvedValue(
-      envelope(criaPelada({ maxPlayers: 10, _count: { participations: 3 } })),
+    buscaPartida.mockResolvedValue(
+      envelope(criaPartida({ maxPlayers: 10, _count: { participations: 3 } })),
     )
-    entraNaPelada.mockRejectedValue(erroDaApi('Você já está em outra pelada neste horário'))
+    entraNaPartida.mockRejectedValue(erroDaApi('Você já está em outra partida neste horário'))
 
-    const { user } = abrePelada()
+    const { user } = abrePartida()
     await screen.findByRole('button', { name: /entrar na partida/i })
 
     await user.click(screen.getByRole('button', { name: /entrar na partida/i }))
 
     await waitFor(() => {
-      expect(toast.error).toHaveBeenCalledWith('Você já está em outra pelada neste horário')
+      expect(toast.error).toHaveBeenCalledWith('Você já está em outra partida neste horário')
     })
   })
 
-  it('a chave Pix só aparece para quem está na pelada', async () => {
-    buscaPelada.mockResolvedValue(
-      envelope(criaPelada({ pixKey: 'pix@arena.com', maxPlayers: 10, _count: { participations: 3 } })),
+  it('a chave Pix só aparece para quem está na partida', async () => {
+    buscaPartida.mockResolvedValue(
+      envelope(criaPartida({ pixKey: 'pix@arena.com', maxPlayers: 10, _count: { participations: 3 } })),
     )
 
-    abrePelada()
+    abrePartida()
     await screen.findByRole('button', { name: /entrar na partida/i })
 
     // De fora, a chave de cobrança não interessa — e não é da conta de quem
@@ -241,23 +241,23 @@ describe('PartidaDetail — ação de entrar', () => {
   })
 
   it('a chave Pix aparece depois de entrar', async () => {
-    buscaPelada.mockResolvedValue(
-      envelope(criaPelada({
+    buscaPartida.mockResolvedValue(
+      envelope(criaPartida({
         pixKey: 'pix@arena.com',
         participations: [criaParticipante({ userId: 'user-1' })],
       })),
     )
 
-    abrePelada()
+    abrePartida()
 
     expect(await screen.findByText('pix@arena.com')).toBeInTheDocument()
   })
 })
 
-describe('PartidaDetail — sair da pelada', () => {
+describe('PartidaDetail — sair da partida', () => {
   /** Partida com o usuário confirmado, que é quando o botão de sair existe. */
-  function peladaComOUsuarioDentro(over = {}) {
-    return envelope(criaPelada({
+  function partidaComOUsuarioDentro(over = {}) {
+    return envelope(criaPartida({
       maxPlayers: 10,
       participations: [criaParticipante({ userId: 'user-1' })],
       _count: { participations: 4 },
@@ -266,34 +266,34 @@ describe('PartidaDetail — sair da pelada', () => {
   }
 
   it('oferece sair para quem está confirmado', async () => {
-    buscaPelada.mockResolvedValue(peladaComOUsuarioDentro())
+    buscaPartida.mockResolvedValue(partidaComOUsuarioDentro())
 
-    abrePelada()
+    abrePartida()
 
     expect(await screen.findByRole('button', { name: /sair da partida/i })).toBeEnabled()
   })
 
   it('não oferece sair para quem está de fora', async () => {
-    buscaPelada.mockResolvedValue(
-      envelope(criaPelada({ maxPlayers: 10, _count: { participations: 3 } })),
+    buscaPartida.mockResolvedValue(
+      envelope(criaPartida({ maxPlayers: 10, _count: { participations: 3 } })),
     )
 
-    abrePelada()
+    abrePartida()
     await screen.findByRole('button', { name: /entrar na partida/i })
 
     expect(screen.queryByRole('button', { name: /sair da partida/i })).not.toBeInTheDocument()
   })
 
   it('não oferece sair para o organizador — para ele existe cancelar', async () => {
-    buscaPelada.mockResolvedValue(
-      envelope(criaPelada({
+    buscaPartida.mockResolvedValue(
+      envelope(criaPartida({
         organizerId: 'user-1',
         organizer: { id: 'user-1', name: 'Mateus', avatarUrl: null },
         participations: [criaParticipante({ userId: 'user-1' })],
       })),
     )
 
-    abrePelada()
+    abrePartida()
     await screen.findByText(/você é o organizador desta partida/i)
 
     expect(screen.queryByRole('button', { name: /sair da partida/i })).not.toBeInTheDocument()
@@ -301,11 +301,11 @@ describe('PartidaDetail — sair da pelada', () => {
   })
 
   it.each(['FINISHED', 'CANCELLED'] as const)(
-    'não oferece sair em pelada %s — a API recusaria',
+    'não oferece sair em partida %s — a API recusaria',
     async (status) => {
-      buscaPelada.mockResolvedValue(peladaComOUsuarioDentro({ status }))
+      buscaPartida.mockResolvedValue(partidaComOUsuarioDentro({ status }))
 
-      abrePelada()
+      abrePartida()
       await screen.findByText(/\d+ \/ \d+ confirmados/)
 
       expect(screen.queryByRole('button', { name: /sair da partida/i })).not.toBeInTheDocument()
@@ -313,42 +313,42 @@ describe('PartidaDetail — sair da pelada', () => {
   )
 
   it('pede confirmação antes de sair — o clique sozinho não chama a API', async () => {
-    buscaPelada.mockResolvedValue(peladaComOUsuarioDentro())
-    const { user } = abrePelada()
+    buscaPartida.mockResolvedValue(partidaComOUsuarioDentro())
+    const { user } = abrePartida()
 
     await user.click(await screen.findByRole('button', { name: /sair da partida/i }))
 
     expect(screen.getByRole('dialog')).toBeInTheDocument()
     expect(screen.getByText('Sair desta partida?')).toBeInTheDocument()
-    expect(saiDaPelada).not.toHaveBeenCalled()
+    expect(saiDaPartida).not.toHaveBeenCalled()
   })
 
   it('desistir da confirmação não chama a API', async () => {
-    buscaPelada.mockResolvedValue(peladaComOUsuarioDentro())
-    const { user } = abrePelada()
+    buscaPartida.mockResolvedValue(partidaComOUsuarioDentro())
+    const { user } = abrePartida()
 
     await user.click(await screen.findByRole('button', { name: /sair da partida/i }))
     await user.click(screen.getByRole('button', { name: /continuar na partida/i }))
 
     await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument())
-    expect(saiDaPelada).not.toHaveBeenCalled()
+    expect(saiDaPartida).not.toHaveBeenCalled()
   })
 
   it('confirmar chama a API e a contagem de vagas cai na tela', async () => {
-    buscaPelada
-      .mockResolvedValueOnce(peladaComOUsuarioDentro())
-      .mockResolvedValue(envelope(criaPelada({
+    buscaPartida
+      .mockResolvedValueOnce(partidaComOUsuarioDentro())
+      .mockResolvedValue(envelope(criaPartida({
         maxPlayers: 10,
         _count: { participations: 3 },
       })))
-    const { user } = abrePelada()
+    const { user } = abrePartida()
     expect(await screen.findByText('4 / 10 confirmados')).toBeInTheDocument()
 
     await user.click(screen.getByRole('button', { name: /sair da partida/i }))
     await user.click(screen.getByRole('button', { name: /confirmar saída/i }))
 
     await waitFor(() => {
-      expect(saiDaPelada).toHaveBeenCalledWith('quadra-1', 'pelada-1', undefined)
+      expect(saiDaPartida).toHaveBeenCalledWith('quadra-1', 'partida-1', undefined)
     })
     // A vaga liberada tem que aparecer: é o efeito que o jogador foi buscar.
     expect(await screen.findByText('3 / 10 confirmados')).toBeInTheDocument()
@@ -356,39 +356,39 @@ describe('PartidaDetail — sair da pelada', () => {
   })
 
   it('envia o motivo quando o jogador escreve um', async () => {
-    buscaPelada.mockResolvedValue(peladaComOUsuarioDentro())
-    const { user } = abrePelada()
+    buscaPartida.mockResolvedValue(partidaComOUsuarioDentro())
+    const { user } = abrePartida()
 
     await user.click(await screen.findByRole('button', { name: /sair da partida/i }))
     await user.type(screen.getByLabelText(/quer dizer o motivo/i), 'me machuquei no treino')
     await user.click(screen.getByRole('button', { name: /confirmar saída/i }))
 
     await waitFor(() => {
-      expect(saiDaPelada).toHaveBeenCalledWith('quadra-1', 'pelada-1', 'me machuquei no treino')
+      expect(saiDaPartida).toHaveBeenCalledWith('quadra-1', 'partida-1', 'me machuquei no treino')
     })
   })
 
   it('motivo só com espaços não vira corpo da requisição', async () => {
-    buscaPelada.mockResolvedValue(peladaComOUsuarioDentro())
-    const { user } = abrePelada()
+    buscaPartida.mockResolvedValue(partidaComOUsuarioDentro())
+    const { user } = abrePartida()
 
     await user.click(await screen.findByRole('button', { name: /sair da partida/i }))
     await user.type(screen.getByLabelText(/quer dizer o motivo/i), '   ')
     await user.click(screen.getByRole('button', { name: /confirmar saída/i }))
 
     await waitFor(() => {
-      expect(saiDaPelada).toHaveBeenCalledWith('quadra-1', 'pelada-1', undefined)
+      expect(saiDaPartida).toHaveBeenCalledWith('quadra-1', 'partida-1', undefined)
     })
   })
 
   it('limita o motivo ao que a API aceita', async () => {
-    buscaPelada.mockResolvedValue(peladaComOUsuarioDentro())
-    const { user } = abrePelada()
+    buscaPartida.mockResolvedValue(partidaComOUsuarioDentro())
+    const { user } = abrePartida()
 
     await user.click(await screen.findByRole('button', { name: /sair da partida/i }))
     const campo = screen.getByLabelText(/quer dizer o motivo/i)
 
-    // 200 é o limite do leavePeladaSchema no backend. Cortar aqui evita um
+    // 200 é o limite do leavePartidaSchema no backend. Cortar aqui evita um
     // 422 que o jogador não teria como prever.
     expect(campo).toHaveAttribute('maxLength', '200')
     await user.type(campo, 'motivo')
@@ -396,15 +396,15 @@ describe('PartidaDetail — sair da pelada', () => {
   })
 
   it('mostra a mensagem da API quando sair falha, e mantém o modal aberto', async () => {
-    buscaPelada.mockResolvedValue(peladaComOUsuarioDentro())
-    saiDaPelada.mockRejectedValue(erroDaApi('A pelada já foi finalizada', 422))
-    const { user } = abrePelada()
+    buscaPartida.mockResolvedValue(partidaComOUsuarioDentro())
+    saiDaPartida.mockRejectedValue(erroDaApi('Partida já foi finalizada', 422))
+    const { user } = abrePartida()
 
     await user.click(await screen.findByRole('button', { name: /sair da partida/i }))
     await user.click(screen.getByRole('button', { name: /confirmar saída/i }))
 
     await waitFor(() => {
-      expect(toast.error).toHaveBeenCalledWith('A pelada já foi finalizada')
+      expect(toast.error).toHaveBeenCalledWith('Partida já foi finalizada')
     })
     // Falhou: o jogador continua dentro, e o modal segue ali para ele tentar
     // de novo em vez de ficar sem saber o que aconteceu.
@@ -423,7 +423,7 @@ describe('PartidaDetail — sorteio de times', () => {
 
   /** Partida em aberto, com o usuário logado como organizador dela. */
   function minhaPartida(over = {}) {
-    return envelope(criaPelada({
+    return envelope(criaPartida({
       organizerId: 'user-1',
       organizer: { id: 'user-1', name: 'Mateus', avatarUrl: null },
       ...over,
@@ -431,7 +431,7 @@ describe('PartidaDetail — sorteio de times', () => {
   }
 
   const DOIS_TIMES = criaSorteio({
-    peladaId: 'pelada-1',
+    matchId: 'partida-1',
     teams: [
       { name: 'Time 1', skillIndex: 50, averageSkill: 50, players: [criaJogadorSorteado({ id: 'u1', name: 'Ana' })] },
       { name: 'Time 2', skillIndex: 50, averageSkill: 50, players: [criaJogadorSorteado({ id: 'u2', name: 'Bruno' })] },
@@ -439,25 +439,25 @@ describe('PartidaDetail — sorteio de times', () => {
   })
 
   it('oferece "Sortear Times" ao organizador de partida em aberto', async () => {
-    buscaPelada.mockResolvedValue(minhaPartida())
+    buscaPartida.mockResolvedValue(minhaPartida())
 
-    abrePelada()
+    abrePartida()
 
     expect(await screen.findByRole('button', { name: /sortear times/i })).toBeInTheDocument()
   })
 
   it('oferece o sorteio também quando a partida já lotou', async () => {
-    buscaPelada.mockResolvedValue(minhaPartida({ status: 'FULL' }))
+    buscaPartida.mockResolvedValue(minhaPartida({ status: 'FULL' }))
 
-    abrePelada()
+    abrePartida()
 
     expect(await screen.findByRole('button', { name: /sortear times/i })).toBeInTheDocument()
   })
 
   it('não oferece o sorteio a quem não é o organizador', async () => {
-    buscaPelada.mockResolvedValue(envelope(criaPelada()))
+    buscaPartida.mockResolvedValue(envelope(criaPartida()))
 
-    abrePelada()
+    abrePartida()
 
     expect(await screen.findByText('Quadra 1')).toBeInTheDocument()
     expect(screen.queryByRole('button', { name: /sortear times/i })).not.toBeInTheDocument()
@@ -466,17 +466,17 @@ describe('PartidaDetail — sorteio de times', () => {
   // Depois de finalizada ou cancelada não há o que sortear, e é a mesma
   // condição que já esconde finalizar e cancelar.
   it.each(['FINISHED', 'CANCELLED'] as const)('não oferece o sorteio em partida %s', async (status) => {
-    buscaPelada.mockResolvedValue(minhaPartida({ status }))
+    buscaPartida.mockResolvedValue(minhaPartida({ status }))
 
-    abrePelada()
+    abrePartida()
 
     expect(await screen.findByText(/você é o organizador/i)).toBeInTheDocument()
     expect(screen.queryByRole('button', { name: /sortear times/i })).not.toBeInTheDocument()
   })
 
   it('abre o modal sem sortear nada antes de o organizador mandar', async () => {
-    buscaPelada.mockResolvedValue(minhaPartida())
-    const { user } = abrePelada()
+    buscaPartida.mockResolvedValue(minhaPartida())
+    const { user } = abrePartida()
 
     await user.click(await screen.findByRole('button', { name: /sortear times/i }))
 
@@ -486,15 +486,15 @@ describe('PartidaDetail — sorteio de times', () => {
   })
 
   it('sorteia com o id da quadra e da partida do detalhe, e mostra os times', async () => {
-    buscaPelada.mockResolvedValue(minhaPartida())
+    buscaPartida.mockResolvedValue(minhaPartida())
     sorteiaTimes.mockResolvedValue(envelope(DOIS_TIMES))
-    const { user } = abrePelada()
+    const { user } = abrePartida()
 
     await user.click(await screen.findByRole('button', { name: /sortear times/i }))
     await user.click(screen.getByRole('button', { name: /sortear!/i }))
 
     await waitFor(() => {
-      expect(sorteiaTimes).toHaveBeenCalledWith('quadra-1', 'pelada-1', 2, 'ALEATORIO')
+      expect(sorteiaTimes).toHaveBeenCalledWith('quadra-1', 'partida-1', 2, 'ALEATORIO')
     })
     expect(await screen.findByRole('heading', { name: 'Times Sorteados' })).toBeInTheDocument()
     expect(screen.getByText('Ana')).toBeInTheDocument()
@@ -502,9 +502,9 @@ describe('PartidaDetail — sorteio de times', () => {
   })
 
   it('fecha o modal e devolve o organizador ao detalhe', async () => {
-    buscaPelada.mockResolvedValue(minhaPartida())
+    buscaPartida.mockResolvedValue(minhaPartida())
     sorteiaTimes.mockResolvedValue(envelope(DOIS_TIMES))
-    const { user } = abrePelada()
+    const { user } = abrePartida()
 
     await user.click(await screen.findByRole('button', { name: /sortear times/i }))
     await user.click(screen.getByRole('button', { name: /sortear!/i }))
@@ -516,9 +516,9 @@ describe('PartidaDetail — sorteio de times', () => {
   })
 
   it('mostra a mensagem da API quando o sorteio falha', async () => {
-    buscaPelada.mockResolvedValue(minhaPartida())
+    buscaPartida.mockResolvedValue(minhaPartida())
     sorteiaTimes.mockRejectedValue(erroDaApi('Jogadores insuficientes para 2 times', 422))
-    const { user } = abrePelada()
+    const { user } = abrePartida()
 
     await user.click(await screen.findByRole('button', { name: /sortear times/i }))
     await user.click(screen.getByRole('button', { name: /sortear!/i }))
@@ -543,7 +543,7 @@ describe('PartidaDetail — refazer o sorteio', () => {
   const sorteiaTimes = vi.mocked(playerService.drawTeams)
 
   function minhaPartida() {
-    return envelope(criaPelada({
+    return envelope(criaPartida({
       organizerId: 'user-1',
       organizer: { id: 'user-1', name: 'Mateus', avatarUrl: null },
     }))
@@ -553,7 +553,7 @@ describe('PartidaDetail — refazer o sorteio', () => {
   function resultado(primeiro: string, segundo: string) {
     return envelope(
       criaSorteio({
-        peladaId: 'pelada-1',
+        matchId: 'partida-1',
         teams: [
           { name: 'Time 1', skillIndex: 50, averageSkill: 50, players: [criaJogadorSorteado({ id: 'u1', name: primeiro })] },
           { name: 'Time 2', skillIndex: 50, averageSkill: 50, players: [criaJogadorSorteado({ id: 'u2', name: segundo })] },
@@ -565,8 +565,8 @@ describe('PartidaDetail — refazer o sorteio', () => {
   /** Abre o modal e sorteia uma vez, deixando o resultado na tela. */
   async function comOResultadoNaTela(teamCount = 2) {
     sorteiaTimes.mockResolvedValue(resultado('Ana', 'Bruno'))
-    buscaPelada.mockResolvedValue(minhaPartida())
-    const { user } = abrePelada()
+    buscaPartida.mockResolvedValue(minhaPartida())
+    const { user } = abrePartida()
 
     await user.click(await screen.findByRole('button', { name: /sortear times/i }))
     if (teamCount !== 2) {
@@ -593,7 +593,7 @@ describe('PartidaDetail — refazer o sorteio', () => {
     await user.click(screen.getByRole('button', { name: /refazer sorteio/i }))
 
     await waitFor(() => {
-      expect(sorteiaTimes).toHaveBeenCalledWith('quadra-1', 'pelada-1', 4, 'ALEATORIO')
+      expect(sorteiaTimes).toHaveBeenCalledWith('quadra-1', 'partida-1', 4, 'ALEATORIO')
     })
     // Continua no resultado: nem o slider nem o "⚽ Sortear!" reaparecem.
     expect(screen.queryByRole('slider')).not.toBeInTheDocument()
@@ -665,7 +665,7 @@ describe('PartidaDetail — modo de sorteio e equilíbrio', () => {
   const sorteiaTimes = vi.mocked(playerService.drawTeams)
 
   function minhaPartida() {
-    return envelope(criaPelada({
+    return envelope(criaPartida({
       organizerId: 'user-1',
       organizer: { id: 'user-1', name: 'Mateus', avatarUrl: null },
     }))
@@ -673,8 +673,8 @@ describe('PartidaDetail — modo de sorteio e equilíbrio', () => {
 
   /** Abre o modal do sorteio, já como organizador. */
   async function abreSorteio() {
-    buscaPelada.mockResolvedValue(minhaPartida())
-    const { user } = abrePelada()
+    buscaPartida.mockResolvedValue(minhaPartida())
+    const { user } = abrePartida()
     await user.click(await screen.findByRole('button', { name: /sortear times/i }))
     return { user }
   }
@@ -703,7 +703,7 @@ describe('PartidaDetail — modo de sorteio e equilíbrio', () => {
     await user.click(screen.getByRole('button', { name: /sortear!/i }))
 
     await waitFor(() => {
-      expect(sorteiaTimes).toHaveBeenCalledWith('quadra-1', 'pelada-1', 2, 'EQUILIBRADO')
+      expect(sorteiaTimes).toHaveBeenCalledWith('quadra-1', 'partida-1', 2, 'EQUILIBRADO')
     })
   })
 
@@ -731,7 +731,7 @@ describe('PartidaDetail — modo de sorteio e equilíbrio', () => {
     await user.click(screen.getByRole('button', { name: /refazer sorteio/i }))
 
     await waitFor(() => {
-      expect(sorteiaTimes).toHaveBeenCalledWith('quadra-1', 'pelada-1', 2, 'EQUILIBRADO')
+      expect(sorteiaTimes).toHaveBeenCalledWith('quadra-1', 'partida-1', 2, 'EQUILIBRADO')
     })
   })
 
@@ -839,7 +839,7 @@ describe('PartidaDetail — sorteio contra uma API anterior', () => {
   /** O que a API devolvia antes da api#206: sem mode, sem balance, sem índices. */
   function respostaAntiga() {
     return envelope({
-      peladaId: 'pelada-1',
+      matchId: 'partida-1',
       teamCount: 2,
       totalPlayers: 2,
       teams: [
@@ -851,13 +851,13 @@ describe('PartidaDetail — sorteio contra uma API anterior', () => {
 
   async function sorteiaComApiAntiga() {
     sorteiaTimes.mockResolvedValue(respostaAntiga())
-    buscaPelada.mockResolvedValue(
-      envelope(criaPelada({
+    buscaPartida.mockResolvedValue(
+      envelope(criaPartida({
         organizerId: 'user-1',
         organizer: { id: 'user-1', name: 'Mateus', avatarUrl: null },
       })),
     )
-    const { user } = abrePelada()
+    const { user } = abrePartida()
     await user.click(await screen.findByRole('button', { name: /sortear times/i }))
     await user.click(screen.getByRole('button', { name: /sortear!/i }))
     return { user }
@@ -912,28 +912,28 @@ describe('PartidaDetail — sorteio contra uma API anterior', () => {
  */
 describe('PartidaDetail — os requisitos antes do clique', () => {
   const COM_REQUISITO = {
-    ...criaPelada({ id: 'pelada-1' }),
+    ...criaPartida({ id: 'partida-1' }),
     requirements: [{ type: 'MIN_MATCHES_PLAYED' as const, params: { min: 10 } }],
   }
 
-  it('mostra as regras da pelada antes de qualquer clique', async () => {
-    buscaPelada.mockResolvedValue(envelope(COM_REQUISITO))
+  it('mostra as regras da partida antes de qualquer clique', async () => {
+    buscaPartida.mockResolvedValue(envelope(COM_REQUISITO))
 
-    abrePelada()
+    abrePartida()
 
-    expect(await screen.findByTestId('requisitos-da-pelada')).toBeInTheDocument()
-    expect(screen.getByText('Ter jogado ao menos 10 peladas')).toBeInTheDocument()
+    expect(await screen.findByTestId('requisitos-da-partida')).toBeInTheDocument()
+    expect(screen.getByText('Ter jogado ao menos 10 partidas')).toBeInTheDocument()
   })
 
   it('desabilita o botão com o motivo, em vez de deixar o clique falhar', async () => {
-    buscaPelada.mockResolvedValue(envelope(COM_REQUISITO))
+    buscaPartida.mockResolvedValue(envelope(COM_REQUISITO))
     consultaEntrada.mockResolvedValue(
       envelope({
         allowed: false,
         failures: [
           {
             code: 'REQUIREMENT_MIN_MATCHES_PLAYED',
-            message: 'Esta pelada exige 10 peladas jogadas, e você tem 3.',
+            message: 'Esta partida exige 10 partidas jogadas, e você tem 3.',
             numeros: { exigido: 10, atual: 3 },
           },
         ],
@@ -944,7 +944,7 @@ describe('PartidaDetail — os requisitos antes do clique', () => {
             met: false,
             failure: {
               code: 'REQUIREMENT_MIN_MATCHES_PLAYED',
-              message: 'Esta pelada exige 10 peladas jogadas, e você tem 3.',
+              message: 'Esta partida exige 10 partidas jogadas, e você tem 3.',
               numeros: { exigido: 10, atual: 3 },
             },
           },
@@ -952,41 +952,41 @@ describe('PartidaDetail — os requisitos antes do clique', () => {
       }),
     )
 
-    abrePelada()
+    abrePartida()
 
     const botao = await screen.findByRole('button', { name: /não atende aos requisitos/i })
     expect(botao).toBeDisabled()
 
     // A frase é a da API, e ela diz o exigido E o que a pessoa tem. "Você não
     // pode entrar" sozinho soaria como julgamento; com os dois números, soa
-    // como a regra da pelada que é.
-    expect(screen.getByText('Esta pelada exige 10 peladas jogadas, e você tem 3.')).toBeInTheDocument()
-    expect(entraNaPelada).not.toHaveBeenCalled()
+    // como a regra da partida que é.
+    expect(screen.getByText('Esta partida exige 10 partidas jogadas, e você tem 3.')).toBeInTheDocument()
+    expect(entraNaPartida).not.toHaveBeenCalled()
   })
 
   it('o motivo é lido junto com o botão, e não como texto solto', async () => {
-    buscaPelada.mockResolvedValue(envelope(COM_REQUISITO))
+    buscaPartida.mockResolvedValue(envelope(COM_REQUISITO))
     consultaEntrada.mockResolvedValue(
       envelope({
         allowed: false,
-        failures: [{ code: 'REQUIREMENT_MIN_MATCHES_PLAYED', message: 'Faltam peladas.' }],
+        failures: [{ code: 'REQUIREMENT_MIN_MATCHES_PLAYED', message: 'Faltam partidas.' }],
         requirements: [
           { type: 'MIN_MATCHES_PLAYED' as const, params: { min: 10 }, met: false,
-            failure: { code: 'REQUIREMENT_MIN_MATCHES_PLAYED', message: 'Faltam peladas.' } },
+            failure: { code: 'REQUIREMENT_MIN_MATCHES_PLAYED', message: 'Faltam partidas.' } },
         ],
       }),
     )
 
-    abrePelada()
+    abrePartida()
 
     const botao = await screen.findByRole('button', { name: /não atende aos requisitos/i })
     const descrito = botao.getAttribute('aria-describedby')
     expect(descrito).toBeTruthy()
-    expect(document.getElementById(descrito!)).toHaveTextContent('Faltam peladas.')
+    expect(document.getElementById(descrito!)).toHaveTextContent('Faltam partidas.')
   })
 
   it('quem atende continua com o botão normal', async () => {
-    buscaPelada.mockResolvedValue(envelope(COM_REQUISITO))
+    buscaPartida.mockResolvedValue(envelope(COM_REQUISITO))
     consultaEntrada.mockResolvedValue(
       envelope({
         allowed: true,
@@ -995,27 +995,27 @@ describe('PartidaDetail — os requisitos antes do clique', () => {
       }),
     )
 
-    abrePelada()
+    abrePartida()
 
     expect(await screen.findByRole('button', { name: /Entrar na partida/i })).toBeEnabled()
   })
 
-  it('pelada sem requisito não ganha enfeite nenhum', async () => {
-    buscaPelada.mockResolvedValue(envelope(criaPelada({ id: 'pelada-1' })))
+  it('partida sem requisito não ganha enfeite nenhum', async () => {
+    buscaPartida.mockResolvedValue(envelope(criaPartida({ id: 'partida-1' })))
 
-    abrePelada()
+    abrePartida()
 
     await screen.findByRole('button', { name: /Entrar na partida/i })
-    // A esmagadora maioria das peladas continua sem regra, e o caso comum não
+    // A esmagadora maioria das partidas continua sem regra, e o caso comum não
     // pode ganhar caixa nova por causa do raro.
-    expect(screen.queryByTestId('requisitos-da-pelada')).not.toBeInTheDocument()
+    expect(screen.queryByTestId('requisitos-da-partida')).not.toBeInTheDocument()
   })
 
   it('falha na consulta ao portão não bloqueia o botão', async () => {
-    buscaPelada.mockResolvedValue(envelope(COM_REQUISITO))
+    buscaPartida.mockResolvedValue(envelope(COM_REQUISITO))
     consultaEntrada.mockRejectedValue(new Error('rede caiu'))
 
-    abrePelada()
+    abrePartida()
 
     // Sem resposta, a tela volta a se comportar como antes desta issue: o
     // clique tenta e a API decide. Barrar por falta de informação inventaria
@@ -1038,12 +1038,12 @@ describe('PartidaDetail — os requisitos antes do clique', () => {
  */
 describe('PartidaDetail — visitante sem sessão', () => {
   /** Sem `marcarSessao()`: o AuthContext resolve para `isAuthenticated` falso. */
-  function abreDeslogado(route = '/partida/pelada-1') {
+  function abreDeslogado(route = '/partida/partida-1') {
     return renderWithProviders(<PartidaDetail />, { route, path: '/partida/:eventId' })
   }
 
   const COM_GENTE = () =>
-    criaPelada({
+    criaPartida({
       maxPlayers: 10,
       participations: [
         criaParticipante({ userId: 'user-2', user: { id: 'user-2', name: 'Ana Prado', nickname: 'aninha', avatarUrl: null } }),
@@ -1055,8 +1055,8 @@ describe('PartidaDetail — visitante sem sessão', () => {
     localStorage.clear()
   })
 
-  it('abre a pelada, com o que ajuda a decidir se quer entrar', async () => {
-    buscaPelada.mockResolvedValue(envelope(COM_GENTE()))
+  it('abre a partida, com o que ajuda a decidir se quer entrar', async () => {
+    buscaPartida.mockResolvedValue(envelope(COM_GENTE()))
 
     abreDeslogado()
 
@@ -1068,7 +1068,7 @@ describe('PartidaDetail — visitante sem sessão', () => {
   })
 
   it('não mostra participante por nome, e mostra a contagem no lugar', async () => {
-    buscaPelada.mockResolvedValue(envelope(COM_GENTE()))
+    buscaPartida.mockResolvedValue(envelope(COM_GENTE()))
 
     abreDeslogado()
 
@@ -1081,7 +1081,7 @@ describe('PartidaDetail — visitante sem sessão', () => {
   })
 
   it('não mostra a chave PIX', async () => {
-    buscaPelada.mockResolvedValue(envelope(COM_GENTE()))
+    buscaPartida.mockResolvedValue(envelope(COM_GENTE()))
 
     abreDeslogado()
 
@@ -1093,7 +1093,7 @@ describe('PartidaDetail — visitante sem sessão', () => {
   })
 
   it('não consulta o portão, que exige sessão', async () => {
-    buscaPelada.mockResolvedValue(envelope(COM_GENTE()))
+    buscaPartida.mockResolvedValue(envelope(COM_GENTE()))
 
     abreDeslogado()
 
@@ -1103,38 +1103,38 @@ describe('PartidaDetail — visitante sem sessão', () => {
     expect(consultaEntrada).not.toHaveBeenCalled()
   })
 
-  it('o botão diz que falta entrar, e leva o endereço da pelada junto', async () => {
-    buscaPelada.mockResolvedValue(envelope(COM_GENTE()))
+  it('o botão diz que falta entrar, e leva o endereço da partida junto', async () => {
+    buscaPartida.mockResolvedValue(envelope(COM_GENTE()))
 
-    abreDeslogado('/partida/pelada-1?convite=token-abc')
+    abreDeslogado('/partida/partida-1?convite=token-abc')
 
     const link = await screen.findByRole('link', { name: /Entre para participar/i })
 
     // O `?convite=` viaja junto dentro do `next`: sem ele, quem chegou por link
-    // de pelada privada voltaria do cadastro para um 404.
+    // de partida privada voltaria do cadastro para um 404.
     expect(link).toHaveAttribute(
       'href',
-      `/login?next=${encodeURIComponent('/partida/pelada-1?convite=token-abc')}`,
+      `/login?next=${encodeURIComponent('/partida/partida-1?convite=token-abc')}`,
     )
   })
 
-  it('repassa o token do convite na leitura da pelada', async () => {
-    buscaPelada.mockResolvedValue(envelope(COM_GENTE()))
+  it('repassa o token do convite na leitura da partida', async () => {
+    buscaPartida.mockResolvedValue(envelope(COM_GENTE()))
 
-    abreDeslogado('/partida/pelada-1?convite=token-abc')
+    abreDeslogado('/partida/partida-1?convite=token-abc')
 
     await waitFor(() => {
-      expect(buscaPelada).toHaveBeenCalledWith('pelada-1', 'token-abc')
+      expect(buscaPartida).toHaveBeenCalledWith('partida-1', 'token-abc')
     })
   })
 
   it('sem convite na URL, não inventa um', async () => {
-    buscaPelada.mockResolvedValue(envelope(COM_GENTE()))
+    buscaPartida.mockResolvedValue(envelope(COM_GENTE()))
 
     abreDeslogado()
 
     await waitFor(() => {
-      expect(buscaPelada).toHaveBeenCalledWith('pelada-1', undefined)
+      expect(buscaPartida).toHaveBeenCalledWith('partida-1', undefined)
     })
   })
 })
@@ -1147,7 +1147,7 @@ describe('PartidaDetail — visitante sem sessão', () => {
  * procurar o organizador. A tela repete a distinção pelo mesmo motivo.
  *
  * O outro ponto do bloco é o negativo: token chutado continua caindo no 404
- * comum, e o 404 não pode virar uma tela que confirme que a pelada existe.
+ * comum, e o 404 não pode virar uma tela que confirme que a partida existe.
  */
 describe('PartidaDetail — link de convite inválido', () => {
   beforeEach(() => {
@@ -1156,7 +1156,7 @@ describe('PartidaDetail — link de convite inválido', () => {
 
   const abreComConvite = () =>
     renderWithProviders(<PartidaDetail />, {
-      route: '/partida/pelada-1?convite=token-morto',
+      route: '/partida/partida-1?convite=token-morto',
       path: '/partida/:eventId',
     })
 
@@ -1165,7 +1165,7 @@ describe('PartidaDetail — link de convite inválido', () => {
     ['INVITE_EXPIRED',   /expirou/i,           /tinha prazo/i],
     ['INVITE_EXHAUSTED', /usado o bastante/i,  /limite de entradas/i],
   ])('%s ganha tela própria, com o que fazer em seguida', async (code, titulo, explicacao) => {
-    buscaPelada.mockRejectedValue(erroDaApi('link inválido', 403, code))
+    buscaPartida.mockRejectedValue(erroDaApi('link inválido', 403, code))
 
     abreComConvite()
 
@@ -1175,7 +1175,7 @@ describe('PartidaDetail — link de convite inválido', () => {
   })
 
   it('não manda a pessoa para a busca com um toast — o motivo fica na tela', async () => {
-    buscaPelada.mockRejectedValue(erroDaApi('link inválido', 403, 'INVITE_REVOKED'))
+    buscaPartida.mockRejectedValue(erroDaApi('link inválido', 403, 'INVITE_REVOKED'))
 
     abreComConvite()
 
@@ -1185,11 +1185,11 @@ describe('PartidaDetail — link de convite inválido', () => {
     expect(toast.error).not.toHaveBeenCalled()
   })
 
-  it('token chutado continua caindo no comportamento de pelada inexistente', async () => {
+  it('token chutado continua caindo no comportamento de partida inexistente', async () => {
     // A API responde 404 — o mesmo de sempre — para token que não existe ou que
-    // foi emitido para outra pelada. É isso que impede sondar pelada privada no
+    // foi emitido para outra partida. É isso que impede sondar partida privada no
     // chute, e a tela não pode transformar esse 404 numa confirmação.
-    buscaPelada.mockRejectedValue(erroDaApi('não encontrada', 404, 'EVENT_NOT_FOUND'))
+    buscaPartida.mockRejectedValue(erroDaApi('não encontrada', 404, 'EVENT_NOT_FOUND'))
 
     abreComConvite()
 
@@ -1200,22 +1200,22 @@ describe('PartidaDetail — link de convite inválido', () => {
 
 describe('PartidaDetail — chamar gente', () => {
   it('o organizador tem o botão de compartilhar', async () => {
-    buscaPelada.mockResolvedValue(envelope(criaPelada({
+    buscaPartida.mockResolvedValue(envelope(criaPartida({
       organizerId: USUARIO.id,
       organizer: { id: USUARIO.id, name: USUARIO.name, avatarUrl: null },
     })))
 
-    renderWithProviders(<PartidaDetail />, { route: '/partida/pelada-1', path: '/partida/:eventId' })
+    renderWithProviders(<PartidaDetail />, { route: '/partida/partida-1', path: '/partida/:eventId' })
 
-    // Vem antes de "Sortear Times": é a ação de quando a pelada ainda não
+    // Vem antes de "Sortear Times": é a ação de quando a partida ainda não
     // encheu, e é a razão de o organizador abrir esta tela faltando gente.
     expect(await screen.findByRole('button', { name: /chamar gente/i })).toBeInTheDocument()
   })
 
   it('quem não organiza não tem o botão', async () => {
-    buscaPelada.mockResolvedValue(envelope(criaPelada()))
+    buscaPartida.mockResolvedValue(envelope(criaPartida()))
 
-    renderWithProviders(<PartidaDetail />, { route: '/partida/pelada-1', path: '/partida/:eventId' })
+    renderWithProviders(<PartidaDetail />, { route: '/partida/partida-1', path: '/partida/:eventId' })
 
     await screen.findByText('Quadra 1')
     expect(screen.queryByRole('button', { name: /chamar gente/i })).not.toBeInTheDocument()
