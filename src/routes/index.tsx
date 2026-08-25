@@ -72,8 +72,24 @@ function PrivateRoute({ children }: { children: ReactNode }) {
  *
  * `/pelada/:eventId` é a URL que o jogador cola no grupo do WhatsApp. Ela já
  * saiu, e quem clica nela não é quem tem como reportar que quebrou — link morto
- * é a regressão que ninguém vê acontecer. O `:eventId` é preservado, e o
- * redirect não tem prazo para sair.
+ * é a regressão que ninguém vê acontecer. O `:eventId` é preservado.
+ *
+ * **Estes redirects podem sair, e é a api que dita quando** (api#407).
+ *
+ * Eles atendem só o que é genuinamente passado: link de WhatsApp já colado e
+ * e-mail já entregue. Nada mais os produz — a api#400 fez o `linkDe` emitir
+ * `/partida`, e a api#407 apontou os dois botões de e-mail para
+ * `/minhas-partidas`.
+ *
+ * Isso não foi sempre verdade, e a diferença importa: até a api#407, dois
+ * templates de e-mail montavam `/minhas-peladas` a cada entrada confirmada e a
+ * cada lembrete diário. Enquanto isso durou, remover estes redirects teria
+ * quebrado o botão de e-mail que o produto **ainda estava enviando** — sem
+ * quebrar teste nenhum, porque nada aqui liga e-mail a rota.
+ *
+ * Antes de removê-los, confira que continua valendo: `grep -rn 'appUrl}/' ` no
+ * `so-mais-um-api` não pode devolver caminho que só exista aqui como redirect.
+ * O teste `emailTemplates-caminhos.test.ts` de lá é quem segura isso hoje.
  *
  * `Navigate` sozinho não serve aqui: ele não interpola parâmetro de rota, e
  * mandaria o visitante para a string literal `/partida/:eventId`.
