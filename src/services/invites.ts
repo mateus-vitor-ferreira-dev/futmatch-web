@@ -13,7 +13,7 @@ export interface CriarConviteInput {
 const rota = (courtId: string, eventId: string) =>
   `/courts/${courtId}/events/${eventId}/invites`
 
-/** Requer ser o organizador da pelada, ou ADMIN. */
+/** Requer ser o organizador da partida, ou ADMIN. */
 export function criarConvite(
   courtId: string,
   eventId: string,

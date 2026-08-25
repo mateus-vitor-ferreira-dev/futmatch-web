@@ -1,10 +1,10 @@
 import styled from 'styled-components'
 
 /**
- * O modal de compartilhar o link da pelada (#229).
+ * O modal de compartilhar o link da partida (#229).
  *
  * Segue a forma do `SorteioDeTimes`, que é o outro modal aberto a partir do
- * detalhe da pelada — dois modais irmãos com molduras diferentes pareceriam
+ * detalhe da partida — dois modais irmãos com molduras diferentes pareceriam
  * dois produtos.
  */
 

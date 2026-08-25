@@ -78,7 +78,7 @@ export function getSportMeta(type: CourtType): { label: string; icon: string } {
  * quinze compartilham a mesma entrada de cache: uma requisição por sessão.
  *
  * `staleTime` de uma hora porque modalidade é dado de catálogo: muda quando
- * alguém faz deploy, não durante a sessão de quem está procurando pelada.
+ * alguém faz deploy, não durante a sessão de quem está procurando partida.
  */
 export function useSports(): { sports: SportOption[]; tabs: SportTab[]; loading: boolean } {
   const { data, isPending } = useQuery({

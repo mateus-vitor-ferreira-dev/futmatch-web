@@ -1,5 +1,5 @@
 /**
- * As regras da pelada, antes de qualquer clique.
+ * As regras da partida, antes de qualquer clique.
  *
  * Requisito que só aparece como erro depois do clique é uma armadilha: o
  * jogador se anima, clica, toma recusa e não sabe se é regra, defeito ou
@@ -11,7 +11,7 @@
  *    sem regra, e o caso comum não pode ganhar enfeite por causa do raro.
  * 2. **Sem veredito, a barra ainda aparece.** É o visitante deslogado: a
  *    consulta ao portão exige sessão, e sem os requisitos vindo no corpo da
- *    pelada (api#332) ele não veria regra nenhuma.
+ *    partida (api#332) ele não veria regra nenhuma.
  */
 import { describe, it, expect } from 'vitest'
 import { renderWithProviders, screen } from '../../test/render'
@@ -30,7 +30,7 @@ const veredito = (over: Partial<EntryVerdict> = {}): EntryVerdict => ({
 })
 
 describe('RequisitosDaPartida', () => {
-  it('não renderiza nada quando a pelada não tem requisito', () => {
+  it('não renderiza nada quando a partida não tem requisito', () => {
     const { container } = renderWithProviders(<RequisitosDaPartida requirements={[]} />)
 
     // O caso comum fica exatamente como estava antes desta issue.
@@ -78,7 +78,7 @@ describe('RequisitosDaPartida', () => {
     expect(screen.getByText(/— você não atende/)).toBeInTheDocument()
   })
 
-  it('diz quantas peladas faltam, a partir do número e não da frase', () => {
+  it('diz quantas partidas faltam, a partir do número e não da frase', () => {
     renderWithProviders(
       <RequisitosDaPartida
         requirements={[jogos]}

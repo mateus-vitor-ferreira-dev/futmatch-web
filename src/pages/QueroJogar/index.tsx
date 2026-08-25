@@ -454,12 +454,12 @@ export default function QueroJogar() {
                 </CardHeader>
 
                 {/*
-                  * Uma linha só dizendo que a pelada TEM regra (#230).
+                  * Uma linha só dizendo que a partida TEM regra (#230).
                   *
                   * O card não diz se este jogador passa: a busca não consulta o
-                  * portão por pelada, e fazer isso seria uma requisição por
+                  * portão por partida, e fazer isso seria uma requisição por
                   * resultado. O detalhe é que responde essa pergunta — aqui o
-                  * papel é a pessoa não abrir a pelada achando que é aberta.
+                  * papel é a pessoa não abrir a partida achando que é aberta.
                   */}
                 <EtiquetaDeRequisitos requirements={event.requirements ?? []} />
 

@@ -1,5 +1,5 @@
 /**
- * As regras de acesso de uma pelada que já existe (#228).
+ * As regras de acesso de uma partida que já existe (#228).
  *
  * O teste que carrega este componente é o do **diff**: salvar tem de mandar
  * para a API só o que mudou. Reenviar tudo funcionaria e escreveria uma vez por
@@ -7,13 +7,13 @@
  * fechou no "Salvar".
  *
  * O segundo é o da **frase sobre quem já está dentro**. Mudar regra com gente
- * na pelada parece uma ação de risco indeterminado, e é a dúvida que faz o
+ * na partida parece uma ação de risco indeterminado, e é a dúvida que faz o
  * organizador não mexer.
  */
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { toast } from 'sonner'
 import { renderWithProviders, screen, waitFor } from '../../test/render'
-import { criaPelada, criaResumoDeTime, envelope, erroDaApi } from '../../test/factories'
+import { criaPartida, criaResumoDeTime, envelope, erroDaApi } from '../../test/factories'
 import type { PartidaRequirement } from '../../types/api'
 import { playerService } from '../../services/playerService'
 import { teamsService } from '../../services/teams'
@@ -28,7 +28,7 @@ const anexar = vi.mocked(playerService.upsertRequirement)
 const remover = vi.mocked(playerService.deleteRequirement)
 const trocarVisibilidade = vi.mocked(playerService.updateEventVisibility)
 
-const partida = criaPelada({ visibility: 'PUBLIC' })
+const partida = criaPartida({ visibility: 'PUBLIC' })
 
 function monta(requisitos: PartidaRequirement[] = []) {
   listar.mockResolvedValue(envelope(requisitos))
@@ -51,11 +51,11 @@ beforeEach(() => {
 })
 
 describe('RegrasDaPartida', () => {
-  it('carrega as regras que a pelada já tem', async () => {
+  it('carrega as regras que a partida já tem', async () => {
     monta([{ type: 'MIN_MATCHES_PLAYED', params: { min: 8 } }])
 
     expect(await screen.findByLabelText('Partidas já jogadas')).toHaveValue(8)
-    expect(listar).toHaveBeenCalledWith('quadra-1', 'pelada-1')
+    expect(listar).toHaveBeenCalledWith('quadra-1', 'partida-1')
   })
 
   it('diz o que acontece com quem já está dentro', async () => {
@@ -86,10 +86,10 @@ describe('RegrasDaPartida', () => {
     await user.selectOptions(screen.getByLabelText('Adicionar uma regra de entrada'), 'MIN_ATTENDANCE_RATE')
     await user.click(salvar())
 
-    await waitFor(() => expect(remover).toHaveBeenCalledWith('quadra-1', 'pelada-1', 'MIN_AVERAGE_RATING'))
-    expect(anexar).toHaveBeenCalledExactlyOnceWith('quadra-1', 'pelada-1', 'MIN_ATTENDANCE_RATE', { min: 0.7 })
+    await waitFor(() => expect(remover).toHaveBeenCalledWith('quadra-1', 'partida-1', 'MIN_AVERAGE_RATING'))
+    expect(anexar).toHaveBeenCalledExactlyOnceWith('quadra-1', 'partida-1', 'MIN_ATTENDANCE_RATE', { min: 0.7 })
     // A que não mudou fica fora das duas listas.
-    expect(anexar).not.toHaveBeenCalledWith('quadra-1', 'pelada-1', 'MIN_MATCHES_PLAYED', expect.anything())
+    expect(anexar).not.toHaveBeenCalledWith('quadra-1', 'partida-1', 'MIN_MATCHES_PLAYED', expect.anything())
   })
 
   it('troca a visibilidade só quando ela mudou', async () => {
@@ -98,7 +98,7 @@ describe('RegrasDaPartida', () => {
     await user.click(await screen.findByRole('radio', { name: /Privada/ }))
     await user.click(salvar())
 
-    await waitFor(() => expect(trocarVisibilidade).toHaveBeenCalledWith('quadra-1', 'pelada-1', 'PRIVATE'))
+    await waitFor(() => expect(trocarVisibilidade).toHaveBeenCalledWith('quadra-1', 'partida-1', 'PRIVATE'))
     expect(onClose).toHaveBeenCalledOnce()
   })
 

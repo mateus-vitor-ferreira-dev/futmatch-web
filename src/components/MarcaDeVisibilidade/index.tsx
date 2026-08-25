@@ -20,7 +20,7 @@ const MARCAS = {
 } as const
 
 /**
- * A marca de que esta pelada **não está listada** (#227).
+ * A marca de que esta partida **não está listada** (#227).
  *
  * **Partida pública não ganha marca nenhuma.** Ela é a esmagadora maioria, e
  * carimbar "pública" em todas transformaria o normal em aviso e o aviso em
@@ -28,7 +28,7 @@ const MARCAS = {
  *
  * O organizador é quem mais precisa dela: ele escolheu a visibilidade uma vez,
  * na criação, e depois não tem como saber o que escolheu sem abrir a edição. A
- * pelada some da busca em silêncio, e "por que ninguém está entrando?" é uma
+ * partida some da busca em silêncio, e "por que ninguém está entrando?" é uma
  * pergunta cuja resposta cabe num rótulo.
  */
 export function MarcaDeVisibilidade({ visibility }: Props) {

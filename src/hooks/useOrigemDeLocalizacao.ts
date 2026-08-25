@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from 'react'
 import { useAuth } from '../contexts/AuthContext'
 
 /**
- * De onde medir a distância até as peladas (#222).
+ * De onde medir a distância até as partidas (#222).
  *
  * ## A regra que carrega esta issue
  *

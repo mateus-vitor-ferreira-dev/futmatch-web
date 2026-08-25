@@ -19,7 +19,7 @@ export interface EquipmentInput {
 export interface EquipmentLoanInput {
   equipmentId: string
   borrowerId: string
-  peladaId?: string | null
+  matchId?: string | null
   quantidade: number
   observacao?: string | null
 }
@@ -55,5 +55,5 @@ export const settleLoan = async (placeId: string, loanId: string, data: Equipmen
 export const searchBorrowers = async (placeId: string, search = ''): Promise<EquipmentBorrower[]> =>
   (await api.get(`/places/${placeId}/equipment/borrowers`, { params: { search } })).data.data
 
-export const listPeladas = async (placeId: string): Promise<EquipmentPartida[]> =>
+export const listPartidas = async (placeId: string): Promise<EquipmentPartida[]> =>
   (await api.get(`/places/${placeId}/equipment/events`)).data.data

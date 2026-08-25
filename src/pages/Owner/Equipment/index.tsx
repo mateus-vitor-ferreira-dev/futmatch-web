@@ -67,7 +67,7 @@ export default function OwnerEquipment() {
   const [placeId, setPlaceId] = useState(searchParams.get('placeId') ?? '')
   const [items, setItems] = useState<Equipment[]>([])
   const [loans, setLoans] = useState<EquipmentLoan[]>([])
-  const [peladas, setPeladas] = useState<EquipmentPartida[]>([])
+  const [partidas, setPartidas] = useState<EquipmentPartida[]>([])
   const [borrowers, setBorrowers] = useState<EquipmentBorrower[]>([])
   const [borrowerSearch, setBorrowerSearch] = useState('')
   const [loading, setLoading] = useState(true)
@@ -95,14 +95,14 @@ export default function OwnerEquipment() {
     setLoading(true)
     setError(null)
     try {
-      const [loadedItems, loadedLoans, loadedPeladas] = await Promise.all([
+      const [loadedItems, loadedLoans, loadedPartidas] = await Promise.all([
         equipmentService.listItems(placeId),
         equipmentService.listLoans(placeId, 'all'),
-        equipmentService.listPeladas(placeId),
+        equipmentService.listPartidas(placeId),
       ])
       setItems(loadedItems)
       setLoans(loadedLoans)
-      setPeladas(loadedPeladas)
+      setPartidas(loadedPartidas)
     } catch {
       setError('Não foi possível carregar os equipamentos deste estabelecimento.')
     } finally {
@@ -170,7 +170,7 @@ export default function OwnerEquipment() {
       await equipmentService.createLoan(placeId, {
         equipmentId: loanModal.id,
         borrowerId: String(data.get('borrowerId')),
-        peladaId: String(data.get('peladaId') ?? '') || null,
+        matchId: String(data.get('matchId') ?? '') || null,
         quantidade: Number(data.get('quantidade')),
         observacao: String(data.get('observacao') ?? '') || null,
       })
@@ -245,7 +245,7 @@ export default function OwnerEquipment() {
                   </CardTop>
                   <LoanInfo>
                     <strong>{loan.borrower.nickname || loan.borrower.name}</strong><br />
-                    {loan.pelada ? `${loan.pelada.court?.name ?? 'Partida'} · ${localDate(loan.pelada.date)}` : 'Sem partida vinculada'}
+                    {loan.match ? `${loan.match.court?.name ?? 'Partida'} · ${localDate(loan.match.date)}` : 'Sem partida vinculada'}
                     {loan.observacao && <><br />{loan.observacao}</>}
                   </LoanInfo>
                   <CardActions><PrimaryButton type="button" onClick={() => setSettlementModal(loan)} disabled={!podeAlterar}><Undo2 size={16} /> Devolver / baixar</PrimaryButton></CardActions>
@@ -321,7 +321,7 @@ export default function OwnerEquipment() {
               <Field>Buscar quem levou<Input value={borrowerSearch} onChange={(event) => setBorrowerSearch(event.target.value)} placeholder="Nome ou apelido" /></Field>
               <Field>Quem levou<Select name="borrowerId" required defaultValue=""><option value="" disabled>Selecione a pessoa</option>{borrowers.map((person) => <option key={person.id} value={person.id}>{person.nickname ? `${person.nickname} (${person.name})` : person.name}</option>)}</Select></Field>
               <Field>Quantidade<Input name="quantidade" type="number" min={1} max={loanModal.quantidadeDisponivel} step={1} defaultValue={1} required /></Field>
-              <Field>Partida (opcional)<Select name="peladaId" defaultValue=""><option value="">Sem vínculo com partida</option>{peladas.map((pelada) => <option key={pelada.id} value={pelada.id}>{pelada.court.name} · {localDate(pelada.date)}</option>)}</Select></Field>
+              <Field>Partida (opcional)<Select name="matchId" defaultValue=""><option value="">Sem vínculo com partida</option>{partidas.map((partida) => <option key={partida.id} value={partida.id}>{partida.court.name} · {localDate(partida.date)}</option>)}</Select></Field>
               <Field>Observação<Textarea name="observacao" maxLength={300} placeholder="Ex.: Material entregue ao organizador" /></Field>
               <ModalActions><SecondaryButton type="button" onClick={() => setLoanModal(null)}>Cancelar</SecondaryButton><PrimaryButton type="submit" disabled={saving}>{saving ? 'Registrando…' : 'Confirmar saída'}</PrimaryButton></ModalActions>
             </Form>

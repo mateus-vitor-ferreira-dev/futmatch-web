@@ -61,7 +61,7 @@ export default function MinhasPartidas() {
   // Presença
   const [attendanceEvent, setAttendanceEvent]           = useState<Partida | null>(null)
 
-  // Regras de acesso da pelada já criada (#228)
+  // Regras de acesso da partida já criada (#228)
   const [regrasEvent, setRegrasEvent] = useState<Partida | null>(null)
 
   /**
@@ -84,7 +84,7 @@ export default function MinhasPartidas() {
   }, [searchParams, setSearchParams])
 
   /**
-   * A aba "participating" devolve Participation[] (com a pelada aninhada) e a
+   * A aba "participating" devolve Participation[] (com a partida aninhada) e a
    * "created" devolve Partida[]. Cada aba tem a própria entrada de cache, então
    * alternar entre elas ida e volta não refaz a busca.
    */
@@ -114,8 +114,8 @@ export default function MinhasPartidas() {
     enabled: isModalOpen,
   })
 
-  /** Invalida as duas abas: criar ou alterar pelada mexe nas duas listas. */
-  const invalidarPeladas = useCallback(() => {
+  /** Invalida as duas abas: criar ou alterar partida mexe nas duas listas. */
+  const invalidarPartidas = useCallback(() => {
     queryClient.invalidateQueries({ queryKey: ['eventos'] })
   }, [queryClient])
 
@@ -128,8 +128,8 @@ export default function MinhasPartidas() {
 
   const onSubmit = async (data: FormularioPartida) => {
     // Regra impossível de cumprir é recusada pela API com 422, e ali o erro
-    // chegaria depois de a pelada já existir. Barrar antes é o que evita a
-    // pelada criada com metade das regras.
+    // chegaria depois de a partida já existir. Barrar antes é o que evita a
+    // partida criada com metade das regras.
     const seloSemSelo = requisitos.find((r) => r.type === 'BADGE' && (r.params?.badges?.length ?? 0) === 0)
     if (seloSemSelo) {
       toast.error('Marque ao menos um selo, ou remova a regra de selo.')
@@ -147,21 +147,21 @@ export default function MinhasPartidas() {
       const criada = await playerService.createEvent(data.courtId, payload)
 
       /**
-       * Os requisitos vão depois, porque a rota deles é pendurada na pelada e
-       * a pelada precisa existir para ter id.
+       * Os requisitos vão depois, porque a rota deles é pendurada na partida e
+       * a partida precisa existir para ter id.
        *
-       * Falhar aqui **não desfaz a criação**: a pelada existe, e apagá-la para
+       * Falhar aqui **não desfaz a criação**: a partida existe, e apagá-la para
        * "limpar" seria destruir o que deu certo por causa do que não deu. O
        * aviso diz exatamente isso, e manda o organizador para a edição — que é
        * onde ele conserta sem recomeçar.
        */
-      const pelada = criada.data
-      if (pelada && requisitos.length > 0) {
+      const partida = criada.data
+      if (partida && requisitos.length > 0) {
         try {
           for (const requisito of requisitos) {
             await playerService.upsertRequirement(
               data.courtId,
-              pelada.id,
+              partida.id,
               requisito.type,
               requisito.params ?? {},
             )
@@ -177,7 +177,7 @@ export default function MinhasPartidas() {
 
       fecharCriacao()
       setActiveTab('created')
-      invalidarPeladas()
+      invalidarPartidas()
     } catch (error) {
       toast.error(mensagemDeErro(error, 'Erro ao criar partida'))
     }
@@ -195,7 +195,7 @@ export default function MinhasPartidas() {
     try {
       await playerService.updateEventStatus(ev.courtId, ev.id, status)
       toast.success(`Partida ${status === 'FINISHED' ? 'finalizada' : 'cancelada'}.`)
-      invalidarPeladas()
+      invalidarPartidas()
     } catch (error) {
       toast.error(mensagemDeErro(error, 'Erro ao atualizar status.'))
     }
@@ -232,7 +232,7 @@ export default function MinhasPartidas() {
         {loading ? <SkeletonCard count={3} /> : (
           <Grid>
             {events.map((event) => {
-              const ev = ('pelada' in event && event.pelada ? event.pelada : event) as Partida
+              const ev = ('match' in event && event.match ? event.match : event) as Partida
               if (!ev || !ev.id) return null
 
               const currentPlayers = ev._count?.participations || 0
@@ -353,7 +353,7 @@ export default function MinhasPartidas() {
                 </div>
 
                 {/* Visibilidade e requisitos, na criação (#228). O mesmo
-                    componente edita a pelada já criada, para as duas telas não
+                    componente edita a partida já criada, para as duas telas não
                     divergirem sobre o que cada regra significa. */}
                 <ConfiguracaoDeAcesso
                   visibilidade={visibilidade}
@@ -378,12 +378,12 @@ export default function MinhasPartidas() {
           <SorteioDeTimes partida={drawEvent} onClose={() => setDrawEvent(null)} />
         )}
 
-        {/* Regras de acesso da pelada já criada (#228). */}
+        {/* Regras de acesso da partida já criada (#228). */}
         {regrasEvent && (
           <RegrasDaPartida
             partida={regrasEvent}
             onClose={() => setRegrasEvent(null)}
-            onSaved={invalidarPeladas}
+            onSaved={invalidarPartidas}
           />
         )}
 

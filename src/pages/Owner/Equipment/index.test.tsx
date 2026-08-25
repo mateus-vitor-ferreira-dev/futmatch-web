@@ -42,12 +42,12 @@ const equipment = {
 } satisfies Equipment
 
 const loan = {
-  id: 'loan-1', equipmentId: equipment.id, borrowerId: 'player-1', peladaId: null,
+  id: 'loan-1', equipmentId: equipment.id, borrowerId: 'player-1', matchId: null,
   quantidadeEmprestada: 6, quantidadeDevolvida: 4, quantidadeBaixada: 0, quantidadePendente: 2,
   emprestadoEm: '2026-08-05T10:00:00.000Z', encerradoEm: null, observacao: null,
   equipment, borrower: { id: 'player-1', name: 'Ana Jogadora', nickname: 'Aninha', avatarUrl: null },
   createdBy: { id: 'owner-1', name: 'Dono', nickname: null, avatarUrl: null },
-  pelada: null, settlements: [],
+  match: null, settlements: [],
 } satisfies EquipmentLoan
 
 beforeEach(() => {
@@ -57,7 +57,7 @@ beforeEach(() => {
   vi.mocked(placesService.list).mockResolvedValue({ data: { success: true, data: [place] } } as Awaited<ReturnType<typeof placesService.list>>)
   vi.mocked(equipmentService.listItems).mockResolvedValue([equipment])
   vi.mocked(equipmentService.listLoans).mockResolvedValue([loan])
-  vi.mocked(equipmentService.listPeladas).mockResolvedValue([])
+  vi.mocked(equipmentService.listPartidas).mockResolvedValue([])
   vi.mocked(equipmentService.searchBorrowers).mockResolvedValue([loan.borrower])
   vi.mocked(equipmentService.settleLoan).mockResolvedValue({ quantidadePendente: 1 })
 })

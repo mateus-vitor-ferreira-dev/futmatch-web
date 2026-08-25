@@ -115,7 +115,7 @@ export default function OwnerPlaces() {
    * ⚠️ Estes dois indicadores nunca tiveram dado real:
    *
    * - `_count.events` não existe no retorno de GET /places — o include do
-   *   backend só conta `courts`. O total de peladas sempre soma 0.
+   *   backend só conta `courts`. O total de partidas sempre soma 0.
    * - `averageRating` não existe no modelo Place. A média sempre resulta
    *   "0.0", nunca '—', porque places.length é > 0 quando há estabelecimentos.
    *

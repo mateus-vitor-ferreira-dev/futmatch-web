@@ -13,7 +13,7 @@ import { renderWithProviders, screen } from './render'
 function MostraParametro() {
   const { eventId } = useParams()
   const { pathname } = useLocation()
-  return <p>pelada {eventId} em {pathname}</p>
+  return <p>partida {eventId} em {pathname}</p>
 }
 
 const Pintado = styled.span`
@@ -40,7 +40,7 @@ describe('renderWithProviders', () => {
       route: '/partida/42',
       path: '/partida/:eventId',
     })
-    expect(screen.getByText(/pelada 42/)).toBeInTheDocument()
+    expect(screen.getByText(/partida 42/)).toBeInTheDocument()
   })
 
   it('aplica o tema escuro quando pedido', () => {

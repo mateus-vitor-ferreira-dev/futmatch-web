@@ -1,5 +1,5 @@
 /**
- * A seção "peladas perto de você" (#223) e a origem da localização (#222).
+ * A seção "partidas perto de você" (#223) e a origem da localização (#222).
  *
  * Dois testes carregam estas issues.
  *
@@ -14,7 +14,7 @@
  */
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { renderWithProviders, screen, waitFor } from '../../test/render'
-import { criaPelada, criaUsuario, envelope } from '../../test/factories'
+import { criaPartida, criaUsuario, envelope } from '../../test/factories'
 import { marcarSessao } from '../../services/api'
 import * as eventsService from '../../services/events'
 import * as authService from '../../services/auth'
@@ -64,7 +64,7 @@ function comEndereco(latitude: number | null = null) {
   )
 }
 
-const perto = (distanceKm: number) => ({ ...criaPelada(), distanceKm })
+const perto = (distanceKm: number) => ({ ...criaPartida(), distanceKm })
 
 beforeEach(() => {
   vi.clearAllMocks()
@@ -159,7 +159,7 @@ describe('PartidasPerto — com origem', () => {
     expect(await screen.findByText(/a partir do seu endereço/)).toBeInTheDocument()
   })
 
-  it('mostra a distância de cada pelada', async () => {
+  it('mostra a distância de cada partida', async () => {
     geolocalizacao('nega')
     comEndereco(-21.24)
     recomendadas.mockResolvedValue(envelope({ events: [perto(2.7)], origin: COORDENADAS, radiusKm: 10 }))

@@ -4,8 +4,8 @@
  * O teste que carrega esta issue é o da **conversão de porcentagem**: a API
  * guarda a presença como fração de 0 a 1 e recusa porcentagem, porque `1` seria
  * ambíguo. Quem digita pensa em `90`. Um componente que mandasse `90` para a
- * API criaria uma pelada que ninguém consegue entrar, e o erro só apareceria
- * quando a pelada não enchesse.
+ * API criaria uma partida que ninguém consegue entrar, e o erro só apareceria
+ * quando a partida não enchesse.
  */
 import { describe, expect, it, vi } from 'vitest'
 import { fireEvent, renderWithProviders, screen } from '../../test/render'
@@ -97,7 +97,7 @@ describe('ConfiguracaoDeAcesso — quem entra', () => {
     fireEvent.change(campo, { target: { value: '90' } })
 
     // 0.9, e não 90: a API guarda fração porque `1` como porcentagem seria
-    // ambíguo, e mandar 90 criaria uma pelada em que ninguém entra.
+    // ambíguo, e mandar 90 criaria uma partida em que ninguém entra.
     expect(aoMudarRequisitos).toHaveBeenLastCalledWith([
       { type: 'MIN_ATTENDANCE_RATE', params: { min: 0.9 } },
     ])
@@ -148,7 +148,7 @@ describe('ConfiguracaoDeAcesso — o aviso de restrição', () => {
     expect(screen.getByRole('status')).toHaveTextContent(/faltou uma vez em dez/)
   })
 
-  it('avisa que o time fecha a pelada por completo', () => {
+  it('avisa que o time fecha a partida por completo', () => {
     monta({
       times: [criaResumoDeTime({ id: 'time-1' })],
       requisitos: [{ type: 'TEAM_MEMBER', params: { teamId: 'time-1' } }],

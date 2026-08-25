@@ -6,7 +6,7 @@ import { chaves } from '../../lib/queryClient'
 import { Bloco, Titulo, Lista, Item, Marca, Texto, Falta, Etiqueta, ApenasLeitor } from './styles'
 
 interface Props {
-  /** As regras da pelada, como vêm na leitura — inclusive para quem não está logado. */
+  /** As regras da partida, como vêm na leitura — inclusive para quem não está logado. */
   requirements: PartidaRequirement[]
   /**
    * O veredito, quando há sessão. Sem ele a tela mostra só a barra, sem dizer
@@ -22,7 +22,7 @@ interface Props {
  * atual }` justamente para a tela não precisar fazer parse da `message` — que
  * quebraria na primeira vez que alguém melhorasse o texto (api#332).
  *
- * Só o de peladas jogadas vira instrução acionável: "faltam 7 peladas" é uma
+ * Só o de partidas jogadas vira instrução acionável: "faltam 7 partidas" é uma
  * coisa que a pessoa faz. Presença e nota dependem de como ela joga, não de
  * quantas vezes — dizer "faltam 12%" ali soaria como conta, não como caminho.
  */
@@ -48,7 +48,7 @@ function oQueFalta(resultado: EntryRequirementResult): string | null {
 }
 
 /**
- * As regras de entrada da pelada, antes de qualquer clique.
+ * As regras de entrada da partida, antes de qualquer clique.
  *
  * Requisito que só aparece como erro depois do clique é uma armadilha: o
  * jogador se anima, clica, toma recusa e não sabe se é regra, defeito ou
@@ -61,7 +61,7 @@ export default function RequisitosDaPartida({ requirements, veredito }: Props) {
   /**
    * O nome do time, quando há requisito de time (api#224).
    *
-   * O `params` guarda só o id, e a leitura da pelada não devolve o time. Sem o
+   * O `params` guarda só o id, e a leitura da partida não devolve o time. Sem o
    * nome a regra vira "um time que o organizador escolheu", que não é
    * informação nenhuma — e a rota do time é **pública**, então buscá-la não
    * fecha esta tela para quem está deslogado, que é justamente quem ela serve.
@@ -117,8 +117,8 @@ export default function RequisitosDaPartida({ requirements, veredito }: Props) {
  * A versão de uma linha, para o card da busca.
  *
  * O card não tem espaço para a lista inteira e não sabe nada sobre quem olha —
- * a busca não consulta o portão por pelada. Ele diz só que existe regra, para
- * a pessoa não abrir a pelada achando que é aberta.
+ * a busca não consulta o portão por partida. Ele diz só que existe regra, para
+ * a pessoa não abrir a partida achando que é aberta.
  */
 export function EtiquetaDeRequisitos({ requirements }: { requirements: PartidaRequirement[] }) {
   if (requirements.length === 0) return null

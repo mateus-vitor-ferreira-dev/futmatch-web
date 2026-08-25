@@ -116,8 +116,8 @@ export default function Avaliacoes() {
                         <div className="meta">
                           <div className="reviewer-name">{review.reviewer?.name}</div>
                           <div className="game-info">
-                            {review.pelada?.court?.place?.name && (
-                              <>{review.pelada.court.place.name} &mdash; </>
+                            {review.match?.court?.place?.name && (
+                              <>{review.match.court.place.name} &mdash; </>
                             )}
                             {formatDate(review.createdAt)}
                           </div>
@@ -156,8 +156,8 @@ export default function Avaliacoes() {
                         <div className="meta">
                           <div className="reviewer-name">{review.reviewed?.name}</div>
                           <div className="game-info">
-                            {review.pelada?.court?.place?.name && (
-                              <>{review.pelada.court.place.name} &mdash; </>
+                            {review.match?.court?.place?.name && (
+                              <>{review.match.court.place.name} &mdash; </>
                             )}
                             {formatDate(review.createdAt)}
                           </div>

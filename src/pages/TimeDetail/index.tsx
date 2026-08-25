@@ -49,13 +49,13 @@ export default function TimeDetail() {
   const souMembro = Boolean(user?.id) && time.data?.members.some((m) => m.userId === user?.id)
 
   /**
-   * As peladas são rota fechada: só quem é do time enxerga. O `enabled` evita
+   * As partidas são rota fechada: só quem é do time enxerga. O `enabled` evita
    * pedir o que a api vai recusar — um 403 no console a cada visita de quem
    * abriu a página pelo link é ruído que esconde erro de verdade.
    */
-  const peladas = useQuery({
-    queryKey: chaves.times.peladas(teamId),
-    queryFn: () => teamsService.peladas(teamId),
+  const partidas = useQuery({
+    queryKey: chaves.times.partidas(teamId),
+    queryFn: () => teamsService.partidas(teamId),
     enabled: Boolean(teamId) && souMembro,
   })
 
@@ -140,7 +140,7 @@ export default function TimeDetail() {
   }
 
   function confirmarEApagar() {
-    // As peladas já jogadas sobrevivem — a api usa SET NULL, não cascata. Dizer
+    // As partidas já jogadas sobrevivem — a api usa SET NULL, não cascata. Dizer
     // isso aqui evita que o medo de perder o histórico trave a decisão.
     const certeza = window.confirm(
       'Apagar o time? Os membros perdem o vínculo, mas as partidas já jogadas continuam no histórico de todo mundo.',
@@ -256,40 +256,40 @@ export default function TimeDetail() {
           <EmptyState>As partidas deste time são visíveis para quem é do time.</EmptyState>
         )}
 
-        {souMembro && peladas.isPending && <Skeleton height={72} radius={12} />}
+        {souMembro && partidas.isPending && <Skeleton height={72} radius={12} />}
 
-        {souMembro && peladas.isError && (
+        {souMembro && partidas.isError && (
           <ErrorState role="alert">
-            {mensagemDeErro(peladas.error, 'Não deu para carregar as partidas do time.')}
+            {mensagemDeErro(partidas.error, 'Não deu para carregar as partidas do time.')}
           </ErrorState>
         )}
 
-        {souMembro && peladas.data?.length === 0 && (
+        {souMembro && partidas.data?.length === 0 && (
           <EmptyState>
-            Este time ainda não jogou nenhuma pelada.
+            Este time ainda não jogou nenhuma partida.
             {souCapitao && ' Crie uma e a vaga da galera fica garantida.'}
           </EmptyState>
         )}
 
-        {souMembro && peladas.data && peladas.data.length > 0 && (
+        {souMembro && partidas.data && partidas.data.length > 0 && (
           <PartidaList>
-            {peladas.data.map((pelada: TeamPartida) => {
-              const situacao = STATUS[pelada.status]
+            {partidas.data.map((partida: TeamPartida) => {
+              const situacao = STATUS[partida.status]
               return (
-                <PartidaCard key={pelada.id}>
-                  <Link to={`/partida/${pelada.id}`}>
+                <PartidaCard key={partida.id}>
+                  <Link to={`/partida/${partida.id}`}>
                     <div>
                       <div className="quando">
-                        <Calendar size={14} aria-hidden="true" /> {formatarData(pelada.date)}
+                        <Calendar size={14} aria-hidden="true" /> {formatarData(partida.date)}
                       </div>
                       <div className="onde">
-                        {pelada.court.place.name} — {pelada.court.name}
+                        {partida.court.place.name} — {partida.court.name}
                       </div>
                     </div>
                     <div>
                       <StatusChip $tom={situacao.tom}>{situacao.label}</StatusChip>
                       <div className="vagas">
-                        {pelada._count.participations}/{pelada.maxPlayers} jogadores
+                        {partida._count.participations}/{partida.maxPlayers} jogadores
                       </div>
                     </div>
                   </Link>

@@ -1,5 +1,5 @@
 /**
- * Compartilhar a pelada por link — #229.
+ * Compartilhar a partida por link — #229.
  *
  * O link só vira produto se chegar no grupo do WhatsApp em um toque. É por isso
  * que o modal não pergunta nada antes de mostrar o link, e é isso que a maior
@@ -7,7 +7,7 @@
  */
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { renderWithProviders, screen, waitFor } from '../../test/render'
-import { criaPelada, envelope, erroDaApi } from '../../test/factories'
+import { criaPartida, envelope, erroDaApi } from '../../test/factories'
 import type { PartidaInvite } from '../../types/api'
 import CompartilharPartida from './index'
 
@@ -24,27 +24,27 @@ const cria   = vi.mocked(criarConvite)
 const lista  = vi.mocked(listarConvites)
 const revoga = vi.mocked(revogarConvite)
 
-const PELADA = criaPelada({ id: 'pelada-1', courtId: 'quadra-1' })
+const PELADA = criaPartida({ id: 'partida-1', courtId: 'quadra-1' })
 
 function convite(over: Partial<PartidaInvite> = {}): PartidaInvite {
   const token = over.token ?? 'token-abc'
   return {
     id: 'convite-1',
-    peladaId: 'pelada-1',
+    matchId: 'partida-1',
     token,
     expiresAt: null,
     maxUses: null,
     uses: 0,
     revokedAt: null,
     createdAt: '2026-08-20T10:00:00.000Z',
-    url: `https://app.so-mais-um.com/partida/pelada-1?convite=${token}`,
+    url: `https://app.so-mais-um.com/partida/partida-1?convite=${token}`,
     remainingUses: null,
     ...over,
   }
 }
 
 function abre() {
-  return renderWithProviders(<CompartilharPartida pelada={PELADA} onFechar={vi.fn()} />)
+  return renderWithProviders(<CompartilharPartida partida={PELADA} onFechar={vi.fn()} />)
 }
 
 /**
@@ -67,13 +67,13 @@ beforeEach(() => {
 })
 
 describe('CompartilharPartida — o link em um toque', () => {
-  it('cria um link sozinho quando a pelada ainda não tem nenhum', async () => {
+  it('cria um link sozinho quando a partida ainda não tem nenhum', async () => {
     abre()
 
     // Nada é perguntado antes: validade e limite existem na API e ficam para
     // quem precisar. Pedi-los de todo mundo cobraria duas decisões de quem só
     // quer chamar os amigos.
-    await waitFor(() => expect(cria).toHaveBeenCalledWith('quadra-1', 'pelada-1'))
+    await waitFor(() => expect(cria).toHaveBeenCalledWith('quadra-1', 'partida-1'))
     expect(await screen.findByTestId('link-do-convite')).toHaveTextContent('token-abc')
   })
 
@@ -82,7 +82,7 @@ describe('CompartilharPartida — o link em um toque', () => {
 
     abre()
 
-    // Dois links para a mesma pelada são dois links para revogar depois, e a
+    // Dois links para a mesma partida são dois links para revogar depois, e a
     // lista vira lixo.
     expect(await screen.findByTestId('link-do-convite')).toHaveTextContent('token-velho')
     expect(cria).not.toHaveBeenCalled()
@@ -110,7 +110,7 @@ describe('CompartilharPartida — o link em um toque', () => {
     // qualquer mock posto antes dele. Ler o valor é o que sobrevive a isso — e
     // é o que de fato interessa.
     expect(await navigator.clipboard.readText()).toBe(
-      'https://app.so-mais-um.com/partida/pelada-1?convite=token-abc',
+      'https://app.so-mais-um.com/partida/partida-1?convite=token-abc',
     )
     await waitFor(() => expect(toast.success).toHaveBeenCalledWith('Link copiado!'))
   })
@@ -140,7 +140,7 @@ describe('CompartilharPartida — o compartilhamento nativo', () => {
     await user.click(screen.getByRole('button', { name: /^compartilhar$/i }))
 
     expect(share).toHaveBeenCalledWith(expect.objectContaining({
-      url: 'https://app.so-mais-um.com/partida/pelada-1?convite=token-abc',
+      url: 'https://app.so-mais-um.com/partida/partida-1?convite=token-abc',
     }))
   })
 
@@ -167,7 +167,7 @@ describe('CompartilharPartida — o compartilhamento nativo', () => {
 })
 
 describe('CompartilharPartida — ver e revogar os links', () => {
-  it('lista os links da pelada e diz por que cada um parou de valer', async () => {
+  it('lista os links da partida e diz por que cada um parou de valer', async () => {
     lista.mockResolvedValue(envelope([
       convite({ id: 'a', token: 'a' }),
       convite({ id: 'b', token: 'b', revokedAt: '2026-08-20T11:00:00.000Z' }),
@@ -207,7 +207,7 @@ describe('CompartilharPartida — ver e revogar os links', () => {
 
     await user.click(screen.getByRole('button', { name: /revogar/i }))
 
-    expect(revoga).toHaveBeenCalledWith('quadra-1', 'pelada-1', 'a')
+    expect(revoga).toHaveBeenCalledWith('quadra-1', 'partida-1', 'a')
     expect(await screen.findByText('revogado')).toBeInTheDocument()
     // A mensagem diz o que revogar NÃO faz — é a promessa que a API mantém.
     expect(toast.success).toHaveBeenCalledWith(expect.stringContaining('continua na partida'))

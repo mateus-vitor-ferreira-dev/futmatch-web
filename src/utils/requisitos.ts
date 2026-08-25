@@ -24,7 +24,7 @@ export const TODOS_OS_SELOS = Object.keys(SELOS) as UserBadge[]
  *
  * A `descricao` é critério de aceite da #228, e não enfeite: "por link" e
  * "privada" soam iguais para quem nunca leu a documentação, e o organizador que
- * escolhe errado publica para a cidade inteira uma pelada que queria fechada.
+ * escolhe errado publica para a cidade inteira uma partida que queria fechada.
  */
 export const VISIBILIDADES: Array<{
   valor: PartidaVisibility
@@ -85,7 +85,7 @@ export const TIPOS_DE_REQUISITO: Array<{
  * A regra escrita por extenso.
  *
  * `nomeDoTime` é opcional porque nem sempre está à mão: o `params` guarda só o
- * id, e a leitura pública da pelada não devolve o time. Quem sabe o nome passa;
+ * id, e a leitura pública da partida não devolve o time. Quem sabe o nome passa;
  * quem não sabe recebe a frase genérica, que continua verdadeira.
  */
 export function descreveRequisito(
@@ -133,7 +133,7 @@ export function avisoDeRestricao(requisitos: Array<{ type: PartidaRequirementTyp
 
   const de = (tipo: PartidaRequirementType) => requisitos.find((r) => r.type === tipo)
 
-  // Time fecha a pelada por completo: nenhum outro requisito muda o alcance
+  // Time fecha a partida por completo: nenhum outro requisito muda o alcance
   // depois dele, e por isso ele fala primeiro.
   if (de('TEAM_MEMBER')) {
     return 'Só quem é do time entra. Os outros requisitos só se aplicam a quem já passou por esse.'

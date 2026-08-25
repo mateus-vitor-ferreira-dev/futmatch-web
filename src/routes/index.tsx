@@ -57,13 +57,13 @@ function PrivateRoute({ children }: { children: ReactNode }) {
 }
 
 /**
- * A página da pelada é a única rota que existe **dos dois lados do login**.
+ * A página da partida é a única rota que existe **dos dois lados do login**.
  *
  * Ela precisa abrir para quem não tem conta: é o que o convite por link promete
  * (api#225), e é o que deixa as regras de entrada serem lidas antes do cadastro
  * (api#332). Ver a #302.
  *
- * Quem tem sessão continua vendo a pelada dentro do app, com a sidebar. Quem
+ * Quem tem sessão continua vendo a partida dentro do app, com a sidebar. Quem
  * não tem vê a página sozinha — o menu do `MainLayout` só leva a lugares que
  * exigem login, e oferecê-lo a um visitante seria uma fila de becos sem saída.
  */

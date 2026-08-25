@@ -38,7 +38,7 @@ function problema(requisitos: PartidaRequirement[]): string | null {
 }
 
 /**
- * As regras de acesso de uma pelada que já existe (#228).
+ * As regras de acesso de uma partida que já existe (#228).
  *
  * Editar é o momento em que o organizador mexe na regra **com gente dentro**, e
  * por isso a tela diz o que acontece com quem já entrou antes de ele salvar: a
@@ -104,7 +104,7 @@ export function RegrasDaPartida({ partida, onClose, onSaved }: Props) {
       })
 
       // Remove antes de anexar. A ordem só importa se um dia a API limitar a
-      // quantidade de requisitos por pelada — e nessa hora, remover primeiro é
+      // quantidade de requisitos por partida — e nessa hora, remover primeiro é
       // o que deixa a troca caber.
       for (const requisito of removidos) {
         await playerService.deleteRequirement(partida.courtId, partida.id, requisito.type)
@@ -160,7 +160,7 @@ export function RegrasDaPartida({ partida, onClose, onSaved }: Props) {
         ) : (
           <>
             <NotaDeEfeito>
-              Quem já entrou continua na pelada: regra nova não expulsa ninguém e não é reavaliada.
+              Quem já entrou continua na partida: regra nova não expulsa ninguém e não é reavaliada.
               A mudança vale para quem tentar entrar de agora em diante.
             </NotaDeEfeito>
 

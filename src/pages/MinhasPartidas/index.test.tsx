@@ -1,10 +1,10 @@
 /**
- * Fluxo crítico: as peladas do jogador.
+ * Fluxo crítico: as partidas do jogador.
  *
  * A tela junta dois papéis no mesmo lugar — o jogador que entrou e o
  * organizador que criou. As duas abas consomem endpoints diferentes que
  * devolvem FORMATOS diferentes: "Participando" traz `Participation[]`, com a
- * pelada aninhada, e "Criados por mim" traz `Partida[]` direto. O mesmo estado
+ * partida aninhada, e "Criados por mim" traz `Partida[]` direto. O mesmo estado
  * guarda as duas formas, e quem normaliza é o render.
  *
  * É exatamente o tipo de acoplamento que quebra em silêncio quando alguém
@@ -12,12 +12,12 @@
  */
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { renderWithProviders, screen, waitFor } from '../../test/render'
-import { criaJogadorSorteado, criaPelada, criaSorteio, criaUsuario, envelope, erroDaApi } from '../../test/factories'
+import { criaJogadorSorteado, criaPartida, criaSorteio, criaUsuario, envelope, erroDaApi } from '../../test/factories'
 import { marcarSessao } from '../../services/api'
 import type { Participation } from '../../types/api'
 import MinhasPartidas from './index'
 
-// O cartão inteiro navega para o detalhe da pelada. Espionar o `useNavigate` é o
+// O cartão inteiro navega para o detalhe da partida. Espionar o `useNavigate` é o
 // único jeito de provar que os botões de dentro dele NÃO disparam essa navegação:
 // no teste o componente é montado direto, então a rota mudar não desmonta nada e o
 // modal aparece do mesmo jeito — foi assim que a #246 passou despercebida.
@@ -53,22 +53,22 @@ beforeEach(() => {
   buscaCriadas.mockResolvedValue(envelope([]))
 })
 
-/** Envelope da aba "Participando": a pelada vem aninhada na participação. */
-function participacao(pelada = criaPelada()): Participation {
+/** Envelope da aba "Participando": a partida vem aninhada na participação. */
+function participacao(partida = criaPartida()): Participation {
   return {
-    peladaId: pelada.id,
+    matchId: partida.id,
     userId: 'user-1',
     attended: null,
     joinedAt: '2026-02-01T12:00:00.000Z',
-    pelada,
+    match: partida,
   }
 }
 
 describe('MinhasPartidas — as duas abas', () => {
   it('abre em "Participando" e busca as participações', async () => {
     buscaParticipando.mockResolvedValue(
-      envelope([participacao(criaPelada({
-        court: { ...criaPelada().court!, place: { id: 'l1', name: 'Arena Sul', city: 'Lavras', neighborhood: 'Centro', state: 'MG' } },
+      envelope([participacao(criaPartida({
+        court: { ...criaPartida().court!, place: { id: 'l1', name: 'Arena Sul', city: 'Lavras', neighborhood: 'Centro', state: 'MG' } },
       }))]),
     )
 
@@ -101,9 +101,9 @@ describe('MinhasPartidas — as duas abas', () => {
     await waitFor(() => expect(buscaCriadas).toHaveBeenCalled())
   })
 
-  it('desembrulha a pelada aninhada na aba Participando', async () => {
+  it('desembrulha a partida aninhada na aba Participando', async () => {
     buscaParticipando.mockResolvedValue(
-      envelope([participacao(criaPelada({
+      envelope([participacao(criaPartida({
         maxPlayers: 10,
         _count: { participations: 6 },
       }))]),
@@ -111,7 +111,7 @@ describe('MinhasPartidas — as duas abas', () => {
 
     renderWithProviders(<MinhasPartidas />)
 
-    // Se o `event.pelada || event` parar de funcionar, o card some sem erro.
+    // Se o `event.match || event` parar de funcionar, o card some sem erro.
     expect(await screen.findByText('6 / 10 confirmados')).toBeInTheDocument()
   })
 
@@ -126,15 +126,15 @@ describe('MinhasPartidas — as duas abas', () => {
 })
 
 describe('MinhasPartidas — ações de organizador', () => {
-  const PELADA_ABERTA = criaPelada({
-    id: 'minha-pelada',
+  const PELADA_ABERTA = criaPartida({
+    id: 'minha-partida',
     status: 'WAITING',
     pixKey: 'pix@arena.com',
-    court: { ...criaPelada().court!, place: { id: 'l1', name: 'Arena Sul', city: 'Lavras', neighborhood: 'Centro', state: 'MG' } },
+    court: { ...criaPartida().court!, place: { id: 'l1', name: 'Arena Sul', city: 'Lavras', neighborhood: 'Centro', state: 'MG' } },
   })
 
-  async function abreAbaCriados(peladas = [PELADA_ABERTA]) {
-    buscaCriadas.mockResolvedValue(envelope(peladas))
+  async function abreAbaCriados(partidas = [PELADA_ABERTA]) {
+    buscaCriadas.mockResolvedValue(envelope(partidas))
     const resultado = renderWithProviders(<MinhasPartidas />)
     await waitFor(() => expect(buscaParticipando).toHaveBeenCalled())
     await resultado.user.click(screen.getByRole('button', { name: 'Criados por mim' }))
@@ -142,7 +142,7 @@ describe('MinhasPartidas — ações de organizador', () => {
     return resultado
   }
 
-  it('mostra a chave Pix só na aba de peladas criadas', async () => {
+  it('mostra a chave Pix só na aba de partidas criadas', async () => {
     buscaParticipando.mockResolvedValue(envelope([participacao(PELADA_ABERTA)]))
     const { user } = renderWithProviders(<MinhasPartidas />)
     await screen.findByText('Arena Sul')
@@ -155,7 +155,7 @@ describe('MinhasPartidas — ações de organizador', () => {
     expect(await screen.findByText(/PIX: pix@arena.com/)).toBeInTheDocument()
   })
 
-  it('oferece sortear, finalizar e cancelar em pelada aberta', async () => {
+  it('oferece sortear, finalizar e cancelar em partida aberta', async () => {
     await abreAbaCriados()
 
     expect(screen.getByRole('button', { name: /sortear times/i })).toBeInTheDocument()
@@ -163,8 +163,8 @@ describe('MinhasPartidas — ações de organizador', () => {
     expect(screen.getByRole('button', { name: /cancelar/i })).toBeInTheDocument()
   })
 
-  it('esconde as ações em pelada já finalizada, e oferece confirmar presenças', async () => {
-    await abreAbaCriados([criaPelada({
+  it('esconde as ações em partida já finalizada, e oferece confirmar presenças', async () => {
+    await abreAbaCriados([criaPartida({
       ...PELADA_ABERTA,
       status: 'FINISHED',
     })])
@@ -173,7 +173,7 @@ describe('MinhasPartidas — ações de organizador', () => {
     expect(screen.getByRole('button', { name: /confirmar presenças/i })).toBeInTheDocument()
   })
 
-  it('os controles do cartão não levam para o detalhe da pelada', async () => {
+  it('os controles do cartão não levam para o detalhe da partida', async () => {
     const { user } = await abreAbaCriados()
     // Finalizar e Cancelar pedem confirmação; recusar mantém o teste no clique,
     // que é o que está sob prova aqui.
@@ -196,11 +196,11 @@ describe('MinhasPartidas — ações de organizador', () => {
 
     await user.click(screen.getByText('Arena Sul'))
 
-    expect(navegar).toHaveBeenCalledWith('/partida/minha-pelada')
+    expect(navegar).toHaveBeenCalledWith('/partida/minha-partida')
   })
 
-  it('esconde as ações em pelada cancelada', async () => {
-    await abreAbaCriados([criaPelada({ ...PELADA_ABERTA, status: 'CANCELLED' })])
+  it('esconde as ações em partida cancelada', async () => {
+    await abreAbaCriados([criaPartida({ ...PELADA_ABERTA, status: 'CANCELLED' })])
 
     expect(screen.queryByRole('button', { name: /sortear times/i })).not.toBeInTheDocument()
     expect(screen.queryByRole('button', { name: /confirmar presenças/i })).not.toBeInTheDocument()
@@ -208,11 +208,11 @@ describe('MinhasPartidas — ações de organizador', () => {
 })
 
 describe('MinhasPartidas — sorteio de times', () => {
-  const PELADA = criaPelada({
-    id: 'minha-pelada',
+  const PELADA = criaPartida({
+    id: 'minha-partida',
     courtId: 'quadra-1',
     status: 'WAITING',
-    court: { ...criaPelada().court!, place: { id: 'l1', name: 'Arena Sul', city: 'Lavras', neighborhood: 'Centro', state: 'MG' } },
+    court: { ...criaPartida().court!, place: { id: 'l1', name: 'Arena Sul', city: 'Lavras', neighborhood: 'Centro', state: 'MG' } },
   })
 
   async function abreSorteio() {
@@ -247,7 +247,7 @@ describe('MinhasPartidas — sorteio de times', () => {
     await user.click(screen.getByRole('button', { name: /sortear!/i }))
 
     await waitFor(() => {
-      expect(sorteiaTimes).toHaveBeenCalledWith('quadra-1', 'minha-pelada', 2, 'ALEATORIO')
+      expect(sorteiaTimes).toHaveBeenCalledWith('quadra-1', 'minha-partida', 2, 'ALEATORIO')
     })
     expect(await screen.findByRole('heading', { name: 'Times Sorteados' })).toBeInTheDocument()
     expect(screen.getByText('4 jogadores distribuídos em 2 times')).toBeInTheDocument()

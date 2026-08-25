@@ -1,5 +1,5 @@
 /**
- * Fluxo crítico: criar uma pelada.
+ * Fluxo crítico: criar uma partida.
  *
  * É o formulário mais caro de errar do produto: os quatro campos viram o
  * contrato do rateio. Vaga errada faz gente sobrar na quadra, valor errado faz
@@ -154,7 +154,7 @@ describe('CriarPartida — validação do formulário', () => {
     expect(screen.queryByText('Partida criada com sucesso!')).not.toBeInTheDocument()
   })
 
-  it('barra menos de 2 vagas — pelada de um jogador só não existe', async () => {
+  it('barra menos de 2 vagas — partida de um jogador só não existe', async () => {
     const { container, user } = await vaiAteOFormulario()
     const campos = preenche(container)
 
@@ -210,7 +210,7 @@ describe('CriarPartida — validação do formulário', () => {
 
 describe('CriarPartida — envio', () => {
   it('envia os campos convertidos e confirma o sucesso na tela', async () => {
-    criaEvento.mockResolvedValue(envelope({ id: 'pelada-nova' } as never))
+    criaEvento.mockResolvedValue(envelope({ id: 'partida-nova' } as never))
     const { container, user } = await vaiAteOFormulario()
     const campos = preenche(container)
 
@@ -235,7 +235,7 @@ describe('CriarPartida — envio', () => {
   })
 
   it('renderiza na tela a mensagem de erro que a API devolveu', async () => {
-    criaEvento.mockRejectedValue(erroDaApi('Já existe uma pelada nesta quadra neste horário'))
+    criaEvento.mockRejectedValue(erroDaApi('Já existe uma partida agendada para esta quadra neste horário'))
     const { container, user } = await vaiAteOFormulario()
     const campos = preenche(container)
 
@@ -246,7 +246,7 @@ describe('CriarPartida — envio', () => {
     await user.click(campos.enviar)
 
     expect(
-      await screen.findByText(/já existe uma pelada nesta quadra neste horário/i),
+      await screen.findByText(/já existe uma partida agendada para esta quadra neste horário/i),
     ).toBeInTheDocument()
     // Continua no formulário: o usuário precisa poder corrigir e reenviar.
     expect(screen.queryByText('Partida criada com sucesso!')).not.toBeInTheDocument()
@@ -271,8 +271,8 @@ describe('CriarPartida — envio', () => {
 /**
  * Visibilidade e requisitos, na criação (#228).
  *
- * O que carrega este bloco é a **ordem**: o requisito é pendurado na pelada, e
- * a pelada precisa existir para ter id. A consequência é que a criação pode dar
+ * O que carrega este bloco é a **ordem**: o requisito é pendurado na partida, e
+ * a partida precisa existir para ter id. A consequência é que a criação pode dar
  * certo e a regra não — e o teste que importa é o de que, nesse caso, a partida
  * criada **continua criada**. Apagá-la para "limpar" destruiria o que deu certo
  * por causa do que não deu.
@@ -310,7 +310,7 @@ describe('CriarPartida — quem vê e quem entra', () => {
   })
 
   it('anexa os requisitos depois de a partida existir', async () => {
-    criaEvento.mockResolvedValue(envelope({ id: 'pelada-nova' } as never))
+    criaEvento.mockResolvedValue(envelope({ id: 'partida-nova' } as never))
     const { user, container } = await vaiAteOFormulario()
 
     await user.selectOptions(
@@ -320,7 +320,7 @@ describe('CriarPartida — quem vê e quem entra', () => {
     await preencheEEnvia(container, user)
 
     await waitFor(() =>
-      expect(anexaRequisito).toHaveBeenCalledWith('quadra-1', 'pelada-nova', 'MIN_MATCHES_PLAYED', {
+      expect(anexaRequisito).toHaveBeenCalledWith('quadra-1', 'partida-nova', 'MIN_MATCHES_PLAYED', {
         min: 5,
       }),
     )
@@ -328,7 +328,7 @@ describe('CriarPartida — quem vê e quem entra', () => {
   })
 
   it('a partida continua criada quando a regra falha, e o aviso diz onde consertar', async () => {
-    criaEvento.mockResolvedValue(envelope({ id: 'pelada-nova' } as never))
+    criaEvento.mockResolvedValue(envelope({ id: 'partida-nova' } as never))
     anexaRequisito.mockRejectedValue(erroDaApi('Requisito inválido', 422))
     const { user, container } = await vaiAteOFormulario()
 

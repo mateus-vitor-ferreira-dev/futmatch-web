@@ -1,8 +1,8 @@
 /**
- * Fluxo crítico: encontrar uma pelada para jogar.
+ * Fluxo crítico: encontrar uma partida para jogar.
  *
  * É a tela que entrega o valor central do produto. Filtro que não filtra faz o
- * jogador desistir achando que não existe pelada — e o pior é que a tela não
+ * jogador desistir achando que não existe partida — e o pior é que a tela não
  * dá nenhum sinal de que quebrou: ela mostra uma lista, só que a errada.
  *
  * Dois tipos de filtro convivem aqui, e a diferença importa:
@@ -11,7 +11,7 @@
  */
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { renderWithProviders, screen, waitFor, within } from '../../test/render'
-import { criaPelada, criaParticipante, criaUsuario, criaBuscaDePeladas, envelope, erroDaApi } from '../../test/factories'
+import { criaPartida, criaParticipante, criaUsuario, criaBuscaDePartidas, envelope, erroDaApi } from '../../test/factories'
 import { marcarSessao } from '../../services/api'
 import { Routes, Route, Link } from 'react-router-dom'
 import QueroJogar from './index'
@@ -80,7 +80,7 @@ function selectComOpcao(textoDaOpcao: string): HTMLSelectElement {
 }
 
 /**
- * Card da pelada na grade, ou null.
+ * Card da partida na grade, ou null.
  *
  * Procura pelo `<h3>` de propósito, e não pelo texto solto: o nome da arena
  * também aparece como `<option>` no filtro de estabelecimento, montado a
@@ -92,11 +92,11 @@ function cardDaArena(nome: string): HTMLElement | null {
 }
 
 describe('QueroJogar — listagem', () => {
-  it('mostra as peladas que a API devolveu', async () => {
+  it('mostra as partidas que a API devolveu', async () => {
     buscaEventos.mockResolvedValue(
-      criaBuscaDePeladas([
-        criaPelada({ id: 'p1', court: { ...criaPelada().court!, place: { id: 'l1', name: 'Arena Sul', city: 'Lavras', neighborhood: 'Centro', state: 'MG' } } }),
-        criaPelada({ id: 'p2', court: { ...criaPelada().court!, place: { id: 'l2', name: 'Quadra do Zé', city: 'Lavras', neighborhood: 'Jardim', state: 'MG' } } }),
+      criaBuscaDePartidas([
+        criaPartida({ id: 'p1', court: { ...criaPartida().court!, place: { id: 'l1', name: 'Arena Sul', city: 'Lavras', neighborhood: 'Centro', state: 'MG' } } }),
+        criaPartida({ id: 'p2', court: { ...criaPartida().court!, place: { id: 'l2', name: 'Quadra do Zé', city: 'Lavras', neighborhood: 'Jardim', state: 'MG' } } }),
       ]),
     )
 
@@ -109,7 +109,7 @@ describe('QueroJogar — listagem', () => {
   })
 
   it('concorda no singular quando só há um resultado', async () => {
-    buscaEventos.mockResolvedValue(criaBuscaDePeladas([criaPelada()]))
+    buscaEventos.mockResolvedValue(criaBuscaDePartidas([criaPartida()]))
 
     renderWithProviders(<QueroJogar />)
 
@@ -127,7 +127,7 @@ describe('QueroJogar — listagem', () => {
 
 describe('QueroJogar — filtros que refazem a busca na API', () => {
   it('escolher modalidade refaz a busca com courtType', async () => {
-    buscaEventos.mockResolvedValue(criaBuscaDePeladas([criaPelada()]))
+    buscaEventos.mockResolvedValue(criaBuscaDePartidas([criaPartida()]))
     const { user } = renderWithProviders(<QueroJogar />)
     await esperaResultados()
 
@@ -147,9 +147,9 @@ describe('QueroJogar — filtros que refazem a busca na API', () => {
 
   it('escolher cidade refaz a busca com city', async () => {
     buscaEventos.mockResolvedValue(
-      criaBuscaDePeladas([
-        criaPelada({ id: 'p1', court: { ...criaPelada().court!, place: { id: 'l1', name: 'Arena Sul', city: 'Lavras', neighborhood: 'Centro', state: 'MG' } } }),
-        criaPelada({ id: 'p2', court: { ...criaPelada().court!, place: { id: 'l2', name: 'Arena Norte', city: 'Três Corações', neighborhood: 'Centro', state: 'MG' } } }),
+      criaBuscaDePartidas([
+        criaPartida({ id: 'p1', court: { ...criaPartida().court!, place: { id: 'l1', name: 'Arena Sul', city: 'Lavras', neighborhood: 'Centro', state: 'MG' } } }),
+        criaPartida({ id: 'p2', court: { ...criaPartida().court!, place: { id: 'l2', name: 'Arena Norte', city: 'Três Corações', neighborhood: 'Centro', state: 'MG' } } }),
       ]),
     )
     const { user } = renderWithProviders(<QueroJogar />)
@@ -167,19 +167,19 @@ describe('QueroJogar — filtros que refazem a busca na API', () => {
 })
 
 describe('QueroJogar — filtros aplicados sobre o que já veio', () => {
-  const MANHA = criaPelada({
+  const MANHA = criaPartida({
     id: 'manha',
     date: '2027-03-11T09:00:00',
-    court: { ...criaPelada().court!, place: { id: 'l1', name: 'Arena Manhã', city: 'Lavras', neighborhood: 'Centro', state: 'MG' } },
+    court: { ...criaPartida().court!, place: { id: 'l1', name: 'Arena Manhã', city: 'Lavras', neighborhood: 'Centro', state: 'MG' } },
   })
-  const NOITE = criaPelada({
+  const NOITE = criaPartida({
     id: 'noite',
     date: '2027-03-11T20:00:00',
-    court: { ...criaPelada().court!, place: { id: 'l2', name: 'Arena Noite', city: 'Lavras', neighborhood: 'Jardim', state: 'MG' } },
+    court: { ...criaPartida().court!, place: { id: 'l2', name: 'Arena Noite', city: 'Lavras', neighborhood: 'Jardim', state: 'MG' } },
   })
 
   it('o filtro de horário recorta a lista sem ir à API de novo', async () => {
-    buscaEventos.mockResolvedValue(criaBuscaDePeladas([MANHA, NOITE]))
+    buscaEventos.mockResolvedValue(criaBuscaDePartidas([MANHA, NOITE]))
     const { user } = renderWithProviders(<QueroJogar />)
     await esperaResultados()
 
@@ -200,7 +200,7 @@ describe('QueroJogar — filtros aplicados sobre o que já veio', () => {
   })
 
   it('a busca por texto casa com nome do local e com bairro', async () => {
-    buscaEventos.mockResolvedValue(criaBuscaDePeladas([MANHA, NOITE]))
+    buscaEventos.mockResolvedValue(criaBuscaDePartidas([MANHA, NOITE]))
     const { user } = renderWithProviders(<QueroJogar />)
     await esperaResultados()
 
@@ -213,7 +213,7 @@ describe('QueroJogar — filtros aplicados sobre o que já veio', () => {
   })
 
   it('o contador de filtros ativos reflete quantos estão ligados', async () => {
-    buscaEventos.mockResolvedValue(criaBuscaDePeladas([MANHA, NOITE]))
+    buscaEventos.mockResolvedValue(criaBuscaDePartidas([MANHA, NOITE]))
     const { user } = renderWithProviders(<QueroJogar />)
     await esperaResultados()
 
@@ -227,7 +227,7 @@ describe('QueroJogar — filtros aplicados sobre o que já veio', () => {
   })
 
   it('limpar filtros devolve a lista inteira', async () => {
-    buscaEventos.mockResolvedValue(criaBuscaDePeladas([MANHA, NOITE]))
+    buscaEventos.mockResolvedValue(criaBuscaDePartidas([MANHA, NOITE]))
     const { user } = renderWithProviders(<QueroJogar />)
     await esperaResultados()
 
@@ -242,10 +242,10 @@ describe('QueroJogar — filtros aplicados sobre o que já veio', () => {
 })
 
 describe('QueroJogar — entrar no jogo', () => {
-  it('bloqueia o botão e avisa quando a pelada está lotada', async () => {
+  it('bloqueia o botão e avisa quando a partida está lotada', async () => {
     buscaEventos.mockResolvedValue(
-      criaBuscaDePeladas([
-        criaPelada({ maxPlayers: 4, _count: { participations: 4 } }),
+      criaBuscaDePartidas([
+        criaPartida({ maxPlayers: 4, _count: { participations: 4 } }),
       ]),
     )
 
@@ -259,8 +259,8 @@ describe('QueroJogar — entrar no jogo', () => {
 
   it('mostra "Você entrou" e bloqueia quando o usuário já participa', async () => {
     buscaEventos.mockResolvedValue(
-      criaBuscaDePeladas([
-        criaPelada({
+      criaBuscaDePartidas([
+        criaPartida({
           maxPlayers: 10,
           participations: [criaParticipante({ userId: 'user-1' })],
           _count: { participations: 1 },
@@ -276,8 +276,8 @@ describe('QueroJogar — entrar no jogo', () => {
 
   it('entrar chama a API com quadra e evento, e recarrega a lista', async () => {
     buscaEventos.mockResolvedValue(
-      criaBuscaDePeladas([
-        criaPelada({ id: 'pelada-9', courtId: 'quadra-7', maxPlayers: 10, _count: { participations: 3 } }),
+      criaBuscaDePartidas([
+        criaPartida({ id: 'partida-9', courtId: 'quadra-7', maxPlayers: 10, _count: { participations: 3 } }),
       ]),
     )
     const { user } = renderWithProviders(<QueroJogar />)
@@ -287,7 +287,7 @@ describe('QueroJogar — entrar no jogo', () => {
     await user.click(screen.getByRole('button', { name: 'Entrar no jogo' }))
 
     await waitFor(() => {
-      expect(entraNoJogo).toHaveBeenCalledWith('quadra-7', 'pelada-9')
+      expect(entraNoJogo).toHaveBeenCalledWith('quadra-7', 'partida-9')
     })
     // Recarregar é o que faz a contagem de vagas subir na tela.
     await waitFor(() => {
@@ -297,8 +297,8 @@ describe('QueroJogar — entrar no jogo', () => {
 
   it('a contagem de vagas na tela vem do que a API devolve', async () => {
     buscaEventos.mockResolvedValue(
-      criaBuscaDePeladas([
-        criaPelada({ maxPlayers: 10, _count: { participations: 7 } }),
+      criaBuscaDePartidas([
+        criaPartida({ maxPlayers: 10, _count: { participations: 7 } }),
       ]),
     )
 
@@ -311,7 +311,7 @@ describe('QueroJogar — entrar no jogo', () => {
 
 describe('QueroJogar — voltar', () => {
   it('volta uma página quando há para onde voltar dentro do app', async () => {
-    buscaEventos.mockResolvedValue(criaBuscaDePeladas([criaPelada()]))
+    buscaEventos.mockResolvedValue(criaBuscaDePartidas([criaPartida()]))
 
     // A pilha precisa ser empilhada de verdade: `initialEntries` com duas rotas
     // não serve, porque a entrada atual continua sendo a inicial da sessão e o
@@ -335,7 +335,7 @@ describe('QueroJogar — voltar', () => {
   })
 
   it('vai para a home quando esta é a primeira tela da sessão', async () => {
-    buscaEventos.mockResolvedValue(criaBuscaDePeladas([criaPelada()]))
+    buscaEventos.mockResolvedValue(criaBuscaDePartidas([criaPartida()]))
 
     // Uma entrada só: a pessoa abriu a URL direto ou recarregou. Um `-1` daqui
     // sairia do Só+1, e um "Voltar" que fecha o produto não é voltar.
@@ -378,7 +378,7 @@ describe('QueroJogar — filtro por distância', () => {
   it('sem origem, os raios ficam desabilitados e a tela explica por quê', async () => {
     semLocalizacao()
     vi.mocked(authService.getMe).mockResolvedValue(envelope(USUARIO))
-    buscaEventos.mockResolvedValue(criaBuscaDePeladas([criaPelada()]))
+    buscaEventos.mockResolvedValue(criaBuscaDePartidas([criaPartida()]))
 
     const { user } = renderWithProviders(<QueroJogar />)
     await esperaResultados()
@@ -393,7 +393,7 @@ describe('QueroJogar — filtro por distância', () => {
   it('com origem, escolher o raio manda origem e raio juntos', async () => {
     comLocalizacao()
     localStorage.setItem('so-mais-um:localizacao', 'concedida')
-    buscaEventos.mockResolvedValue(criaBuscaDePeladas([criaPelada()]))
+    buscaEventos.mockResolvedValue(criaBuscaDePartidas([criaPartida()]))
 
     const { user } = renderWithProviders(<QueroJogar />)
     await esperaResultados()
@@ -411,7 +411,7 @@ describe('QueroJogar — filtro por distância', () => {
   it('mostra a distância de cada resultado quando a busca tem raio', async () => {
     comLocalizacao()
     localStorage.setItem('so-mais-um:localizacao', 'concedida')
-    buscaEventos.mockResolvedValue(criaBuscaDePeladas([{ ...criaPelada(), distanceKm: 3.2 } as never]))
+    buscaEventos.mockResolvedValue(criaBuscaDePartidas([{ ...criaPartida(), distanceKm: 3.2 } as never]))
 
     renderWithProviders(<QueroJogar />)
     await esperaResultados()
@@ -421,7 +421,7 @@ describe('QueroJogar — filtro por distância', () => {
 
   it('a busca textual não mostra distância nenhuma', async () => {
     semLocalizacao()
-    buscaEventos.mockResolvedValue(criaBuscaDePeladas([criaPelada()]))
+    buscaEventos.mockResolvedValue(criaBuscaDePartidas([criaPartida()]))
 
     renderWithProviders(<QueroJogar />)
     await esperaResultados()
@@ -434,7 +434,7 @@ describe('QueroJogar — filtro por distância', () => {
   it('"Qualquer" desliga o raio e a busca volta a ser sem origem', async () => {
     comLocalizacao()
     localStorage.setItem('so-mais-um:localizacao', 'concedida')
-    buscaEventos.mockResolvedValue(criaBuscaDePeladas([criaPelada()]))
+    buscaEventos.mockResolvedValue(criaBuscaDePartidas([criaPartida()]))
 
     const { user } = renderWithProviders(<QueroJogar />)
     await esperaResultados()

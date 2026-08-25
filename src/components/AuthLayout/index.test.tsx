@@ -23,7 +23,7 @@ const buscaNumeros = vi.mocked(getPublicStats)
 const buscaModalidades = vi.mocked(getSports)
 
 /** Base confortavelmente acima de todos os limiares — ver LIMIARES no index. */
-const NUMEROS = { jogadores: 128, peladasAbertas: 9, cidades: 4, arenas: 26 }
+const NUMEROS = { jogadores: 128, matchesAbertas: 9, cidades: 4, arenas: 26 }
 
 beforeEach(() => {
   vi.clearAllMocks()
@@ -104,7 +104,7 @@ describe('<AuthLayout /> — limiar por cartão', () => {
   })
 
   it('o número igual ao limiar entra — o corte é "abaixo", não "até"', async () => {
-    buscaNumeros.mockResolvedValue({ jogadores: 50, peladasAbertas: 5, cidades: 3, arenas: 3 })
+    buscaNumeros.mockResolvedValue({ jogadores: 50, matchesAbertas: 5, cidades: 3, arenas: 3 })
 
     renderiza()
 
@@ -114,7 +114,7 @@ describe('<AuthLayout /> — limiar por cartão', () => {
   })
 
   it('cada cartão tem o seu limiar: 4 cidades passa, 4 jogadores não', async () => {
-    buscaNumeros.mockResolvedValue({ jogadores: 4, peladasAbertas: 0, cidades: 4, arenas: 0 })
+    buscaNumeros.mockResolvedValue({ jogadores: 4, matchesAbertas: 0, cidades: 4, arenas: 0 })
 
     renderiza()
 
@@ -123,7 +123,7 @@ describe('<AuthLayout /> — limiar por cartão', () => {
   })
 
   it('com o dado que a produção devolve hoje, a linha fica só com os fatos de produto', async () => {
-    buscaNumeros.mockResolvedValue({ jogadores: 2, peladasAbertas: 0, cidades: 0, arenas: 0 })
+    buscaNumeros.mockResolvedValue({ jogadores: 2, matchesAbertas: 0, cidades: 0, arenas: 0 })
 
     renderiza()
 

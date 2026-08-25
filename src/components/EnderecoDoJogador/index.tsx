@@ -153,7 +153,7 @@ export function EnderecoDoJogador() {
       <SectionTitle id="titulo-endereco">Endereço</SectionTitle>
 
       <Explicacao>
-        Usamos só para achar peladas perto de você e mostrar a distância de cada uma.{' '}
+        Usamos só para achar partidas perto de você e mostrar a distância de cada uma.{' '}
         <strong>É opcional</strong> — o app funciona inteiro sem ele. Pedimos CEP, cidade e estado,
         e nada mais: rua e número não melhoram um raio em quilômetros.
       </Explicacao>
@@ -232,7 +232,7 @@ export function EnderecoDoJogador() {
         <Aviso role="status">
           <MapPin size={14} aria-hidden />
           <span>
-            Endereço confirmado em {salvo.city}/{salvo.state}. Já dá para ver as peladas mais
+            Endereço confirmado em {salvo.city}/{salvo.state}. Já dá para ver as partidas mais
             próximas.
           </span>
         </Aviso>
