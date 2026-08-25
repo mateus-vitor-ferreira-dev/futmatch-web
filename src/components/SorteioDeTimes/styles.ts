@@ -81,7 +81,7 @@ export const CampoQuantidade = styled.div`
 `
 
 /**
- * Mesma régua do `ButtonGroup` de "Meus Jogos", que o modal usava antes da
+ * Mesma régua do `ButtonGroup` de "Minhas Partidas", que o modal usava antes da
  * mudança de casa. Copiar a régua e não importar da página é de propósito: um
  * componente compartilhado que importa estilo de uma tela específica volta a
  * amarrar os dois.
@@ -264,7 +264,7 @@ export const AcoesDoResultado = styled.div`
 
 /**
  * O botão que abre o sorteio. Mora aqui e não na tela porque as duas telas que
- * oferecem o sorteio precisam dele com a mesma cara — o cartão de "Meus Jogos"
+ * oferecem o sorteio precisam dele com a mesma cara — o cartão de "Minhas Partidas"
  * e as ações do organizador no detalhe da partida.
  */
 export const SortearBtn = styled.button`

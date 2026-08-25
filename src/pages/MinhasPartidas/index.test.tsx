@@ -79,17 +79,17 @@ describe('MinhasPartidas — as duas abas', () => {
     expect(buscaCriadas).not.toHaveBeenCalled()
   })
 
-  it('o + Criar Jogo leva ao assistente, e não abre modal aqui', async () => {
+  it('o + Criar Partida leva ao assistente, e não abre modal aqui', async () => {
     buscaParticipando.mockResolvedValue(envelope([]))
 
     const { user } = renderWithProviders(<MinhasPartidas />)
     await waitFor(() => expect(buscaParticipando).toHaveBeenCalled())
-    await user.click(screen.getByRole('button', { name: /criar jogo/i }))
+    await user.click(screen.getByRole('button', { name: /criar partida/i }))
 
     expect(navegar).toHaveBeenCalledWith('/criar-partida')
     // Havia um segundo fluxo de criação aqui, com o `GET /courts` inteiro num
     // `select` só. O botão não pode voltar a abri-lo. Ver #268.
-    expect(screen.queryByRole('heading', { name: 'Criar Jogo' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('heading', { name: 'Criar Partida' })).not.toBeInTheDocument()
   })
 
   it('trocar de aba busca no outro endpoint', async () => {

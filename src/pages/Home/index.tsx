@@ -165,15 +165,15 @@ export default function Home() {
           </GreetingBlock>
         </CompactHeader>
 
-        {/* Ações — encontrar ou criar um jogo, lado a lado, sem precisar rolar a tela */}
+        {/* Ações — encontrar ou criar uma partida, lado a lado, sem precisar rolar a tela */}
         <CTARow>
           <CTAPrimary onClick={() => navigate('/quero-jogar')}>
             <Search size={18} />
-            Encontrar um jogo
+            Encontrar uma partida
           </CTAPrimary>
           <CTASecondary onClick={() => navigate('/minhas-partidas?action=criar')}>
             <Zap size={18} />
-            Criar jogo
+            Criar partida
           </CTASecondary>
         </CTARow>
 
@@ -223,8 +223,8 @@ export default function Home() {
           <TabsFade $side="right" $visible={showRightFade} />
         </TabsWrapper>
 
-        {/* Jogos disponíveis — conteúdo dominante */}
-        {/* Antes dos jogos em destaque (#223): o que está perto interessa mais
+        {/* Partidas disponíveis — conteúdo dominante */}
+        {/* Antes das partidas em destaque (#223): o que está perto interessa mais
             que o que está em destaque, e enterrá-la embaixo faria a seção
             valer o mesmo que a busca — que é justamente o caminho que ela
             veio encurtar. */}

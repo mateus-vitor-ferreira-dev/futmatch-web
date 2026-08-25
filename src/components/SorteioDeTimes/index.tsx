@@ -65,7 +65,7 @@ interface SorteioDeTimesProps {
 /**
  * Modal de sorteio de times: escolhe quantos times e mostra o resultado.
  *
- * Nasceu dentro de "Meus Jogos" e virou componente na #266, quando o detalhe da
+ * Nasceu dentro de "Minhas Partidas" e virou componente na #266, quando o detalhe da
  * partida passou a oferecer o sorteio também — que é a tela onde a decisão de
  * sortear naturalmente acontece, porque é ela que lista os confirmados por
  * extenso. Duplicar o modal garantiria que uma das duas cópias ficaria para
