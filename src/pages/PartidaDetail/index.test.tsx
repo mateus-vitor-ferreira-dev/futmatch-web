@@ -921,8 +921,8 @@ describe('PartidaDetail — os requisitos antes do clique', () => {
 
     abrePelada()
 
-    expect(await screen.findByTestId('requisitos-da-pelada')).toBeInTheDocument()
-    expect(screen.getByText('Ter jogado ao menos 10 peladas')).toBeInTheDocument()
+    expect(await screen.findByTestId('requisitos-da-partida')).toBeInTheDocument()
+    expect(screen.getByText('Ter jogado ao menos 10 partidas')).toBeInTheDocument()
   })
 
   it('desabilita o botão com o motivo, em vez de deixar o clique falhar', async () => {
@@ -1008,7 +1008,7 @@ describe('PartidaDetail — os requisitos antes do clique', () => {
     await screen.findByRole('button', { name: /Entrar na partida/i })
     // A esmagadora maioria das peladas continua sem regra, e o caso comum não
     // pode ganhar caixa nova por causa do raro.
-    expect(screen.queryByTestId('requisitos-da-pelada')).not.toBeInTheDocument()
+    expect(screen.queryByTestId('requisitos-da-partida')).not.toBeInTheDocument()
   })
 
   it('falha na consulta ao portão não bloqueia o botão', async () => {

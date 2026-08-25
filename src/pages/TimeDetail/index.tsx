@@ -143,7 +143,7 @@ export default function TimeDetail() {
     // As peladas já jogadas sobrevivem — a api usa SET NULL, não cascata. Dizer
     // isso aqui evita que o medo de perder o histórico trave a decisão.
     const certeza = window.confirm(
-      'Apagar o time? Os membros perdem o vínculo, mas as peladas já jogadas continuam no histórico de todo mundo.',
+      'Apagar o time? Os membros perdem o vínculo, mas as partidas já jogadas continuam no histórico de todo mundo.',
     )
     if (certeza) apagar.mutate()
   }
@@ -249,18 +249,18 @@ export default function TimeDetail() {
         </MemberList>
       </Section>
 
-      <Section aria-labelledby="titulo-peladas">
-        <h2 id="titulo-peladas">Partidas do time</h2>
+      <Section aria-labelledby="titulo-partidas">
+        <h2 id="titulo-partidas">Partidas do time</h2>
 
         {!souMembro && (
-          <EmptyState>As peladas deste time são visíveis para quem é do time.</EmptyState>
+          <EmptyState>As partidas deste time são visíveis para quem é do time.</EmptyState>
         )}
 
         {souMembro && peladas.isPending && <Skeleton height={72} radius={12} />}
 
         {souMembro && peladas.isError && (
           <ErrorState role="alert">
-            {mensagemDeErro(peladas.error, 'Não deu para carregar as peladas do time.')}
+            {mensagemDeErro(peladas.error, 'Não deu para carregar as partidas do time.')}
           </ErrorState>
         )}
 

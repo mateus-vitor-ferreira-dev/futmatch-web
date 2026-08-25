@@ -210,7 +210,7 @@ describe('CompartilharPartida — ver e revogar os links', () => {
     expect(revoga).toHaveBeenCalledWith('quadra-1', 'pelada-1', 'a')
     expect(await screen.findByText('revogado')).toBeInTheDocument()
     // A mensagem diz o que revogar NÃO faz — é a promessa que a API mantém.
-    expect(toast.success).toHaveBeenCalledWith(expect.stringContaining('continua na pelada'))
+    expect(toast.success).toHaveBeenCalledWith(expect.stringContaining('continua na partida'))
   })
 
   it('avisa quando a preparação do link falha, sem quebrar o modal', async () => {

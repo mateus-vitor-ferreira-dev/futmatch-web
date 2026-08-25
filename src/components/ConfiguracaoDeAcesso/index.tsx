@@ -98,7 +98,7 @@ export function ConfiguracaoDeAcesso({
   return (
     <>
       <Secao>
-        <Legenda>Quem vê esta pelada</Legenda>
+        <Legenda>Quem vê esta partida</Legenda>
         <Subtexto>É sobre como se chega até ela — não sobre quem pode entrar.</Subtexto>
 
         <Opcoes>
@@ -123,7 +123,7 @@ export function ConfiguracaoDeAcesso({
 
       <Secao>
         <Legenda>Quem pode entrar</Legenda>
-        <Subtexto>Sem nenhuma regra, qualquer pessoa que chegar até a pelada entra.</Subtexto>
+        <Subtexto>Sem nenhuma regra, qualquer pessoa que chegar até a partida entra.</Subtexto>
 
         {requisitos.length === 0 ? (
           <SemRegra>Nenhuma regra por enquanto.</SemRegra>
