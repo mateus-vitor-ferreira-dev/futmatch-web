@@ -83,8 +83,8 @@ export default function PartidaDetail() {
   /**
    * O token do link de convite, quando a pessoa chegou por um (api#225).
    *
-   * É o que abre a pelada `BY_LINK` ou `PRIVATE` para quem não chegaria nela de
-   * outro jeito. Sem ele a API responde 404 — o mesmo 404 de pelada que não
+   * É o que abre a partida `BY_LINK` ou `PRIVATE` para quem não chegaria nela de
+   * outro jeito. Sem ele a API responde 404 — o mesmo 404 de partida que não
    * existe, de propósito, para quem chuta um token não descobrir nada.
    */
   const convite = searchParams.get('convite') ?? undefined
@@ -99,7 +99,7 @@ export default function PartidaDetail() {
   const [sorteando, setSorteando]       = useState(false)
   const [compartilhando, setCompartilhando] = useState(false)
   const [confirmandoPresencas, setConfirmandoPresencas] = useState(false)
-  /** O motivo de o link não abrir a pelada, quando é o link que falhou (#229). */
+  /** O motivo de o link não abrir a partida, quando é o link que falhou (#229). */
   const [linkInvalido, setLinkInvalido]  = useState<MotivoDoLink | null>(null)
   const [veredito, setVeredito]         = useState<EntryVerdict | null>(null)
 
@@ -108,9 +108,9 @@ export default function PartidaDetail() {
       const res = await playerService.getEvent(eventId!, convite)
       setEvent(res.data)
     } catch (err) {
-      // Link que EXISTE para esta pelada e não vale mais responde 403 com o
+      // Link que EXISTE para esta partida e não vale mais responde 403 com o
       // motivo. Quem chuta um token qualquer continua tomando o 404 comum — a
-      // API é explícita nisso, e é o que impede sondar pelada privada no chute.
+      // API é explícita nisso, e é o que impede sondar partida privada no chute.
       const motivo = MOTIVOS_DO_LINK[codigoDeErro(err) ?? '']
       if (motivo) {
         setLinkInvalido(motivo)
@@ -125,7 +125,7 @@ export default function PartidaDetail() {
       //
       // **`isAuthenticated` não pode entrar nas dependências daqui.** Ele vira
       // `true` quando a verificação de sessão termina, e isso remontaria o
-      // `load` e refaria a busca da pelada — duas requisições em toda abertura
+      // `load` e refaria a busca da partida — duas requisições em toda abertura
       // de página, e a segunda chegando depois de a tela já ter renderizado.
       navigate('/quero-jogar', { replace: true })
     } finally {
@@ -138,7 +138,7 @@ export default function PartidaDetail() {
   /**
    * Pergunta ao portão se este jogador pode entrar — sem tentar entrar.
    *
-   * Recarrega junto com a pelada: entrar, sair ou a pelada encher mudam a
+   * Recarrega junto com a partida: entrar, sair ou a partida encher mudam a
    * resposta, e um veredito velho na tela é pior que nenhum.
    *
    * Falhar aqui não pode derrubar a página nem bloquear o botão: sem resposta,
@@ -162,7 +162,7 @@ export default function PartidaDetail() {
   /*
    * O link falhou — e a tela diz qual dos três motivos foi.
    *
-   * Vem antes do `!event` porque aqui a pelada não carregou de propósito: não é
+   * Vem antes do `!event` porque aqui a partida não carregou de propósito: não é
    * ausência de dado, é uma recusa com nome. Mandar essa pessoa para a busca
    * com um toast de "não encontrada" trocaria uma instrução por um beco.
    */
@@ -203,13 +203,13 @@ export default function PartidaDetail() {
    * `veredito` é `null` até a consulta responder, e continua `null` para quem
    * não tem sessão — a rota exige autenticação, porque a resposta é sobre um
    * jogador específico. Nesse caso a lista de requisitos ainda aparece, só sem
-   * o "você atende": é o que o `requirements` da própria pelada permite (#332).
+   * o "você atende": é o que o `requirements` da própria partida permite (#332).
    */
   const barradoPeloPortao = veredito !== null && !veredito.allowed && !isJoined && !isOrganizer
   const motivoDoPortao    = veredito?.failures.find((f) => f.code.startsWith('REQUIREMENT_'))?.message ?? null
-  // O organizador não sai da própria pelada — para ele a saída é cancelar ou
+  // O organizador não sai da própria partida — para ele a saída é cancelar ou
   // finalizar, que já estão nas ações abaixo. A API também recusa sair de
-  // pelada finalizada ou cancelada, e a tela não oferece o que ela recusaria.
+  // partida finalizada ou cancelada, e a tela não oferece o que ela recusaria.
   const canLeave        = isJoined && !isOrganizer && (event.status === 'WAITING' || event.status === 'FULL')
   const canChangeStatus = isOrganizer && (event.status === 'WAITING' || event.status === 'FULL')
   const showPix         = (isJoined || isOrganizer) && event.pixKey
@@ -218,7 +218,7 @@ export default function PartidaDetail() {
    * Para onde o cadastro devolve a pessoa (#302).
    *
    * Leva a busca junto, porque é nela que mora o `?convite=`: sem ele, quem
-   * chegou por link de pelada `PRIVATE` voltaria do cadastro para um 404.
+   * chegou por link de partida `PRIVATE` voltaria do cadastro para um 404.
    *
    * É o critério que a #229 nomeou antes de saber a causa — *"a pessoa clica no
    * convite, é obrigada a se cadastrar, e o cadastro a joga na home"*.
@@ -406,7 +406,7 @@ export default function PartidaDetail() {
             {/*
               * As regras de entrada, antes de qualquer clique (#230).
               *
-              * Aparecem para quem quer que veja a pelada — inclusive deslogado,
+              * Aparecem para quem quer que veja a partida — inclusive deslogado,
               * porque vêm no corpo dela (api#332). O "você atende" só aparece
               * com sessão, que é o que a consulta ao portão exige.
               *
@@ -425,7 +425,7 @@ export default function PartidaDetail() {
               *
               * Entrar continua exigindo login, e deixar o clique falhar contra
               * o 401 seria esconder isso atrás de um erro. O caminho leva o
-              * endereço desta pelada junto, com o `?convite=` dentro.
+              * endereço desta partida junto, com o `?convite=` dentro.
               */}
             {visitante && event.status !== 'FINISHED' && event.status !== 'CANCELLED' && (
               /* Link, e não botão com `onClick`: é navegação, e um link de
@@ -473,7 +473,7 @@ export default function PartidaDetail() {
               *
               * A frase é a da API, e ela diz o exigido E o que a pessoa tem.
               * "Você não pode entrar" sozinho soaria como julgamento; com os
-              * dois números, soa como a regra da pelada que é.
+              * dois números, soa como a regra da partida que é.
               */}
             {barradoPeloPortao && motivoDoPortao && (
               <MotivoDoPortao id="motivo-do-portao">{motivoDoPortao}</MotivoDoPortao>
@@ -505,7 +505,7 @@ export default function PartidaDetail() {
             {canChangeStatus && (
               <>
                 {/* Chamar gente vem antes de sortear: é a ação de quando a
-                    pelada ainda não encheu, e é a razão de o organizador abrir
+                    partida ainda não encheu, e é a razão de o organizador abrir
                     esta tela enquanto faltam jogadores (#229). */}
                 <SortearBtn onClick={() => setCompartilhando(true)}>
                   <Share2 size={14} /> Chamar gente
@@ -591,7 +591,7 @@ export default function PartidaDetail() {
       )}
 
       {compartilhando && (
-        <CompartilharPartida pelada={event} onFechar={() => setCompartilhando(false)} />
+        <CompartilharPartida partida={event} onFechar={() => setCompartilhando(false)} />
       )}
 
       {confirmandoPresencas && (
@@ -603,7 +603,7 @@ export default function PartidaDetail() {
       )}
 
       {/* Confirmação de saída — sair por clique errado libera uma vaga que o
-          jogador queria manter, e a pelada pode encher enquanto isso. */}
+          jogador queria manter, e a partida pode encher enquanto isso. */}
       {confirmandoSaida && (
         <Modal role="dialog" aria-modal="true" aria-label="Sair da partida">
           <ModalOverlay onClick={() => !saindo && setConfirmandoSaida(false)} />

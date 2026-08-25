@@ -1,6 +1,6 @@
 /**
  * O catálogo de modalidades alimenta filtro de busca, cadastro e criação de
- * pelada. Quando a API não responde, o hook cai num catálogo local — e é esse
+ * partida. Quando a API não responde, o hook cai num catálogo local — e é esse
  * caminho que sustenta as três telas em vez de deixá-las vazias.
  */
 import { describe, it, expect, vi, beforeEach } from 'vitest'

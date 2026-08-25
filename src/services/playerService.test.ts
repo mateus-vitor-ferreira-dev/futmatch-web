@@ -34,16 +34,16 @@ describe('joinEvent', () => {
   it('faz POST no caminho aninhado de participações', async () => {
     const chamadas = capturaRequisicao()
 
-    await playerService.joinEvent('quadra-7', 'pelada-9')
+    await playerService.joinEvent('quadra-7', 'partida-9')
 
     expect(chamadas[0].method).toBe('post')
-    expect(chamadas[0].url).toBe('/courts/quadra-7/events/pelada-9/participations')
+    expect(chamadas[0].url).toBe('/courts/quadra-7/events/partida-9/participations')
   })
 
   it('devolve o envelope, não a resposta bruta do axios', async () => {
     capturaRequisicao({ success: true, data: { userId: 'user-1' } })
 
-    const res = await playerService.joinEvent('quadra-7', 'pelada-9')
+    const res = await playerService.joinEvent('quadra-7', 'partida-9')
 
     expect(res).toEqual({ success: true, data: { userId: 'user-1' } })
   })
@@ -53,10 +53,10 @@ describe('leaveEvent', () => {
   it('faz DELETE no mesmo caminho do POST de entrar', async () => {
     const chamadas = capturaRequisicao()
 
-    await playerService.leaveEvent('quadra-7', 'pelada-9')
+    await playerService.leaveEvent('quadra-7', 'partida-9')
 
     expect(chamadas[0].method).toBe('delete')
-    expect(chamadas[0].url).toBe('/courts/quadra-7/events/pelada-9/participations')
+    expect(chamadas[0].url).toBe('/courts/quadra-7/events/partida-9/participations')
   })
 
   /**
@@ -68,7 +68,7 @@ describe('leaveEvent', () => {
   it('manda o motivo no corpo da requisição', async () => {
     const chamadas = capturaRequisicao()
 
-    await playerService.leaveEvent('quadra-7', 'pelada-9', 'me machuquei')
+    await playerService.leaveEvent('quadra-7', 'partida-9', 'me machuquei')
 
     expect(JSON.parse(chamadas[0].data as string)).toEqual({ reason: 'me machuquei' })
   })
@@ -76,7 +76,7 @@ describe('leaveEvent', () => {
   it('sem motivo, manda corpo vazio em vez de reason indefinido', async () => {
     const chamadas = capturaRequisicao()
 
-    await playerService.leaveEvent('quadra-7', 'pelada-9')
+    await playerService.leaveEvent('quadra-7', 'partida-9')
 
     expect(JSON.parse(chamadas[0].data as string)).toEqual({})
   })
@@ -97,9 +97,9 @@ describe('getEvent', () => {
   it('busca pelo id do evento, sem precisar da quadra', async () => {
     const chamadas = capturaRequisicao()
 
-    await playerService.getEvent('pelada-9')
+    await playerService.getEvent('partida-9')
 
-    expect(chamadas[0].url).toBe('/events/pelada-9')
+    expect(chamadas[0].url).toBe('/events/partida-9')
   })
 })
 
@@ -107,10 +107,10 @@ describe('updateEventStatus', () => {
   it('faz PATCH com o status no corpo', async () => {
     const chamadas = capturaRequisicao()
 
-    await playerService.updateEventStatus('quadra-7', 'pelada-9', 'FINISHED')
+    await playerService.updateEventStatus('quadra-7', 'partida-9', 'FINISHED')
 
     expect(chamadas[0].method).toBe('patch')
-    expect(chamadas[0].url).toBe('/courts/quadra-7/events/pelada-9/status')
+    expect(chamadas[0].url).toBe('/courts/quadra-7/events/partida-9/status')
     expect(JSON.parse(chamadas[0].data as string)).toEqual({ status: 'FINISHED' })
   })
 })

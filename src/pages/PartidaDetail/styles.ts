@@ -223,7 +223,7 @@ export const CopyBtn = styled.button`
  * Compartilha o visual neutro do `$full` de propósito — os dois querem dizer
  * "não é para você clicar aqui" —, mas é prop própria porque o motivo é outro:
  * lotado muda quando alguém sai, e requisito não. Reaproveitar o `$full` faria
- * a tela chamar de "cheia" uma pelada com vaga sobrando.
+ * a tela chamar de "cheia" uma partida com vaga sobrando.
  */
 export const JoinBtn = styled.button<{ $full?: boolean; $joined?: boolean; $bloqueado?: boolean; }>`
   width: 100%;
@@ -383,7 +383,7 @@ export const LoadingBox = styled.div`
   font-size: ${({ theme }) => theme.fontSizes.sm};
 `
 
-/* ── Sair da pelada ─────────────────────────────────────────────────────── */
+/* ── Sair da partida ─────────────────────────────────────────────────────── */
 
 export const LeaveBtn = styled.button`
   width: 100%;

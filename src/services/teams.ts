@@ -5,8 +5,8 @@ import type { ApiEnvelope, CourtType, Team, TeamInvite, TeamPartida, TeamSummary
  * Times fixos (api#202).
  *
  * `GET /teams/:id` é **pública** — é a página que se manda para quem ainda não
- * tem conta. As peladas do time são rota separada e fechada, de propósito:
- * penduradas na pública, elas publicariam pelada `LINK` e `PRIVATE` de quem
+ * tem conta. As partidas do time são rota separada e fechada, de propósito:
+ * penduradas na pública, elas publicariam partida `LINK` e `PRIVATE` de quem
  * estava protegido pela visibilidade.
  */
 
@@ -38,7 +38,7 @@ export const teamsService = {
   apagar: (teamId: string) => api.delete(`/teams/${teamId}`).then(() => undefined),
 
   /** Só para quem é do time — fora dele a api responde 403. */
-  peladas: (teamId: string) =>
+  partidas: (teamId: string) =>
     api.get<ApiEnvelope<TeamPartida[]>>(`/teams/${teamId}/events`).then(desembrulhar),
 
   /**

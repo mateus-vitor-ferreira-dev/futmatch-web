@@ -84,29 +84,29 @@ describe('rota raiz', () => {
 })
 
 /**
- * A pelada é a única rota que existe dos dois lados do login — #302.
+ * A partida é a única rota que existe dos dois lados do login — #302.
  *
  * Ela estava atrás do `PrivateRoute`, e isso deixava duas capacidades da API
  * mortas no front: as regras de entrada, que a api#332 tornou legíveis **sem
  * sessão de propósito**, e o convite por link, que por desenho é aberto por
  * quem pode não ter conta.
  */
-describe('rota da pelada', () => {
+describe('rota da partida', () => {
     beforeEach(() => {
         auth.estado = { user: null, loading: false, isAuthenticated: false }
-        window.history.pushState({}, '', '/partida/pelada-1')
+        window.history.pushState({}, '', '/partida/partida-1')
     })
 
     it('abre para quem não tem sessão, sem passar pelo login', async () => {
         render(<AppRoutes />)
 
         expect(await screen.findByText('PartidaDetail')).toBeInTheDocument()
-        expect(window.location.pathname).toBe('/partida/pelada-1')
+        expect(window.location.pathname).toBe('/partida/partida-1')
         expect(screen.queryByText('tela de login')).not.toBeInTheDocument()
     })
 
     it('preserva a query, que é onde mora o token do convite', async () => {
-        window.history.pushState({}, '', '/partida/pelada-1?convite=token-abc')
+        window.history.pushState({}, '', '/partida/partida-1?convite=token-abc')
 
         render(<AppRoutes />)
 
@@ -114,7 +114,7 @@ describe('rota da pelada', () => {
         expect(window.location.search).toBe('?convite=token-abc')
     })
 
-    it('quem tem sessão continua vendo a pelada dentro do app', async () => {
+    it('quem tem sessão continua vendo a partida dentro do app', async () => {
         auth.estado = { user: { role: 'USER' }, loading: false, isAuthenticated: true }
 
         render(<AppRoutes />)
@@ -143,8 +143,8 @@ describe('rota da pelada', () => {
 
         render(<AppRoutes />)
 
-        // Decisão registrada na #302: só a página da pelada abriu. Abrir a busca
-        // exporia muito mais peladas e muito mais gente de uma vez.
+        // Decisão registrada na #302: só a página da partida abriu. Abrir a busca
+        // exporia muito mais partidas e muito mais gente de uma vez.
         await waitFor(() => expect(window.location.pathname).toBe('/login'))
         expect(screen.queryByText('QueroJogar')).not.toBeInTheDocument()
     })
@@ -168,21 +168,21 @@ describe('rotas antigas da #329', () => {
     })
 
     it('/pelada/:eventId leva para /partida/:eventId, com o id preservado', async () => {
-        window.history.pushState({}, '', '/pelada/pelada-1')
+        window.history.pushState({}, '', '/pelada/partida-1')
 
         render(<AppRoutes />)
 
         expect(await screen.findByText('PartidaDetail')).toBeInTheDocument()
-        expect(window.location.pathname).toBe('/partida/pelada-1')
+        expect(window.location.pathname).toBe('/partida/partida-1')
     })
 
     it('leva o token do convite junto, e não só o id', async () => {
-        window.history.pushState({}, '', '/pelada/pelada-1?convite=token-abc')
+        window.history.pushState({}, '', '/pelada/partida-1?convite=token-abc')
 
         render(<AppRoutes />)
 
         await screen.findByText('PartidaDetail')
-        expect(window.location.pathname).toBe('/partida/pelada-1')
+        expect(window.location.pathname).toBe('/partida/partida-1')
         expect(window.location.search).toBe('?convite=token-abc')
     })
 

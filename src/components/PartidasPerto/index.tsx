@@ -41,7 +41,7 @@ const RAIOS = [10, 25, 50, 100]
  * A API distingue, e a tela precisa distinguir junto. `NO_LOCATION` quer dizer
  * que não sabemos de onde medir — e aí o certo é **convidar**: liberar a
  * localização ou salvar o endereço. `NO_EVENTS_NEARBY` quer dizer que a busca
- * funcionou e não há pelada por perto — e aí o certo é **ampliar o raio**.
+ * funcionou e não há partida por perto — e aí o certo é **ampliar o raio**.
  * Mostrar "nada por perto" para quem nunca informou onde mora seria mentir
  * sobre a cidade inteira.
  *
@@ -122,34 +122,34 @@ export function PartidasPerto() {
         </Grade>
       ) : isError ? (
         <Vazio role="status">
-          Não foi possível carregar as peladas por perto agora. O resto da home continua aí.
+          Não foi possível carregar as partidas por perto agora. O resto da home continua aí.
         </Vazio>
       ) : recomendacoes && recomendacoes.events.length > 0 ? (
         <Grade>
-          {recomendacoes.events.map((pelada) => {
-            const esporte = getSportMeta(pelada.court?.type as CourtType)
-            const confirmados = pelada._count?.participations ?? 0
+          {recomendacoes.events.map((partida) => {
+            const esporte = getSportMeta(partida.court?.type as CourtType)
+            const confirmados = partida._count?.participations ?? 0
 
             return (
               <Cartao
-                key={pelada.id}
+                key={partida.id}
                 type="button"
-                onClick={() => navigate(`/partida/${pelada.id}`)}
-                aria-label={`${pelada.court?.place?.name ?? 'Partida'}, a ${pelada.distanceKm} km`}
+                onClick={() => navigate(`/partida/${partida.id}`)}
+                aria-label={`${partida.court?.place?.name ?? 'Partida'}, a ${partida.distanceKm} km`}
               >
                 <TopoDoCartao>
                   <Local>
-                    {esporte.icon} {pelada.court?.place?.name ?? 'Partida'}
+                    {esporte.icon} {partida.court?.place?.name ?? 'Partida'}
                   </Local>
                   <Distancia>
                     <Navigation size={11} aria-hidden />
-                    {pelada.distanceKm} km
+                    {partida.distanceKm} km
                   </Distancia>
                 </TopoDoCartao>
 
                 <Linha>
                   <Clock size={13} aria-hidden />
-                  {new Date(pelada.date).toLocaleString('pt-BR', {
+                  {new Date(partida.date).toLocaleString('pt-BR', {
                     day: '2-digit',
                     month: '2-digit',
                     hour: '2-digit',
@@ -158,11 +158,11 @@ export function PartidasPerto() {
                 </Linha>
                 <Linha>
                   <Users size={13} aria-hidden />
-                  {confirmados}/{pelada.maxPlayers} confirmados
+                  {confirmados}/{partida.maxPlayers} confirmados
                 </Linha>
                 <Linha>
                   <MapPin size={13} aria-hidden />
-                  {pelada.court?.place?.city}
+                  {partida.court?.place?.city}
                 </Linha>
               </Cartao>
             )
@@ -170,7 +170,7 @@ export function PartidasPerto() {
         </Grade>
       ) : (
         <Vazio role="status">
-          Nenhuma pelada aberta num raio de {raioKm} km.{' '}
+          Nenhuma partida aberta num raio de {raioKm} km.{' '}
           {proximoRaio ? (
             <>
               <BotaoSecundario

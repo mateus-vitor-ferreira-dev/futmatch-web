@@ -225,8 +225,8 @@ describe('Login — voltar para onde a pessoa estava indo', () => {
     )
   })
 
-  it('volta para a pelada, com o convite dentro', async () => {
-    const destino = '/partida/pelada-1?convite=token-abc'
+  it('volta para a partida, com o convite dentro', async () => {
+    const destino = '/partida/partida-1?convite=token-abc'
     const campos = abreLoginCom(destino)
 
     await entra(campos)

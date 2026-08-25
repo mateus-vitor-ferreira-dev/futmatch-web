@@ -46,7 +46,7 @@ function motivoDeEstarInativo(convite: PartidaInvite, agora = Date.now()): strin
 }
 
 /**
- * Compartilhar a pelada por link — #229.
+ * Compartilhar a partida por link — #229.
  *
  * O link só vira produto se chegar no grupo do WhatsApp em um toque. Por isso o
  * modal **não pergunta nada antes**: ao abrir, ele reaproveita um link válido
@@ -55,9 +55,9 @@ function motivoDeEstarInativo(convite: PartidaInvite, agora = Date.now()): strin
  * de todo mundo cobraria duas decisões de quem só quer chamar os amigos.
  */
 export default function CompartilharPartida({
-  pelada, onFechar,
+  partida, onFechar,
 }: {
-  pelada: Partida
+  partida: Partida
   onFechar: () => void
 }) {
   const [convites, setConvites] = useState<PartidaInvite[]>([])
@@ -68,10 +68,10 @@ export default function CompartilharPartida({
   const preparar = useCallback(async () => {
     setCarregando(true)
     try {
-      const existentes = (await listarConvites(pelada.courtId, pelada.id)).data ?? []
+      const existentes = (await listarConvites(partida.courtId, partida.id)).data ?? []
       const valendo = existentes.find((c) => estaValendo(c))
 
-      // Reaproveitar é melhor que criar: dois links para a mesma pelada
+      // Reaproveitar é melhor que criar: dois links para a mesma partida
       // significam dois links para revogar depois, e a lista vira lixo.
       if (valendo) {
         setConvites(existentes)
@@ -79,7 +79,7 @@ export default function CompartilharPartida({
         return
       }
 
-      const novo = (await criarConvite(pelada.courtId, pelada.id)).data
+      const novo = (await criarConvite(partida.courtId, partida.id)).data
       setConvites([novo, ...existentes])
       setConvite(novo)
     } catch (err) {
@@ -87,7 +87,7 @@ export default function CompartilharPartida({
     } finally {
       setCarregando(false)
     }
-  }, [pelada.courtId, pelada.id])
+  }, [partida.courtId, partida.id])
 
   useEffect(() => { preparar() }, [preparar])
 
@@ -117,7 +117,7 @@ export default function CompartilharPartida({
     try {
       await navigator.share({
         title: 'Bora jogar?',
-        text: `Entra na minha pelada em ${pelada.court?.place?.name ?? 'quadra'}`,
+        text: `Entra na minha partida em ${partida.court?.place?.name ?? 'quadra'}`,
         url: convite.url,
       })
     } catch {
@@ -129,7 +129,7 @@ export default function CompartilharPartida({
   async function revogar(id: string) {
     setRevogando(id)
     try {
-      const atualizado = (await revogarConvite(pelada.courtId, pelada.id, id)).data
+      const atualizado = (await revogarConvite(partida.courtId, partida.id, id)).data
       setConvites((atual) => atual.map((c) => (c.id === id ? atualizado : c)))
       if (convite?.id === id) setConvite(null)
       toast.success('Link revogado. Quem já entrou continua na partida.')
@@ -147,8 +147,8 @@ export default function CompartilharPartida({
       <ModalContent onClick={(e) => e.stopPropagation()} role="dialog" aria-modal="true" aria-label="Compartilhar a partida">
         <h2>Chamar gente para a partida</h2>
         <Subtitulo>
-          Quem abrir este link vê a pelada e entra por ele — mesmo sem conta, e mesmo
-          que a pelada não apareça na busca.
+          Quem abrir este link vê a partida e entra por ele — mesmo sem conta, e mesmo
+          que a partida não apareça na busca.
         </Subtitulo>
 
         {carregando ? (

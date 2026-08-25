@@ -11,7 +11,7 @@ export interface AdminUser {
   role: UserRole
   badge: string | null
   createdAt: string
-  _count: { placesOwned: number; peladasCreated: number; participations: number }
+  _count: { placesOwned: number; matchesCreated: number; participations: number }
 }
 
 export interface InviteResult {

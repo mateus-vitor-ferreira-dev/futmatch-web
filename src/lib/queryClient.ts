@@ -12,7 +12,7 @@ export const queryClient = new QueryClient({
     queries: {
       /**
        * Um minuto de frescor. Cobre a navegação de ida e volta, que é o caso
-       * que dói, sem deixar a tela mentir por muito tempo: dado de pelada
+       * que dói, sem deixar a tela mentir por muito tempo: dado de partida
        * muda com gente entrando e saindo.
        */
       staleTime: 60_000,
@@ -59,7 +59,7 @@ export const chaves = {
   times: {
     meus:    () => ['times', 'meus'] as const,
     porId:   (teamId: string) => ['times', teamId] as const,
-    peladas: (teamId: string) => ['times', teamId, 'peladas'] as const,
+    partidas: (teamId: string) => ['times', teamId, 'partidas'] as const,
     convites: () => ['times', 'convites'] as const,
   },
   quadras: () => ['quadras'] as const,

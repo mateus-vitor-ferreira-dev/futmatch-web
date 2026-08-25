@@ -106,7 +106,7 @@ export default function Home() {
    * 1. `date: today` — o searchEventsQuerySchema da API aceita `from` e `to`,
    *    não `date`. Com stripUnknown o campo era descartado, então este bloco
    *    NUNCA restringiu a busca ao dia de hoje. O efeito real sempre foi
-   *    "peladas futuras", que é o default do backend quando nenhuma faixa é
+   *    "partidas futuras", que é o default do backend quando nenhuma faixa é
    *    informada.
    *
    * 2. `city: user.city` — o model User não tem coluna `city`, então

@@ -10,8 +10,8 @@ import { erroDaApi } from '../test/factories'
 
 describe('mensagemDeErro', () => {
   it('prefere a mensagem que a API mandou no corpo', () => {
-    expect(mensagemDeErro(erroDaApi('Você já está nesta pelada'))).toBe(
-      'Você já está nesta pelada',
+    expect(mensagemDeErro(erroDaApi('Você já está nesta partida'))).toBe(
+      'Você já está nesta partida',
     )
   })
 
@@ -27,8 +27,8 @@ describe('mensagemDeErro', () => {
   })
 
   it('usa o padrão quando o Error vem sem mensagem', () => {
-    expect(mensagemDeErro(new Error(''), 'Erro ao criar pelada.')).toBe(
-      'Erro ao criar pelada.',
+    expect(mensagemDeErro(new Error(''), 'Erro ao criar partida.')).toBe(
+      'Erro ao criar partida.',
     )
   })
 

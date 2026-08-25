@@ -155,7 +155,7 @@ export interface UserMe extends UserPublic {
     address?: EnderecoDoJogador;
     stats?: UserStats;
     _count?: {
-        peladasCreated: number;
+        matchesCreated: number;
         participations: number;
         reviewsReceived: number;
     };
@@ -188,7 +188,7 @@ export interface EnderecoDoCep {
 }
 
 /**
- * Uma pelada recomendada, com a distância até a origem (api#217).
+ * Uma partida recomendada, com a distância até a origem (api#217).
  *
  * `distanceKm` só existe nas respostas que têm origem — recomendação e busca
  * por raio. A busca textual devolve `Partida` sem ele, e é por isso que ele é um
@@ -205,7 +205,7 @@ export interface PartidaProxima extends Partida {
  * **`reason` é o que separa os dois vazios.** `NO_LOCATION` quer dizer que o
  * jogador não tem origem — nem no navegador, nem no perfil — e a tela precisa
  * convidar, não lamentar. `NO_EVENTS_NEARBY` quer dizer que a busca funcionou e
- * não há pelada por perto, e aí o caminho é ampliar o raio.
+ * não há partida por perto, e aí o caminho é ampliar o raio.
  */
 export interface Recomendacoes {
     events: PartidaProxima[];
@@ -217,7 +217,7 @@ export interface Recomendacoes {
 export interface UserStats {
     averageStars: number | null;
     totalReviews: number;
-    totalPeladas: number;
+    totalPartidas: number;
     tags: Array<{ tag: ReviewTag; count: number }>;
 }
 
@@ -348,7 +348,7 @@ export interface TeamInvite {
     invitedBy: TeamPlayer;
 }
 
-/** Uma pelada do time, no recorte de cartão que `GET /teams/:id/peladas` traz. */
+/** Uma partida do time, no recorte de cartão que `GET /teams/:id/events` traz. */
 export interface TeamPartida {
     id: string;
     date: IsoDate;
@@ -386,7 +386,7 @@ export interface PartidaRequirementParams {
     teamId?: string;
 }
 
-/** Um requisito de entrada configurado na pelada. */
+/** Um requisito de entrada configurado na partida. */
 export interface PartidaRequirement {
     type: PartidaRequirementType;
     params: PartidaRequirementParams | null;
@@ -400,7 +400,7 @@ export type PartidaRequirementType =
     | "TEAM_MEMBER";
 
 /**
- * Como se chega numa pelada — não quem pode entrar nela (api#220).
+ * Como se chega numa partida — não quem pode entrar nela (api#220).
  *
  * O outro eixo são os requisitos, e os dois são independentes de propósito:
  * "pública, mas só para quem costuma aparecer" é combinação legítima.
@@ -446,13 +446,13 @@ export interface Partida {
     pixKey: string;
     courtId: string;
     organizerId: string;
-    /** Como se chega nesta pelada (api#220). `PUBLIC` é o padrão da API. */
+    /** Como se chega nesta partida (api#220). `PUBLIC` é o padrão da API. */
     visibility?: PartidaVisibility;
     court?: Pick<Court, "id" | "name" | "type"> & { place: PlaceSummary };
     organizer?: Pick<UserPublic, "id" | "name" | "avatarUrl">;
     participations?: PartidaParticipant[];
     /**
-     * As regras de entrada da pelada, na leitura pública (api#332).
+     * As regras de entrada da partida, na leitura pública (api#332).
      *
      * Vem sempre — lista vazia quando não há requisito —, e é o que permite a
      * tela mostrar a barra a quem **não está logado**: a consulta de entrada
@@ -505,7 +505,7 @@ export interface EquipmentLoan {
     id: string;
     equipmentId: string;
     borrowerId: string;
-    peladaId: string | null;
+    matchId: string | null;
     quantidadeEmprestada: number;
     quantidadeDevolvida: number;
     quantidadeBaixada: number;
@@ -516,7 +516,7 @@ export interface EquipmentLoan {
     equipment: Equipment;
     borrower: EquipmentBorrower;
     createdBy: EquipmentBorrower;
-    pelada: { id: string; date: IsoDate; court?: { id: string; name: string } } | null;
+    match: { id: string; date: IsoDate; court?: { id: string; name: string } } | null;
     settlements: EquipmentSettlement[];
 }
 
@@ -534,18 +534,18 @@ export interface PartidaSearchResult {
     hasMore: boolean;
 }
 
-/** `true` quando a pelada veio de uma busca com origem, e sabe a distância. */
-export function temDistancia(pelada: Partida | PartidaProxima): pelada is PartidaProxima {
-    return typeof (pelada as PartidaProxima).distanceKm === "number";
+/** `true` quando a partida veio de uma busca com origem, e sabe a distância. */
+export function temDistancia(partida: Partida | PartidaProxima): partida is PartidaProxima {
+    return typeof (partida as PartidaProxima).distanceKm === "number";
 }
 
 export interface Participation {
-    peladaId: string;
+    matchId: string;
     userId: string;
     attended: boolean | null;
     joinedAt: IsoDate;
     user?: UserPublic & { email?: string };
-    pelada?: Partida;
+    match?: Partida;
 }
 
 export interface Review {
@@ -553,12 +553,12 @@ export interface Review {
     stars: number;
     tag: ReviewTag;
     comment: string | null;
-    peladaId: string;
+    matchId: string;
     reviewerId: string;
     reviewedId: string;
     reviewer?: Pick<UserPublic, "id" | "name" | "avatarUrl">;
     reviewed?: Pick<UserPublic, "id" | "name" | "avatarUrl" | "badge">;
-    pelada?: Pick<Partida, "id" | "date"> & {
+    match?: Pick<Partida, "id" | "date"> & {
         court: { id: string; name: string; place: { id: string; name: string } };
     };
     createdAt: IsoDate;
@@ -570,7 +570,7 @@ export interface Notification {
     type: NotificationType;
     title: string;
     body: string;
-    data: { peladaId?: string } | null;
+    data: { matchId?: string } | null;
     read: boolean;
     createdAt: IsoDate;
 }
@@ -581,18 +581,18 @@ export interface NotificationList {
 }
 
 /**
- * Um link de convite da pelada (api#225).
+ * Um link de convite da partida (api#225).
  *
  * `expiresAt` e `maxUses` nulos são **sem validade** e **sem limite**, e não
  * "vencido" ou "zero" — mesma convenção que o `Plan` usa.
  *
  * `uses` conta **entrada**, e não abertura: contar visualização faria o convite
  * morrer com gente só espiando o horário. Pelo mesmo motivo o número não volta
- * atrás quando alguém sai da pelada nem quando o link é revogado.
+ * atrás quando alguém sai da partida nem quando o link é revogado.
  */
 export interface PartidaInvite {
     id: string;
-    peladaId: string;
+    matchId: string;
     token: string;
     expiresAt: IsoDate | null;
     maxUses: number | null;
@@ -862,7 +862,7 @@ export interface DrawTeam {
 }
 
 export interface DrawResult {
-    peladaId: string;
+    matchId: string;
     teamCount: number;
     totalPlayers: number;
     mode?: DrawMode;

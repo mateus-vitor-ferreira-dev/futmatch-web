@@ -1,7 +1,7 @@
 /**
- * A marca de pelada não listada (#227).
+ * A marca de partida não listada (#227).
  *
- * O teste que importa é o do silêncio: pelada pública não ganha marca. Carimbar
+ * O teste que importa é o do silêncio: partida pública não ganha marca. Carimbar
  * "pública" na esmagadora maioria transformaria o normal em aviso, e o aviso em
  * ruído — a marca existe porque `LINK` e `PRIVATE` são a exceção.
  */
@@ -10,7 +10,7 @@ import { renderWithProviders, screen } from '../../test/render'
 import { MarcaDeVisibilidade } from './index'
 
 describe('MarcaDeVisibilidade', () => {
-  it('não marca a pelada pública', () => {
+  it('não marca a partida pública', () => {
     const { container } = renderWithProviders(<MarcaDeVisibilidade visibility="PUBLIC" />)
 
     expect(container).toBeEmptyDOMElement()
@@ -18,13 +18,13 @@ describe('MarcaDeVisibilidade', () => {
 
   it('não marca quando a API não disse a visibilidade', () => {
     // Partida antiga, de antes do campo. Inventar "privada" aqui assustaria o
-    // organizador com uma restrição que a pelada não tem.
+    // organizador com uma restrição que a partida não tem.
     const { container } = renderWithProviders(<MarcaDeVisibilidade />)
 
     expect(container).toBeEmptyDOMElement()
   })
 
-  it('marca a pelada por link, e explica o que isso significa', () => {
+  it('marca a partida por link, e explica o que isso significa', () => {
     renderWithProviders(<MarcaDeVisibilidade visibility="LINK" />)
 
     expect(screen.getByText('Por link')).toBeInTheDocument()
@@ -35,7 +35,7 @@ describe('MarcaDeVisibilidade', () => {
     )
   })
 
-  it('marca a pelada privada', () => {
+  it('marca a partida privada', () => {
     renderWithProviders(<MarcaDeVisibilidade visibility="PRIVATE" />)
 
     expect(screen.getByText('Privada')).toBeInTheDocument()

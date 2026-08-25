@@ -175,13 +175,13 @@ export default function CriarPartida() {
        * que deu certo por causa do que não deu. O aviso diz o que ficou pela
        * metade e onde consertar.
        */
-      const pelada = criada.data
-      if (pelada && requisitos.length > 0) {
+      const partida = criada.data
+      if (partida && requisitos.length > 0) {
         try {
           for (const requisito of requisitos) {
             await playerService.upsertRequirement(
               selectedCourt.id,
-              pelada.id,
+              partida.id,
               requisito.type,
               requisito.params ?? {},
             )
@@ -192,7 +192,7 @@ export default function CriarPartida() {
           // parece dizer que a criação falhou. O que a pessoa precisa saber
           // primeiro é que a partida existe, e onde terminar a configuração.
           setError(
-            `A partida foi criada, mas nem todas as regras foram salvas: ${mensagemDeErro(err, 'erro ao salvar a regra')}. Ajuste em "Regras de acesso", nas suas peladas.`,
+            `A partida foi criada, mas nem todas as regras foram salvas: ${mensagemDeErro(err, 'erro ao salvar a regra')}. Ajuste em "Regras de acesso", nas suas partidas.`,
           )
         }
       }
@@ -418,7 +418,7 @@ export default function CriarPartida() {
                 <HintMsg>Os jogadores usarão essa chave para pagar a partida.</HintMsg>
               </Field>
 
-              {/* Quem vê e quem entra (#228). O mesmo componente edita a pelada
+              {/* Quem vê e quem entra (#228). O mesmo componente edita a partida
                   já criada, para as duas telas não divergirem sobre o que cada
                   regra significa. */}
               <ConfiguracaoDeAcesso
@@ -462,9 +462,9 @@ export default function CriarPartida() {
               {/*
                 O erro aparece AQUI também, e não só na etapa 1 (#228).
                 A criação pode dar certo e a regra não — o requisito é pendurado
-                na pelada, que precisa existir antes. Nesse caso a tela avança
+                na partida, que precisa existir antes. Nesse caso a tela avança
                 para cá, e um aviso que ficasse na etapa anterior seria um aviso
-                que ninguém lê: a pessoa sairia achando que a pelada está
+                que ninguém lê: a pessoa sairia achando que a partida está
                 fechada quando ela está aberta para qualquer um.
               */}
               {error && (

@@ -9,7 +9,7 @@ import type { ApiEnvelope } from '../types/api'
  */
 export interface NumerosPublicos {
   jogadores: number
-  peladasAbertas: number
+  matchesAbertas: number
   cidades: number
   arenas: number
 }
@@ -19,7 +19,7 @@ function ehNumerosPublicos(valor: unknown): valor is NumerosPublicos {
 
   return (
     typeof dados?.jogadores === 'number' &&
-    typeof dados?.peladasAbertas === 'number' &&
+    typeof dados?.matchesAbertas === 'number' &&
     typeof dados?.cidades === 'number' &&
     typeof dados?.arenas === 'number'
   )

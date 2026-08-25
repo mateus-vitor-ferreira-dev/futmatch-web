@@ -5,7 +5,7 @@
  * mão em cada teste enterra o que o teste está de fato verificando debaixo de
  * literal — e, quando o tipo muda, quebra em vinte lugares.
  *
- * Regra de uso: passe SÓ o que o teste afirma. `criaPelada({ maxPlayers: 10 })`
+ * Regra de uso: passe SÓ o que o teste afirma. `criaPartida({ maxPlayers: 10 })`
  * deixa explícito que o número de vagas é o assunto e o resto é cenário.
  */
 import { AxiosError } from 'axios'
@@ -59,10 +59,10 @@ export function criaParticipante(over: Partial<PartidaParticipant> = {}): Partid
   }
 }
 
-export function criaPelada(over: Partial<Partida> = {}): Partida {
+export function criaPartida(over: Partial<Partida> = {}): Partida {
   const participations = over.participations ?? []
   return {
-    id: 'pelada-1',
+    id: 'partida-1',
     date: DATA_FUTURA,
     status: 'WAITING',
     maxPlayers: 10,
@@ -99,7 +99,7 @@ export function envelope<T>(data: T): ApiEnvelope<T> {
 }
 
 /** Resposta paginada de `GET /events`, como o QueroJogar espera. */
-export function criaBuscaDePeladas(
+export function criaBuscaDePartidas(
   events: Partida[],
   over: Partial<PartidaSearchResult> = {},
 ): ApiEnvelope<PartidaSearchResult> {
@@ -154,7 +154,7 @@ export function criaSorteio(over: Partial<DrawResult> = {}): DrawResult {
   ]
 
   return {
-    peladaId: 'minha-pelada',
+    matchId: 'minha-partida',
     teamCount: teams.length,
     totalPlayers: teams.reduce((s, t) => s + t.players.length, 0),
     mode: 'ALEATORIO',
@@ -225,9 +225,9 @@ export function criaResumoDeTime(over: Partial<TeamSummary> = {}): TeamSummary {
   }
 }
 
-export function criaPeladaDeTime(over: Partial<TeamPartida> = {}): TeamPartida {
+export function criaPartidaDeTime(over: Partial<TeamPartida> = {}): TeamPartida {
   return {
-    id: 'pelada-do-time-1',
+    id: 'partida-do-time-1',
     date: DATA_FUTURA,
     status: 'WAITING',
     maxPlayers: 14,

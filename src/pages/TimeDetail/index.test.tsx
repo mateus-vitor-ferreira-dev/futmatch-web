@@ -6,13 +6,13 @@
  * - o capitão vê as ações que só ele pode fazer, e o membro comum **não vê
  *   botão que vai dar 403** — mostrar um botão que sempre falha ensina a
  *   pessoa a desconfiar da tela;
- * - a lista de peladas é rota fechada, e por isso nem é pedida por quem está
+ * - a lista de partidas é rota fechada, e por isso nem é pedida por quem está
  *   de fora do time: um 403 no console a cada visita esconde erro de verdade.
  */
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { renderWithProviders, screen, waitFor, within } from '../../test/render'
 import {
-  criaConviteDeTime, criaJogadorDeTime, criaPeladaDeTime, criaTime, criaUsuario, envelope, erroDaApi,
+  criaConviteDeTime, criaJogadorDeTime, criaPartidaDeTime, criaTime, criaUsuario, envelope, erroDaApi,
 } from '../../test/factories'
 import { marcarSessao } from '../../services/api'
 import TimeDetail from './index'
@@ -35,7 +35,7 @@ import * as authService from '../../services/auth'
 import { notificationService } from '../../services/notificationService'
 
 const buscarTime = vi.mocked(teamsService.porId)
-const buscarPeladas = vi.mocked(teamsService.peladas)
+const buscarPartidas = vi.mocked(teamsService.partidas)
 const apagar = vi.mocked(teamsService.apagar)
 const editar = vi.mocked(teamsService.editar)
 const convidar = vi.mocked(teamsService.convidar)
@@ -71,7 +71,7 @@ beforeEach(() => {
   entrarComo(CAPITAO.id)
   vi.mocked(notificationService.list).mockResolvedValue([])
   buscarTime.mockResolvedValue(timeComDois())
-  buscarPeladas.mockResolvedValue([])
+  buscarPartidas.mockResolvedValue([])
 })
 
 describe('Página do time', () => {
@@ -237,9 +237,9 @@ describe('Página do time', () => {
   })
 
   describe('Partidas do time', () => {
-    it('lista as peladas com local, situação e vagas', async () => {
-      buscarPeladas.mockResolvedValue([
-        criaPeladaDeTime({ id: 'p1', status: 'WAITING', maxPlayers: 14, _count: { participations: 5 } }),
+    it('lista as partidas com local, situação e vagas', async () => {
+      buscarPartidas.mockResolvedValue([
+        criaPartidaDeTime({ id: 'p1', status: 'WAITING', maxPlayers: 14, _count: { participations: 5 } }),
       ])
 
       montar()
@@ -250,8 +250,8 @@ describe('Página do time', () => {
       expect(secao.getByText(/Arena Teste/)).toBeInTheDocument()
     })
 
-    it('cada pelada leva para a página dela', async () => {
-      buscarPeladas.mockResolvedValue([criaPeladaDeTime({ id: 'p1' })])
+    it('cada partida leva para a página dela', async () => {
+      buscarPartidas.mockResolvedValue([criaPartidaDeTime({ id: 'p1' })])
 
       montar()
 
@@ -259,16 +259,16 @@ describe('Página do time', () => {
       await waitFor(() => expect(secao.getByRole('link')).toHaveAttribute('href', '/partida/p1'))
     })
 
-    it('time sem pelada mostra o vazio, e não erro', async () => {
-      buscarPeladas.mockResolvedValue([])
+    it('time sem partida mostra o vazio, e não erro', async () => {
+      buscarPartidas.mockResolvedValue([])
 
       montar()
 
-      expect(await screen.findByText(/ainda não jogou nenhuma pelada/)).toBeInTheDocument()
+      expect(await screen.findByText(/ainda não jogou nenhuma partida/)).toBeInTheDocument()
     })
 
-    it('erro na lista de peladas não derruba a página do time', async () => {
-      buscarPeladas.mockRejectedValue(erroDaApi('Servidor indisponível', 500))
+    it('erro na lista de partidas não derruba a página do time', async () => {
+      buscarPartidas.mockRejectedValue(erroDaApi('Servidor indisponível', 500))
 
       montar()
 
@@ -284,7 +284,7 @@ describe('Página do time', () => {
       montar()
 
       await screen.findByRole('heading', { name: 'Os Boleiros' })
-      expect(buscarPeladas).not.toHaveBeenCalled()
+      expect(buscarPartidas).not.toHaveBeenCalled()
       expect(screen.getByText(/visíveis para quem é do time/)).toBeInTheDocument()
     })
   })

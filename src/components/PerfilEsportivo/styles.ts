@@ -109,7 +109,7 @@ export const Campos = styled.div`
   gap: ${({ theme }) => theme.spacing[3]};
 
   /* No celular os dois selects lado a lado cortam o rótulo da modalidade, que é
-     o texto mais longo dos dois. É onde a pelada é organizada, então é o
+     o texto mais longo dos dois. É onde a partida é organizada, então é o
      tamanho que manda. */
   @media (max-width: 520px) {
     grid-template-columns: 1fr;
