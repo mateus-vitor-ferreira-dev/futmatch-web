@@ -51,7 +51,7 @@ export default function MinhasPartidas() {
   const queryClient = useQueryClient()
   const [searchParams, setSearchParams] = useSearchParams()
   const [activeTab, setActiveTab] = useState('participating')
-  // Modal criar jogo — inicializa a partir da URL para evitar flash
+  // Modal criar partida — inicializa a partir da URL para evitar flash
   const [isModalOpen, setIsModalOpen] = useState(() => searchParams.get('action') === 'criar')
 
   // Sorteio — a partida aberta no modal. O resto do estado (quantidade,
@@ -216,7 +216,7 @@ export default function MinhasPartidas() {
           */}
           <CreateButton onClick={() => navigate('/criar-partida')}>
             <Plus size={18} style={{ display: 'inline', marginRight: 4, verticalAlign: 'middle' }} />
-            Criar Jogo
+            Criar Partida
           </CreateButton>
         </PageHeader>
 
@@ -310,7 +310,7 @@ export default function MinhasPartidas() {
           </Grid>
         )}
 
-        {/* Modal Criar Jogo */}
+        {/* Modal Criar Partida */}
         {isModalOpen && (
           <ModalOverlay>
             <ModalContent>
