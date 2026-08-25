@@ -258,7 +258,7 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
 
         <LeftCenter style={{ zIndex: 2 }}>
           <div>
-            <Headline>Encontre seu jogo.<br />Agora mesmo.</Headline>
+            <Headline>Encontre sua partida.<br />Agora mesmo.</Headline>
             <HeadlineDesc style={{ marginTop: 10 }}>
               Futebol, futevôlei, vôlei, beach tennis e muito mais —
               tudo em um lugar só.
@@ -315,7 +315,7 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
         </LeftCenter>
 
         <LeftQuote style={{ zIndex: 2 }}>
-          "Chega de esperar o grupo decidir. Entre, encontre um jogo e vá jogar."
+          "Chega de esperar o grupo decidir. Entre, encontre uma partida e vá jogar."
         </LeftQuote>
       </LeftPanel>
 

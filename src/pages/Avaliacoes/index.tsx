@@ -143,7 +143,7 @@ export default function Avaliacoes() {
               {reviewsGiven.length === 0 ? (
                 <EmptyState>
                   <p>Você ainda não avaliou nenhum jogador.</p>
-                  <p>Após uma partida finalizada, avalie seus colegas de jogo!</p>
+                  <p>Após uma partida finalizada, avalie quem jogou com você!</p>
                 </EmptyState>
               ) : (
                 <ReviewList>

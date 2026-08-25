@@ -206,8 +206,8 @@ export default function MinhasPartidas() {
       <Container>
         <PageHeader>
           <div>
-            <h1>Meus Jogos</h1>
-            <p>Gerencie os jogos que você criou ou está participando.</p>
+            <h1>Minhas Partidas</h1>
+            <p>Gerencie as partidas que você criou ou está participando.</p>
           </div>
           {/*
             Leva ao assistente, e não ao modal daqui: lá a escolha da quadra é
@@ -314,7 +314,7 @@ export default function MinhasPartidas() {
         {isModalOpen && (
           <ModalOverlay>
             <ModalContent>
-              <h2>Criar Jogo</h2>
+              <h2>Criar Partida</h2>
               <Form onSubmit={handleSubmit(onSubmit)}>
                 <div>
                   <label>Quadra / Local</label>
@@ -365,7 +365,7 @@ export default function MinhasPartidas() {
 
                 <ButtonGroup>
                   <button type="button" className="cancel" onClick={fecharCriacao}>Cancelar</button>
-                  <button type="submit" className="submit">Criar jogo</button>
+                  <button type="submit" className="submit">Criar partida</button>
                 </ButtonGroup>
               </Form>
             </ModalContent>
