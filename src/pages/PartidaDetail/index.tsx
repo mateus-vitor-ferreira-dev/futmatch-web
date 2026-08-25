@@ -50,11 +50,11 @@ type MotivoDoLink = { titulo: string; explicacao: string }
 const MOTIVOS_DO_LINK: Record<string, MotivoDoLink> = {
   INVITE_REVOKED: {
     titulo: 'Este convite foi cancelado',
-    explicacao: 'Quem organiza a pelada revogou o link. Fale com essa pessoa para receber um novo.',
+    explicacao: 'Quem organiza a partida revogou o link. Fale com essa pessoa para receber um novo.',
   },
   INVITE_EXPIRED: {
     titulo: 'Este convite expirou',
-    explicacao: 'O link tinha prazo e ele já passou. Peça um link novo a quem organiza a pelada.',
+    explicacao: 'O link tinha prazo e ele já passou. Peça um link novo a quem organiza a partida.',
   },
   INVITE_EXHAUSTED: {
     titulo: 'Este convite já foi usado o bastante',

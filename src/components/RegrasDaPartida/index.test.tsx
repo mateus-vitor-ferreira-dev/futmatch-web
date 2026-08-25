@@ -138,7 +138,7 @@ describe('RegrasDaPartida', () => {
     const onClose = vi.fn()
     const { user } = renderWithProviders(<RegrasDaPartida partida={partida} onClose={onClose} />)
 
-    expect(await screen.findByText('Não foi possível carregar as regras desta pelada.')).toBeInTheDocument()
+    expect(await screen.findByText('Não foi possível carregar as regras desta partida.')).toBeInTheDocument()
     expect(onClose).not.toHaveBeenCalled()
 
     await user.click(screen.getByRole('button', { name: 'Tentar novamente' }))

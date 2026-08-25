@@ -33,7 +33,7 @@ function oQueFalta(resultado: EntryRequirementResult): string | null {
   if (resultado.type === 'MIN_MATCHES_PLAYED') {
     const faltam = Math.max(0, Math.ceil(numeros.exigido - numeros.atual))
     if (faltam === 0) return null
-    return faltam === 1 ? 'Falta 1 pelada para você alcançar.' : `Faltam ${faltam} peladas para você alcançar.`
+    return faltam === 1 ? 'Falta 1 partida para você alcançar.' : `Faltam ${faltam} partidas para você alcançar.`
   }
 
   if (resultado.type === 'MIN_ATTENDANCE_RATE') {
@@ -80,8 +80,8 @@ export default function RequisitosDaPartida({ requirements, veredito }: Props) {
   const porTipo = new Map(veredito?.requirements.map((r) => [r.type, r]) ?? [])
 
   return (
-    <Bloco data-testid="requisitos-da-pelada">
-      <Titulo>Para entrar nesta pelada</Titulo>
+    <Bloco data-testid="requisitos-da-partida">
+      <Titulo>Para entrar nesta partida</Titulo>
 
       <Lista>
         {requirements.map((requisito) => {

@@ -48,7 +48,7 @@ describe('RequisitosDaPartida', () => {
   it('mostra a barra mesmo sem veredito — é o visitante deslogado', () => {
     renderWithProviders(<RequisitosDaPartida requirements={[jogos]} veredito={null} />)
 
-    expect(screen.getByText('Ter jogado ao menos 10 peladas')).toBeInTheDocument()
+    expect(screen.getByText('Ter jogado ao menos 10 partidas')).toBeInTheDocument()
     // Sem sessão não há o que dizer sobre este jogador, e a tela não inventa.
     expect(screen.queryByText(/você atende/)).not.toBeInTheDocument()
     expect(screen.queryByText(/você não atende/)).not.toBeInTheDocument()
@@ -101,7 +101,7 @@ describe('RequisitosDaPartida', () => {
       />,
     )
 
-    expect(screen.getByText('Faltam 7 peladas para você alcançar.')).toBeInTheDocument()
+    expect(screen.getByText('Faltam 7 partidas para você alcançar.')).toBeInTheDocument()
   })
 
   it('singular quando falta uma só', () => {
@@ -121,7 +121,7 @@ describe('RequisitosDaPartida', () => {
       />,
     )
 
-    expect(screen.getByText('Falta 1 pelada para você alcançar.')).toBeInTheDocument()
+    expect(screen.getByText('Falta 1 partida para você alcançar.')).toBeInTheDocument()
   })
 
   it('presença e nota dizem onde a pessoa está, sem virar conta', () => {

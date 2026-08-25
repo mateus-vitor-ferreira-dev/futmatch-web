@@ -62,7 +62,7 @@ export const TIPOS_DE_REQUISITO: Array<{
   {
     tipo: 'MIN_ATTENDANCE_RATE',
     titulo: 'Presença mínima',
-    ajuda: 'Quem tem menos de 5 peladas registradas passa: não dá para cobrar uma taxa que ainda não existe.',
+    ajuda: 'Quem tem menos de 5 partidas registradas passa: não dá para cobrar uma taxa que ainda não existe.',
   },
   {
     tipo: 'MIN_AVERAGE_RATING',
@@ -77,7 +77,7 @@ export const TIPOS_DE_REQUISITO: Array<{
   {
     tipo: 'TEAM_MEMBER',
     titulo: 'Ser do meu time',
-    ajuda: 'Fecha a pelada para os membros do time, sem prazo.',
+    ajuda: 'Fecha a partida para os membros do time, sem prazo.',
   },
 ]
 
@@ -103,7 +103,7 @@ export function descreveRequisito(
     case 'MIN_AVERAGE_RATING':
       return `Nota média a partir de ${(min ?? 0).toFixed(1)}`
     case 'MIN_MATCHES_PLAYED':
-      return min === 1 ? 'Ter jogado ao menos 1 pelada' : `Ter jogado ao menos ${min ?? 0} peladas`
+      return min === 1 ? 'Ter jogado ao menos 1 partida' : `Ter jogado ao menos ${min ?? 0} partidas`
     case 'BADGE': {
       const selos = (params?.badges ?? []).map((b) => SELOS[b] ?? b)
       if (selos.length === 0) return 'Selo exigido pelo organizador'
@@ -145,10 +145,10 @@ export function avisoDeRestricao(requisitos: Array<{ type: PartidaRequirementTyp
 
   if ((presenca ?? 0) >= 0.9) return 'Presença de 90% ou mais deixa de fora quem faltou uma vez em dez. Isso é bem pouca gente.'
   if ((nota ?? 0) >= 4.5) return 'Nota 4,5 é praticamente a nota máxima. Poucos jogadores chegam lá.'
-  if ((jogadas ?? 0) >= 20) return 'Exigir 20 peladas ou mais deixa de fora quase todo mundo que ainda está construindo histórico.'
+  if ((jogadas ?? 0) >= 20) return 'Exigir 20 partidas ou mais deixa de fora quase todo mundo que ainda está construindo histórico.'
 
   if (requisitos.length >= 3) {
-    return 'Três regras ou mais se somam, e cada uma corta um pedaço. Vale conferir se ainda sobra gente para encher a pelada.'
+    return 'Três regras ou mais se somam, e cada uma corta um pedaço. Vale conferir se ainda sobra gente para encher a partida.'
   }
 
   return null

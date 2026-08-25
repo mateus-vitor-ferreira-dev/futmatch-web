@@ -132,7 +132,7 @@ export default function CompartilharPartida({
       const atualizado = (await revogarConvite(pelada.courtId, pelada.id, id)).data
       setConvites((atual) => atual.map((c) => (c.id === id ? atualizado : c)))
       if (convite?.id === id) setConvite(null)
-      toast.success('Link revogado. Quem já entrou continua na pelada.')
+      toast.success('Link revogado. Quem já entrou continua na partida.')
     } catch (err) {
       toast.error(mensagemDeErro(err, 'Não foi possível revogar o link.'))
     } finally {
@@ -144,8 +144,8 @@ export default function CompartilharPartida({
 
   return (
     <ModalOverlay onClick={onFechar} role="presentation">
-      <ModalContent onClick={(e) => e.stopPropagation()} role="dialog" aria-modal="true" aria-label="Compartilhar a pelada">
-        <h2>Chamar gente para a pelada</h2>
+      <ModalContent onClick={(e) => e.stopPropagation()} role="dialog" aria-modal="true" aria-label="Compartilhar a partida">
+        <h2>Chamar gente para a partida</h2>
         <Subtitulo>
           Quem abrir este link vê a pelada e entra por ele — mesmo sem conta, e mesmo
           que a pelada não apareça na busca.
@@ -177,7 +177,7 @@ export default function CompartilharPartida({
 
         {convites.length > 0 && (
           <SecaoDeLinks>
-            <TituloDaSecao>Links desta pelada</TituloDaSecao>
+            <TituloDaSecao>Links desta partida</TituloDaSecao>
             {convites.map((c) => {
               const valendo = estaValendo(c)
               return (

@@ -73,7 +73,7 @@ export function RegrasDaPartida({ partida, onClose, onSaved }: Props) {
       setOriginais(lista)
     } catch (error) {
       setErroAoCarregar(true)
-      toast.error(mensagemDeErro(error, 'Erro ao carregar as regras da pelada.'))
+      toast.error(mensagemDeErro(error, 'Erro ao carregar as regras da partida.'))
     } finally {
       setCarregando(false)
     }
@@ -147,7 +147,7 @@ export function RegrasDaPartida({ partida, onClose, onSaved }: Props) {
           <Mensagem>Carregando as regras...</Mensagem>
         ) : erroAoCarregar ? (
           <>
-            <Mensagem $erro>Não foi possível carregar as regras desta pelada.</Mensagem>
+            <Mensagem $erro>Não foi possível carregar as regras desta partida.</Mensagem>
             <AcoesDoModal>
               <button type="button" className="cancel" onClick={onClose}>
                 Cancelar
