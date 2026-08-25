@@ -118,7 +118,7 @@ export const playerService = {
     return data
   },
 
-  // Busca quadras para o modal de criar jogo
+  // Busca quadras para o modal de criar partida
   getCourts: async (params?: CourtFilters): Promise<ApiEnvelope<Court[]>> => {
     const { data } = await api.get('/courts', { params })
     return data
