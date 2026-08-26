@@ -31,3 +31,4 @@ coverage
 
 # vercel
 .vercel
+.vitest-report.json
