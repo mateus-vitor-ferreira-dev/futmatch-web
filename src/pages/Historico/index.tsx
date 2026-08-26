@@ -14,7 +14,7 @@ import {
 } from './styles'
 
 const TAG_OPTIONS = [
-  { label: 'Craque da Partida', value: 'CRAQUE_DA_PELADA' },
+  { label: 'Craque da Partida', value: 'CRAQUE_DA_PARTIDA' },
   { label: 'Joga Fácil',       value: 'JOGA_FACIL'       },
   { label: 'Passa de Ano',     value: 'PASSA_DE_ANO'     },
   { label: 'Pontual',          value: 'PONTUAL'           },

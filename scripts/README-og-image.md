@@ -1,8 +1,8 @@
 # A imagem de prévia do link (`public/og-image.png`)
 
 É o cartão que aparece quando um link do app é colado no WhatsApp, no Telegram
-ou no Slack. Ela é **a mesma para todas as peladas** — o que muda por pelada é o
-título e a descrição, que o `api/pelada.js` monta na hora.
+ou no Slack. Ela é **a mesma para todas as partidas** — o que muda por partida é o
+título e a descrição, que o `api/partida.js` monta na hora.
 
 Por que não é a `logo.svg` direto: rastreador de mensageiro não renderiza SVG.
 O `og:image` precisa ser PNG ou JPEG, e o formato esperado é 1200×630.
