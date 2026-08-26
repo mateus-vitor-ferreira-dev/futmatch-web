@@ -32,7 +32,17 @@ jobs:
         run: npm run typecheck
 
       - name: Test
-        run: npm test
+        run: npm run test:ci
+
+      # Lê os dois relatórios que o passo acima grava. O `test:ci` roda com
+      # cobertura por isso: o README anuncia a porcentagem, e sem relatório
+      # legível por máquina ela só seria conferida a olho — que é como foi de
+      # ~28% para ~62% sem ninguém atualizar a frase.
+      #
+      # Rotas e páginas sob demanda não passam por aqui: são conferidas dentro
+      # da própria suíte, em `src/routes/numeros-do-readme.test.tsx`.
+      - name: Confere os números do README
+        run: npm run readme:check
 
       - name: Build
         run: npm run build
