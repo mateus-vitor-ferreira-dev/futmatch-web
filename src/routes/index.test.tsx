@@ -151,47 +151,41 @@ describe('rota da partida', () => {
 })
 
 /**
- * As rotas antigas, depois da #329.
+ * As rotas antigas não existem mais.
  *
- * O rename só é seguro se o link que já saiu continuar abrindo. `/pelada/:id`
- * é a URL que circula no grupo do WhatsApp: quem clica nela não é quem tem
- * como reportar que quebrou, então a regressão seria silenciosa.
+ * Elas eram a rede de compatibilidade do rename (#329): `/pelada/:id` é a URL
+ * que circulava no grupo do WhatsApp, e quem clica nela não é quem tem como
+ * reportar que quebrou. A rede caiu porque o produto ainda não tem link antigo
+ * circulando — a api só emite `/partida/:id` e `/minhas-partidas`, e o
+ * `emailTemplates-caminhos.test.ts` de lá é quem segura isso.
  *
- * O caso da query não é hipótese. É a api que monta o link do convite, em
- * `invite.service.ts`, como `${APP_URL}/pelada/${id}?convite=<token>` — o
- * `?convite=` é a credencial de entrada. Um redirect que preservasse só o `:eventId` abriria a
- * página sem o convite, e a partida responde 404 para quem não é de dentro.
+ * O caso testa o **destino**, e não a ausência da rota: sem redirect, o nome
+ * antigo cai no catch-all e vai para o login. É esse o comportamento que muda
+ * se alguém reintroduzir a rota sem querer.
  */
-describe('rotas antigas da #329', () => {
+describe('as rotas antigas do rename saíram', () => {
     beforeEach(() => {
         auth.estado = { user: null, loading: false, isAuthenticated: false }
     })
 
-    it('/pelada/:eventId leva para /partida/:eventId, com o id preservado', async () => {
-        window.history.pushState({}, '', '/pelada/partida-1')
+    it.each(['/pelada/partida-1', '/criar-pelada', '/minhas-peladas'])(
+        '%s cai no catch-all e vai para o login',
+        async (caminhoAntigo) => {
+            window.history.pushState({}, '', caminhoAntigo)
+
+            render(<AppRoutes />)
+
+            await waitFor(() => expect(window.location.pathname).toBe('/login'))
+        },
+    )
+
+    it('o nome novo continua abrindo a partida, com o convite preservado', async () => {
+        window.history.pushState({}, '', '/partida/partida-1?convite=token-abc')
 
         render(<AppRoutes />)
 
         expect(await screen.findByText('PartidaDetail')).toBeInTheDocument()
         expect(window.location.pathname).toBe('/partida/partida-1')
-    })
-
-    it('leva o token do convite junto, e não só o id', async () => {
-        window.history.pushState({}, '', '/pelada/partida-1?convite=token-abc')
-
-        render(<AppRoutes />)
-
-        await screen.findByText('PartidaDetail')
-        expect(window.location.pathname).toBe('/partida/partida-1')
         expect(window.location.search).toBe('?convite=token-abc')
-    })
-
-    it('/criar-pelada e /minhas-peladas continuam abrindo para quem tem sessão', async () => {
-        auth.estado = { user: { role: 'USER' }, loading: false, isAuthenticated: true }
-        window.history.pushState({}, '', '/criar-pelada')
-
-        render(<AppRoutes />)
-
-        await waitFor(() => expect(window.location.pathname).toBe('/criar-partida'))
     })
 })

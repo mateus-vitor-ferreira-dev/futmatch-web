@@ -13,7 +13,7 @@ body:
     attributes:
       label: Qual o problema?
       description: O que hoje é ruim, manual ou impossível. Sem falar de solução ainda.
-      placeholder: Hoje o jogador não consegue saber se a pelada tem vaga sem abrir a tela e contar na mão.
+      placeholder: Hoje o jogador não consegue saber se a partida tem vaga sem abrir a tela e contar na mão.
     validations:
       required: true
 

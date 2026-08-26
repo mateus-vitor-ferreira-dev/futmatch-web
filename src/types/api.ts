@@ -31,7 +31,7 @@ export type PartidaStatus = "WAITING" | "FULL" | "FINISHED" | "CANCELLED";
 export type PlaceRequestStatus = "PENDING" | "APPROVED" | "REJECTED";
 
 export type ReviewTag =
-    | "CRAQUE_DA_PELADA"
+    | "CRAQUE_DA_PARTIDA"
     | "JOGA_FACIL"
     | "PASSA_DE_ANO"
     | "PONTUAL"

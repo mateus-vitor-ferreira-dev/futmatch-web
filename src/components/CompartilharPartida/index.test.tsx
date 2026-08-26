@@ -24,7 +24,7 @@ const cria   = vi.mocked(criarConvite)
 const lista  = vi.mocked(listarConvites)
 const revoga = vi.mocked(revogarConvite)
 
-const PELADA = criaPartida({ id: 'partida-1', courtId: 'quadra-1' })
+const PARTIDA = criaPartida({ id: 'partida-1', courtId: 'quadra-1' })
 
 function convite(over: Partial<PartidaInvite> = {}): PartidaInvite {
   const token = over.token ?? 'token-abc'
@@ -44,7 +44,7 @@ function convite(over: Partial<PartidaInvite> = {}): PartidaInvite {
 }
 
 function abre() {
-  return renderWithProviders(<CompartilharPartida partida={PELADA} onFechar={vi.fn()} />)
+  return renderWithProviders(<CompartilharPartida partida={PARTIDA} onFechar={vi.fn()} />)
 }
 
 /**
