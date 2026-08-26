@@ -30,7 +30,11 @@ export default defineConfig({
 
     coverage: {
       provider: 'v8',
-      reporter: ['text', 'html'],
+      // `json-summary` é o que o `readme:check` lê: o README anuncia a
+      // cobertura de linhas, e sem um relatório legível por máquina esse
+      // número só poderia ser conferido a olho — que é como ele foi de ~28%
+      // para ~62% sem ninguém atualizar a frase.
+      reporter: ['text', 'html', 'json-summary'],
       include: ['src/**/*.{ts,tsx}'],
       exclude: [
         ...coverageConfigDefaults.exclude,

@@ -56,7 +56,7 @@ O ciclo é **descobrir → entrar → jogar → avaliar**, e ele fecha em cima d
   </tbody>
 </table>
 
-São **27 rotas** sobre **23 páginas carregadas sob demanda**, **12 modalidades** (de futsal a beach tennis), reputação com **6 tags** de comportamento (Craque da Partida, Pontual, Fair Play…) e torneios com divisões em **5 níveis** — tudo consumindo a API do Só+1 via REST, com um canal SSE aberto para as notificações.
+São **29 rotas** sobre **27 páginas carregadas sob demanda**, **12 modalidades** (de futsal a beach tennis), reputação com **6 tags** de comportamento (Craque da Partida, Pontual, Fair Play…) e torneios com divisões em **5 níveis** — tudo consumindo a API do Só+1 via REST, com um canal SSE aberto para as notificações.
 
 ```mermaid
 flowchart TB
@@ -416,7 +416,7 @@ Os fluxos críticos do jogador, o que dá mais prejuízo quando quebra:
 | Gate de assinatura | `hooks/useSubscription.test.tsx` · `utils/toastErro.test.ts` | O `isActive` concordando com o middleware da API, inclusive na tolerância de `past_due`, e o erro 402 mostrando o caminho do pagamento |
 | Assinatura vencida no painel | `pages/Owner/{Places,Courts,Equipment,Requests,Inventory}/index.test.tsx` | As cinco telas se comportando igual: conteúdo consultável, ações que gravam desabilitadas e ninguém gravando antes de o status chegar |
 
-**278 testes, ~16s.** A cobertura de linhas está em **~28%**, e o número não é meta: o critério é cobrir o que dói quando quebra, não perseguir porcentagem. **Todo PR novo entra com teste do comportamento que ele muda** — é o que a [Definition of Done](https://github.com/mateus-vitor-ferreira-dev/so-mais-um-api/blob/main/docs/EQUIPE.md) pede.
+**598 testes, ~9s.** A cobertura de linhas está em **~62%**, e o número não é meta: o critério é cobrir o que dói quando quebra, não perseguir porcentagem. **Todo PR novo entra com teste do comportamento que ele muda** — é o que a [Definition of Done](https://github.com/mateus-vitor-ferreira-dev/so-mais-um-api/blob/main/docs/EQUIPE.md) pede.
 
 ---
 
