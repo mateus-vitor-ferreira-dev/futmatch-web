@@ -216,7 +216,7 @@ export const playerService = {
     return data
   },
 
-  // --- REGRAS DE ACESSO DA PELADA (organizador) ---
+  // --- REGRAS DE ACESSO DA PARTIDA (organizador) ---
 
   /**
    * A visibilidade, no `PATCH` da própria partida (api#220).

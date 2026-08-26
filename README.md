@@ -2,7 +2,7 @@
 
 # ⚽ Só+1 — Web App
 
-### Encontre peladas abertas, entre com um clique e sorteie os times na hora.
+### Encontre partidas abertas, entre com um clique e sorteie os times na hora.
 
 **SaaS para organizar futebol amador** — do rachão da várzea ao torneio, sem grupo de WhatsApp. Web app para **jogadores, donos de quadra e admins**, com notificações em tempo real e reputação entre jogadores.
 
@@ -32,7 +32,7 @@
 
 ## 💡 O produto
 
-Organizar pelada hoje é um grupo de WhatsApp com 60 pessoas e nenhuma certeza. Quem confirmou? Sobrou vaga? Quanto dá por cabeça? Os times saem no par ou ímpar e, no domingo seguinte, ninguém lembra quem furou. O **Só+1** transforma isso em produto: a pelada vira um evento com vagas contadas, valor rateado, times sorteados pelo servidor, presença confirmada e avaliação no fim — e a quadra vazia da terça-feira vira reserva.
+Organizar partida hoje é um grupo de WhatsApp com 60 pessoas e nenhuma certeza. Quem confirmou? Sobrou vaga? Quanto dá por cabeça? Os times saem no par ou ímpar e, no domingo seguinte, ninguém lembra quem furou. O **Só+1** transforma isso em produto: a partida vira um evento com vagas contadas, valor rateado, times sorteados pelo servidor, presença confirmada e avaliação no fim — e a quadra vazia da terça-feira vira reserva.
 
 O ciclo é **descobrir → entrar → jogar → avaliar**, e ele fecha em cima de três lados do mesmo mercado:
 
@@ -43,7 +43,7 @@ O ciclo é **descobrir → entrar → jogar → avaliar**, e ele fecha em cima d
   <tbody>
     <tr>
       <td>🎮 <strong>Jogador</strong><br/><code>PLAYER</code></td>
-      <td>Busca peladas abertas com filtro por modalidade, cidade, horário, arena, preço por pessoa e vagas restantes. Entra com um clique, cria a própria pelada num wizard de 3 etapas (quadra → detalhes → confirmação), copia a chave PIX do rateio, dispara o sorteio de times, marca presença e avalia quem jogou.</td>
+      <td>Busca partidas abertas com filtro por modalidade, cidade, horário, arena, preço por pessoa e vagas restantes. Entra com um clique, cria a própria partida num wizard de 3 etapas (quadra → detalhes → confirmação), copia a chave PIX do rateio, dispara o sorteio de times, marca presença e avalia quem jogou.</td>
     </tr>
     <tr>
       <td>🏟️ <strong>Dono de quadra</strong><br/><code>OWNER</code></td>
@@ -56,7 +56,7 @@ O ciclo é **descobrir → entrar → jogar → avaliar**, e ele fecha em cima d
   </tbody>
 </table>
 
-São **27 rotas** sobre **23 páginas carregadas sob demanda**, **12 modalidades** (de futsal a beach tennis), reputação com **6 tags** de comportamento (Craque da Pelada, Pontual, Fair Play…) e torneios com divisões em **5 níveis** — tudo consumindo a API do Só+1 via REST, com um canal SSE aberto para as notificações.
+São **27 rotas** sobre **23 páginas carregadas sob demanda**, **12 modalidades** (de futsal a beach tennis), reputação com **6 tags** de comportamento (Craque da Partida, Pontual, Fair Play…) e torneios com divisões em **5 níveis** — tudo consumindo a API do Só+1 via REST, com um canal SSE aberto para as notificações.
 
 ```mermaid
 flowchart TB
@@ -105,17 +105,17 @@ flowchart TB
 
 <div align="center">
 
-**Descubra peladas abertas perto de você e entre com um clique**
+**Descubra partidas abertas perto de você e entre com um clique**
 
 ![Home](docs/screenshots/home.png)
 
 </div>
 
-|  Quero Jogar  |  Criar Pelada  |
+|  Quero Jogar  |  Criar Partida  |
 | :-----------: | :------------: |
-| ![Quero Jogar](docs/screenshots/quero-jogar.png) | ![Criar Pelada](docs/screenshots/criar-pelada.png) |
-| **Minhas Peladas** | **Histórico** |
-| ![Minhas Peladas](docs/screenshots/minhas-peladas.png) | ![Histórico](docs/screenshots/historico.png) |
+| ![Quero Jogar](docs/screenshots/quero-jogar.png) | ![Criar Partida](docs/screenshots/criar-partida.png) |
+| **Minhas Partidas** | **Histórico** |
+| ![Minhas Partidas](docs/screenshots/minhas-partidas.png) | ![Histórico](docs/screenshots/historico.png) |
 
 <details>
 <summary><strong>Mais telas</strong> — torneios, avaliações, perfil e login</summary>
@@ -347,7 +347,7 @@ Nada de pasta `__tests__` separada: teste longe do código é teste que ninguém
 | `src/test/setup.ts` | Roda antes de cada arquivo de teste: matchers do jest-dom, stub de `matchMedia` e limpeza de DOM + `localStorage` |
 | `src/test/render.tsx` | O helper `renderWithProviders` e o reexport da Testing Library |
 | `src/test/render.test.tsx` | O teste do próprio helper — helper quebrado falha no teste de quem só estava usando ele |
-| `src/test/factories.ts` | Fábricas de `Pelada`, `UserMe` e afins. Passe só o que o teste afirma: `criaPelada({ maxPlayers: 10 })` |
+| `src/test/factories.ts` | Fábricas de `Partida`, `UserMe` e afins. Passe só o que o teste afirma: `criaPartida({ maxPlayers: 10 })` |
 
 ### O padrão
 
@@ -369,12 +369,12 @@ describe('<RoleBadge />', () => {
 Ele devolve junto uma instância de `user-event` já configurada, e aceita `route`, `path` e `theme`:
 
 ```tsx
-const { user } = renderWithProviders(<PeladaDetail />, {
-  route: '/pelada/42',        // onde o MemoryRouter começa
-  path:  '/pelada/:eventId',  // padrão da rota — é o que faz useParams funcionar
+const { user } = renderWithProviders(<PartidaDetail />, {
+  route: '/partida/42',        // onde o MemoryRouter começa
+  path:  '/partida/:eventId',  // padrão da rota — é o que faz useParams funcionar
   theme: 'dark',
 })
-await user.click(screen.getByRole('button', { name: /entrar na pelada/i }))
+await user.click(screen.getByRole('button', { name: /entrar na partida/i }))
 expect(await screen.findByText(/você está dentro/i)).toBeInTheDocument()
 ```
 
@@ -405,11 +405,11 @@ Os fluxos críticos do jogador, o que dá mais prejuízo quando quebra:
 | Login e sessão | `contexts/AuthContext.test.tsx` | Restaura a sessão ao montar, descarta sessão expirada, marca e limpa no login/logout, e sai mesmo se a chamada de logout falhar |
 | Sessão expirada | `services/api.test.ts` | No 401 o interceptor desloga e manda para `/login` — e **não** desloga em 403 ou 500 |
 | Entrar na conta | `pages/Register/index.test.tsx` | Validação, mensagem da API na tela, e o destino certo por papel (jogador, dono, admin) |
-| Buscar pelada | `pages/QueroJogar/index.test.tsx` | Filtro de modalidade e cidade refaz a busca na API; horário, arena e texto recortam sem nova ida |
-| Entrar na pelada | `pages/PeladaDetail/index.test.tsx` | Contagem de vagas, botão bloqueado quando lotado ou já confirmado, Pix só para quem está dentro |
-| Sair da pelada | `pages/PeladaDetail/index.test.tsx` | Quem pode sair, confirmação obrigatória, motivo opcional e a vaga voltando na tela |
-| Criar pelada | `pages/CriarPelada/index.test.tsx` | Validação dos quatro campos, conversão do payload e erro da API renderizado |
-| Minhas peladas | `pages/MinhasPeladas/index.test.tsx` | As duas abas com formatos de resposta diferentes, ações do organizador por status e sorteio de times |
+| Buscar partida | `pages/QueroJogar/index.test.tsx` | Filtro de modalidade e cidade refaz a busca na API; horário, arena e texto recortam sem nova ida |
+| Entrar na partida | `pages/PartidaDetail/index.test.tsx` | Contagem de vagas, botão bloqueado quando lotado ou já confirmado, Pix só para quem está dentro |
+| Sair da partida | `pages/PartidaDetail/index.test.tsx` | Quem pode sair, confirmação obrigatória, motivo opcional e a vaga voltando na tela |
+| Criar partida | `pages/CriarPartida/index.test.tsx` | Validação dos quatro campos, conversão do payload e erro da API renderizado |
+| Minhas partidas | `pages/MinhasPartidas/index.test.tsx` | As duas abas com formatos de resposta diferentes, ações do organizador por status e sorteio de times |
 | Contrato com a API | `services/playerService.test.ts` | Método, caminho e onde cada coisa vai — inclusive o corpo do `DELETE`, que no axios não é o segundo argumento |
 | Mensagem de erro | `utils/apiError.test.ts` | O que o usuário lê quando algo falha, para qualquer coisa que caia no `catch` |
 | Catálogo de modalidades | `hooks/useSports.test.tsx` | O fallback local que sustenta busca, cadastro e criação quando a API não responde |

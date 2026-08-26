@@ -126,14 +126,14 @@ describe('MinhasPartidas — as duas abas', () => {
 })
 
 describe('MinhasPartidas — ações de organizador', () => {
-  const PELADA_ABERTA = criaPartida({
+  const PARTIDA_ABERTA = criaPartida({
     id: 'minha-partida',
     status: 'WAITING',
     pixKey: 'pix@arena.com',
     court: { ...criaPartida().court!, place: { id: 'l1', name: 'Arena Sul', city: 'Lavras', neighborhood: 'Centro', state: 'MG' } },
   })
 
-  async function abreAbaCriados(partidas = [PELADA_ABERTA]) {
+  async function abreAbaCriados(partidas = [PARTIDA_ABERTA]) {
     buscaCriadas.mockResolvedValue(envelope(partidas))
     const resultado = renderWithProviders(<MinhasPartidas />)
     await waitFor(() => expect(buscaParticipando).toHaveBeenCalled())
@@ -143,13 +143,13 @@ describe('MinhasPartidas — ações de organizador', () => {
   }
 
   it('mostra a chave Pix só na aba de partidas criadas', async () => {
-    buscaParticipando.mockResolvedValue(envelope([participacao(PELADA_ABERTA)]))
+    buscaParticipando.mockResolvedValue(envelope([participacao(PARTIDA_ABERTA)]))
     const { user } = renderWithProviders(<MinhasPartidas />)
     await screen.findByText('Arena Sul')
 
     expect(screen.queryByText(/PIX: pix@arena.com/)).not.toBeInTheDocument()
 
-    buscaCriadas.mockResolvedValue(envelope([PELADA_ABERTA]))
+    buscaCriadas.mockResolvedValue(envelope([PARTIDA_ABERTA]))
     await user.click(screen.getByRole('button', { name: 'Criados por mim' }))
 
     expect(await screen.findByText(/PIX: pix@arena.com/)).toBeInTheDocument()
@@ -165,7 +165,7 @@ describe('MinhasPartidas — ações de organizador', () => {
 
   it('esconde as ações em partida já finalizada, e oferece confirmar presenças', async () => {
     await abreAbaCriados([criaPartida({
-      ...PELADA_ABERTA,
+      ...PARTIDA_ABERTA,
       status: 'FINISHED',
     })])
 
@@ -200,7 +200,7 @@ describe('MinhasPartidas — ações de organizador', () => {
   })
 
   it('esconde as ações em partida cancelada', async () => {
-    await abreAbaCriados([criaPartida({ ...PELADA_ABERTA, status: 'CANCELLED' })])
+    await abreAbaCriados([criaPartida({ ...PARTIDA_ABERTA, status: 'CANCELLED' })])
 
     expect(screen.queryByRole('button', { name: /sortear times/i })).not.toBeInTheDocument()
     expect(screen.queryByRole('button', { name: /confirmar presenças/i })).not.toBeInTheDocument()
@@ -208,7 +208,7 @@ describe('MinhasPartidas — ações de organizador', () => {
 })
 
 describe('MinhasPartidas — sorteio de times', () => {
-  const PELADA = criaPartida({
+  const PARTIDA = criaPartida({
     id: 'minha-partida',
     courtId: 'quadra-1',
     status: 'WAITING',
@@ -216,7 +216,7 @@ describe('MinhasPartidas — sorteio de times', () => {
   })
 
   async function abreSorteio() {
-    buscaCriadas.mockResolvedValue(envelope([PELADA]))
+    buscaCriadas.mockResolvedValue(envelope([PARTIDA]))
     const resultado = renderWithProviders(<MinhasPartidas />)
     await waitFor(() => expect(buscaParticipando).toHaveBeenCalled())
     await resultado.user.click(screen.getByRole('button', { name: 'Criados por mim' }))

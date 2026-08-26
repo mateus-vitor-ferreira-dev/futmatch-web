@@ -1,15 +1,15 @@
 /**
- * A prévia do link da pelada, para quem cola o link numa conversa — web#229.
+ * A prévia do link da partida, para quem cola o link numa conversa — web#229.
  *
  * O app é uma SPA: toda rota devolve o mesmo `index.html`, e o rastreador do
  * WhatsApp **não roda JavaScript**. Ele lê o HTML que chega e vai embora. Por
  * isso uma meta tag no `index.html` seria necessariamente igual para todas as
- * peladas, e a prévia com data, local e vagas precisa ser montada no servidor.
+ * partidas, e a prévia com data, local e vagas precisa ser montada no servidor.
  *
  * **Só rastreador passa por aqui.** O `vercel.json` roteia para esta função
  * apenas quando o `user-agent` casa com a lista de bots; gente de verdade
  * continua indo direto para o `index.html`, sem servidor no caminho e sem
- * nenhum risco novo de a página da pelada parar de abrir. Se a lista de bots
+ * nenhum risco novo de a página da partida parar de abrir. Se a lista de bots
  * errar para menos, o efeito é o de hoje: link sem prévia.
  *
  * Se errar para mais — um humano cair aqui —, o documento tem um `refresh` e um
@@ -28,7 +28,7 @@ const apiUrl = () => process.env.API_URL || process.env.VITE_API_URL || ''
 
 const GENERICO = {
   titulo: 'Só+1 — Achou jogo.',
-  descricao: 'Organize sua pelada, chame a galera e complete o time.',
+  descricao: 'Organize sua partida, chame a galera e complete o time.',
 }
 
 const escapa = (valor) =>
@@ -51,19 +51,19 @@ const formataDinheiro = (valor) => {
 }
 
 /**
- * O título e a descrição desta pelada.
+ * O título e a descrição desta partida.
  *
  * A descrição junta o que decide se a pessoa clica: onde, quantas vagas
- * sobraram e quanto custa. Cada pedaço só entra se existir — pelada sem valor
+ * sobraram e quanto custa. Cada pedaço só entra se existir — partida sem valor
  * cadastrado não ganha um "R$ NaN".
  */
-function descreve(pelada) {
-  const quando = formataQuando(pelada.date)
-  const local = [pelada.court?.place?.name, pelada.court?.name].filter(Boolean).join(' · ')
+function descreve(partida) {
+  const quando = formataQuando(partida.date)
+  const local = [partida.court?.place?.name, partida.court?.name].filter(Boolean).join(' · ')
 
-  const confirmados = pelada._count?.participations ?? pelada.participations?.length ?? 0
-  const vagas = (pelada.maxPlayers ?? 0) - confirmados
-  const porPessoa = pelada.maxPlayers > 0 ? Number(pelada.totalValue) / pelada.maxPlayers : null
+  const confirmados = partida._count?.participations ?? partida.participations?.length ?? 0
+  const vagas = (partida.maxPlayers ?? 0) - confirmados
+  const porPessoa = partida.maxPlayers > 0 ? Number(partida.totalValue) / partida.maxPlayers : null
 
   const detalhes = [
     local || null,
@@ -72,7 +72,7 @@ function descreve(pelada) {
   ].filter(Boolean)
 
   return {
-    titulo: quando ? `Pelada ${quando}` : 'Pelada no Só+1',
+    titulo: quando ? `Partida ${quando}` : 'Partida no Só+1',
     descricao: detalhes.join(' · ') || GENERICO.descricao,
   }
 }
@@ -80,12 +80,12 @@ function descreve(pelada) {
 /**
  * Pergunta à API exatamente como o visitante perguntaria, com o convite junto.
  *
- * **A regra de quem pode ver continua sendo a da API.** Pelada que ela recusa
+ * **A regra de quem pode ver continua sendo a da API.** Partida que ela recusa
  * para este pedido não ganha prévia com dados — cai na genérica. Reproduzir
  * aqui a lógica de visibilidade criaria uma segunda fonte de verdade, e a que
  * vaza é sempre a cópia.
  */
-async function buscaPelada(id, convite) {
+async function buscaPartida(id, convite) {
   const base = apiUrl()
   if (!base) return null
 
@@ -101,7 +101,7 @@ async function buscaPelada(id, convite) {
     const corpo = await resposta.json()
     return corpo?.data ?? null
   } catch {
-    // Rede, timeout, 404, pelada privada sem convite: todos caem na genérica. A
+    // Rede, timeout, 404, partida privada sem convite: todos caem na genérica. A
     // prévia é enfeite, e enfeite não pode derrubar nada.
     return null
   } finally {
@@ -143,16 +143,16 @@ export default async function handler(req, res) {
   const host = req.headers['x-forwarded-host'] || req.headers.host || ''
   const origem = `${protocolo}://${host}`
 
-  const urlDaPagina = `${origem}/pelada/${encodeURIComponent(id ?? '')}${
+  const urlDaPagina = `${origem}/partida/${encodeURIComponent(id ?? '')}${
     convite ? `?convite=${encodeURIComponent(convite)}` : ''
   }`
 
-  const pelada = id ? await buscaPelada(id, convite) : null
-  const { titulo, descricao } = pelada ? descreve(pelada) : GENERICO
+  const partida = id ? await buscaPartida(id, convite) : null
+  const { titulo, descricao } = partida ? descreve(partida) : GENERICO
 
   // O cartão fica no cache da borda por 5 minutos. Prévia é leitura pública e
   // repetida — o WhatsApp busca uma vez por link colado —, e cinco minutos é
-  // curto o bastante para uma pelada que mudou de vagas não mentir por muito
+  // curto o bastante para uma partida que mudou de vagas não mentir por muito
   // tempo.
   res.setHeader('Content-Type', 'text/html; charset=utf-8')
   res.setHeader('Cache-Control', 'public, s-maxage=300, stale-while-revalidate=600')

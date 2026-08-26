@@ -1,6 +1,6 @@
 import { Suspense, useMemo } from 'react'
 import type { ReactNode } from 'react'
-import { BrowserRouter, Routes, Route, Navigate, Outlet, useParams, useLocation } from 'react-router-dom'
+import { BrowserRouter, Routes, Route, Navigate, Outlet } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
 import MainLayout from '../components/MainLayout'
 import DashboardLayout from '../components/DashboardLayout'
@@ -67,45 +67,6 @@ function PrivateRoute({ children }: { children: ReactNode }) {
  * não tem vê a página sozinha — o menu do `MainLayout` só leva a lugares que
  * exigem login, e oferecê-lo a um visitante seria uma fila de becos sem saída.
  */
-/**
- * As rotas antigas continuam abrindo (#329).
- *
- * `/pelada/:eventId` é a URL que o jogador cola no grupo do WhatsApp. Ela já
- * saiu, e quem clica nela não é quem tem como reportar que quebrou — link morto
- * é a regressão que ninguém vê acontecer. O `:eventId` é preservado.
- *
- * **Estes redirects podem sair, e é a api que dita quando** (api#407).
- *
- * Eles atendem só o que é genuinamente passado: link de WhatsApp já colado e
- * e-mail já entregue. Nada mais os produz — a api#400 fez o `linkDe` emitir
- * `/partida`, e a api#407 apontou os dois botões de e-mail para
- * `/minhas-partidas`.
- *
- * Isso não foi sempre verdade, e a diferença importa: até a api#407, dois
- * templates de e-mail montavam `/minhas-peladas` a cada entrada confirmada e a
- * cada lembrete diário. Enquanto isso durou, remover estes redirects teria
- * quebrado o botão de e-mail que o produto **ainda estava enviando** — sem
- * quebrar teste nenhum, porque nada aqui liga e-mail a rota.
- *
- * Antes de removê-los, confira que continua valendo: `grep -rn 'appUrl}/' ` no
- * `so-mais-um-api` não pode devolver caminho que só exista aqui como redirect.
- * O teste `emailTemplates-caminhos.test.ts` de lá é quem segura isso hoje.
- *
- * `Navigate` sozinho não serve aqui: ele não interpola parâmetro de rota, e
- * mandaria o visitante para a string literal `/partida/:eventId`.
- *
- * A query string vai junto, e isso não é zelo: o convite por link chega como
- * `/pelada/<id>?convite=<token>` — é a api que monta essa URL, em
- * `invite.service.ts` —, e o `?convite=` é a credencial de entrada. Redirect que só preserva o `:eventId`
- * abre a página e perde o convite, com a partida respondendo 404 para quem não
- * é de dentro. O `hash` vai pelo mesmo motivo: custa nada e não se perde.
- */
-function RedirecionaParaPartida() {
-  const { eventId } = useParams()
-  const { search, hash } = useLocation()
-  return <Navigate to={`/partida/${eventId}${search}${hash}`} replace />
-}
-
 function PartidaShell() {
   const { isAuthenticated, loading } = useAuth()
   if (loading) return null
@@ -219,13 +180,6 @@ export default function AppRoutes() {
         <Route element={<PartidaShell />}>
           <Route path="/partida/:eventId" element={<PartidaDetail />} />
         </Route>
-
-        {/* Rotas antigas, só para link que já saiu — ver `RedirecionaParaPartida`.
-            Navegação nova aponta direto para o nome novo; nenhum link interno
-            passa por aqui. */}
-        <Route path="/pelada/:eventId"  element={<RedirecionaParaPartida />} />
-        <Route path="/criar-pelada"     element={<Navigate to="/criar-partida" replace />} />
-        <Route path="/minhas-peladas"   element={<Navigate to="/minhas-partidas" replace />} />
 
         <Route path="*" element={<Navigate to="/login" replace />} />
       </Routes>

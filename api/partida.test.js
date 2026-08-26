@@ -1,5 +1,5 @@
 /**
- * A prévia do link da pelada (#229).
+ * A prévia do link da partida (#229).
  *
  * É o código mais fácil de quebrar sem ninguém notar do repositório inteiro:
  * ele não aparece na tela de ninguém, só no cartão que o WhatsApp desenha. Os
@@ -7,10 +7,10 @@
  */
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 
-import handler from './pelada.js'
+import handler from './partida.js'
 
-const PELADA = {
-  id: 'pelada-1',
+const PARTIDA = {
+  id: 'partida-1',
   date: '2026-08-24T22:00:00.000Z',
   maxPlayers: 10,
   totalValue: '200.00',
@@ -52,56 +52,56 @@ afterEach(() => {
   vi.restoreAllMocks()
 })
 
-describe('prévia do link — a pelada no cartão', () => {
+describe('prévia do link — a partida no cartão', () => {
   it('põe data, local, vagas e preço no título e na descrição', async () => {
-    const res = await roda({ id: 'pelada-1' }, ok(PELADA))
+    const res = await roda({ id: 'partida-1' }, ok(PARTIDA))
 
     expect(res.status_).toBe(200)
     expect(res.corpo).toContain('og:title')
     // Data em horário de Brasília, não em UTC: 22:00Z é 19:00 aqui.
-    expect(res.corpo).toMatch(/og:title" content="Pelada [^"]*19:00/)
+    expect(res.corpo).toMatch(/og:title" content="Partida [^"]*19:00/)
     expect(res.corpo).toContain('Arena Central · Quadra 2')
     expect(res.corpo).toContain('4 vagas')
     expect(res.corpo).toContain('por pessoa')
   })
 
   it('diz "Lotada" quando não há vaga, em vez de "0 vagas"', async () => {
-    const res = await roda({ id: 'pelada-1' }, ok({ ...PELADA, _count: { participations: 10 } }))
+    const res = await roda({ id: 'partida-1' }, ok({ ...PARTIDA, _count: { participations: 10 } }))
 
     expect(res.corpo).toContain('Lotada')
     expect(res.corpo).not.toContain('0 vagas')
   })
 
   it('usa o singular quando resta uma vaga só', async () => {
-    const res = await roda({ id: 'pelada-1' }, ok({ ...PELADA, _count: { participations: 9 } }))
+    const res = await roda({ id: 'partida-1' }, ok({ ...PARTIDA, _count: { participations: 9 } }))
 
     expect(res.corpo).toContain('1 vaga ')
   })
 
   it('repassa o convite para a API', async () => {
-    await roda({ id: 'pelada-1', convite: 'token-abc' }, ok(PELADA))
+    await roda({ id: 'partida-1', convite: 'token-abc' }, ok(PARTIDA))
 
     const [url] = globalThis.fetch.mock.calls[0]
-    expect(String(url)).toContain('/events/pelada-1')
+    expect(String(url)).toContain('/events/partida-1')
     expect(String(url)).toContain('convite=token-abc')
   })
 
   it('aponta a imagem e a URL para o host do pedido', async () => {
-    const res = await roda({ id: 'pelada-1', convite: 'token-abc' }, ok(PELADA))
+    const res = await roda({ id: 'partida-1', convite: 'token-abc' }, ok(PARTIDA))
 
     expect(res.corpo).toContain('content="https://app.so-mais-um.com/og-image.png"')
     // A URL da prévia leva o convite: é ela que o cartão abre ao ser tocado, e
-    // sem o token a pelada por link responderia 404.
-    expect(res.corpo).toContain('/pelada/pelada-1?convite=token-abc')
+    // sem o token a partida por link responderia 404.
+    expect(res.corpo).toContain('/partida/partida-1?convite=token-abc')
   })
 })
 
-describe('prévia do link — quando não dá para saber da pelada', () => {
+describe('prévia do link — quando não dá para saber da partida', () => {
   it('cai na prévia genérica quando a API recusa', async () => {
-    // Pelada privada sem convite, convite morto, pelada inexistente: todos
+    // Partida privada sem convite, convite morto, partida inexistente: todos
     // caem aqui. **A regra de quem pode ver continua sendo a da API** — esta
     // função não tem uma segunda cópia dela.
-    const res = await roda({ id: 'pelada-1' }, recusa)
+    const res = await roda({ id: 'partida-1' }, recusa)
 
     expect(res.status_).toBe(200)
     expect(res.corpo).toContain('Só+1 — Achou jogo.')
@@ -112,7 +112,7 @@ describe('prévia do link — quando não dá para saber da pelada', () => {
     const res = fingeRes()
     globalThis.fetch = vi.fn().mockRejectedValue(new Error('sem rede'))
 
-    await handler(fingeReq({ id: 'pelada-1' }), res)
+    await handler(fingeReq({ id: 'partida-1' }), res)
 
     // Prévia é enfeite, e enfeite não pode derrubar nada.
     expect(res.status_).toBe(200)
@@ -125,7 +125,7 @@ describe('prévia do link — quando não dá para saber da pelada', () => {
     const res = fingeRes()
     globalThis.fetch = vi.fn()
 
-    await handler(fingeReq({ id: 'pelada-1' }), res)
+    await handler(fingeReq({ id: 'partida-1' }), res)
 
     expect(res.corpo).toContain('Só+1 — Achou jogo.')
     expect(globalThis.fetch).not.toHaveBeenCalled()
@@ -134,8 +134,8 @@ describe('prévia do link — quando não dá para saber da pelada', () => {
 
 describe('prévia do link — as garantias do documento', () => {
   it('escapa o que vem da API, que vai parar dentro de um atributo', async () => {
-    const res = await roda({ id: 'pelada-1' }, ok({
-      ...PELADA,
+    const res = await roda({ id: 'partida-1' }, ok({
+      ...PARTIDA,
       court: { name: 'Quadra "A"', place: { name: '<script>alert(1)</script>' } },
     }))
 
@@ -147,7 +147,7 @@ describe('prévia do link — as garantias do documento', () => {
   })
 
   it('leva um refresh e um link visível, para o humano que cair aqui por engano', async () => {
-    const res = await roda({ id: 'pelada-1' }, ok(PELADA))
+    const res = await roda({ id: 'partida-1' }, ok(PARTIDA))
 
     // A lista de rastreadores do `vercel.json` pode errar para mais. Quando
     // errar, a pessoa chega ao app do mesmo jeito.
@@ -156,7 +156,7 @@ describe('prévia do link — as garantias do documento', () => {
   })
 
   it('deixa o cartão no cache da borda, e não no do navegador', async () => {
-    const res = await roda({ id: 'pelada-1' }, ok(PELADA))
+    const res = await roda({ id: 'partida-1' }, ok(PARTIDA))
 
     expect(res.headers['Content-Type']).toContain('text/html')
     expect(res.headers['Cache-Control']).toContain('s-maxage=300')
