@@ -80,6 +80,10 @@ export function criaPartida(over: Partial<Partida> = {}): Partida {
         city: 'Lavras',
         neighborhood: 'Centro',
         state: 'MG',
+        // Coordenadas de verdade, de Lavras/MG: a api as manda na busca desde
+        // a #216, e é delas que o mapa da busca tira o pino de cada partida.
+        latitude: -21.2456,
+        longitude: -44.9976,
       },
     },
     organizer: { id: 'user-organizador', name: 'Organizador', avatarUrl: null },

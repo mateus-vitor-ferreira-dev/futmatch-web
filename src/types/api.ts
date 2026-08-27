@@ -247,6 +247,20 @@ export interface PlaceSummary {
     city: string;
     neighborhood?: string;
     state: string;
+    /**
+     * As coordenadas viajam na busca desde a api#216, e o tipo daqui não as
+     * declarava — o payload trazia dois campos que o front não enxergava.
+     *
+     * O comentário do `event.repository.ts` diz para que elas existem: *"o front
+     * precisa delas para pôr a partida no mapa sem uma segunda requisição por
+     * espaço"*. Sem declará-las, o mapa da #325 pareceria impossível sem mexer
+     * na API.
+     *
+     * Nulas quando o espaço ainda não foi geocodificado — é o estado de quem
+     * cadastrou endereço que o geocoder não resolveu.
+     */
+    latitude: number | null;
+    longitude: number | null;
 }
 
 export interface Place extends PlaceSummary {
