@@ -375,6 +375,39 @@ describe('QueroJogar — filtro por distância', () => {
     await user.click(screen.getByRole('button', { name: /Filtros/ }))
   }
 
+  /**
+   * O convite morava dentro dos filtros avançados, que nascem fechados: quem
+   * abria a busca sem origem não via nada, e nem sabia que a distância existia
+   * como filtro. Esta é a metade da #328 que a tela devia e não pagava.
+   */
+  it('convida a informar a origem sem exigir que os filtros sejam abertos', async () => {
+    semLocalizacao()
+    vi.mocked(authService.getMe).mockResolvedValue(envelope(USUARIO))
+    buscaEventos.mockResolvedValue(criaBuscaDePartidas([criaPartida()]))
+
+    renderWithProviders(<QueroJogar />)
+    await esperaResultados()
+
+    // Sem clicar em "Filtros" em momento nenhum.
+    const convite = screen.getByRole('region', { name: /de onde você sai/i })
+    expect(convite).toBeInTheDocument()
+    expect(within(convite).getByRole('button', { name: /Salvar meu endereço/ })).toBeInTheDocument()
+  })
+
+  it('quem já tem origem não é convidado a informá-la', async () => {
+    comLocalizacao()
+    localStorage.setItem('so-mais-um:localizacao', 'concedida')
+    vi.mocked(authService.getMe).mockResolvedValue(envelope(USUARIO))
+    buscaEventos.mockResolvedValue(criaBuscaDePartidas([criaPartida()]))
+
+    renderWithProviders(<QueroJogar />)
+    await esperaResultados()
+
+    await waitFor(() =>
+      expect(screen.queryByRole('region', { name: /de onde você sai/i })).not.toBeInTheDocument(),
+    )
+  })
+
   it('sem origem, os raios ficam desabilitados e a tela explica por quê', async () => {
     semLocalizacao()
     vi.mocked(authService.getMe).mockResolvedValue(envelope(USUARIO))
