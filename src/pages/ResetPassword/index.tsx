@@ -3,7 +3,7 @@ import { useForm } from 'react-hook-form'
 import { yupResolver } from '@hookform/resolvers/yup'
 import * as yup from 'yup'
 import AuthLayout from '../../components/AuthLayout'
-import { PasswordInput } from '../../components'
+import PasswordInput from '../../components/PasswordInput'
 import * as authService from '../../services/auth'
 import { mensagemDeErro } from '../../utils/apiError'
 import {

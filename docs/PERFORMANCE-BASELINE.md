@@ -103,8 +103,9 @@ providers globais.
 
 ## Próximos passos
 
-- separar o barrel e deixar `Map`/Leaflet e componentes autenticados fora da
-  primeira tela;
+- ~~separar o barrel e deixar `Map`/Leaflet e componentes autenticados fora da
+  primeira tela~~ — feito na #317; a comparação está em
+  [`PERFORMANCE-317-SEM-BARREL.md`](PERFORMANCE-317-SEM-BARREL.md);
 - medir o carregamento sob demanda do Google Identity Services sem prejudicar o
   botão de login;
 - repetir exatamente este procedimento após cada mudança e comparar LCP,
