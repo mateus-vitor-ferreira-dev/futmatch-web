@@ -68,7 +68,7 @@ describe('MinhasPartidas — as duas abas', () => {
   it('abre em "Participando" e busca as participações', async () => {
     buscaParticipando.mockResolvedValue(
       envelope([participacao(criaPartida({
-        court: { ...criaPartida().court!, place: { id: 'l1', name: 'Arena Sul', city: 'Lavras', neighborhood: 'Centro', state: 'MG' } },
+        court: { ...criaPartida().court!, place: { id: 'l1', name: 'Arena Sul', city: 'Lavras', neighborhood: 'Centro', state: 'MG', latitude: -21.24, longitude: -44.99 } },
       }))]),
     )
 
@@ -130,7 +130,7 @@ describe('MinhasPartidas — ações de organizador', () => {
     id: 'minha-partida',
     status: 'WAITING',
     pixKey: 'pix@arena.com',
-    court: { ...criaPartida().court!, place: { id: 'l1', name: 'Arena Sul', city: 'Lavras', neighborhood: 'Centro', state: 'MG' } },
+    court: { ...criaPartida().court!, place: { id: 'l1', name: 'Arena Sul', city: 'Lavras', neighborhood: 'Centro', state: 'MG', latitude: -21.24, longitude: -44.99 } },
   })
 
   async function abreAbaCriados(partidas = [PARTIDA_ABERTA]) {
@@ -212,7 +212,7 @@ describe('MinhasPartidas — sorteio de times', () => {
     id: 'minha-partida',
     courtId: 'quadra-1',
     status: 'WAITING',
-    court: { ...criaPartida().court!, place: { id: 'l1', name: 'Arena Sul', city: 'Lavras', neighborhood: 'Centro', state: 'MG' } },
+    court: { ...criaPartida().court!, place: { id: 'l1', name: 'Arena Sul', city: 'Lavras', neighborhood: 'Centro', state: 'MG', latitude: -21.24, longitude: -44.99 } },
   })
 
   async function abreSorteio() {

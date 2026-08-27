@@ -600,3 +600,22 @@ export const DistanciaBadge = styled.span`
   font-weight: ${({ theme }) => theme.fontWeights.bold};
   white-space: nowrap;
 `
+
+/**
+ * O lugar do mapa enquanto o chunk dele desce.
+ *
+ * Mesma altura da `Moldura` do mapa, de propósito: sem reservar o espaço, a
+ * lista de partidas dá um pulo quando o `import()` resolve — e o pulo acontece
+ * exatamente enquanto a pessoa está lendo o primeiro resultado.
+ */
+export const MapaCarregando = styled.div`
+  height: 320px;
+  border-radius: ${({ theme }) => theme.radii.lg};
+  border: 1px solid ${({ theme }) => theme.colors.border};
+  background: ${({ theme }) => theme.colors.bgCard};
+  margin-bottom: ${({ theme }) => theme.spacing[4]};
+
+  @media (max-width: 640px) {
+    height: 240px;
+  }
+`
