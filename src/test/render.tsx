@@ -17,7 +17,6 @@ import userEvent from '@testing-library/user-event'
 import type { UserEvent } from '@testing-library/user-event'
 import { MemoryRouter, Routes, Route } from 'react-router-dom'
 import { ThemeProvider } from 'styled-components'
-import { GoogleOAuthProvider } from '@react-oauth/google'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { lightTheme, darkTheme } from '../styles/theme'
 import { ThemeContextProvider } from '../contexts/ThemeContext'
@@ -81,19 +80,17 @@ function criarProviders({ route = '/', path, theme = 'light', queryClient: clien
   return function Providers({ children }: { children: ReactNode }) {
     return (
       <QueryClientProvider client={queryClient}>
-        <GoogleOAuthProvider clientId="test-client-id">
-          <ThemeContextProvider>
-            <ThemeProvider theme={theme === 'dark' ? darkTheme : lightTheme}>
-              <MemoryRouter initialEntries={[route]}>
-                <AuthProvider>
-                  {path
-                    ? <Routes><Route path={path} element={children} /></Routes>
-                    : children}
-                </AuthProvider>
-              </MemoryRouter>
-            </ThemeProvider>
-          </ThemeContextProvider>
-        </GoogleOAuthProvider>
+        <ThemeContextProvider>
+          <ThemeProvider theme={theme === 'dark' ? darkTheme : lightTheme}>
+            <MemoryRouter initialEntries={[route]}>
+              <AuthProvider>
+                {path
+                  ? <Routes><Route path={path} element={children} /></Routes>
+                  : children}
+              </AuthProvider>
+            </MemoryRouter>
+          </ThemeProvider>
+        </ThemeContextProvider>
       </QueryClientProvider>
     )
   }
