@@ -128,6 +128,41 @@ describe('quando o script do Google desce', () => {
   })
 })
 
+/**
+ * O bug que os testes antigos não pegavam.
+ *
+ * A primeira versão trocava o botão inerte por um `<GoogleOAuthProvider>` com
+ * o botão dentro. Em jsdom isso passava: `getByRole('button')` continua achando
+ * *um* botão. Em browser de verdade, o React desmonta o nó antigo e monta
+ * outro — e aí o `click` do toque cai num elemento que já saiu do DOM, e o
+ * foco do teclado vai para o `body`.
+ *
+ * Estes dois testes olham a identidade do nó, não a existência dele. Foram
+ * escritos depois de ver o problema no Chromium, e reprovam a versão antiga.
+ */
+describe('o botão sobrevive ao despertar', () => {
+  it('é o mesmo nó do DOM antes e depois — senão o toque perde o clique', async () => {
+    renderWithProviders(<LoginComGoogle {...props} />)
+    const antes = screen.getByRole('button')
+
+    fireEvent.pointerDown(antes)
+    await waitFor(() => expect(scriptDoGis()).not.toBeNull())
+
+    expect(screen.getByRole('button')).toBe(antes)
+  })
+
+  it('não perde o foco de quem chegou pelo teclado', async () => {
+    renderWithProviders(<LoginComGoogle {...props} />)
+    const botao = screen.getByRole('button')
+
+    botao.focus()
+    fireEvent.focus(botao)
+    await waitFor(() => expect(scriptDoGis()).not.toBeNull())
+
+    expect(document.activeElement).toBe(botao)
+  })
+})
+
 describe('entrar com o Google', () => {
   it('abre o fluxo do Google no clique, com o script já pronto', async () => {
     renderWithProviders(<LoginComGoogle {...props} />)

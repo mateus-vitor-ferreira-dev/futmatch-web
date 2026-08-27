@@ -119,6 +119,55 @@ bloqueado: `useGoogleLogin` devolve uma função que chama
 de carga tem estado próprio: o botão sai do ar dizendo "Google indisponível —
 use seu e-mail", e o formulário de e-mail continua inteiro.
 
+## O que o browser real mostrou, e o jsdom não
+
+A suíte passava e o app estava quebrado. Vale registrar porque a lição não é
+sobre o Google: é sobre o que um teste de jsdom não consegue ver.
+
+A primeira versão deste componente trocava o botão inerte por um
+`<GoogleOAuthProvider>` com o botão dentro. É o desenho óbvio, e ele **perde o
+clique**:
+
+- o `pointerdown` do toque acorda o componente, o React desmonta a subárvore e
+  monta outra, e o `click` que viria em seguida cai num elemento que já saiu do
+  DOM;
+- o `focus` do teclado faz o mesmo, e o foco vai parar no `body` — quem chegou
+  de Tab perde o botão de baixo do dedo.
+
+Em jsdom nada disso aparece: `getByRole('button')` continua achando *um* botão,
+e os dez testes que existiam passavam. Foi preciso subir a aplicação e dirigir
+um Chromium contra ela para ver o botão não responder.
+
+A correção é o `<Botao>` visível ser um só, montado desde o começo e nunca
+substituído. Quem entra e sai é um `<Motor>` que não desenha nada: existe para
+hospedar o `useGoogleLogin` e publicar a função de abrir o Google numa ref.
+
+Os dois testes que faltavam olham a **identidade do nó**, não a existência
+dele — `expect(screen.getByRole('button')).toBe(antes)` e
+`document.activeElement`. Conferido que reprovam a versão antiga.
+
+## Verificação em browser, contra os servidores de verdade
+
+Com a API em `:3000` e o Vite em `:5173`, um Chromium dirigido por Playwright
+confirmou, contra o Google de verdade:
+
+- na carga, **zero** pedidos a `accounts.google.com`, e `window.google` não
+  existe;
+- ao passar o mouse, o script é pedido e o Google responde 200; o
+  `initTokenClient` real aparece;
+- o clique abre o popup do Google, com o `client_id` do `.env`, na tela
+  "Prosseguir para Só+1" — ou seja, a origem `localhost:5173` está autorizada
+  no projeto;
+- com o `gsi/client` atrasado em 3 s e o botão acionado pelo **teclado** (o pior
+  caso: sem `pointerenter` nem `pointerdown` antes), o botão mostra "Conectando
+  com o Google…" e o popup abre sozinho quando o script chega — o Chromium não
+  o bloqueou;
+- com o `gsi/client` abortado, o botão vira "Google indisponível — use seu
+  e-mail", fica desabilitado, e o login por e-mail segue chegando à API.
+
+O que não dá para automatizar é o passo seguinte — digitar a conta Google na
+tela do Google. Esse continua sendo manual.
+
 ## O que impede a volta
 
 `scripts/verifica-primeira-tela.mjs` ganhou uma regra: `@react-oauth/google`

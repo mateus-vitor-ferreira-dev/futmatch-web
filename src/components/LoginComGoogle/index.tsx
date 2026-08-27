@@ -13,20 +13,35 @@
  *
  * A solução
  * ---------
- * O provider desceu para cá, e este componente só o monta depois de um sinal
- * de intenção: passar o mouse, chegar pelo teclado, ou tocar o botão. Rota
- * autenticada nunca renderiza este componente, então nunca baixa o script.
+ * O provider desceu para cá e só é montado depois de um sinal de intenção:
+ * passar o mouse, chegar pelo teclado, ou tocar o botão. Rota autenticada
+ * nunca renderiza este componente, então nunca baixa o script.
+ *
+ * Por que o provider fica ao lado do botão, e não em volta
+ * --------------------------------------------------------
+ * Esta é a parte que parece rebuscada e não é. A versão óbvia — trocar o botão
+ * inerte por um `<GoogleOAuthProvider>` com o botão dentro — **perde o
+ * clique**, e isso só aparece em browser de verdade:
+ *
+ * - o `pointerdown` do toque acorda o componente, o React troca a subárvore, e
+ *   o `click` que viria em seguida cai num elemento que já saiu do DOM;
+ * - o `focus` do teclado faz o mesmo, e o foco vai parar no `body` — quem
+ *   chegou de Tab perde o botão de baixo do dedo.
+ *
+ * Por isso o `<Botao>` visível é um só, montado desde o começo e nunca
+ * substituído. Quem entra e sai é o `<Motor>`, que não desenha nada: existe
+ * para hospedar o `useGoogleLogin` e entregar a função de abrir o Google por
+ * uma ref.
  *
  * O clique que chega antes do script
  * ----------------------------------
  * `pointerdown` acontece antes do `click`, então o download quase sempre
- * começa antes. Quando não começa — clique de teclado, rede ruim —, o pedido
- * fica pendente e dispara sozinho assim que o script chega. Aí mora o risco
- * real desta abordagem: o popup do Google nasce de um gesto que já passou, e o
- * browser pode bloqueá-lo. O GIS avisa quando isso acontece
- * (`popup_failed_to_open`, pelo `onNonOAuthError`), e a resposta é pedir o
- * segundo clique em vez de deixar a pessoa olhando para um botão que não fez
- * nada.
+ * começa antes — e em visita repetida o script vem do cache. Quando não dá
+ * tempo, o pedido fica pendente e dispara assim que o script chega. Aí mora o
+ * risco desta abordagem: o popup nasce de um gesto que já passou, e o browser
+ * pode bloqueá-lo. O GIS avisa quando isso acontece (`popup_failed_to_open`,
+ * pelo `onNonOAuthError`), e a resposta é pedir o segundo clique em vez de
+ * deixar a pessoa olhando para um botão que não fez nada.
  *
  * Falha de script
  * ---------------
@@ -37,7 +52,7 @@
  * continua inteiro.
  */
 
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { GoogleOAuthProvider, useGoogleLogin, useGoogleOAuth } from '@react-oauth/google'
 import { env } from '../../config/env'
 import { Wrapper, Botao } from './styles'
@@ -64,20 +79,21 @@ const LogoDoGoogle = () => (
 )
 
 /**
- * O botão de verdade, já dentro do provider — é aqui que `useGoogleLogin`
- * pode ser chamado.
+ * Não desenha nada. Existe para chamar `useGoogleLogin`, que só funciona
+ * dentro do provider, e publicar a função de abrir o Google na ref de quem o
+ * montou.
  */
-function BotaoDentroDoProvider({
-  rotulo, desabilitado, onSucesso, onErro, cliquePendente, aoPedir, aoConsumirPendente, aoFalhar,
-}: Props & {
+function Motor({
+  onSucesso, onErro, abrirRef, cliquePendente, aoConsumirPendente, aoFalhar,
+}: Pick<Props, 'onSucesso' | 'onErro'> & {
+  abrirRef: { current: (() => void) | null }
   cliquePendente: boolean
-  aoPedir: () => void
   aoConsumirPendente: () => void
   aoFalhar: (motivo: string) => void
 }) {
-  // `scriptLoadedSuccessfully` é o que separa "o botão existe" de "o botão
-  // funciona": antes dele, `useGoogleLogin` devolve uma função que não faz
-  // nada, porque o client do GIS ainda não foi criado.
+  // `scriptLoadedSuccessfully` separa "o hook existe" de "o hook funciona":
+  // antes dele, `useGoogleLogin` devolve uma função que não faz nada, porque o
+  // client do GIS ainda não foi criado.
   const { scriptLoadedSuccessfully: pronto } = useGoogleOAuth()
 
   const abrirGoogle = useGoogleLogin({
@@ -92,6 +108,11 @@ function BotaoDentroDoProvider({
     },
   })
 
+  useEffect(() => {
+    abrirRef.current = pronto ? abrirGoogle : null
+    return () => { abrirRef.current = null }
+  }, [pronto, abrirGoogle, abrirRef])
+
   // O clique que chegou antes do script. Dispara uma vez, quando o script
   // chega — e só então, senão `requestAccessToken` cai num client inexistente
   // e o clique some sem deixar rastro.
@@ -104,88 +125,73 @@ function BotaoDentroDoProvider({
     abrirGoogle()
   }, [cliquePendente, pronto, aoConsumirPendente, abrirGoogle])
 
-  return (
-    <Botao
-      type="button"
-      onClick={() => (pronto ? abrirGoogle() : aoPedir())}
-      disabled={desabilitado}
-    >
-      <LogoDoGoogle />
-      {cliquePendente && !pronto ? 'Conectando com o Google…' : rotulo}
-    </Botao>
-  )
+  return null
 }
 
 export default function LoginComGoogle({ rotulo, desabilitado, onSucesso, onErro }: Props) {
   const clientId = env.googleClientId
   const [estado, setEstado] = useState<Estado>('inerte')
   const [cliquePendente, setCliquePendente] = useState(false)
+  const abrirRef = useRef<(() => void) | null>(null)
 
   const despertar = useCallback(() => {
     setEstado((atual) => (atual === 'inerte' ? 'carregando' : atual))
   }, [])
 
-  const pedir = useCallback(() => setCliquePendente(true), [])
   const consumirPendente = useCallback(() => setCliquePendente(false), [])
+  const carregou = useCallback(() => setEstado('pronto'), [])
 
   const falhar = useCallback((motivo: string) => {
     setEstado('falhou')
     onErro(motivo)
   }, [onErro])
 
-  // Sem client id configurado o botão não teria o que fazer — e a #226 mediu
-  // o custo de baixar o script para nada.
-  if (!clientId) {
-    return (
-      <Wrapper>
-        <Botao type="button" disabled>
-          <LogoDoGoogle />
-          {rotulo}
-        </Botao>
-      </Wrapper>
-    )
-  }
+  const clicar = useCallback(() => {
+    despertar()
+    // Com o script pronto, o popup nasce dentro do gesto — a única forma de o
+    // browser não bloqueá-lo. Sem ele, o pedido espera.
+    if (abrirRef.current) abrirRef.current()
+    else setCliquePendente(true)
+  }, [despertar])
 
-  if (estado === 'inerte' || estado === 'falhou') {
-    const falhou = estado === 'falhou'
-    return (
-      <Wrapper>
-        <Botao
-          type="button"
-          disabled={desabilitado || falhou}
-          // Três portas para o mesmo sinal: mouse, teclado e toque. O
-          // `pointerdown` é o que salva o toque — ele chega antes do `click`,
-          // e é ali que o download começa.
-          onPointerEnter={despertar}
-          onFocus={despertar}
-          onPointerDown={despertar}
-          onClick={() => { despertar(); pedir() }}
-        >
-          <LogoDoGoogle />
-          {falhou ? 'Google indisponível — use seu e-mail' : rotulo}
-        </Botao>
-      </Wrapper>
-    )
-  }
+  const falhou = estado === 'falhou'
+  const conectando = cliquePendente && !falhou
 
   return (
     <Wrapper>
-      <GoogleOAuthProvider
-        clientId={clientId}
-        onScriptLoadSuccess={() => setEstado('pronto')}
-        onScriptLoadError={() => falhar('Não foi possível carregar o Google. Entre com seu e-mail.')}
+      <Botao
+        type="button"
+        disabled={desabilitado || falhou || !clientId}
+        // Três portas para o mesmo sinal: mouse, teclado e toque. O
+        // `pointerdown` é o que salva o toque — ele chega antes do `click`, e é
+        // ali que o download começa.
+        onPointerEnter={despertar}
+        onFocus={despertar}
+        onPointerDown={despertar}
+        onClick={clicar}
       >
-        <BotaoDentroDoProvider
-          rotulo={rotulo}
-          desabilitado={desabilitado}
-          onSucesso={onSucesso}
-          onErro={onErro}
-          cliquePendente={cliquePendente}
-          aoPedir={pedir}
-          aoConsumirPendente={consumirPendente}
-          aoFalhar={falhar}
-        />
-      </GoogleOAuthProvider>
+        <LogoDoGoogle />
+        {falhou ? 'Google indisponível — use seu e-mail' : conectando ? 'Conectando com o Google…' : rotulo}
+      </Botao>
+
+      {/* Sem client id o botão não teria o que fazer — e a #226 mediu o custo
+          de baixar o script para nada. */}
+      {clientId && (estado === 'carregando' || estado === 'pronto') && (
+        <GoogleOAuthProvider
+          clientId={clientId}
+          onScriptLoadSuccess={carregou}
+          onScriptLoadError={() => falhar('Não foi possível carregar o Google. Entre com seu e-mail.')}
+        >
+          <Motor
+            onSucesso={onSucesso}
+            onErro={onErro}
+            abrirRef={abrirRef}
+            cliquePendente={cliquePendente}
+            aoConsumirPendente={consumirPendente}
+            aoFalhar={falhar}
+          />
+        </GoogleOAuthProvider>
+      )}
     </Wrapper>
   )
 }
