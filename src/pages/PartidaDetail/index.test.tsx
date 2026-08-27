@@ -205,7 +205,8 @@ describe('PartidaDetail — ação de entrar', () => {
 
     await user.click(screen.getByRole('button', { name: /entrar na partida/i }))
 
-    expect(entraNaPartida).toHaveBeenCalledWith('quadra-1', 'partida-1')
+    // O terceiro argumento é o token do convite, ausente quando não há um na URL.
+    expect(entraNaPartida).toHaveBeenCalledWith('quadra-1', 'partida-1', undefined)
     // A tela só reflete a entrada porque recarrega a partida depois do POST.
     expect(await screen.findByText('4 / 10 confirmados')).toBeInTheDocument()
     expect(await screen.findByRole('button', { name: /você está confirmado/i })).toBeDisabled()
@@ -1136,6 +1137,61 @@ describe('PartidaDetail — visitante sem sessão', () => {
     await waitFor(() => {
       expect(buscaPartida).toHaveBeenCalledWith('partida-1', undefined)
     })
+  })
+})
+
+/**
+ * O convite não pode parar na porta — #332.
+ *
+ * Numa partida `PRIVATE` o convite é a **única** porta. Ele chegava na URL,
+ * abria a página, e sumia: `getEvent` o repassava, `checkEntry` e `joinEvent`
+ * não. O resultado era o pior dos dois mundos — a pessoa via a partida e era
+ * barrada no clique, com o 404 de quem não devia nem saber que ela existe.
+ *
+ * A api sempre esteve pronta: `conviteDe(req)` é compartilhado pelas duas
+ * rotas, e o comentário de lá diz que o token vai por query justamente para o
+ * front não precisar movê-lo de lugar. O front não o moveu — não o passou.
+ */
+describe('PartidaDetail — o convite vai junto até o fim', () => {
+  function abrePartidaComConvite() {
+    return renderWithProviders(<PartidaDetail />, {
+      route: '/partida/partida-1?convite=token-abc',
+      path: '/partida/:eventId',
+    })
+  }
+
+  it('pergunta "posso entrar?" com o convite na mão', async () => {
+    buscaPartida.mockResolvedValue(envelope(criaPartida({ visibility: 'PRIVATE' })))
+
+    abrePartidaComConvite()
+
+    await waitFor(() => expect(consultaEntrada).toHaveBeenCalledWith('quadra-1', 'partida-1', 'token-abc'))
+  })
+
+  it('entra com o convite — é ele que abre a porta da partida privada', async () => {
+    buscaPartida.mockResolvedValue(
+      envelope(criaPartida({ visibility: 'PRIVATE', maxPlayers: 10, _count: { participations: 3 } })),
+    )
+
+    const { user } = abrePartidaComConvite()
+    await user.click(await screen.findByRole('button', { name: /entrar na partida/i }))
+
+    expect(entraNaPartida).toHaveBeenCalledWith('quadra-1', 'partida-1', 'token-abc')
+  })
+
+  /**
+   * O outro lado da mesma regra: partida pública não ganha um token inventado.
+   * Mandar `?convite=undefined` seria mudar a requisição de quem nunca teve
+   * convite nenhum.
+   */
+  it('sem convite na URL, não inventa um em nenhuma das duas chamadas', async () => {
+    buscaPartida.mockResolvedValue(envelope(criaPartida({ maxPlayers: 10, _count: { participations: 3 } })))
+
+    const { user } = abrePartida()
+    await user.click(await screen.findByRole('button', { name: /entrar na partida/i }))
+
+    expect(consultaEntrada).toHaveBeenCalledWith('quadra-1', 'partida-1', undefined)
+    expect(entraNaPartida).toHaveBeenCalledWith('quadra-1', 'partida-1', undefined)
   })
 })
 
