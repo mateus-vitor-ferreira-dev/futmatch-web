@@ -44,6 +44,12 @@ jobs:
       - name: Confere os números do README
         run: npm run readme:check
 
+      # Peso não quebra teste: um import a mais numa tela de login volta a
+      # empacotar Leaflet e componente de rota autenticada no chunk da raiz, e
+      # o app continua correto — só que lento. Ver docs/PERFORMANCE-317-SEM-BARREL.md.
+      - name: Confere o que a primeira tela carrega
+        run: npm run primeira-tela:check
+
       - name: Build
         run: npm run build
 
