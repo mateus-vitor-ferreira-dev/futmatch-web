@@ -49,7 +49,7 @@ beforeEach(() => {
 
 describe('cache de modalidades', () => {
   it('faz uma requisição só, mesmo com vários componentes pedindo', async () => {
-    // useSports é chamado em quinze lugares do app — páginas, EventCard,
+    // useSports é chamado em dezoito lugares do app — páginas, PartidasPerto,
     // SportSelect. Com useEffect, cada um disparava o próprio GET /sports.
     renderWithProviders(
       <>
