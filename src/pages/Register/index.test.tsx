@@ -9,8 +9,8 @@
  * Diferente do CriarPartida, o formulário aqui tem `noValidate` — quem valida é
  * o yup, e as mensagens do time são de fato as que aparecem na tela.
  */
-import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { renderWithProviders, screen, waitFor, within } from '../../test/render'
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
+import { renderWithProviders, screen, waitFor, within, fireEvent } from '../../test/render'
 import { criaUsuario, envelope, erroDaApi } from '../../test/factories'
 import { SESSION_HINT_KEY } from '../../services/api'
 import Register from './index'
@@ -24,12 +24,23 @@ vi.mock('react-router-dom', async (original) => ({
 vi.mock('../../services/auth')
 vi.mock('../../services/sports')
 
+// O client id vem do `.env`, que não existe no CI: sem este mock o botão do
+// Google cairia no caminho "não configurado" lá, e o teste passaria verde sem
+// ter exercitado nada.
+vi.mock('../../config/env', async (original) => ({
+  env: {
+    ...(await original<typeof import('../../config/env')>()).env,
+    googleClientId: 'client-de-teste.apps.googleusercontent.com',
+  },
+}))
+
 import * as authService from '../../services/auth'
 import { getSports } from '../../services/sports'
 
 const login = vi.mocked(authService.login)
 const cadastro = vi.mocked(authService.register)
 const getMe = vi.mocked(authService.getMe)
+const googleAuth = vi.mocked(authService.googleAuth)
 
 beforeEach(() => {
   vi.clearAllMocks()
@@ -259,5 +270,124 @@ describe('Login — voltar para onde a pessoa estava indo', () => {
     // phishing: a vítima confere o domínio, confia, e sai em outro lugar.
     await waitFor(() => expect(navega).toHaveBeenCalledWith('/home'))
     expect(navega).not.toHaveBeenCalledWith(destinoMalicioso, expect.anything())
+  })
+})
+
+/**
+ * Login com Google — a outra porta de entrada.
+ *
+ * A #318 tirou o script do Google Identity Services do carregamento inicial:
+ * ele passou a descer só depois de um sinal de intenção sobre o botão. O que
+ * estes testes guardam é que o adiamento não custou a porta — e que, quando o
+ * script não desce, a pessoa não fica presa.
+ *
+ * O jsdom insere a tag do script mas não busca nada, então o teste faz o papel
+ * do browser: publica o `window.google` e dispara o `load` da tag.
+ */
+describe('Login — com o Google', () => {
+  const scriptDoGis = () => document.querySelector('script[src^="https://accounts.google.com/gsi/client"]')
+
+  interface JanelaComGoogle extends Window {
+    google?: unknown
+  }
+
+  afterEach(() => {
+    delete (window as JanelaComGoogle).google
+  })
+
+  /** Faz o script "chegar", devolvendo o access_token que o Google devolveria. */
+  function scriptChega(accessToken = 'token-do-google') {
+    const tag = scriptDoGis()
+    if (!tag) throw new Error('o script do GIS nem foi pedido')
+    ;(window as JanelaComGoogle).google = {
+      accounts: {
+        oauth2: {
+          initTokenClient: ({ callback }: { callback: (r: unknown) => void }) => ({
+            requestAccessToken: () => callback({ access_token: accessToken }),
+          }),
+        },
+      },
+    }
+    fireEvent.load(tag)
+  }
+
+  it('a tela abre sem pedir o script do Google', () => {
+    renderWithProviders(<Register initialMode="login" />, { route: '/login' })
+
+    expect(screen.getByRole('button', { name: /Fazer Login com o Google/ })).toBeInTheDocument()
+    expect(scriptDoGis()).toBeNull()
+  })
+
+  it('manda o token do Google para a API e leva ao painel do papel', async () => {
+    googleAuth.mockResolvedValue(envelope({ user: criaUsuario({ role: 'OWNER' }), token: 't' }))
+    getMe.mockResolvedValue(envelope(criaUsuario({ role: 'OWNER' })))
+
+    renderWithProviders(<Register initialMode="login" />, { route: '/login' })
+
+    fireEvent.pointerEnter(screen.getByRole('button', { name: /Fazer Login com o Google/ }))
+    await waitFor(() => expect(scriptDoGis()).not.toBeNull())
+    scriptChega()
+
+    fireEvent.click(await screen.findByRole('button', { name: /Fazer Login com o Google/ }))
+
+    await waitFor(() => expect(googleAuth).toHaveBeenCalledWith('token-do-google'))
+    await waitFor(() => expect(navega).toHaveBeenCalledWith('/owner'))
+  })
+
+  it('na aba de cadastro, o mesmo botão cria a conta', async () => {
+    googleAuth.mockResolvedValue(envelope({ user: criaUsuario({ role: 'PLAYER' }), token: 't' }))
+
+    renderWithProviders(<Register initialMode="register" />, { route: '/register' })
+
+    const botao = screen.getByRole('button', { name: /Cadastrar com o Google/ })
+    fireEvent.pointerEnter(botao)
+    await waitFor(() => expect(scriptDoGis()).not.toBeNull())
+    scriptChega('token-do-cadastro')
+
+    fireEvent.click(await screen.findByRole('button', { name: /Cadastrar com o Google/ }))
+
+    await waitFor(() => expect(googleAuth).toHaveBeenCalledWith('token-do-cadastro'))
+  })
+
+  it('mostra na tela quando a API recusa o token', async () => {
+    googleAuth.mockRejectedValue(erroDaApi('token inválido', 401))
+
+    renderWithProviders(<Register initialMode="login" />, { route: '/login' })
+
+    fireEvent.pointerEnter(screen.getByRole('button', { name: /Fazer Login com o Google/ }))
+    await waitFor(() => expect(scriptDoGis()).not.toBeNull())
+    scriptChega()
+
+    fireEvent.click(await screen.findByRole('button', { name: /Fazer Login com o Google/ }))
+
+    expect(await screen.findByText('Erro ao entrar com Google.')).toBeInTheDocument()
+  })
+
+  /**
+   * O caso que a #318 pediu por escrito: bloqueador de script, CSP ou rede
+   * caída não podem trancar a porta. Antes, o botão continuava clicável e não
+   * fazia nada — `useGoogleLogin` chama `clientRef.current?.…`, e sem script o
+   * `clientRef` é vazio.
+   */
+  it('script bloqueado não impede o login por e-mail', async () => {
+    login.mockResolvedValue(envelope({ user: criaUsuario({ role: 'PLAYER' }), token: 't' }))
+
+    const { user } = renderWithProviders(<Register initialMode="login" />, { route: '/login' })
+
+    fireEvent.pointerEnter(screen.getByRole('button', { name: /Fazer Login com o Google/ }))
+    await waitFor(() => expect(scriptDoGis()).not.toBeNull())
+    fireEvent.error(scriptDoGis() as Element)
+
+    expect(await screen.findByRole('button', { name: /Google indisponível — use seu e-mail/ })).toBeDisabled()
+
+    await user.type(screen.getByPlaceholderText('seu@email.com'), 'jogador@so-mais-um.com')
+    await user.type(screen.getByPlaceholderText('Sua senha'), 'senha-secreta')
+    await user.click(within(document.querySelector('form') as HTMLElement).getByRole('button', { name: 'Entrar' }))
+
+    await waitFor(() => expect(login).toHaveBeenCalledWith({
+      email: 'jogador@so-mais-um.com',
+      password: 'senha-secreta',
+    }))
+    await waitFor(() => expect(navega).toHaveBeenCalledWith('/home'))
   })
 })

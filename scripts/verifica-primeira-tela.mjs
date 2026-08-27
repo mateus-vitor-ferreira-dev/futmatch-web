@@ -66,6 +66,17 @@ const TELAS_SEM_SESSAO = [
 const PACOTES_PROIBIDOS = ['leaflet', 'react-leaflet']
 
 /**
+ * Pacotes que podem viver nas telas de autenticação, mas não no casco do app.
+ *
+ * `@react-oauth/google` é o caso da #318. Enquanto o `GoogleOAuthProvider`
+ * morou no `App`, ele injetava `accounts.google.com/gsi/client` em **toda**
+ * rota — inclusive nas autenticadas, onde não existe botão do Google. São
+ * 96,30 KiB e um terceiro contatado antes de a pessoa pedir. O provider agora
+ * mora dentro do botão; devolvê-lo ao casco é o que esta regra barra.
+ */
+const PACOTES_FORA_DO_CASCO = ['@react-oauth/google']
+
+/**
  * Componentes que só fazem sentido depois do login.
  *
  * `DashboardLayout` fica fora da lista de propósito: quem o importa é a árvore
@@ -204,6 +215,15 @@ if (problemas.length === 0) {
     )
   }
 
+  const { pacotes: pacotesDoCasco } = alcanceEstatico([ENTRADA])
+  for (const pacote of PACOTES_FORA_DO_CASCO.filter((p) => pacotesDoCasco.has(p))) {
+    problemas.push(
+      `\`${pacote}\` é alcançado pela entrada estática do app.\n` +
+        '    Ele pode viver dentro da tela de autenticação, mas não no casco: do casco\n' +
+        '    ele é carregado em toda rota, inclusive nas autenticadas.',
+    )
+  }
+
   const infiltrados = COMPONENTES_PROIBIDOS.filter((n) => modulos.has(`/src/components/${n}/index.tsx`))
   for (const nome of infiltrados) {
     problemas.push(
@@ -224,7 +244,7 @@ if (problemas.length === 0) {
 if (problemas.length > 0) {
   console.error(`\n✗ A primeira tela regrediu em ${problemas.length} ponto(s):\n`)
   for (const p of problemas) console.error(`  ${p}`)
-  console.error('\n  A medição que motivou esta regra está em docs/PERFORMANCE-317-SEM-BARREL.md.\n')
+  console.error('\n  As medições que motivaram estas regras estão em docs/PERFORMANCE-317-SEM-BARREL.md\n  e docs/PERFORMANCE-318-GOOGLE-SOB-DEMANDA.md.\n')
   process.exit(1)
 }
 
