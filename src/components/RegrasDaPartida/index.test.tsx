@@ -45,6 +45,12 @@ const salvar = () => screen.getByRole('button', { name: 'Salvar regras' })
 beforeEach(() => {
   vi.clearAllMocks()
   vi.mocked(teamsService.meusTimes).mockResolvedValue([criaResumoDeTime({ id: 'time-1', name: 'Quarta Sagrada' })])
+  // Mesma razão do teste do CriarPartida: a estimativa (#388) roda com atraso
+  // enquanto o modal está aberto, e mock sem resposta vira rejeição não tratada
+  // fora do teste.
+  vi.mocked(playerService.estimarAlcance).mockResolvedValue(
+    envelope({ faixa: 'ALGUNS', faixaSemRequisitos: 'MUITOS', raioKm: 10 }),
+  )
   anexar.mockResolvedValue(envelope({ type: 'BADGE', params: null } as PartidaRequirement))
   remover.mockResolvedValue(undefined)
   trocarVisibilidade.mockResolvedValue(envelope(partida))

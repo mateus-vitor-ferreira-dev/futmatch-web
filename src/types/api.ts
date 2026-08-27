@@ -1012,3 +1012,26 @@ export interface AdminStats {
     revenue: string;
     expiring: number;
 }
+
+/**
+ * As faixas da estimativa de alcance (api#388).
+ *
+ * Faixa, e não número: contagem crua num bairro pequeno é quase apontar quem
+ * são os jogadores. A api decidiu assim, e a tela não tem como — nem por que —
+ * reconstruir o número exato.
+ */
+export type FaixaDeAlcance = "NENHUM" | "POUCOS" | "ALGUNS" | "MUITOS";
+
+export interface AlcanceDosRequisitos {
+    /** Quantos passariam nos requisitos configurados. */
+    faixa: FaixaDeAlcance;
+    /**
+     * Quantos há no raio **ignorando** os requisitos.
+     *
+     * É o que separa "suas regras fecharam demais" de "não há gente por perto
+     * ainda". Só o primeiro se resolve afrouxando regra, e sugerir isso no
+     * segundo caso manda o organizador consertar o que não está quebrado.
+     */
+    faixaSemRequisitos: FaixaDeAlcance;
+    raioKm: number;
+}

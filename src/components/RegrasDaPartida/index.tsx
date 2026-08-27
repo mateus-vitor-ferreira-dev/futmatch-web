@@ -171,6 +171,7 @@ export function RegrasDaPartida({ partida, onClose, onSaved }: Props) {
               aoMudarRequisitos={setRequisitos}
               times={times}
               desabilitado={salvando}
+              courtId={partida.courtId}
             />
 
             <AcoesDoModal>
