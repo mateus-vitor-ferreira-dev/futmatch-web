@@ -34,8 +34,24 @@ export const VISIBILIDADES: Array<{
   {
     valor: 'PUBLIC',
     titulo: 'Pública',
-    descricao: 'Aparece na busca. Qualquer pessoa encontra e pede para entrar.',
+    // Dizia "encontra e **pede** para entrar", e pedir não existe (#333).
+    // `POST .../participations` grava a participação direto, e o `entryGate`
+    // devolve a recusa na mesma requisição — não há fila, aprovação nem
+    // solicitação chegando ao organizador. `Participation` nem tem campo de
+    // status. O único fluxo de aprovação do produto é o de campeonato, e ele
+    // não vale para partida.
+    //
+    // O erro custava na decisão em que o organizador mais precisa de precisão:
+    // quem quer filtrar quem entra lia isso, escolhia `PUBLIC` achando que
+    // aprovaria cada pessoa, e descobria o contrário com a partida cheia. A
+    // segunda metade da frase aponta para o recurso que de fato resolve essa
+    // intenção — os requisitos.
+    descricao: 'Aparece na busca. Qualquer pessoa encontra e entra, se atender aos requisitos.',
   },
+  // As duas de baixo foram conferidas contra a api junto com a #333, e estão
+  // certas: `podeVer` deixa `LINK` passar para qualquer um — *"ter o id **é** a
+  // credencial"* —, e em `PRIVATE` o id sozinho não vale nada, com 404 em vez
+  // de 403 para não confirmar que a partida existe.
   {
     valor: 'LINK',
     titulo: 'Por link',
