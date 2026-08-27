@@ -99,54 +99,6 @@ export const Linha = styled.span`
   color: ${({ theme }) => theme.colors.textSecondary};
 `
 
-export const Convite = styled.div`
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: ${({ theme }) => theme.spacing[3]};
-  padding: ${({ theme }) => theme.spacing[5]};
-  border-radius: ${({ theme }) => theme.radii.lg};
-  border: 1px dashed ${({ theme }) => theme.colors.border};
-  background: ${({ theme }) => theme.colors.bgCard};
-
-  p {
-    margin: 0;
-    font-size: ${({ theme }) => theme.fontSizes.sm};
-    color: ${({ theme }) => theme.colors.textSecondary};
-    line-height: 1.5;
-    max-width: 60ch;
-  }
-`
-
-export const Acoes = styled.div`
-  display: flex;
-  flex-wrap: wrap;
-  gap: ${({ theme }) => theme.spacing[3]};
-`
-
-export const BotaoPrimario = styled.button`
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  padding: 10px ${({ theme }) => theme.spacing[4]};
-  border: 0;
-  border-radius: ${({ theme }) => theme.radii.sm};
-  background: ${({ theme }) => theme.colors.primary};
-  color: ${({ theme }) => theme.colors.textOnPrimary};
-  font-size: ${({ theme }) => theme.fontSizes.sm};
-  font-weight: ${({ theme }) => theme.fontWeights.semibold};
-  cursor: pointer;
-
-  &:hover:not(:disabled) {
-    background: ${({ theme }) => theme.colors.primaryHover};
-  }
-
-  &:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
-  }
-`
-
 export const BotaoSecundario = styled.button`
   display: inline-flex;
   align-items: center;

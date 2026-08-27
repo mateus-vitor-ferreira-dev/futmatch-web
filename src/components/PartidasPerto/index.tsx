@@ -6,15 +6,13 @@ import { recommendedEvents } from '../../services/events'
 import { chaves } from '../../lib/queryClient'
 import { getSportMeta } from '../../hooks/useSports'
 import { useOrigemDeLocalizacao } from '../../hooks/useOrigemDeLocalizacao'
+import ConviteDeLocalizacao from '../ConviteDeLocalizacao'
 import type { CourtType } from '../../types/api'
 import {
-  Acoes,
   Bloco,
-  BotaoPrimario,
   BotaoSecundario,
   Cabecalho,
   Cartao,
-  Convite,
   Distancia,
   Esqueleto,
   Grade,
@@ -53,7 +51,8 @@ const RAIOS = [10, 25, 50, 100]
  */
 export function PartidasPerto() {
   const navigate = useNavigate()
-  const { origem, estado, pedindo, pedirLocalizacao, podePedir } = useOrigemDeLocalizacao()
+  const localizacao = useOrigemDeLocalizacao()
+  const { origem, estado, pedindo } = localizacao
   const [raioKm, setRaioKm] = useState(RAIOS[0])
 
   const {
@@ -90,28 +89,13 @@ export function PartidasPerto() {
       </Cabecalho>
 
       {semOrigem ? (
-        <Convite>
-          <p>
-            Para mostrar o que tem por perto, precisamos saber de onde você sai.{' '}
-            {estado === 'negado'
-              ? 'Você não liberou a localização — dá para usar o endereço do perfil no lugar.'
-              : estado === 'indisponivel'
-                ? 'Este navegador não informa localização, então vale o endereço do perfil.'
-                : 'Pode ser a localização do navegador, agora, ou o endereço salvo no perfil.'}
-          </p>
-          <Acoes>
-            {podePedir && (
-              <BotaoPrimario type="button" onClick={pedirLocalizacao}>
-                <Navigation size={15} aria-hidden />
-                Usar minha localização
-              </BotaoPrimario>
-            )}
-            <BotaoSecundario type="button" onClick={() => navigate('/perfil')}>
-              <MapPin size={15} aria-hidden />
-              Salvar meu endereço
-            </BotaoSecundario>
-          </Acoes>
-        </Convite>
+        // O convite virou componente e mora em `ConviteDeLocalizacao`: a busca
+        // precisava do mesmo, e duas cópias da mesma frase já tinham começado a
+        // divergir. Ver o comentário de lá — inclusive sobre o dispensar (#328).
+        <ConviteDeLocalizacao
+          contexto="Para mostrar o que tem por perto, precisamos saber de onde você sai."
+          localizacao={localizacao}
+        />
       ) : isPending || pedindo ? (
         // Esqueletos, e não uma frase: a seção precisa ocupar o mesmo espaço
         // antes e depois de carregar, senão empurra a home no meio da leitura.

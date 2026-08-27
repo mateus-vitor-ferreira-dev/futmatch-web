@@ -322,8 +322,10 @@ npm run dev
 | `npm test` | Roda a suíte uma vez e sai — é o que o CI executa |
 | `npm run test:watch` | Modo interativo: reexecuta só o que você mexeu. É o que você usa escrevendo teste |
 | `npm run test:coverage` | Suíte + relatório de cobertura no terminal e em `coverage/index.html` |
+| `npm run readme:check` | Confere contra a suíte os números que este README anuncia |
+| `npm run primeira-tela:check` | Confere que a raiz sem sessão não carrega componente de rota autenticada |
 
-> O CI roda, nesta ordem, `lint` → `typecheck` → `test` → `build`. Qualquer um vermelho barra o merge.
+> O CI roda, nesta ordem, `lint` → `typecheck` → `test:ci` → `readme:check` → `primeira-tela:check` → `build`. Qualquer um vermelho barra o merge.
 
 ---
 
@@ -416,7 +418,7 @@ Os fluxos críticos do jogador, o que dá mais prejuízo quando quebra:
 | Gate de assinatura | `hooks/useSubscription.test.tsx` · `utils/toastErro.test.ts` | O `isActive` concordando com o middleware da API, inclusive na tolerância de `past_due`, e o erro 402 mostrando o caminho do pagamento |
 | Assinatura vencida no painel | `pages/Owner/{Places,Courts,Equipment,Requests,Inventory}/index.test.tsx` | As cinco telas se comportando igual: conteúdo consultável, ações que gravam desabilitadas e ninguém gravando antes de o status chegar |
 
-**598 testes, ~9s.** A cobertura de linhas está em **~62%**, e o número não é meta: o critério é cobrir o que dói quando quebra, não perseguir porcentagem. **Todo PR novo entra com teste do comportamento que ele muda** — é o que a [Definition of Done](https://github.com/mateus-vitor-ferreira-dev/so-mais-um-api/blob/main/docs/EQUIPE.md) pede.
+**626 testes, ~9s.** A cobertura de linhas está em **~62%**, e o número não é meta: o critério é cobrir o que dói quando quebra, não perseguir porcentagem. **Todo PR novo entra com teste do comportamento que ele muda** — é o que a [Definition of Done](https://github.com/mateus-vitor-ferreira-dev/so-mais-um-api/blob/main/docs/EQUIPE.md) pede.
 
 ---
 

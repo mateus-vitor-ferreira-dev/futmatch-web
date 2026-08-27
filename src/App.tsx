@@ -1,5 +1,4 @@
 import { ThemeProvider } from 'styled-components'
-import { GoogleOAuthProvider } from '@react-oauth/google'
 import { QueryClientProvider } from '@tanstack/react-query'
 import { Toaster } from 'sonner'
 import { queryClient } from './lib/queryClient'
@@ -9,9 +8,6 @@ import { AuthProvider } from './contexts/AuthContext'
 import { ThemeContextProvider, useThemeMode } from './contexts/ThemeContext'
 import AppRoutes from './routes'
 import ErrorBoundary from './components/ErrorBoundary'
-import { env } from './config/env'
-
-const GOOGLE_CLIENT_ID = env.googleClientId || 'not-configured'
 
 function ThemedApp() {
   const { isDark } = useThemeMode()
@@ -36,11 +32,9 @@ function ThemedApp() {
 export default function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>
-        <ThemeContextProvider>
-          <ThemedApp />
-        </ThemeContextProvider>
-      </GoogleOAuthProvider>
+      <ThemeContextProvider>
+        <ThemedApp />
+      </ThemeContextProvider>
     </QueryClientProvider>
   )
 }

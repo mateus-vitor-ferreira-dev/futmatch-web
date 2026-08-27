@@ -7,6 +7,7 @@ import { useAuth } from '../../contexts/AuthContext'
 import { playerService } from '../../services/playerService'
 import { chaves } from '../../lib/queryClient'
 import { useOrigemDeLocalizacao } from '../../hooks/useOrigemDeLocalizacao'
+import ConviteDeLocalizacao from '../../components/ConviteDeLocalizacao'
 import { temDistancia } from '../../types/api'
 import { useSports, getSportMeta } from '../../hooks/useSports'
 import { SkeletonCard } from '../../components/Skeleton'
@@ -89,7 +90,8 @@ export default function QueroJogar() {
    * exigiria trazer a cidade inteira para o navegador.
    */
   const [raioKm, setRaioKm] = useState(0)
-  const { origem, estado: estadoDaOrigem, pedirLocalizacao, podePedir } = useOrigemDeLocalizacao()
+  const localizacao = useOrigemDeLocalizacao()
+  const { origem, estado: estadoDaOrigem, pedirLocalizacao, podePedir } = localizacao
   const temOrigem = origem !== null
   const raioAtivo = temOrigem && raioKm > 0
 
@@ -412,6 +414,16 @@ export default function QueroJogar() {
             </AdvancedFilters>
           )}
         </FiltersArea>
+
+        {/* Fora dos filtros avançados de propósito: eles nascem fechados, e o
+            convite que só aparece depois de a pessoa abrir um painel não
+            alcança quem nem sabe que a distância existe como filtro. A
+            explicação dentro do painel continua lá — ela diz por que os chips
+            de raio estão desabilitados, que é outro assunto (#328). */}
+        <ConviteDeLocalizacao
+          contexto="Para filtrar por distância, precisamos saber de onde você sai."
+          localizacao={localizacao}
+        />
 
         <ResultsCount>
           {loading

@@ -4,17 +4,18 @@ import { useForm, Controller } from 'react-hook-form'
 import type { Resolver } from 'react-hook-form'
 import { yupResolver } from '@hookform/resolvers/yup'
 import * as yup from 'yup'
-import { useGoogleLogin } from '@react-oauth/google'
 import { useAuth } from '../../contexts/AuthContext'
 import { useSports } from '../../hooks/useSports'
-import { env } from '../../config/env'
 import AuthLayout from '../../components/AuthLayout'
-import { SportSelect, PhoneInput, PasswordInput } from '../../components'
+import LoginComGoogle from '../../components/LoginComGoogle'
+import SportSelect from '../../components/SportSelect'
+import PhoneInput from '../../components/PhoneInput'
+import PasswordInput from '../../components/PasswordInput'
 import type { CourtType, UserRole } from '../../types/api'
 import { mensagemDeErro } from '../../utils/apiError'
 import {
   Tabs, Tab, FormTitle, FormSubtitle,
-  GoogleWrapper, GoogleButton, Divider,
+  Divider,
   Form, Field, Row, Label, Input, ErrorMsg,
   SubmitButton, SwitchText, ForgotLink, LegalText,
   MarketingConsent,
@@ -146,22 +147,14 @@ export default function Register({ initialMode = 'register' }) {
     }
   }
 
-  const googleEnabled = !!env.googleClientId
-
-  // useGoogleLogin devolve uma função que aceita config opcional, não um
-  // MouseEventHandler — por isso o onClick usa um wrapper que descarta o evento.
-  const handleGoogleClick = useGoogleLogin({
-    flow: 'implicit',
-    onSuccess: async ({ access_token }) => {
-      try {
-        const res = await googleLogin(access_token)
-        redirectByRole(res.data.user.role)
-      } catch {
-        setError('root', { message: 'Erro ao entrar com Google.' })
-      }
-    },
-    onError: () => setError('root', { message: 'Login com Google cancelado.' }),
-  })
+  const entrarComGoogle = async (accessToken: string) => {
+    try {
+      const res = await googleLogin(accessToken)
+      redirectByRole(res.data.user.role)
+    } catch {
+      setError('root', { message: 'Erro ao entrar com Google.' })
+    }
+  }
 
   return (
     <AuthLayout>
@@ -176,22 +169,14 @@ export default function Register({ initialMode = 'register' }) {
         {isRegister ? 'É rápido, grátis e sem enrolação.' : 'Bem-vindo de volta!'}
       </FormSubtitle>
 
-      {/* Botão do Google OAuth */}
-      <GoogleWrapper>
-        <GoogleButton
-          type="button"
-          onClick={() => handleGoogleClick()}
-          disabled={!googleEnabled || isSubmitting}
-        >
-          <svg width="18" height="18" viewBox="0 0 18 18" xmlns="http://www.w3.org/2000/svg">
-            <path d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.717v2.258h2.908c1.702-1.567 2.684-3.875 2.684-6.615z" fill="#4285F4"/>
-            <path d="M9 18c2.43 0 4.467-.806 5.956-2.184l-2.908-2.258c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332A8.997 8.997 0 0 0 9 18z" fill="#34A853"/>
-            <path d="M3.964 10.707A5.41 5.41 0 0 1 3.682 9c0-.593.102-1.17.282-1.707V4.961H.957A8.996 8.996 0 0 0 0 9c0 1.452.348 2.827.957 4.039l3.007-2.332z" fill="#FBBC05"/>
-            <path d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0A8.997 8.997 0 0 0 .957 4.961L3.964 6.293C4.672 4.166 6.656 3.58 9 3.58z" fill="#EA4335"/>
-          </svg>
-          {isRegister ? 'Cadastrar com o Google' : 'Fazer Login com o Google'}
-        </GoogleButton>
-      </GoogleWrapper>
+      {/* Botão do Google OAuth — o script do GIS só desce depois de um sinal
+          de intenção. Ver src/components/LoginComGoogle. */}
+      <LoginComGoogle
+        rotulo={isRegister ? 'Cadastrar com o Google' : 'Fazer Login com o Google'}
+        desabilitado={isSubmitting}
+        onSucesso={entrarComGoogle}
+        onErro={(message) => setError('root', { message })}
+      />
 
       <Divider>ou use seu e-mail</Divider>
 
