@@ -72,7 +72,7 @@ export function getSportMeta(type: CourtType): { label: string; icon: string } {
  * Busca modalidades da API e deriva tabs de filtro agrupadas por `group`.
  * Usa fallback local se a API estiver indisponível.
  *
- * Este hook é chamado em quinze lugares — páginas, EventCard, SportSelect. Com
+ * Este hook é chamado em dezoito lugares — páginas, PartidasPerto, SportSelect. Com
  * `useEffect` cada um deles disparava o próprio `GET /sports` na montagem, e
  * `sports` reaparecia em toda navegação medida na #197. Sob `useQuery` os
  * quinze compartilham a mesma entrada de cache: uma requisição por sessão.
