@@ -42,6 +42,32 @@ vi.mock('react-router-dom', async (original) => {
 })
 
 vi.mock('../../services/playerService')
+
+/**
+ * O mapa entra dublado — e o dublê é o próprio contrato.
+ *
+ * O componente de verdade monta Leaflet, que precisa de layout que o jsdom não
+ * tem. Mas o que ESTA tela decide não é como o mapa desenha: é **quando** ele
+ * aparece e **com o quê**. O dublê expõe exatamente isso em atributos, e o
+ * teste lê os atributos.
+ *
+ * De quebra, ele mantém o Leaflet fora da suíte: carregá-lo aqui deixaria estes
+ * testes lentos por um motivo que não é deles.
+ */
+vi.mock('../../components/MapaDaBusca', () => ({
+  default: ({ origem, raioKm, partidas }: {
+    origem: { latitude: number; longitude: number }
+    raioKm: number
+    partidas: { id: string }[]
+  }) => (
+    <div
+      data-testid="mapa-da-busca"
+      data-raio={raioKm}
+      data-origem={`${origem.latitude},${origem.longitude}`}
+      data-pinos={partidas.map((p) => p.id).join(',')}
+    />
+  ),
+}))
 vi.mock('../../services/auth')
 vi.mock('../../services/sports')
 vi.mock('../../services/notificationService')
@@ -95,8 +121,8 @@ describe('QueroJogar — listagem', () => {
   it('mostra as partidas que a API devolveu', async () => {
     buscaEventos.mockResolvedValue(
       criaBuscaDePartidas([
-        criaPartida({ id: 'p1', court: { ...criaPartida().court!, place: { id: 'l1', name: 'Arena Sul', city: 'Lavras', neighborhood: 'Centro', state: 'MG' } } }),
-        criaPartida({ id: 'p2', court: { ...criaPartida().court!, place: { id: 'l2', name: 'Quadra do Zé', city: 'Lavras', neighborhood: 'Jardim', state: 'MG' } } }),
+        criaPartida({ id: 'p1', court: { ...criaPartida().court!, place: { id: 'l1', name: 'Arena Sul', city: 'Lavras', neighborhood: 'Centro', state: 'MG', latitude: -21.24, longitude: -44.99 } } }),
+        criaPartida({ id: 'p2', court: { ...criaPartida().court!, place: { id: 'l2', name: 'Quadra do Zé', city: 'Lavras', neighborhood: 'Jardim', state: 'MG', latitude: -21.24, longitude: -44.99 } } }),
       ]),
     )
 
@@ -148,8 +174,8 @@ describe('QueroJogar — filtros que refazem a busca na API', () => {
   it('escolher cidade refaz a busca com city', async () => {
     buscaEventos.mockResolvedValue(
       criaBuscaDePartidas([
-        criaPartida({ id: 'p1', court: { ...criaPartida().court!, place: { id: 'l1', name: 'Arena Sul', city: 'Lavras', neighborhood: 'Centro', state: 'MG' } } }),
-        criaPartida({ id: 'p2', court: { ...criaPartida().court!, place: { id: 'l2', name: 'Arena Norte', city: 'Três Corações', neighborhood: 'Centro', state: 'MG' } } }),
+        criaPartida({ id: 'p1', court: { ...criaPartida().court!, place: { id: 'l1', name: 'Arena Sul', city: 'Lavras', neighborhood: 'Centro', state: 'MG', latitude: -21.24, longitude: -44.99 } } }),
+        criaPartida({ id: 'p2', court: { ...criaPartida().court!, place: { id: 'l2', name: 'Arena Norte', city: 'Três Corações', neighborhood: 'Centro', state: 'MG', latitude: -21.24, longitude: -44.99 } } }),
       ]),
     )
     const { user } = renderWithProviders(<QueroJogar />)
@@ -170,12 +196,12 @@ describe('QueroJogar — filtros aplicados sobre o que já veio', () => {
   const MANHA = criaPartida({
     id: 'manha',
     date: '2027-03-11T09:00:00',
-    court: { ...criaPartida().court!, place: { id: 'l1', name: 'Arena Manhã', city: 'Lavras', neighborhood: 'Centro', state: 'MG' } },
+    court: { ...criaPartida().court!, place: { id: 'l1', name: 'Arena Manhã', city: 'Lavras', neighborhood: 'Centro', state: 'MG', latitude: -21.24, longitude: -44.99 } },
   })
   const NOITE = criaPartida({
     id: 'noite',
     date: '2027-03-11T20:00:00',
-    court: { ...criaPartida().court!, place: { id: 'l2', name: 'Arena Noite', city: 'Lavras', neighborhood: 'Jardim', state: 'MG' } },
+    court: { ...criaPartida().court!, place: { id: 'l2', name: 'Arena Noite', city: 'Lavras', neighborhood: 'Jardim', state: 'MG', latitude: -21.25, longitude: -44.98 } },
   })
 
   it('o filtro de horário recorta a lista sem ir à API de novo', async () => {
@@ -484,5 +510,100 @@ describe('QueroJogar — filtro por distância', () => {
       expect(ultima).not.toHaveProperty('radiusKm')
       expect(ultima).not.toHaveProperty('latitude')
     })
+  })
+})
+
+/**
+ * O mapa da busca — #325.
+ *
+ * A regra que carrega esta seção: **sem origem não há mapa**. Mapa sem centro
+ * mostraria uma cidade qualquer, e a pessoa concluiria que a busca é de lá.
+ * "Qualquer" no filtro de distância é `0`, e aí o mapa aparece sem círculo em
+ * vez de desenhar um raio que a busca não aplicou.
+ */
+describe('QueroJogar — mapa', () => {
+  function comLocalizacao() {
+    Object.defineProperty(globalThis.navigator, 'geolocation', {
+      configurable: true,
+      value: {
+        getCurrentPosition: (ok: PositionCallback) =>
+          ok({ coords: { latitude: -21.24, longitude: -44.99 } } as GeolocationPosition),
+      },
+    })
+  }
+
+  function semLocalizacao() {
+    Object.defineProperty(globalThis.navigator, 'geolocation', { configurable: true, value: undefined })
+  }
+
+  const mapa = () => screen.queryByTestId('mapa-da-busca')
+
+  it('sem origem, não há mapa — nem o chunk dele é pedido', async () => {
+    semLocalizacao()
+    vi.mocked(authService.getMe).mockResolvedValue(envelope(USUARIO))
+    buscaEventos.mockResolvedValue(criaBuscaDePartidas([criaPartida()]))
+
+    renderWithProviders(<QueroJogar />)
+    await esperaResultados()
+
+    expect(mapa()).not.toBeInTheDocument()
+  })
+
+  it('com origem, o mapa aparece centrado nela', async () => {
+    comLocalizacao()
+    localStorage.setItem('so-mais-um:localizacao', 'concedida')
+    vi.mocked(authService.getMe).mockResolvedValue(envelope(USUARIO))
+    buscaEventos.mockResolvedValue(criaBuscaDePartidas([criaPartida()]))
+
+    renderWithProviders(<QueroJogar />)
+    await esperaResultados()
+
+    await waitFor(() => expect(mapa()).toBeInTheDocument())
+    expect(mapa()).toHaveAttribute('data-origem', '-21.24,-44.99')
+  })
+
+  it('o círculo acompanha o raio escolhido', async () => {
+    comLocalizacao()
+    localStorage.setItem('so-mais-um:localizacao', 'concedida')
+    vi.mocked(authService.getMe).mockResolvedValue(envelope(USUARIO))
+    buscaEventos.mockResolvedValue(criaBuscaDePartidas([criaPartida()]))
+
+    const { user } = renderWithProviders(<QueroJogar />)
+    await esperaResultados()
+    await waitFor(() => expect(mapa()).toBeInTheDocument())
+
+    // Começa sem recorte: "Qualquer" é 0, e o mapa não desenha raio nenhum.
+    expect(mapa()).toHaveAttribute('data-raio', '0')
+
+    await user.click(screen.getByRole('button', { name: /Filtros/ }))
+    await user.click(screen.getByRole('button', { name: '10 km' }))
+
+    await waitFor(() => expect(mapa()).toHaveAttribute('data-raio', '10'))
+  })
+
+  /**
+   * O mapa mostra o que a lista mostra. Partida sem coordenada não vira pino —
+   * quem descarta é o `pontosDaBusca`, e aqui se confere que a tela usa o
+   * resultado dele, e não a lista crua.
+   */
+  it('desenha só as partidas que têm coordenada', async () => {
+    comLocalizacao()
+    localStorage.setItem('so-mais-um:localizacao', 'concedida')
+    vi.mocked(authService.getMe).mockResolvedValue(envelope(USUARIO))
+
+    const base = criaPartida()
+    buscaEventos.mockResolvedValue(criaBuscaDePartidas([
+      criaPartida({ id: 'com-coordenada' }),
+      criaPartida({
+        id: 'sem-coordenada',
+        court: { ...base.court!, place: { ...base.court!.place, latitude: null, longitude: null } },
+      }),
+    ]))
+
+    renderWithProviders(<QueroJogar />)
+    await esperaResultados()
+
+    await waitFor(() => expect(mapa()).toBeInTheDocument())
+    expect(mapa()).toHaveAttribute('data-pinos', 'com-coordenada')
   })
 })

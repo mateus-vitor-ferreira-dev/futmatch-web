@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react'
+import { Suspense, lazy, useState, useMemo } from 'react'
 import { useInfiniteQuery, useQueryClient } from '@tanstack/react-query'
 import { useSearchParams, useNavigate, useLocation } from 'react-router-dom'
 import { toast } from 'sonner'
@@ -8,6 +8,7 @@ import { playerService } from '../../services/playerService'
 import { chaves } from '../../lib/queryClient'
 import { useOrigemDeLocalizacao } from '../../hooks/useOrigemDeLocalizacao'
 import ConviteDeLocalizacao from '../../components/ConviteDeLocalizacao'
+import { pontosDaBusca } from '../../components/MapaDaBusca/pontos'
 import { temDistancia } from '../../types/api'
 import { useSports, getSportMeta } from '../../hooks/useSports'
 import { SkeletonCard } from '../../components/Skeleton'
@@ -26,6 +27,7 @@ import {
   FilterSelect, FilterToggle, FiltersBtn, ActiveFilterBadge, ClearBtn,
   PriceSliderWrapper,
   RaioLinha, RaioChip, RaioExplicacao, DistanciaBadge,
+  MapaCarregando,
 } from './styles'
 
 function buildGoogleMapsUrl(event: Partida): string | null {
@@ -47,6 +49,15 @@ const TIME_OPTIONS = [
 ]
 
 const MAX_PRICE = 200
+
+/**
+ * O mapa é o único pedaço da busca que desce sob demanda (#325).
+ *
+ * Ele carrega Leaflet — 236 KiB — e a #317 tirou isso do carregamento inicial
+ * do app inteiro. Estático aqui, ele voltaria para o chunk desta tela, que é a
+ * primeira que muita gente abre depois de entrar.
+ */
+const MapaDaBusca = lazy(() => import('../../components/MapaDaBusca'))
 
 export default function QueroJogar() {
   const { user } = useAuth()
@@ -424,6 +435,21 @@ export default function QueroJogar() {
           contexto="Para filtrar por distância, precisamos saber de onde você sai."
           localizacao={localizacao}
         />
+
+        {/*
+          O mapa só existe quando há de onde medir, e desce por `import()`
+          (#325). Sem origem ele não aparece — mapa sem centro mostraria uma
+          cidade qualquer e faria parecer que a busca é de lá.
+
+          Quem entra na busca e não abre o mapa não baixa Leaflet nenhum, que é
+          a condição que a #317 deixou e a #354 confirmou apagando o componente
+          morto.
+        */}
+        {origem && (
+          <Suspense fallback={<MapaCarregando aria-hidden="true" />}>
+            <MapaDaBusca origem={origem} raioKm={raioKm} partidas={pontosDaBusca(filteredEvents)} />
+          </Suspense>
+        )}
 
         <ResultsCount>
           {loading
