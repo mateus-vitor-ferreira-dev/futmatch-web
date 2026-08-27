@@ -150,12 +150,14 @@ export default function PartidaDetail() {
 
     let cancelado = false
     playerService
-      .checkEntry(event.courtId, event.id)
+      // O convite vai junto: numa partida privada, sem ele o veredito é o de
+      // quem não pode nem ver a partida (#332).
+      .checkEntry(event.courtId, event.id, convite)
       .then((res) => { if (!cancelado) setVeredito(res.data) })
       .catch(() => { if (!cancelado) setVeredito(null) })
 
     return () => { cancelado = true }
-  }, [event, isAuthenticated])
+  }, [event, isAuthenticated, convite])
 
   if (loading) return <><LoadingBox>Carregando...</LoadingBox></>
 
@@ -257,7 +259,7 @@ export default function PartidaDetail() {
   async function handleJoin() {
     setJoining(true)
     try {
-      await playerService.joinEvent(event!.courtId, event!.id)
+      await playerService.joinEvent(event!.courtId, event!.id, convite)
       toast.success('Você entrou na partida!')
       load()
     } catch (err) {
