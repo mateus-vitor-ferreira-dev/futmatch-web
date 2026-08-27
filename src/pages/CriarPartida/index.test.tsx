@@ -59,6 +59,14 @@ beforeEach(() => {
   buscaQuadras.mockResolvedValue(envelope([QUADRA]))
   vi.mocked(teamsService.meusTimes).mockResolvedValue([])
   anexaRequisito.mockResolvedValue(envelope({ type: 'MIN_MATCHES_PLAYED', params: { min: 5 } }))
+  // A estimativa de alcance (#388) roda com atraso enquanto a tela está aberta.
+  // Sem esta resposta o mock devolve `undefined`, e o pedido estoura FORA do
+  // teste — como rejeição não tratada, que derruba o CI sem derrubar teste
+  // nenhum. Não reproduzia local: o temporizador de 400 ms só alcança o teste
+  // numa máquina mais lenta.
+  vi.mocked(playerService.estimarAlcance).mockResolvedValue(
+    envelope({ faixa: 'ALGUNS', faixaSemRequisitos: 'MUITOS', raioKm: 10 }),
+  )
 })
 
 /**

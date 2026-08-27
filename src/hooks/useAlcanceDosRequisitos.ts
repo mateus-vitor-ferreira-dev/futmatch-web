@@ -69,20 +69,24 @@ export function useAlcanceDosRequisitos(
     setCarregando(true)
 
     const temporizador = setTimeout(() => {
-      ultimaPedida.current = assinatura
+      void (async () => {
+        ultimaPedida.current = assinatura
 
-      playerService
-        .estimarAlcance(courtId, requisitos)
-        .then((res) => {
+        try {
+          // `await`, e não `.then`: o encadeamento estoura com "Cannot read
+          // properties of undefined" quando o serviço devolve `undefined` — que
+          // é o que um mock incompleto faz —, e o erro sobe FORA do teste, como
+          // rejeição não tratada. Foi assim que este hook derrubou o CI sem
+          // derrubar teste nenhum.
+          const res = await playerService.estimarAlcance(courtId, requisitos)
           if (!cancelado) setAlcance(res.data)
-        })
-        .catch(() => {
+        } catch {
           // Silêncio de propósito — ver o comentário do módulo.
           if (!cancelado) setAlcance(null)
-        })
-        .finally(() => {
+        } finally {
           if (!cancelado) setCarregando(false)
-        })
+        }
+      })()
     }, ATRASO_MS)
 
     return () => {
