@@ -68,16 +68,41 @@ export const playerService = {
    * Exige sessão, porque a resposta é sobre um jogador específico. Quem não
    * está logado lê as regras pelo `requirements` da própria partida.
    */
-  checkEntry: async (courtId: string, eventId: string): Promise<ApiEnvelope<EntryVerdict>> => {
-    const { data } = await api.get(
-      `/courts/${courtId}/events/${eventId}/participations/entry`
-    )
+  checkEntry: async (
+    courtId: string,
+    eventId: string,
+    convite?: string,
+  ): Promise<ApiEnvelope<EntryVerdict>> => {
+    const { data } = await api.get(`/courts/${courtId}/events/${eventId}/participations/entry`, {
+      params: convite ? { convite } : undefined,
+    })
     return data
   },
 
-  joinEvent: async (courtId: string, eventId: string): Promise<ApiEnvelope<Participation>> => {
+  /**
+   * O convite vai junto, e vai como **query** (#332).
+   *
+   * Numa partida `PRIVATE` o convite é a única porta, e sem ele a API responde
+   * 404 — o mesmo 404 de quem não devia nem saber que a partida existe. Sem
+   * este parâmetro a pessoa via a tela, porque `getEvent` repassava o token, e
+   * era barrada no clique: o `?convite=` chegava na URL, abria a página e
+   * sumia.
+   *
+   * Query e não corpo porque é o mesmo `?convite=` que o front já tem na URL da
+   * página. A api registra a decisão no `participation.controller.ts`: *"pedir
+   * que ele o mova de lugar para entrar seria mais uma chance de o front
+   * esquecer de mandá-lo"*. O front não esqueceu de mover — esqueceu de passar,
+   * que é o que os dois parâmetros acima resolvem.
+   */
+  joinEvent: async (
+    courtId: string,
+    eventId: string,
+    convite?: string,
+  ): Promise<ApiEnvelope<Participation>> => {
     const { data } = await api.post(
-      `/courts/${courtId}/events/${eventId}/participations`
+      `/courts/${courtId}/events/${eventId}/participations`,
+      undefined,
+      { params: convite ? { convite } : undefined },
     )
     return data
   },
