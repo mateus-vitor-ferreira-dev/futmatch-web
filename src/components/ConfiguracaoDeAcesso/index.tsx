@@ -1,4 +1,5 @@
-import { AlertTriangle, X } from 'lucide-react'
+import { AlertTriangle, Users, X } from 'lucide-react'
+import { useAlcanceDosRequisitos } from '../../hooks/useAlcanceDosRequisitos'
 import type {
   PartidaRequirement,
   PartidaRequirementType,
@@ -12,11 +13,13 @@ import {
   TODOS_OS_SELOS,
   VISIBILIDADES,
   avisoDeRestricao,
+  fraseDoAlcance,
 } from '../../utils/requisitos'
 import {
   Adicionar,
   Ajuda,
   Aviso,
+  Alcance,
   BotaoRemover,
   CabecalhoDaRegra,
   CorpoDaRegra,
@@ -41,6 +44,14 @@ interface Props {
   /** Os times de que o organizador é membro. Sem nenhum, o requisito de time não é oferecido. */
   times?: TeamSummary[]
   desabilitado?: boolean
+  /**
+   * A quadra escolhida, para estimar quantos jogadores passariam (#388).
+   *
+   * Opcional porque a estimativa é **acréscimo**, e não requisito da tela: sem
+   * quadra — na criação, antes de a pessoa escolher — não há centro para o
+   * raio, e a tela segue funcionando com o aviso heurístico que sempre teve.
+   */
+  courtId?: string
 }
 
 /** O `params` com que cada tipo nasce ao ser adicionado. */
@@ -79,6 +90,7 @@ export function ConfiguracaoDeAcesso({
   aoMudarRequisitos,
   times = [],
   desabilitado = false,
+  courtId,
 }: Props) {
   const jaUsados = new Set(requisitos.map((r) => r.type))
   // Um requisito por tipo, como a API impõe. Oferecer o que já está na lista
@@ -94,6 +106,11 @@ export function ConfiguracaoDeAcesso({
     atuais.includes(selo) ? atuais.filter((s) => s !== selo) : [...atuais, selo]
 
   const aviso = avisoDeRestricao(requisitos)
+
+  // A estimativa só existe com uma quadra escolhida: ela mede a vizinhança de
+  // um espaço, e antes disso não há centro para o raio.
+  const { alcance } = useAlcanceDosRequisitos(courtId, requisitos)
+  const frase = alcance ? fraseDoAlcance(alcance) : null
 
   return (
     <>
@@ -273,6 +290,17 @@ export function ConfiguracaoDeAcesso({
             <AlertTriangle size={14} aria-hidden />
             <span>{aviso}</span>
           </Aviso>
+        )}
+
+        {/* O número entra abaixo do aviso, e não no lugar dele: um diz quanto
+            sobrou, o outro diz qual regra cortou (#388). Sem quadra escolhida,
+            ou com a estimativa fora do ar, sobra o aviso — que era o que existia
+            antes e continua sendo o piso. */}
+        {frase && (
+          <Alcance role="status" $tom={frase.tom}>
+            <Users size={14} aria-hidden />
+            <span>{frase.texto}</span>
+          </Alcance>
         )}
       </Secao>
     </>

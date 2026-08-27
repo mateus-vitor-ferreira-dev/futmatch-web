@@ -428,6 +428,9 @@ export default function CriarPartida() {
                 aoMudarRequisitos={setRequisitos}
                 times={meusTimes}
                 desabilitado={submitting}
+                // A quadra já foi escolhida no passo anterior, e é dela que sai
+                // o centro do raio da estimativa (#388).
+                courtId={selectedCourt?.id}
               />
 
               {error && (

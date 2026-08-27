@@ -213,3 +213,37 @@ export const SemRegra = styled.p`
   font-size: ${({ theme }) => theme.fontSizes.xs};
   color: ${({ theme }) => theme.colors.textSecondary};
 `
+
+/**
+ * A estimativa de alcance (#388).
+ *
+ * Três tons, e o de bom é discreto de propósito: *"sobra gente"* é a resposta
+ * esperada, e transformá-la num aviso verde vistoso ensinaria a pessoa a
+ * ignorar a faixa toda — inclusive quando ela ficar vermelha.
+ *
+ * Fica logo abaixo do aviso heurístico, não no lugar dele: o número diz
+ * **quanto** sobrou, e o aviso diz **qual regra** cortou. Um não substitui o
+ * outro.
+ */
+export const Alcance = styled.p<{ $tom: 'ruim' | 'atencao' | 'bom' }>`
+  display: flex;
+  align-items: flex-start;
+  gap: ${({ theme }) => theme.spacing[2]};
+  margin: ${({ theme }) => theme.spacing[2]} 0 0;
+  padding: ${({ theme }) => theme.spacing[3]};
+  border-radius: ${({ theme }) => theme.radii.md};
+  border: 1px solid
+    ${({ theme, $tom }) =>
+      $tom === 'ruim' ? theme.colors.error : $tom === 'atencao' ? theme.colors.warningBorder : theme.colors.border};
+  background: ${({ theme, $tom }) =>
+    $tom === 'ruim' ? theme.colors.errorLight : $tom === 'atencao' ? theme.colors.warningLight : 'transparent'};
+  color: ${({ theme, $tom }) =>
+    $tom === 'bom' ? theme.colors.textSecondary : $tom === 'atencao' ? theme.colors.warningText : theme.colors.error};
+  font-size: ${({ theme }) => theme.fontSizes.xs};
+  line-height: 1.45;
+
+  svg {
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+`

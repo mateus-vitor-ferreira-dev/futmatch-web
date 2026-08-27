@@ -18,7 +18,8 @@
  */
 
 import { describe, it, expect } from 'vitest'
-import { VISIBILIDADES } from './requisitos'
+import { VISIBILIDADES, fraseDoAlcance } from './requisitos'
+import type { FaixaDeAlcance } from '../types/api'
 
 const descricoes = VISIBILIDADES.map((v) => v.descricao).join(' ')
 
@@ -63,5 +64,81 @@ describe('as descrições de visibilidade', () => {
     expect(privada).toMatch(/fora da busca/i)
     expect(privada).toMatch(/não abre/i)
     expect(privada).toMatch(/convidar/i)
+  })
+})
+
+/**
+ * A frase do alcance estimado (#388).
+ *
+ * `POUCOS` significa **duas coisas opostas**, e a frase é o único lugar onde
+ * essa diferença aparece para quem está configurando:
+ *
+ * - poucos porque as regras cortaram → afrouxar resolve;
+ * - poucos porque não há gente por perto → afrouxar não muda nada, e o
+ *   organizador ficaria removendo requisito atrás de um efeito que não vem.
+ *
+ * Trocar as duas é pior do que não ter estimativa nenhuma: manda a pessoa
+ * consertar o que não está quebrado, com a confiança de quem viu um dado.
+ */
+describe('a frase do alcance', () => {
+  const alcance = (
+    faixa: FaixaDeAlcance,
+    faixaSemRequisitos: FaixaDeAlcance = 'MUITOS',
+    raioKm = 10,
+  ) => fraseDoAlcance({ faixa, faixaSemRequisitos, raioKm })
+
+  it('ninguém atende: diz que a partida não enche assim', () => {
+    const { tom, texto } = alcance('NENHUM')
+
+    expect(tom).toBe('ruim')
+    expect(texto).toMatch(/nenhum jogador/i)
+    expect(texto).toMatch(/não enche/i)
+  })
+
+  it('poucos, com gente por perto: a culpa é das regras', () => {
+    const { tom, texto } = alcance('POUCOS', 'MUITOS')
+
+    expect(tom).toBe('atencao')
+    expect(texto).toMatch(/atendem a essas regras/i)
+  })
+
+  /**
+   * O caso que a `faixaSemRequisitos` existe para pegar. Sem ela, a frase
+   * culparia as regras por um vazio que elas não causaram.
+   */
+  it('poucos, e poucos também sem regra nenhuma: a culpa não é das regras', () => {
+    const { texto } = alcance('POUCOS', 'POUCOS')
+
+    expect(texto).toMatch(/com ou sem essas regras/i)
+    expect(texto).not.toMatch(/atendem a essas regras/i)
+  })
+
+  it('sem ninguém no raio, nem tenta estimar o efeito das regras', () => {
+    const { tom, texto } = alcance('NENHUM', 'NENHUM')
+
+    expect(tom).toBe('atencao')
+    expect(texto).toMatch(/não dá para estimar/i)
+  })
+
+  it('alcance confortável fala baixo — o esperado não vira alarme', () => {
+    expect(alcance('ALGUNS').tom).toBe('bom')
+    expect(alcance('MUITOS').tom).toBe('bom')
+    expect(alcance('MUITOS').texto).toMatch(/mais de cinquenta/i)
+  })
+
+  it('diz o raio, porque "por perto" sozinho não quer dizer nada', () => {
+    expect(alcance('ALGUNS', 'MUITOS', 25).texto).toContain('25 km')
+  })
+
+  /**
+   * A ressalva não é rodapé: a estimativa só enxerga quem tem endereço salvo,
+   * e nenhum cadastro pede endereço (#328). Sem ela, a tela promete uma
+   * precisão que não tem — a mesma classe de erro que a landing já cometeu
+   * três vezes.
+   */
+  it('avisa que só conta quem tem endereço salvo, sempre que houver número a defender', () => {
+    for (const faixa of ['NENHUM', 'POUCOS'] as const) {
+      expect(alcance(faixa, 'MUITOS').texto, faixa).toMatch(/endereço salvo/i)
+    }
   })
 })
