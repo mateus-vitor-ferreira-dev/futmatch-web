@@ -11,6 +11,7 @@ import type {
   UserStats,
   EntryVerdict,
   PartidaRequirement,
+  AlcanceDosRequisitos,
   PartidaRequirementParams,
   PartidaRequirementType,
   PartidaVisibility,
@@ -260,6 +261,27 @@ export const playerService = {
   },
 
   /** Só o organizador lê a lista completa — a API responde 403 para o resto. */
+  /**
+   * Quantos jogadores passariam nestes requisitos, perto desta quadra (api#388).
+   *
+   * `POST` para uma leitura, como a api definiu: a lista de requisitos é um
+   * corpo com `params` por tipo, e espremê-la em query string viraria
+   * serialização à mão dos dois lados. Não cria nada.
+   *
+   * Chamada com atraso pelo `useAlcanceDosRequisitos` — ela responde a uma tela
+   * que muda a cada tecla, e o Swagger da rota pede `debounce` com todas as
+   * letras.
+   */
+  estimarAlcance: async (
+    courtId: string,
+    requisitos: Array<{ type: PartidaRequirementType; params: PartidaRequirementParams | null }>,
+  ): Promise<ApiEnvelope<AlcanceDosRequisitos>> => {
+    const { data } = await api.post(`/courts/${courtId}/requirements/reach`, {
+      requirements: requisitos.map(({ type, params }) => ({ type, params })),
+    })
+    return data
+  },
+
   listRequirements: async (
     courtId: string,
     eventId: string,

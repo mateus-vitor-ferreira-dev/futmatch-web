@@ -1,4 +1,10 @@
-import type { PartidaRequirementParams, PartidaRequirementType, PartidaVisibility, UserBadge } from '../types/api'
+import type {
+  FaixaDeAlcance,
+  PartidaRequirementParams,
+  PartidaRequirementType,
+  PartidaVisibility,
+  UserBadge,
+} from '../types/api'
 
 /**
  * O vocabulário das regras de entrada, num lugar só (#228).
@@ -168,4 +174,75 @@ export function avisoDeRestricao(requisitos: Array<{ type: PartidaRequirementTyp
   }
 
   return null
+}
+
+/**
+ * A frase do alcance estimado (api#388).
+ *
+ * O número diz **quanto**; o `avisoDeRestricao` acima diz **qual regra**. Os
+ * dois convivem de propósito: saber que sobraram poucos não conta qual das
+ * regras cortou, e saber que "presença de 90% é muita coisa" não conta se
+ * sobrou gente.
+ *
+ * ## A distinção que a frase precisa carregar
+ *
+ * `POUCOS` significa duas coisas opostas, e confundi-las manda o organizador
+ * consertar o que não está quebrado:
+ *
+ * - **poucos porque as regras cortaram** — afrouxar resolve;
+ * - **poucos porque não há gente por perto** — afrouxar não muda nada, e o
+ *   organizador ficaria removendo requisito atrás de um efeito que não vem.
+ *
+ * É para isso que a api manda `faixaSemRequisitos` junto.
+ *
+ * ## A ressalva que não pode sumir
+ *
+ * A estimativa só enxerga quem tem **localização salva**, e nenhum cadastro
+ * pede endereço (web#328). O alcance é um piso, não uma medida — e a frase diz
+ * isso, porque uma tela que promete precisão que não tem é a mesma classe de
+ * erro que a landing já cometeu três vezes.
+ */
+export function fraseDoAlcance(alcance: {
+  faixa: FaixaDeAlcance
+  faixaSemRequisitos: FaixaDeAlcance
+  raioKm: number
+}): { tom: 'ruim' | 'atencao' | 'bom'; texto: string } {
+  const { faixa, faixaSemRequisitos, raioKm } = alcance
+
+  const porPerto = `num raio de ${raioKm} km`
+  const ressalva = 'Conta só quem tem endereço salvo, então costuma ser menos do que a realidade.'
+
+  // Vazio de origem: as regras não têm culpa, e afrouxá-las não muda nada.
+  if (faixaSemRequisitos === 'NENHUM') {
+    return {
+      tom: 'atencao',
+      texto: `Ainda não há jogadores com endereço salvo ${porPerto}. Não dá para estimar o efeito das suas regras.`,
+    }
+  }
+
+  if (faixa === 'NENHUM') {
+    return {
+      tom: 'ruim',
+      texto: `Nenhum jogador ${porPerto} atende a essas regras. Do jeito que está, a partida não enche. ${ressalva}`,
+    }
+  }
+
+  if (faixa === 'POUCOS') {
+    // Havia gente e sobrou pouca: aí sim a culpa é das regras.
+    const culpaDasRegras = faixaSemRequisitos !== 'POUCOS'
+    return {
+      tom: 'atencao',
+      texto: culpaDasRegras
+        ? `Menos de dez jogadores ${porPerto} atendem a essas regras. ${ressalva}`
+        : `Menos de dez jogadores ${porPerto}, com ou sem essas regras. ${ressalva}`,
+    }
+  }
+
+  return {
+    tom: 'bom',
+    texto:
+      faixa === 'MUITOS'
+        ? `Mais de cinquenta jogadores ${porPerto} atendem a essas regras.`
+        : `Entre dez e cinquenta jogadores ${porPerto} atendem a essas regras.`,
+  }
 }
