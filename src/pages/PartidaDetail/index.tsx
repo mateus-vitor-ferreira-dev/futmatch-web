@@ -254,6 +254,17 @@ export default function PartidaDetail() {
   const dateObj = new Date(event.date)
   const dateStr = dateObj.toLocaleDateString('pt-BR', { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' })
   const timeStr = dateObj.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
+
+  /**
+   * O horário mostra começo e fim, e não a duração em minutos (api#445).
+   *
+   * Quem chega na quadra precisa saber até quando ela é da partida — "19:00 às
+   * 20:30" responde isso de uma vez, enquanto "90 minutos" faz a conta virar
+   * trabalho de quem lê.
+   */
+  const fimStr = event.endsAt
+    ? new Date(event.endsAt).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
+    : null
   const pricePerPerson  = maxPlayers > 0 ? (Number(event.totalValue) / maxPlayers).toFixed(2) : '0.00'
 
   async function handleJoin() {
@@ -345,7 +356,7 @@ export default function PartidaDetail() {
                 <InfoIcon><Clock size={16} /></InfoIcon>
                 <div>
                   <InfoLabel>Horário</InfoLabel>
-                  <InfoValue>{timeStr}</InfoValue>
+                  <InfoValue>{fimStr ? `${timeStr} às ${fimStr}` : timeStr}</InfoValue>
                 </div>
               </InfoItem>
 
