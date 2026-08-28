@@ -60,6 +60,49 @@ function abrePartida() {
   })
 }
 
+describe('PartidaDetail — horário', () => {
+  /**
+   * O horário mostra começo **e** fim (api#445). Mostrar só o começo obrigava
+   * quem chega na quadra a adivinhar até quando ela é da partida.
+   */
+  it('mostra o intervalo, e não só a hora de início', async () => {
+    const inicio = '2027-03-11T19:00:00.000Z'
+    const fim = '2027-03-11T20:30:00.000Z'
+
+    buscaPartida.mockResolvedValue(envelope(criaPartida({ date: inicio, endsAt: fim })))
+
+    abrePartida()
+
+    /**
+     * O horário esperado é derivado, e não escrito à mão: o projeto não fixa
+     * `TZ` no vitest nem no CI, então `'16:00 às 17:30'` passaria aqui e
+     * falharia num runner em UTC.
+     *
+     * Derivar não torna o teste tautológico. O que ele prova é a **composição**
+     * — que o fim aparece ao lado do começo —, e é isso que estava faltando: a
+     * tela mostrava só a hora de início.
+     */
+    const hora = (iso: string) =>
+      new Date(iso).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
+
+    expect(await screen.findByText(`${hora(inicio)} às ${hora(fim)}`)).toBeInTheDocument()
+  })
+
+  it('cai para a hora de início quando a partida não tem fim', async () => {
+    const inicio = '2027-03-11T19:00:00.000Z'
+    // `endsAt` ausente é o que chega de um cliente desatualizado ou de um mock
+    // antigo — a tela não pode quebrar nem escrever "às undefined".
+    buscaPartida.mockResolvedValue(
+      envelope(criaPartida({ date: inicio, endsAt: undefined as unknown as string })),
+    )
+
+    abrePartida()
+
+    const hora = new Date(inicio).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
+    expect(await screen.findByText(hora)).toBeInTheDocument()
+  })
+})
+
 describe('PartidaDetail — contagem de vagas', () => {
   it('mostra confirmados, total e vagas restantes', async () => {
     buscaPartida.mockResolvedValue(
