@@ -63,6 +63,13 @@ export const chaves = {
     convites: () => ['times', 'convites'] as const,
   },
   quadras: () => ['quadras'] as const,
+  /**
+   * A agenda entra no cache por quadra **e por dia** (api#443).
+   *
+   * O dia faz parte da chave porque a resposta muda com ele: quem olhou terça e
+   * foi para quarta veria as marcações de terça desenhadas sobre a quarta.
+   */
+  agendaDaQuadra: (courtId: string, dia: string) => ['quadras', courtId, 'agenda', dia] as const,
   perfisEsportivos: () => ['perfis-esportivos'] as const,
   estatisticas: () => ['estatisticas'] as const,
 }

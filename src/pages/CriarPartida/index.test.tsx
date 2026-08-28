@@ -15,7 +15,7 @@ import type { UserEvent } from '@testing-library/user-event'
 import { renderWithProviders, screen, waitFor } from '../../test/render'
 import { criaUsuario, envelope, erroDaApi } from '../../test/factories'
 import { marcarSessao } from '../../services/api'
-import type { Court } from '../../types/api'
+import type { Court, OcupacaoDaQuadra } from '../../types/api'
 import CriarPartida from './index'
 
 vi.mock('../../services/courts')
@@ -26,7 +26,7 @@ vi.mock('../../services/notificationService')
 vi.mock('../../services/playerService')
 vi.mock('../../services/teams')
 
-import { searchCourts } from '../../services/courts'
+import { searchCourts, getAgendaDaQuadra } from '../../services/courts'
 import { createEvent } from '../../services/events'
 import { playerService } from '../../services/playerService'
 import { teamsService } from '../../services/teams'
@@ -35,6 +35,7 @@ import { getSports } from '../../services/sports'
 import { notificationService } from '../../services/notificationService'
 
 const buscaQuadras = vi.mocked(searchCourts)
+const buscaAgenda = vi.mocked(getAgendaDaQuadra)
 const criaEvento = vi.mocked(createEvent)
 const anexaRequisito = vi.mocked(playerService.upsertRequirement)
 
@@ -67,6 +68,33 @@ beforeEach(() => {
   vi.mocked(playerService.estimarAlcance).mockResolvedValue(
     envelope({ faixa: 'ALGUNS', faixaSemRequisitos: 'MUITOS', raioKm: 10 }),
   )
+  // A agenda da quadra (#368) é consultada assim que a data é preenchida. O
+  // padrão é quadra livre: sem esta resposta o mock devolve `undefined`, e o
+  // react-query trata isso como falha — todo teste do formulário passaria a
+  // renderizar o aviso de agenda indisponível.
+  agendaCom()
+})
+
+/** Responde a agenda do dia com as ocupações dadas. Sem argumento, quadra livre. */
+function agendaCom(...ocupacoes: OcupacaoDaQuadra[]) {
+  buscaAgenda.mockResolvedValue(
+    envelope({ courtId: QUADRA.id, de: '', ate: '', ocupacoes }),
+  )
+}
+
+/** Uma marcação no dia 10/06/2027, em hora local — como a api a devolveria. */
+const ocupacaoDas = (
+  horaInicio: string,
+  horaFim: string,
+  resto: Partial<OcupacaoDaQuadra> = {},
+): OcupacaoDaQuadra => ({
+  tipo: 'PARTIDA',
+  id: 'partida-existente',
+  inicio: new Date(`2027-06-10T${horaInicio}`).toISOString(),
+  fim: new Date(`2027-06-10T${horaFim}`).toISOString(),
+  descricao: 'partida de Ana',
+  fimPresumido: false,
+  ...resto,
 })
 
 /**
@@ -361,5 +389,168 @@ describe('CriarPartida — quem vê e quem entra', () => {
     // evita a partida criada com metade das regras.
     expect(await screen.findByText(/Marque ao menos um selo/)).toBeInTheDocument()
     expect(criaEvento).not.toHaveBeenCalled()
+  })
+})
+
+
+/**
+ * A agenda da quadra na tela (web#368).
+ *
+ * Antes disto, quem criava partida escolhia quadra e horário **às cegas**: a
+ * api recusava o conflito com 409, e a recusa chegava depois do formulário
+ * inteiro preenchido — a pior hora possível para descobrir.
+ *
+ * O teste que menos se pensa em escrever é o último: quando a agenda **não**
+ * carrega, a tela não pode barrar nem fingir que está livre. Ela avisa e deixa
+ * a api ser a guarda, que é o que ela sempre foi.
+ */
+describe('CriarPartida — a agenda da quadra', () => {
+  async function comData(container: HTMLElement, user: UserEvent, quando = '2027-06-10T19:00') {
+    const campos = preenche(container)
+    await user.type(campos.data, quando)
+    return campos
+  }
+
+  it('pede a data antes de ter o que mostrar', async () => {
+    await vaiAteOFormulario()
+
+    expect(screen.getByText(/escolha a data para ver o que já está marcado/i)).toBeInTheDocument()
+  })
+
+  it('mostra o que já ocupa a quadra no dia escolhido', async () => {
+    agendaCom(ocupacaoDas('08:00', '09:00'))
+    const { container, user } = await vaiAteOFormulario()
+
+    await comData(container, user)
+
+    expect(await screen.findByText('das 08:00 às 09:00')).toBeInTheDocument()
+    expect(screen.getByText('partida de Ana')).toBeInTheDocument()
+  })
+
+  it('diz que a quadra está livre quando não há nada marcado', async () => {
+    const { container, user } = await vaiAteOFormulario()
+
+    await comData(container, user)
+
+    expect(await screen.findByText(/nada marcado neste dia/i)).toBeInTheDocument()
+  })
+
+  /** O jogo de campeonato não guarda duração, e a api presume uma hora. */
+  it('avisa quando o fim da marcação é estimado', async () => {
+    agendaCom(
+      ocupacaoDas('19:00', '20:00', {
+        tipo: 'PARTIDA_DE_CAMPEONATO',
+        descricao: '2ª rodada, jogo 3',
+        fimPresumido: true,
+      }),
+    )
+    const { container, user } = await vaiAteOFormulario()
+
+    await comData(container, user, '2027-06-10T08:00')
+
+    expect(await screen.findByText('das 19:00 às 20:00 (fim estimado)')).toBeInTheDocument()
+  })
+
+  /**
+   * O critério de privacidade da issue. Quem esconde é a api — a tela recebe
+   * `descricao: "horário reservado"` e `id: null`, e não tem como saber de quem
+   * é. Este teste guarda o lado de cá: nada de reconstruir o nome a partir de
+   * outra fonte, e a marcação continua ocupando.
+   */
+  it('partida reservada ocupa o horário sem se identificar', async () => {
+    agendaCom(
+      ocupacaoDas('19:00', '20:00', { descricao: 'horário reservado', id: null }),
+    )
+    const { container, user } = await vaiAteOFormulario()
+
+    await comData(container, user, '2027-06-10T08:00')
+
+    expect(await screen.findByText('horário reservado')).toBeInTheDocument()
+    expect(screen.queryByText(/partida de/i)).not.toBeInTheDocument()
+  })
+})
+
+describe('CriarPartida — horário ocupado é barrado na tela', () => {
+  it('avisa o conflito e desabilita o envio', async () => {
+    agendaCom(ocupacaoDas('19:00', '20:00'))
+    const { container, user } = await vaiAteOFormulario()
+    const campos = preenche(container)
+
+    // 19h30 cruza a marcação das 19h às 20h: sobreposição parcial, que é
+    // exatamente o buraco que a api#446 fechou do lado de lá.
+    await user.type(campos.data, '2027-06-10T19:30')
+
+    expect(await screen.findByRole('alert')).toHaveTextContent(/cruza com partida de Ana/i)
+    await waitFor(() => expect(campos.enviar).toBeDisabled())
+  })
+
+  it('não cria a partida enquanto o conflito estiver de pé', async () => {
+    agendaCom(ocupacaoDas('19:00', '20:00'))
+    const { container, user } = await vaiAteOFormulario()
+    const campos = preenche(container)
+
+    await user.type(campos.data, '2027-06-10T19:30')
+    await user.type(campos.vagas, '10')
+    await user.type(campos.valor, '200')
+    await user.type(campos.pix, 'pix@exemplo.com')
+    await screen.findByRole('alert')
+    await user.click(campos.enviar)
+
+    expect(criaEvento).not.toHaveBeenCalled()
+  })
+
+  /**
+   * A mesma borda que a api aceita: terminar às 19h e começar às 19h é a
+   * marcação normal de quadra cheia. Uma tela mais rígida que o servidor
+   * recusaria um horário que ele aceitaria, e ninguém saberia quem está certo.
+   */
+  it('encostar na borda não é conflito', async () => {
+    agendaCom(ocupacaoDas('18:00', '19:00'))
+    const { container, user } = await vaiAteOFormulario()
+    const campos = preenche(container)
+
+    await user.type(campos.data, '2027-06-10T19:00')
+
+    await screen.findByText('das 18:00 às 19:00')
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument()
+    expect(campos.enviar).toBeEnabled()
+  })
+
+  it('horário livre no mesmo dia não bloqueia nada', async () => {
+    agendaCom(ocupacaoDas('08:00', '09:00'))
+    const { container, user } = await vaiAteOFormulario()
+    const campos = preenche(container)
+
+    await user.type(campos.data, '2027-06-10T19:00')
+
+    await screen.findByText('das 08:00 às 09:00')
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument()
+    expect(campos.enviar).toBeEnabled()
+  })
+
+  /**
+   * O caso que fecha o critério "a recusa da api continua tratada".
+   *
+   * Agenda que não carregou **não** é quadra livre, e também não pode travar a
+   * criação: a tela nunca foi a guarda de verdade. Ela avisa que não conferiu e
+   * deixa passar — o 409 da api segue tratado como sempre foi.
+   */
+  it('agenda indisponível avisa, não bloqueia, e a api segue sendo a guarda', async () => {
+    buscaAgenda.mockRejectedValue(new Error('rede'))
+    criaEvento.mockRejectedValue(erroDaApi('Já existe uma partida agendada para esta quadra neste horário', 409))
+    const { container, user } = await vaiAteOFormulario()
+    const campos = preenche(container)
+
+    await user.type(campos.data, '2027-06-10T19:00')
+    expect(await screen.findByText(/não foi possível carregar a agenda/i)).toBeInTheDocument()
+
+    await user.type(campos.vagas, '10')
+    await user.type(campos.valor, '200')
+    await user.type(campos.pix, 'pix@exemplo.com')
+    expect(campos.enviar).toBeEnabled()
+    await user.click(campos.enviar)
+
+    expect(criaEvento).toHaveBeenCalled()
+    expect(await screen.findByText(/já existe uma partida agendada/i)).toBeInTheDocument()
   })
 })
