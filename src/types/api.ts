@@ -454,6 +454,14 @@ export interface EntryVerdict {
 export interface Partida {
     id: string;
     date: IsoDate;
+    /**
+     * Quando a partida acaba (api#445).
+     *
+     * A duração não vem como campo: ela é `endsAt - date`. Partida criada antes
+     * de 28/08/2026 tem uma hora **presumida** — elas nasceram sem fim, e a
+     * migration preencheu com o único palpite disponível.
+     */
+    endsAt: IsoDate;
     status: PartidaStatus;
     maxPlayers: number;
     totalValue: string | number;

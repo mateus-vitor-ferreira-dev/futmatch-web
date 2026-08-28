@@ -46,6 +46,21 @@ const schema = yup.object({
     .string()
     .required('Informe a data e horário')
     .test('future', 'A data deve ser no futuro', v => !v || new Date(v) > new Date()),
+  /**
+   * Duração em minutos (api#445). Opcional aqui como é opcional lá: quem não
+   * informa fica com 60, e é a api que aplica esse padrão — repeti-lo no
+   * formulário criaria dois lugares para mudá-lo no dia em que ele mudar.
+   *
+   * Os limites são os da api (15 a 480). Ficam duplicados de propósito: o
+   * formulário recusa antes de gastar uma requisição, e a api continua sendo a
+   * guarda de verdade para quem não passa por esta tela.
+   */
+  durationMinutes: yup
+    .number()
+    .transform(numeroOuIndefinido)
+    .min(15, 'Mínimo 15 minutos')
+    .max(480, 'Máximo 8 horas')
+    .optional(),
   maxPlayers: yup
     .number()
     .transform(numeroOuIndefinido)
@@ -163,6 +178,10 @@ export default function CriarPartida() {
         maxPlayers: Number(data.maxPlayers),
         totalValue: Number(data.totalValue),
         visibility: visibilidade,
+        // Campo vazio some do payload em vez de virar 60 aqui: quem decide o
+        // padrão é a api, e mandar o número explicitamente esconderia dela a
+        // diferença entre "escolhi uma hora" e "não escolhi nada".
+        ...(data.durationMinutes ? { durationMinutes: Number(data.durationMinutes) } : {}),
       }
       const criada = await createEvent(selectedCourt.id, payload)
 
@@ -374,6 +393,20 @@ export default function CriarPartida() {
                   $error={!!errors.date}
                 />
                 {errors.date && <ErrorMsg>{errors.date.message}</ErrorMsg>}
+              </Field>
+
+              <Field>
+                <Label>Duração (minutos)</Label>
+                <Input
+                  type="number"
+                  min={15}
+                  max={480}
+                  step={15}
+                  placeholder="60"
+                  {...register('durationMinutes')}
+                  $error={!!errors.durationMinutes}
+                />
+                {errors.durationMinutes && <ErrorMsg>{errors.durationMinutes.message}</ErrorMsg>}
               </Field>
 
               <Row $cols={2}>

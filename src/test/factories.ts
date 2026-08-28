@@ -64,6 +64,9 @@ export function criaPartida(over: Partial<Partida> = {}): Partida {
   return {
     id: 'partida-1',
     date: DATA_FUTURA,
+    // Uma hora depois do início — o mesmo padrão da api (#445). Quem testa o
+    // horário mostrado sobrescreve pelo `over`.
+    endsAt: new Date(new Date(DATA_FUTURA).getTime() + 3_600_000).toISOString(),
     status: 'WAITING',
     maxPlayers: 10,
     totalValue: '200.00',
