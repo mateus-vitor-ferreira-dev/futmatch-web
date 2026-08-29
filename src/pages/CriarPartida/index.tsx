@@ -13,6 +13,9 @@ import { chaves } from '../../lib/queryClient'
 import type { Court, PartidaRequirement, PartidaVisibility, Place } from '../../types/api'
 import { mensagemDeErro } from '../../utils/apiError'
 import { ConfiguracaoDeAcesso } from '../../components/ConfiguracaoDeAcesso'
+import { AgendaDaQuadra } from '../../components/AgendaDaQuadra'
+import { useAgendaDaQuadra } from '../../hooks/useAgendaDaQuadra'
+import { conflitoNaAgenda, fimDaPartida, faixaDeHorario } from '../../utils/agenda'
 import {
   Container, PageHeader, Title, Subtitle,
   StepIndicator, Step, StepDot, StepLine,
@@ -169,6 +172,20 @@ export default function CriarPartida() {
       return
     }
 
+    /**
+     * A tela barra antes de gastar a requisição — mas **a api continua sendo a
+     * guarda de verdade**, e o 409 dela segue tratado no `catch`. Esta lista
+     * foi lida quando a data foi escolhida, e alguém pode ter marcado a quadra
+     * nesse meio-tempo; uma tela que confiasse só em si mesma criaria a partida
+     * por cima da de outra pessoa.
+     */
+    if (conflitoDeHorario) {
+      setError(
+        `A quadra já está ocupada nesse horário — ${conflitoDeHorario.descricao}, ${faixaDeHorario(conflitoDeHorario)}. Escolha outro horário.`,
+      )
+      return
+    }
+
     setSubmitting(true)
     setError(null)
     try {
@@ -226,6 +243,32 @@ export default function CriarPartida() {
 
   const watchedTotalValue = useWatch({ control, name: 'totalValue' })
   const watchedMaxPlayers = useWatch({ control, name: 'maxPlayers' })
+  const watchedDate       = useWatch({ control, name: 'date' })
+  const watchedDuration   = useWatch({ control, name: 'durationMinutes' })
+
+  /**
+   * A agenda da quadra no dia escolhido (api#443).
+   *
+   * Antes disto, quem criava partida escolhia quadra e horário às cegas: a
+   * recusa por conflito só chegava da api, como 409, depois do formulário
+   * inteiro preenchido.
+   */
+  const agenda = useAgendaDaQuadra(selectedCourt?.id, watchedDate)
+
+  /**
+   * A ocupação que cruza o horário escolhido agora, se houver.
+   *
+   * Recalculada a cada tecla porque é barata — a lista do dia já está em
+   * memória, e a conta é uma comparação de intervalos. Nenhuma requisição
+   * acontece ao mexer só na hora ou na duração: a agenda é do **dia**.
+   */
+  const conflitoDeHorario = (() => {
+    if (!watchedDate) return null
+    const inicio = new Date(watchedDate)
+    const fim = fimDaPartida(watchedDate, watchedDuration)
+    if (!fim || Number.isNaN(inicio.getTime())) return null
+    return conflitoNaAgenda(agenda.ocupacoes, inicio, fim)
+  })()
   const pricePerPerson = watchedTotalValue && watchedMaxPlayers
     ? (Number(watchedTotalValue) / Number(watchedMaxPlayers)).toFixed(2)
     : null
@@ -409,6 +452,17 @@ export default function CriarPartida() {
                 {errors.durationMinutes && <ErrorMsg>{errors.durationMinutes.message}</ErrorMsg>}
               </Field>
 
+              {/* Logo abaixo de data e duração, que são os dois campos que a
+                  agenda responde — e antes de vagas, valor e Pix, para o
+                  conflito aparecer enquanto ainda é barato mudar de ideia. */}
+              <AgendaDaQuadra
+                ocupacoes={agenda.ocupacoes}
+                carregando={agenda.carregando}
+                erro={agenda.erro}
+                conflito={conflitoDeHorario}
+                temData={Boolean(watchedDate)}
+              />
+
               <Row $cols={2}>
                 <Field>
                   <Label>Número de vagas *</Label>
@@ -476,7 +530,10 @@ export default function CriarPartida() {
                 <BackButton type="button" onClick={() => setStep(0)}>
                   ← Voltar
                 </BackButton>
-                <NextButton type="submit" disabled={submitting}>
+                {/* Desabilitado com o conflito à vista logo acima: o aviso da
+                    agenda já diz o motivo e o que fazer, e o botão morto sem
+                    explicação é que seria o problema. */}
+                <NextButton type="submit" disabled={submitting || conflitoDeHorario != null}>
                   {submitting ? 'Criando...' : 'Criar Partida ✓'}
                 </NextButton>
               </Actions>
