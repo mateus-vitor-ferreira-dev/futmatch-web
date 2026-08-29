@@ -6,6 +6,7 @@ import type {
   CourtType,
   EnderecoDoCep,
   SportProfile,
+  PerfilPublico,
   UserMe,
 } from '../types/api'
 
@@ -24,6 +25,21 @@ export interface UpdateProfileInput {
 
 export const getMe = (): Promise<AxiosResponse<ApiEnvelope<UserMe>>> =>
   api.get('/users/me')
+
+/**
+ * O perfil público de outra pessoa (`GET /users/:userId`).
+ *
+ * A rota existe desde sempre e o web nunca a chamou: não havia tela de
+ * terceiro, e nome de participante não levava a lugar nenhum. A #375 deu a ela
+ * a primeira tela — `/jogador/:userId`.
+ *
+ * **Não diz se quem está olhando segue esta pessoa.** Esse estado vem do
+ * `useRedeSocial`, que lê as listas do próprio usuário; ver o comentário de lá
+ * sobre por que é melhor assim do que uma rota por pessoa seria.
+ */
+export const perfilPublico = (
+  userId: string,
+): Promise<AxiosResponse<ApiEnvelope<PerfilPublico>>> => api.get(`/users/${userId}`)
 
 export const updateMe = (
   data: UpdateProfileInput,

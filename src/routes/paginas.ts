@@ -52,6 +52,7 @@ const CARREGADORES = {
   '/historico':        () => import('../pages/Historico'),
   '/avaliacoes':       () => import('../pages/Avaliacoes'),
   '/times':            () => import('../pages/Times'),
+  '/amigos':           () => import('../pages/Amigos'),
   '/admin/dashboard':  () => import('../pages/Admin/Dashboard'),
   '/admin/users':      () => import('../pages/Admin/Users'),
   '/admin/requests':   () => import('../pages/Admin/Requests'),
@@ -131,6 +132,7 @@ export const MinhasPartidas    = lazyWithRetry(CARREGADORES['/minhas-partidas'])
 export const Historico        = lazyWithRetry(CARREGADORES['/historico'])
 export const Avaliacoes       = lazyWithRetry(CARREGADORES['/avaliacoes'])
 export const Times            = lazyWithRetry(CARREGADORES['/times'])
+export const Amigos           = lazyWithRetry(CARREGADORES['/amigos'])
 export const AdminDashboard   = lazyWithRetry(CARREGADORES['/admin/dashboard'])
 export const AdminUsers       = lazyWithRetry(CARREGADORES['/admin/users'])
 export const AdminRequests    = lazyWithRetry(CARREGADORES['/admin/requests'])
@@ -146,6 +148,7 @@ export const OwnerRequests    = lazyWithRetry(CARREGADORES['/owner/requests'])
 export const PartidaDetail     = lazyWithRetry(() => import('../pages/PartidaDetail'))
 export const TimeDetail       = lazyWithRetry(() => import('../pages/TimeDetail'))
 export const TournamentDetail = lazyWithRetry(() => import('../pages/TournamentDetail'))
+export const Jogador          = lazyWithRetry(() => import('../pages/Jogador'))
 export const ConviteDeProfessor = lazyWithRetry(() => import('../pages/ConviteDeProfessor'))
 export const OwnerCourts      = lazyWithRetry(() => import('../pages/Owner/Courts'))
 export const OwnerProfessores = lazyWithRetry(CARREGADORES['/owner/professores'])

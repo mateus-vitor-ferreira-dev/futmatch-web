@@ -18,7 +18,7 @@
  */
 
 import { describe, it, expect } from 'vitest'
-import { VISIBILIDADES, fraseDoAlcance } from './requisitos'
+import { TIPOS_DE_REQUISITO, VISIBILIDADES, avisoDeRestricao, descreveRequisito, fraseDoAlcance } from './requisitos'
 import type { FaixaDeAlcance } from '../types/api'
 
 const descricoes = VISIBILIDADES.map((v) => v.descricao).join(' ')
@@ -140,5 +140,75 @@ describe('a frase do alcance', () => {
     for (const faixa of ['NENHUM', 'POUCOS'] as const) {
       expect(alcance(faixa, 'MUITOS').texto, faixa).toMatch(/endereço salvo/i)
     }
+  })
+})
+
+/**
+ * As duas regras de rede (api#387).
+ *
+ * O que estes testes protegem é a **distinção entre time e rede**, que é
+ * critério de aceite da api#387 e a coisa mais fácil de perder numa reescrita
+ * de copy: os três recortes são "gente que eu conheço", e escritos com pressa
+ * viram três frases intercambiáveis.
+ *
+ * A ordem do aviso importa pelo mesmo motivo. Com "meus amigos" e "quem me
+ * segue" na mesma partida, quem decide o tamanho dela é o mais estreito —
+ * avisar sobre o outro apontaria para o recorte errado.
+ */
+describe('as regras de rede', () => {
+  const catalogo = new Map(TIPOS_DE_REQUISITO.map((r) => [r.tipo, r]))
+
+  it('estão no catálogo, e depois do time', () => {
+    const ordem = TIPOS_DE_REQUISITO.map((r) => r.tipo)
+
+    expect(ordem).toContain('FOLLOWS_ORGANIZER')
+    expect(ordem).toContain('MUTUAL_FOLLOW')
+    expect(ordem.indexOf('FOLLOWS_ORGANIZER')).toBeGreaterThan(ordem.indexOf('TEAM_MEMBER'))
+  })
+
+  it('a ajuda de cada uma diz de que tamanho é o recorte', () => {
+    // Sem os dois adjetivos, as duas viram a mesma frase — e a escolha entre
+    // elas é justamente uma escolha de tamanho.
+    expect(catalogo.get('FOLLOWS_ORGANIZER')!.ajuda).toMatch(/largo/i)
+    expect(catalogo.get('MUTUAL_FOLLOW')!.ajuda).toMatch(/fechado/i)
+  })
+
+  it('a de amizade avisa que ela some sozinha', () => {
+    // O preço declarado no schema da api: quem deixa de seguir desfaz a
+    // amizade no mesmo instante, sem ninguém fazer nada visível.
+    expect(catalogo.get('MUTUAL_FOLLOW')!.ajuda).toMatch(/deixa de seguir/i)
+  })
+
+  it('descreve as duas sem citar o nome de quem organiza', () => {
+    // A frase é lida também por quem chega de fora, e a leitura pública da
+    // partida nem sempre traz o organizador.
+    expect(descreveRequisito('FOLLOWS_ORGANIZER', {})).toBe('Seguir quem organiza')
+    expect(descreveRequisito('MUTUAL_FOLLOW', {})).toMatch(/os dois se seguem/i)
+  })
+
+  it('o aviso fala do recorte mais fechado quando há mais de um', () => {
+    const soSeguir = avisoDeRestricao([{ type: 'FOLLOWS_ORGANIZER', params: {} }])
+    expect(soSeguir).toMatch(/quem já te segue/i)
+
+    // Amizade é subconjunto de "quem me segue": com as duas, é ela que manda.
+    const asDuas = avisoDeRestricao([
+      { type: 'FOLLOWS_ORGANIZER', params: {} },
+      { type: 'MUTUAL_FOLLOW', params: {} },
+    ])
+    expect(asDuas).toMatch(/segue você de volta/i)
+
+    // E o time continua falando por cima de todos.
+    const comTime = avisoDeRestricao([
+      { type: 'MUTUAL_FOLLOW', params: {} },
+      { type: 'TEAM_MEMBER', params: { teamId: 't1' } },
+    ])
+    expect(comTime).toMatch(/do time/i)
+  })
+
+  it('o aviso de "quem me segue" diz que dá para resolver, e o de amizade não', () => {
+    // A diferença que a api registra nas duas frases de recusa: quem ainda não
+    // segue resolve sozinho; quem já segue e não é seguido de volta, não.
+    expect(avisoDeRestricao([{ type: 'FOLLOWS_ORGANIZER', params: {} }])).toMatch(/seguindo/i)
+    expect(avisoDeRestricao([{ type: 'MUTUAL_FOLLOW', params: {} }])).not.toMatch(/resolver na hora/i)
   })
 })

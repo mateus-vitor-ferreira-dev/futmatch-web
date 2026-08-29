@@ -78,6 +78,20 @@ export const chaves = {
    * foi para quarta veria as marcações de terça desenhadas sobre a quarta.
    */
   agendaDaQuadra: (courtId: string, dia: string) => ['quadras', courtId, 'agenda', dia] as const,
+  /**
+   * A rede social (api#387).
+   *
+   * `seguindo` e `amigos` do próprio usuário entram separados das listas de
+   * terceiros porque são **estado do botão**, e não conteúdo de tela: quem
+   * segue quem decide o rótulo de "Seguir" em qualquer lugar que mostre uma
+   * pessoa, e o mesmo cache serve a todos eles.
+   */
+  rede: {
+    seguidores: (userId: string) => ['rede', userId, 'seguidores'] as const,
+    seguindo:   (userId: string) => ['rede', userId, 'seguindo'] as const,
+    meusAmigos: () => ['rede', 'eu', 'amigos'] as const,
+  },
+  jogador: (userId: string) => ['jogador', userId] as const,
   perfisEsportivos: () => ['perfis-esportivos'] as const,
   estatisticas: () => ['estatisticas'] as const,
 }

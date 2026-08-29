@@ -3,6 +3,7 @@ import { toast } from 'sonner'
 import { SkeletonList } from '../../components/Skeleton'
 import { getSportMeta } from '../../hooks/useSports'
 import { useAuth } from '../../contexts/AuthContext'
+import { BotaoSeguir } from '../../components/BotaoSeguir'
 import { playerService } from '../../services/playerService'
 import { mensagemDeErro } from '../../utils/apiError'
 import type { ReviewProgress } from '../../services/playerService'
@@ -196,6 +197,21 @@ export default function Historico() {
                   <div className="avatar">{p.user?.name?.charAt(0)}</div>
                   <div className="details">
                     <div className="name">{p.user?.name}</div>
+                    {/*
+                      Seguir, na única tela que enumera com quem você acabou de
+                      jogar (web#375).
+
+                      É o momento em que a pessoa sabe quem quer seguir — o jogo
+                      acabou agora, e o nome está na frente dela. Sem isto, o
+                      caminho até alguém que jogou com você é procurar a partida,
+                      abrir a lista de participantes e clicar no nome; ninguém faz.
+
+                      O botão fica **fora** dos `.controls` de propósito: aqueles
+                      são a avaliação, que é sobre a partida e vai junto no envio.
+                      Seguir grava na hora e não tem nada a ver com a nota — quem
+                      segue não está avaliando melhor.
+                    */}
+                    <BotaoSeguir userId={p.userId} nome={p.user?.name ?? 'este jogador'} />
                   </div>
                   <div className="controls">
                     <select
