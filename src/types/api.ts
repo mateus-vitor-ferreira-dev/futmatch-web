@@ -1043,3 +1043,41 @@ export interface AlcanceDosRequisitos {
     faixaSemRequisitos: FaixaDeAlcance;
     raioKm: number;
 }
+
+/**
+ * O que ocupa uma quadra num intervalo (api#443).
+ *
+ * A api tem **um calendário só** por quadra desde a api#446: partida comum e
+ * jogo de campeonato entram na mesma lista, e é por isso que `tipo` existe.
+ */
+export interface OcupacaoDaQuadra {
+    tipo: "PARTIDA" | "PARTIDA_DE_CAMPEONATO";
+    /**
+     * `null` quando a marcação **não é pública**.
+     *
+     * Partida `LINK` ou `PRIVATE` ocupa o horário sem se identificar: a api
+     * troca a `descricao` por "horário reservado" e omite o id, porque o id é o
+     * endereço da partida. A tela não tem como — nem por que — descobrir de quem
+     * é: ela mostra que está ocupado e mais nada.
+     */
+    id: string | null;
+    inicio: string;
+    fim: string;
+    /** `partida de Fulano`, `2ª rodada, jogo 3`, ou `horário reservado`. */
+    descricao: string;
+    /**
+     * `true` quando a api **presumiu** o fim em uma hora.
+     *
+     * Só acontece com jogo de campeonato, que não guarda duração. A tela diz
+     * isso em vez de desenhar um bloco firme sobre um palpite.
+     */
+    fimPresumido: boolean;
+}
+
+export interface AgendaDaQuadra {
+    courtId: string;
+    /** A janela que a api de fato conferiu — pode não ser a que foi pedida. */
+    de: string;
+    ate: string;
+    ocupacoes: OcupacaoDaQuadra[];
+}

@@ -1,5 +1,5 @@
 import api from './api'
-import type { ApiEnvelope, Court, CourtStatus, CourtType } from '../types/api'
+import type { AgendaDaQuadra, ApiEnvelope, Court, CourtStatus, CourtType } from '../types/api'
 
 /** ⚠️ Devolve o ENVELOPE da API — quem consome escreve `res.data`. */
 
@@ -49,4 +49,19 @@ export function updateCourtStatus(
   status: CourtStatus,
 ): Promise<ApiEnvelope<Court>> {
   return api.patch(`/places/${placeId}/courts/${courtId}/status`, { status }).then((r) => r.data)
+}
+
+/**
+ * O que já ocupa esta quadra entre `de` e `ate` (api#443).
+ *
+ * Os dois são opcionais na api — sem eles ela responde as próximas 24 horas —,
+ * e obrigatórios aqui: quem chama esta função está olhando um dia específico, e
+ * deixar a janela implícita esconderia qual.
+ */
+export function getAgendaDaQuadra(
+  courtId: string,
+  de: string,
+  ate: string,
+): Promise<ApiEnvelope<AgendaDaQuadra>> {
+  return api.get(`/courts/${courtId}/agenda`, { params: { de, ate } }).then((r) => r.data)
 }
