@@ -154,6 +154,21 @@ export interface UserMe extends UserPublic {
      */
     address?: EnderecoDoJogador;
     stats?: UserStats;
+    /**
+     * Os papéis que esta pessoa tem **dentro de espaços** (api#451).
+     *
+     * Diferente do `role`, que é global e exclusivo: aqui a mesma pessoa pode
+     * ser professora em vários lugares, e o dono de uma academia pequena pode
+     * ser `OWNER` e professor do próprio espaço ao mesmo tempo — a colisão que
+     * o enum global não conseguia expressar.
+     *
+     * **Não inclui os espaços de que ela é dona.** Isso é `Place.ownerId`, que
+     * a api manteve como coluna à parte; a separação é dívida assumida por
+     * escrito na api#451.
+     */
+    vinculos?: {
+        professorEm: Array<{ id: string; name: string }>;
+    };
     _count?: {
         matchesCreated: number;
         participations: number;
@@ -420,6 +435,39 @@ export type PartidaRequirementType =
  * "pública, mas só para quem costuma aparecer" é combinação legítima.
  */
 export type PartidaVisibility = "PUBLIC" | "LINK" | "PRIVATE";
+
+/** O estado de um convite de professor (api#451). */
+export type PlaceInviteStatus = "PENDING" | "ACCEPTED" | "DECLINED" | "EXPIRED";
+
+/**
+ * Um convite de professor, como o dono do espaço o vê.
+ *
+ * **Sem o `token`**: a listagem é do dono, e o link é do convidado. Devolvê-lo
+ * aqui daria ao dono uma chave que entra no espaço dele como se fosse outra
+ * pessoa.
+ */
+export interface ConviteDeProfessor {
+    id: string;
+    email: string;
+    papel: "PROFESSOR";
+    status: PlaceInviteStatus;
+    expiresAt: IsoDate;
+    /** Quando respondeu, se respondeu. Nulo em pendente e em vencido sem resposta. */
+    respondedAt: IsoDate | null;
+    createdAt: IsoDate;
+}
+
+/**
+ * O que a tela do convidado vê **antes** de decidir — e antes de entrar.
+ *
+ * Não traz o e-mail do destinatário de propósito: a rota é pública, e devolvê-lo
+ * transformaria um link vazado num jeito de descobrir o e-mail de alguém.
+ */
+export interface ConviteVerificado {
+    place: { id: string; name: string };
+    papel: "PROFESSOR";
+    expiresAt: IsoDate;
+}
 
 /** Um motivo de recusa do portão de entrada. */
 export interface EntryFailure {

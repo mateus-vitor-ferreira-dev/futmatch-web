@@ -41,7 +41,8 @@ vi.mock('./paginas', () => {
     OwnerDashboard: stub('OwnerDashboard'), OwnerPlans: stub('OwnerPlans'),
     OwnerPlaces: stub('OwnerPlaces'), OwnerInventory: stub('OwnerInventory'),
     OwnerEquipment: stub('OwnerEquipment'), OwnerRequests: stub('OwnerRequests'),
-    OwnerCourts: stub('OwnerCourts'),
+    OwnerCourts: stub('OwnerCourts'), OwnerProfessores: stub('OwnerProfessores'),
+    ConviteDeProfessor: stub('ConviteDeProfessor'),
   }
 })
 

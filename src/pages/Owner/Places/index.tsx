@@ -180,6 +180,12 @@ export default function OwnerPlaces() {
               <ActionBtn variant="secondary" onClick={() => navigate(`/owner/places/${place.id}/courts`)}>
                 Quadras
               </ActionBtn>
+              {/* Convidar professor não depende de assinatura (api#451), então
+                  entra na parte da linha que só navega — e não junto de editar
+                  e abrir/fechar, que a API tranca sem plano em dia. */}
+              <ActionBtn variant="secondary" onClick={() => navigate(`/owner/places/${place.id}/professores`)}>
+                Professores
+              </ActionBtn>
               {/* Editar e abrir/fechar gravam; o resto desta linha navega. Sem
                   assinatura em dia os dois ficam desabilitados, e a leitura do
                   estabelecimento continua de pé — é o que a API faz. */}

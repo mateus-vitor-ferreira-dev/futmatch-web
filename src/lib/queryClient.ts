@@ -63,6 +63,16 @@ export const chaves = {
     convites: () => ['times', 'convites'] as const,
   },
   quadras: () => ['quadras'] as const,
+  /** Um estabelecimento pelo id — hoje só a tela de professores o pede sozinho. */
+  espaco: (placeId: string) => ['espacos', placeId] as const,
+  /**
+   * Os convites de professor de um espaço (api#451).
+   *
+   * Por espaço, e não uma lista só: o dono com dois estabelecimentos tem duas
+   * listas que não se misturam, e uma chave única faria a segunda tela mostrar
+   * os convites da primeira até revalidar.
+   */
+  convitesDeProfessor: (placeId: string) => ['espacos', placeId, 'convites-de-professor'] as const,
   /**
    * A agenda entra no cache por quadra **e por dia** (api#443).
    *
