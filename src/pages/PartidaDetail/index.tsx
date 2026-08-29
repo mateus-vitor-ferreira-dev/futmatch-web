@@ -22,7 +22,7 @@ import {
   PixBox, PixLabel, PixKey, CopyBtn,
   JoinBtn, OrganizerActions, ActionBtn, OrganizerTag,
   ParticipantsSection, SectionTitle,
-  ParticipantList, ParticipantItem, Avatar, ParticipantName, ParticipantNickname,
+  ParticipantList, ParticipantItem, Avatar, ParticipantLink, ParticipantName, ParticipantNickname,
   ParticipantsCount,
   MapLink, LoadingBox,
   LinkInvalidoBox, LinkInvalidoTitulo, LinkInvalidoTexto,
@@ -581,12 +581,24 @@ export default function PartidaDetail() {
                             : name[0].toUpperCase()
                           }
                         </Avatar>
-                        <span>
+                        {/*
+                          O nome leva ao perfil da pessoa (web#375).
+
+                          Não existe busca de jogador na api, então este é um
+                          dos poucos caminhos que o produto tem até alguém — e
+                          é o caminho natural: quem quer seguir um parceiro de
+                          quadra o encontra na partida em que jogaram juntos.
+
+                          A lista já é só para quem tem sessão (ver
+                          `mostraParticipantes`), então o link nunca aparece
+                          para visitante.
+                        */}
+                        <ParticipantLink to={`/jogador/${p.userId}`}>
                           <ParticipantName>{name}</ParticipantName>
                           {p.user?.nickname && (
                             <ParticipantNickname>· {p.user.nickname}</ParticipantNickname>
                           )}
-                        </span>
+                        </ParticipantLink>
                       </ParticipantItem>
                     )
                   })}

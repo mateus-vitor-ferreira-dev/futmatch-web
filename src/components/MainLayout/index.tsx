@@ -1,7 +1,7 @@
 import { Suspense, useState, useEffect } from 'react'
 import type { LucideIcon } from 'lucide-react'
 import type { UserRole } from '../../types/api'
-import { Home, Search, ClipboardList, History, User, Plus, Trophy, Menu, Star, Sun, Moon, LayoutDashboard, Store, LogOut, Users } from 'lucide-react'
+import { Home, Search, ClipboardList, History, User, Plus, Trophy, Menu, Star, Sun, Moon, LayoutDashboard, Store, LogOut, Users, UserPlus } from 'lucide-react'
 import iconUrl from '../../assets/icon-so-mais-um.svg'
 import LogoSvg from '../LogoSvg'
 import { Outlet, useNavigate, useLocation } from 'react-router-dom'
@@ -24,6 +24,13 @@ const NAV_ITEMS = [
   { to: '/torneios',       label: 'Torneios',        icon: Trophy        },
   { to: '/minhas-partidas', label: 'Minhas Partidas', icon: ClipboardList },
   { to: '/times',          label: 'Meus Times',      icon: Users         },
+  /*
+   * `UserPlus`, e não outro par de silhuetas: `Users` já é o de Meus Times, e
+   * `UsersRound` — que estava aqui — é o mesmo desenho com outro traço. No
+   * tamanho do menu os dois eram indistinguíveis. Este tem o sinal de mais, que
+   * é o glifo universal de seguir.
+   */
+  { to: '/amigos',         label: 'Amigos',          icon: UserPlus      },
   { to: '/historico',      label: 'Histórico',       icon: History       },
   { to: '/avaliacoes',     label: 'Avaliações',      icon: Star          },
   { to: '/perfil',         label: 'Perfil',          icon: User          },

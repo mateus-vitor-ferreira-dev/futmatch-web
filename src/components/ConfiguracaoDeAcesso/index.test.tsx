@@ -169,3 +169,66 @@ describe('ConfiguracaoDeAcesso — o aviso de restrição', () => {
     expect(screen.getByRole('status')).toHaveTextContent(/cada uma corta um pedaço/)
   })
 })
+
+/**
+ * As duas regras de rede na tela que as configura (api#387, web#375).
+ *
+ * O teste que carrega o arquivo é o do `params: {}`. Os outros cinco requisitos
+ * nascem com um número ou uma lista dentro, e é fácil dar a estes o mesmo
+ * tratamento — um `{ min: 0 }` que a api recusa, ou um `null` que ela lê como
+ * "params ainda não devolvido". `{}` é o que ela valida, e a diferença não
+ * aparece em tela nenhuma: só no 422.
+ *
+ * O segundo é o de que as duas são oferecidas **sem depender de nada**. O
+ * requisito de time some quando o organizador não tem time, e copiar essa
+ * condição para cá esconderia a regra de quem ainda não segue ninguém — que é
+ * justamente quem mais precisa dela para começar a formar rede.
+ */
+describe('ConfiguracaoDeAcesso — as regras de rede', () => {
+  it('oferece as duas mesmo sem time e sem rede formada', () => {
+    monta()
+
+    const select = screen.getByLabelText('Adicionar uma regra de entrada')
+    expect(select).toHaveTextContent('Quem me segue')
+    expect(select).toHaveTextContent('Meus amigos')
+  })
+
+  it('adiciona "quem me segue" com params vazio — nem número, nem null', async () => {
+    const { user, aoMudarRequisitos } = monta()
+
+    await user.selectOptions(screen.getByLabelText('Adicionar uma regra de entrada'), 'FOLLOWS_ORGANIZER')
+
+    expect(aoMudarRequisitos).toHaveBeenCalledWith([{ type: 'FOLLOWS_ORGANIZER', params: {} }])
+  })
+
+  it('adiciona "meus amigos" com params vazio', async () => {
+    const { user, aoMudarRequisitos } = monta()
+
+    await user.selectOptions(screen.getByLabelText('Adicionar uma regra de entrada'), 'MUTUAL_FOLLOW')
+
+    expect(aoMudarRequisitos).toHaveBeenCalledWith([{ type: 'MUTUAL_FOLLOW', params: {} }])
+  })
+
+  it('não desenha campo nenhum dentro delas — não há o que configurar', () => {
+    const requisitos: PartidaRequirement[] = [
+      { type: 'MUTUAL_FOLLOW', params: {} },
+      { type: 'FOLLOWS_ORGANIZER', params: {} },
+    ]
+    monta({ requisitos })
+
+    // O alvo é sempre quem organiza; um campo aqui sugeriria escolher a pessoa.
+    expect(screen.queryByRole('spinbutton')).not.toBeInTheDocument()
+    expect(screen.queryByRole('combobox', { name: /time/i })).not.toBeInTheDocument()
+  })
+
+  it('avisa sobre o recorte mais fechado quando as duas estão juntas', () => {
+    monta({
+      requisitos: [
+        { type: 'FOLLOWS_ORGANIZER', params: {} },
+        { type: 'MUTUAL_FOLLOW', params: {} },
+      ],
+    })
+
+    expect(screen.getByText(/segue você de volta/i)).toBeInTheDocument()
+  })
+})
