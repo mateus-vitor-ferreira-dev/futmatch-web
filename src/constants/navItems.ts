@@ -1,5 +1,6 @@
 import {
   LayoutDashboard, Users, ClipboardList, Building2, Home, Store, ShieldCheck, CreditCard, Package, Dumbbell,
+  GraduationCap,
 } from 'lucide-react'
 import type { NavItemDef } from '../components/DashboardLayout'
 import type { PlanFeature, UserRole } from '../types/api'
@@ -54,6 +55,13 @@ export function ownerNavItems(
       bloqueado: !temFuncionalidade('ESTOQUE') },
     { to: '/owner/equipment', label: 'Equipamentos',          icon: Dumbbell,
       bloqueado: !temFuncionalidade('EQUIPAMENTOS') },
+    /*
+     * Professores (api#451). Nunca bloqueado, como Visão Geral, Planos,
+     * Estabelecimentos e Solicitações: a api deixou a rota fora do
+     * `requireActiveSubscription` de propósito, e um cadeado aqui contradiria
+     * ela — o dono veria a tela de planos para uma coisa que ele já pode fazer.
+     */
+    { to: '/owner/professores', label: 'Professores',        icon: GraduationCap   },
     { to: '/owner/requests',  label: 'Solicitações',          icon: ClipboardList   },
     ...(role === 'ADMIN'
       ? [{ to: '/admin', label: 'Painel Admin', icon: ShieldCheck, divider: true }]
