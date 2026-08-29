@@ -1,19 +1,26 @@
 import styled from 'styled-components'
 
-export const BackBtn = styled.button`
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
+/**
+ * O seletor de espaço, no topo — mesmo lugar em que o Estoque e os Equipamentos
+ * o põem.
+ *
+ * A tela entrou pelo menu, e menu não carrega parâmetro: sem o seletor, o dono
+ * com dois estabelecimentos não teria como trocar depois de entrar.
+ */
+export const SeletorDeEspaco = styled.select`
+  min-height: 44px;
   margin-bottom: 20px;
-  padding: 0;
-  border: 0;
-  background: none;
-  color: ${({ theme }) => theme.colors.textSecondary};
+  padding: 10px 12px;
+  border: 1px solid ${({ theme }) => theme.colors.border};
+  border-radius: ${({ theme }) => theme.radii.md};
+  background: ${({ theme }) => theme.colors.bgCard};
+  color: ${({ theme }) => theme.colors.textPrimary};
   font-size: ${({ theme }) => theme.fontSizes.sm};
-  cursor: pointer;
+  max-width: 100%;
 
-  &:hover {
-    color: ${({ theme }) => theme.colors.textPrimary};
+  &:focus {
+    outline: 2px solid ${({ theme }) => theme.colors.primary};
+    outline-offset: 1px;
   }
 `
 

@@ -89,8 +89,12 @@ export const arvoreDeRotas = (
       {/* Convites de professor (api#451). Sem `PlanGate`: a api deixou esta rota
           fora do `requireActiveSubscription` de propósito, e trancá-la aqui
           deixaria um dono adimplente de ontem sem dar acesso a quem já dá aula
-          na quadra dele hoje. */}
-      <Route path="places/:placeId/professores" element={<OwnerProfessores />} />
+          na quadra dele hoje.
+
+          Sem `:placeId` no caminho: a tela está no menu, e menu não carrega
+          parâmetro. O espaço vem do seletor, com `?placeId=` na URL — mesmo
+          desenho do Estoque e dos Equipamentos. */}
+      <Route path="professores"           element={<OwnerProfessores />} />
       {/* O portão fica na rota, e não só dentro da página: sem isso, chegar pela
           URL abriria a tela que o menu marca com cadeado. A API recusa de qualquer
           jeito, mas o dono veria a tela montar e as chamadas falharem uma a uma. */}

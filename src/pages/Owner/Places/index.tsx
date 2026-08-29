@@ -183,7 +183,7 @@ export default function OwnerPlaces() {
               {/* Convidar professor não depende de assinatura (api#451), então
                   entra na parte da linha que só navega — e não junto de editar
                   e abrir/fechar, que a API tranca sem plano em dia. */}
-              <ActionBtn variant="secondary" onClick={() => navigate(`/owner/places/${place.id}/professores`)}>
+              <ActionBtn variant="secondary" onClick={() => navigate(`/owner/professores?placeId=${place.id}`)}>
                 Professores
               </ActionBtn>
               {/* Editar e abrir/fechar gravam; o resto desta linha navega. Sem

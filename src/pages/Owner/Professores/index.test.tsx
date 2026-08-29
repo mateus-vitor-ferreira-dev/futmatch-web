@@ -18,8 +18,10 @@ import { screen, waitFor } from '@testing-library/react'
 import { renderWithProviders } from '../../../test/render'
 import { professoresService } from '../../../services/professores'
 import * as placesService from '../../../services/places'
+import { ownerNavItems } from '../../../constants/navItems'
 import OwnerProfessores from './index'
-import type { ConviteDeProfessor } from '../../../types/api'
+import type { AxiosResponse } from 'axios'
+import type { ApiEnvelope, ConviteDeProfessor, Place } from '../../../types/api'
 
 vi.mock('../../../services/professores')
 vi.mock('../../../services/places')
@@ -42,21 +44,61 @@ function convite(over: Partial<ConviteDeProfessor> = {}): ConviteDeProfessor {
   }
 }
 
-const monta = () =>
+const monta = (query = '?placeId=ltc') =>
   renderWithProviders(<OwnerProfessores />, {
-    route: '/owner/places/ltc/professores',
-    path: '/owner/places/:placeId/professores',
+    route: `/owner/professores${query}`,
+    path: '/owner/professores',
   })
 
 beforeEach(() => {
   vi.clearAllMocks()
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  espacos.getOne.mockResolvedValue({ data: { success: true, data: { id: 'ltc', name: 'Lavras Tênis Clube' } } } as any)
+  espacos.list.mockResolvedValue({
+    data: {
+      success: true,
+      data: [
+        { id: 'ltc', name: 'Lavras Tênis Clube', ownerId: 'dono' },
+        { id: 'aabb', name: 'AABB Lavras', ownerId: 'dono' },
+        // A tela usa só id, name e ownerId; o resto do `Place` não muda nada
+        // aqui, e escrevê-lo por inteiro esconderia isso.
+      ] as Place[],
+    },
+  } as AxiosResponse<ApiEnvelope<Place[]>>)
   servico.convites.mockResolvedValue([])
   servico.convidar.mockResolvedValue(convite({ email: 'nova@exemplo.com' }))
 })
 
+const auth = vi.hoisted(() => ({ estado: { user: { id: 'dono', role: 'OWNER' } } }))
+vi.mock('../../../contexts/AuthContext', async (original) => ({
+  ...(await original<Record<string, unknown>>()),
+  useAuth: () => auth.estado,
+}))
+
 describe('OwnerProfessores', () => {
+  it('está no menu do owner, e nunca com cadeado', () => {
+    // Sem plano nenhum: a api deixou a rota fora do `requireActiveSubscription`,
+    // e um cadeado aqui mandaria o dono pagar pelo que ele já pode fazer.
+    const semPlano = ownerNavItems('OWNER', () => false)
+    const item = semPlano.find((i) => i.to === '/owner/professores')
+
+    expect(item?.label).toBe('Professores')
+    expect(item?.bloqueado).toBeFalsy()
+  })
+
+  it('escolhe o espaço pelo seletor, e respeita o ?placeId= de quem veio pelo card', async () => {
+    monta('?placeId=aabb')
+
+    const seletor = await screen.findByLabelText('Estabelecimento')
+    expect(seletor).toHaveValue('aabb')
+
+    await waitFor(() => expect(servico.convites).toHaveBeenCalledWith('aabb'))
+  })
+
+  it('sem ?placeId=, cai no primeiro espaço do dono', async () => {
+    monta('')
+
+    await waitFor(() => expect(servico.convites).toHaveBeenCalledWith('ltc'))
+  })
+
   it('convida por e-mail e recarrega a lista', async () => {
     const { user } = monta()
 

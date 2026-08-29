@@ -63,8 +63,6 @@ export const chaves = {
     convites: () => ['times', 'convites'] as const,
   },
   quadras: () => ['quadras'] as const,
-  /** Um estabelecimento pelo id — hoje só a tela de professores o pede sozinho. */
-  espaco: (placeId: string) => ['espacos', placeId] as const,
   /**
    * Os convites de professor de um espaço (api#451).
    *

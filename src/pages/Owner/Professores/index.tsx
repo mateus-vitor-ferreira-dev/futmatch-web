@@ -1,20 +1,24 @@
+import { useEffect, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { useNavigate, useParams } from 'react-router-dom'
+import { useSearchParams } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
 import { yupResolver } from '@hookform/resolvers/yup'
 import * as yup from 'yup'
 import { toast } from 'sonner'
-import { ArrowLeft, Send } from 'lucide-react'
+import { Send } from 'lucide-react'
 import { usePageHeader } from '../../../components/DashboardLayout/pageHeader'
+import { useAuth } from '../../../contexts/AuthContext'
 import { professoresService } from '../../../services/professores'
 import * as placesService from '../../../services/places'
 import { chaves } from '../../../lib/queryClient'
 import { toastErroDeApi } from '../../../utils/toastErro'
 import { Skeleton } from '../../../components/Skeleton'
 import type { ConviteDeProfessor } from '../../../types/api'
+import type { Place } from '../../../types/api'
 import {
-  BackBtn, Caixa, CampoEmail, Convidar, Email, Erro, ErroDoCampo, Explicacao,
-  Form, Input, Item, Lista, Quando, Ressalva, Selo, TituloDaCaixa, Vazio,
+  Caixa, CampoEmail, Convidar, Email, Erro, ErroDoCampo, Explicacao,
+  Form, Input, Item, Lista, Quando, Ressalva, Selo, SeletorDeEspaco,
+  TituloDaCaixa, Vazio,
 } from './styles'
 
 const schema = yup.object({
@@ -67,17 +71,39 @@ function estadoDoConvite(convite: ConviteDeProfessor) {
  * dar acesso a quem já dá aula na quadra dele hoje.
  */
 export default function OwnerProfessores() {
-  const { placeId = '' } = useParams<{ placeId: string }>()
-  const navigate = useNavigate()
+  const { user } = useAuth()
   const queryClient = useQueryClient()
+  const [searchParams, setSearchParams] = useSearchParams()
+  const [espacos, setEspacos] = useState<Place[]>([])
+  const [placeId, setPlaceId] = useState('')
 
   usePageHeader('Professores', 'Convide quem dá aula no seu espaço e acompanhe os convites')
 
-  const espaco = useQuery({
-    queryKey: chaves.espaco(placeId),
-    queryFn: () => placesService.getOne(placeId).then((r) => r.data.data),
-    enabled: Boolean(placeId),
-  })
+  /*
+   * O espaço vem do seletor, e não da URL da rota — mesmo desenho do Estoque e
+   * dos Equipamentos.
+   *
+   * A tela era `/owner/places/:placeId/professores`, alcançável só pelo card do
+   * estabelecimento. Um item de menu não tem como saber qual espaço, e o dono
+   * com dois estabelecimentos escolheria no card e depois não teria como trocar
+   * sem voltar. O `?placeId=` mantém o atalho do card funcionando: quem chega
+   * por ele já cai no espaço certo.
+   */
+  useEffect(() => {
+    placesService.list().then((resposta) => {
+      const meus = user?.role === 'ADMIN'
+        ? resposta.data.data
+        : resposta.data.data.filter((espaco) => espaco.ownerId === user?.id)
+      setEspacos(meus)
+      const pedido = searchParams.get('placeId')
+      setPlaceId(meus.some((espaco) => espaco.id === pedido) ? pedido! : meus[0]?.id ?? '')
+    }).catch(() => setEspacos([]))
+  }, [searchParams, user?.id, user?.role])
+
+  const trocarEspaco = (id: string) => {
+    setPlaceId(id)
+    setSearchParams({ placeId: id })
+  }
 
   const convites = useQuery({
     queryKey: chaves.convitesDeProfessor(placeId),
@@ -99,15 +125,24 @@ export default function OwnerProfessores() {
     onError: (err) => toastErroDeApi(err),
   })
 
+  const nomeDoEspaco = espacos.find((espaco) => espaco.id === placeId)?.name
+
   return (
     <div>
-      <BackBtn type="button" onClick={() => navigate('/owner/places')}>
-        <ArrowLeft size={16} aria-hidden /> Voltar para os estabelecimentos
-      </BackBtn>
+      <SeletorDeEspaco
+        aria-label="Estabelecimento"
+        value={placeId}
+        onChange={(evento) => trocarEspaco(evento.target.value)}
+      >
+        {espacos.length === 0 && <option value="">Nenhum estabelecimento</option>}
+        {espacos.map((espaco) => (
+          <option key={espaco.id} value={espaco.id}>{espaco.name}</option>
+        ))}
+      </SeletorDeEspaco>
 
       <Caixa>
         <TituloDaCaixa>
-          Convidar professor{espaco.data ? ` para ${espaco.data.name}` : ''}
+          Convidar professor{nomeDoEspaco ? ` para ${nomeDoEspaco}` : ''}
         </TituloDaCaixa>
         <Explicacao>
           O convite vai por e-mail e vale 7 dias. Funciona para quem já joga no Só+1 e para
