@@ -9,6 +9,7 @@ import { Camera, Loader, LogOut } from 'lucide-react'
 import PhoneInput from '../../components/PhoneInput'
 import PasswordInput from '../../components/PasswordInput'
 import { PerfilEsportivo } from '../../components/PerfilEsportivo'
+import { MinhaRede } from '../../components/MinhaRede'
 import { EnderecoDoJogador } from '../../components/EnderecoDoJogador'
 import { useAuth } from '../../contexts/AuthContext'
 import * as usersService from '../../services/users'
@@ -297,6 +298,9 @@ export default function Profile() {
           <TabBtn $active={activeTab === 'sports'} onClick={() => switchTab('sports')}>
             Modalidades
           </TabBtn>
+          <TabBtn $active={activeTab === 'rede'} onClick={() => switchTab('rede')}>
+            Minha Rede
+          </TabBtn>
           <TabBtn $active={activeTab === 'password'} onClick={() => switchTab('password')}>
             Alterar Senha
           </TabBtn>
@@ -353,6 +357,11 @@ export default function Profile() {
 
         {/* Tab: Modalidades — o dado que o sorteio equilibrado consome (#214) */}
         {activeTab === 'sports' && <PerfilEsportivo />}
+
+        {/* Tab: Minha Rede — seguidores, seguindo e amigos (api#387).
+            Aqui, e não numa página própria: os amigos só existem para "eu", e o
+            perfil já é a tela de "eu". */}
+        {activeTab === 'rede' && <MinhaRede />}
 
         {/* Tab: Alterar Senha */}
         {activeTab === 'password' && (

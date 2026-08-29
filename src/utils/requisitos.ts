@@ -101,6 +101,30 @@ export const TIPOS_DE_REQUISITO: Array<{
     titulo: 'Ser do meu time',
     ajuda: 'Fecha a partida para os membros do time, sem prazo.',
   },
+  /*
+   * Os dois de rede (api#387), e eles vêm depois do time de propósito.
+   *
+   * Time e rede parecem a mesma ideia — "gente que eu conheço" — e não são. O
+   * time é um grupo que existe fora da partida, com entrada e saída
+   * registradas; a rede é pessoal e não pede acordo. A `ajuda` de cada um
+   * carrega essa diferença, porque é onde o organizador decide, e escolher
+   * errado aqui produz uma partida que abre demais ou que não abre para
+   * ninguém.
+   */
+  {
+    tipo: 'FOLLOWS_ORGANIZER',
+    titulo: 'Quem me segue',
+    ajuda:
+      'Seguir é de graça e não pede sua aprovação — este é o recorte largo. ' +
+      'Serve para abrir a partida para quem acompanha você sem escancarar para a cidade.',
+  },
+  {
+    tipo: 'MUTUAL_FOLLOW',
+    titulo: 'Meus amigos',
+    ajuda:
+      'Amizade aqui é seguir e ser seguido de volta: as duas pessoas escolheram. ' +
+      'É bem mais fechado que "quem me segue", e some no instante em que um dos dois deixa de seguir.',
+  },
 ]
 
 /**
@@ -135,6 +159,13 @@ export function descreveRequisito(
     }
     case 'TEAM_MEMBER':
       return nomeDoTime ? `Ser do time ${nomeDoTime}` : 'Ser membro do time indicado pelo organizador'
+    // "Quem organiza", e não o nome de quem organiza: esta frase é lida também
+    // por quem chega de fora, e a leitura pública da partida nem sempre traz o
+    // organizador. A api usa a mesma construção nas recusas.
+    case 'FOLLOWS_ORGANIZER':
+      return 'Seguir quem organiza'
+    case 'MUTUAL_FOLLOW':
+      return 'Ser amigo de quem organiza — os dois se seguem'
   }
 }
 
@@ -155,10 +186,29 @@ export function avisoDeRestricao(requisitos: Array<{ type: PartidaRequirementTyp
 
   const de = (tipo: PartidaRequirementType) => requisitos.find((r) => r.type === tipo)
 
-  // Time fecha a partida por completo: nenhum outro requisito muda o alcance
-  // depois dele, e por isso ele fala primeiro.
+  /*
+   * Os requisitos de **vínculo** falam primeiro, e entre eles vale o mais
+   * fechado (api#387).
+   *
+   * Os três — time, amizade e seguir — cortam por pertencer a um conjunto, e
+   * não por um número que a pessoa possa melhorar. Depois de qualquer um deles
+   * nenhum requisito de reputação muda o alcance de forma que valha o aviso: o
+   * corte já aconteceu.
+   *
+   * A ordem é do menor conjunto para o maior. Avisar sobre "quem me segue"
+   * quando também há "meus amigos" apontaria para o recorte errado — o que
+   * decide o tamanho da partida é sempre o mais estreito.
+   */
   if (de('TEAM_MEMBER')) {
     return 'Só quem é do time entra. Os outros requisitos só se aplicam a quem já passou por esse.'
+  }
+
+  if (de('MUTUAL_FOLLOW')) {
+    return 'Só entra quem você segue e que segue você de volta. É o recorte mais fechado depois do time — e ele encolhe sozinho se alguém deixar de seguir.'
+  }
+
+  if (de('FOLLOWS_ORGANIZER')) {
+    return 'Só entra quem já te segue. Quem quiser participar consegue resolver na hora, seguindo — o que não vale para "meus amigos", que depende de você seguir de volta.'
   }
 
   const presenca = de('MIN_ATTENDANCE_RATE')?.params?.min

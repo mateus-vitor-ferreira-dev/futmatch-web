@@ -35,7 +35,7 @@ vi.mock('./paginas', () => {
     Tournaments: stub('Tournaments'), MinhasPartidas: stub('MinhasPartidas'),
     Historico: stub('Historico'), Avaliacoes: stub('Avaliacoes'),
     PartidaDetail: stub('PartidaDetail'), TournamentDetail: stub('TournamentDetail'),
-    Times: stub('Times'), TimeDetail: stub('TimeDetail'),
+    Times: stub('Times'), TimeDetail: stub('TimeDetail'), Jogador: stub('Jogador'),
     AdminDashboard: stub('AdminDashboard'), AdminUsers: stub('AdminUsers'),
     AdminRequests: stub('AdminRequests'), AdminPlaces: stub('AdminPlaces'),
     OwnerDashboard: stub('OwnerDashboard'), OwnerPlans: stub('OwnerPlans'),

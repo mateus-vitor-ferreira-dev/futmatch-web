@@ -12,7 +12,7 @@ import PlanGate from '../components/PlanGate'
 import {
   Register, ForgotPassword, ResetPassword, OwnerAccess,
   Home, Profile, QueroJogar, CriarPartida, Tournaments, MinhasPartidas,
-  Historico, Avaliacoes, PartidaDetail, TournamentDetail, Times, TimeDetail,
+  Historico, Avaliacoes, PartidaDetail, TournamentDetail, Times, TimeDetail, Jogador,
   AdminDashboard, AdminUsers, AdminRequests, AdminPlaces,
   OwnerDashboard, OwnerPlans, OwnerPlaces, OwnerInventory, OwnerEquipment, OwnerRequests, OwnerCourts,
 } from './paginas'
@@ -56,6 +56,9 @@ export const arvoreDeRotas = (
       <Route path="/avaliacoes"      element={<Avaliacoes />} />
       <Route path="/times"           element={<Times />} />
       <Route path="/times/:teamId"   element={<TimeDetail />} />
+      {/* A página de outra pessoa (web#375). Autenticada: seguir exige sessão,
+          e uma versão pública sem o botão seria a mesma tela sem o motivo dela. */}
+      <Route path="/jogador/:userId" element={<Jogador />} />
     </Route>
 
     {/* Painel Admin */}
