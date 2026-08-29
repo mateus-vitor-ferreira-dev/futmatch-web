@@ -3,29 +3,39 @@ import { useQuery } from '@tanstack/react-query'
 import { useAuth } from '../../contexts/AuthContext'
 import { followsService } from '../../services/follows'
 import { chaves } from '../../lib/queryClient'
-import { ListaDePessoas } from '../ListaDePessoas'
-import { Aba, Abas, Explicacao } from './styles'
+import { ListaDePessoas } from '../../components/ListaDePessoas'
+import { Aba, Abas, Cabecalho, Container, Explicacao, Subtitulo, Titulo } from './styles'
 
-type AbaAtiva = 'amigos' | 'seguindo' | 'seguidores'
+type AbaAtiva = 'amigos' | 'seguidores' | 'seguindo'
 
 /**
- * A minha rede, na aba do perfil (web#375, api#387).
+ * Amigos — e, com eles, quem te segue e quem você segue (web#375, api#387).
  *
- * ## Por que os amigos moram aqui, e não na página de terceiro
+ * ## O nome
  *
- * `GET /users/me/friends` só responde sobre quem está logado. Não é limitação
- * de implementação: a amizade é derivada do follow mútuo, e publicá-la de
- * terceiros exporia uma interseção que nenhum dos dois lados pediu para
- * mostrar. Então a única tela onde ela cabe é a de "eu".
+ * Chamava-se "Minha Rede", e ninguém sabia o que era. O produto tem uma palavra
+ * própria para o follow mútuo — **amigo** —, e ela não é enfeite: é o nome de
+ * uma regra de entrada que o organizador escolhe ("Meus amigos"), e a recusa da
+ * api fala nela. Um menu que dissesse outra coisa daria dois nomes para o mesmo
+ * conceito, e um dos dois envelheceria.
  *
- * ## A explicação fica na tela, e não só no código
+ * ## As abas seguem o perfil do Instagram
  *
- * Amizade sem pedido nem aceite é diferente do que as pessoas esperam de um
- * app, e o preço aparece sozinho: alguém deixa de seguir e a amizade some sem
- * aviso. Escrever isso onde a lista está é mais barato que responder à dúvida
- * depois — e é a mesma frase que o portão usa quando recusa por `MUTUAL_FOLLOW`.
+ * **Seguidores antes de Seguindo**, com o contador junto do rótulo. É a ordem
+ * que as pessoas já leem em outro lugar, e inverter obrigaria a conferir qual é
+ * qual toda vez.
+ *
+ * Amigos vem primeiro porque é a única das três que só existe aqui: seguidores
+ * e seguindo de qualquer pessoa também aparecem na página dela.
+ *
+ * ## Por que a amizade não tem convite
+ *
+ * A explicação fica na tela, e não só no código: amizade sem pedido nem aceite
+ * é diferente do que as pessoas esperam, e o preço aparece sozinho — alguém
+ * deixa de seguir e a amizade some sem aviso. Escrever isso onde a lista está é
+ * mais barato que responder à dúvida depois.
  */
-export function MinhaRede() {
+export default function Amigos() {
   const { user } = useAuth()
   const [aba, setAba] = useState<AbaAtiva>('amigos')
   const eu = user?.id
@@ -60,7 +70,15 @@ export function MinhaRede() {
   }
 
   return (
-    <div>
+    <Container>
+      <Cabecalho>
+        <Titulo>Amigos</Titulo>
+        <Subtitulo>
+          Amigo é quem você segue e que segue você de volta. Aqui também estão quem te
+          segue e quem você segue.
+        </Subtitulo>
+      </Cabecalho>
+
       <Abas role="tablist">
         <Aba
           type="button"
@@ -74,20 +92,20 @@ export function MinhaRede() {
         <Aba
           type="button"
           role="tab"
-          aria-selected={aba === 'seguindo'}
-          $ativa={aba === 'seguindo'}
-          onClick={() => setAba('seguindo')}
-        >
-          {seguindo.data?.length ?? 0} seguindo
-        </Aba>
-        <Aba
-          type="button"
-          role="tab"
           aria-selected={aba === 'seguidores'}
           $ativa={aba === 'seguidores'}
           onClick={() => setAba('seguidores')}
         >
           {seguidores.data?.length ?? 0} seguidores
+        </Aba>
+        <Aba
+          type="button"
+          role="tab"
+          aria-selected={aba === 'seguindo'}
+          $ativa={aba === 'seguindo'}
+          onClick={() => setAba('seguindo')}
+        >
+          {seguindo.data?.length ?? 0} seguindo
         </Aba>
       </Abas>
 
@@ -104,6 +122,6 @@ export function MinhaRede() {
         erro={atual.isError}
         vazio={vazios[aba]}
       />
-    </div>
+    </Container>
   )
 }

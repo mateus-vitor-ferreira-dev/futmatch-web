@@ -1,14 +1,14 @@
 /**
- * A rede como página, e no menu (web#375, api#387).
+ * Amigos, no menu e com as abas do Instagram (web#375, api#387).
  *
- * O teste que carrega o arquivo é o do **item no menu lateral**. A rede nasceu
+ * O teste que carrega o arquivo é o do **item no menu lateral**. A tela nasceu
  * como aba dentro de `/perfil`, e a primeira pessoa que foi olhar as telas
  * novas não a encontrou: o caminho existia e ninguém adivinharia. Perfil é onde
- * se configura a conta; rede é onde se usa o produto.
+ * se configura a conta; amigos é onde se usa o produto.
  *
- * O teste olha o `NAV_ITEMS` do layout porque é ele que decide o que aparece —
- * afirmar sobre a página montada não pegaria o dia em que o item sumisse do
- * menu.
+ * O segundo é o da **ordem das abas**. Seguidores antes de Seguindo é a ordem
+ * do perfil do Instagram, e inverter obriga a conferir qual é qual toda vez —
+ * o par é fácil de trocar sem ninguém notar na revisão.
  */
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { screen } from '@testing-library/react'
@@ -16,7 +16,7 @@ import { renderWithProviders } from '../../test/render'
 import { followsService } from '../../services/follows'
 import { arvoreDeRotas } from '../../routes/arvore'
 import MainLayout from '../../components/MainLayout'
-import Rede from './index'
+import Amigos from './index'
 
 vi.mock('../../services/follows')
 
@@ -36,31 +36,44 @@ beforeEach(() => {
   servico.seguidores.mockResolvedValue([])
 })
 
-describe('Rede', () => {
+describe('Amigos', () => {
   it('está no menu lateral do jogador — foi por não estar que ninguém a achou', () => {
     renderWithProviders(<MainLayout />, { route: '/home' })
 
-    const item = screen.getByRole('link', { name: /minha rede/i })
-    expect(item).toHaveAttribute('href', '/rede')
+    const item = screen.getByRole('link', { name: /^amigos$/i })
+    expect(item).toHaveAttribute('href', '/amigos')
   })
 
-  it('tem rota própria em /rede', () => {
+  it('não repete o ícone de Meus Times', () => {
+    renderWithProviders(<MainLayout />, { route: '/home' })
+
+    // Os dois eram silhuetas de duas pessoas — `Users` e `UsersRound` —, e no
+    // tamanho do menu ninguém os distinguia. O `lucide` carimba a classe.
+    const times = screen.getByRole('link', { name: /meus times/i }).querySelector('svg')
+    const amigos = screen.getByRole('link', { name: /^amigos$/i }).querySelector('svg')
+
+    expect(times?.getAttribute('class')).not.toBe(amigos?.getAttribute('class'))
+  })
+
+  it('tem rota própria em /amigos', () => {
     // O `arvoreDeRotas` é a fonte de verdade sobre o que o app registra —
     // é o mesmo que o `numeros-do-readme` percorre.
     const marcacao = JSON.stringify(arvoreDeRotas)
-    expect(marcacao).toContain('/rede')
+    expect(marcacao).toContain('/amigos')
   })
 
   it('abre nas três listas, com os amigos primeiro', async () => {
-    renderWithProviders(<Rede />)
+    renderWithProviders(<Amigos />)
 
-    expect(await screen.findByRole('heading', { name: 'Minha Rede' })).toBeInTheDocument()
+    expect(await screen.findByRole('heading', { name: 'Amigos' })).toBeInTheDocument()
 
     const abas = await screen.findAllByRole('tab')
+    // Seguidores antes de Seguindo, como no perfil do Instagram. Amigos
+    // primeiro porque é a única das três que só existe aqui.
     expect(abas.map((a) => a.textContent)).toEqual([
       '0 amigos',
-      '0 seguindo',
       '0 seguidores',
+      '0 seguindo',
     ])
     // Amigos é a primeira porque é a lista que só existe aqui: seguidores e
     // seguindo de qualquer pessoa também aparecem na página dela.
@@ -68,7 +81,7 @@ describe('Rede', () => {
   })
 
   it('explica que amizade não tem convite, na aba em que isso importa', async () => {
-    renderWithProviders(<Rede />)
+    renderWithProviders(<Amigos />)
 
     expect(await screen.findByText(/Ninguém aceita nada/)).toBeInTheDocument()
   })
