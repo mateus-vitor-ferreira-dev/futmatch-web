@@ -1,7 +1,10 @@
+import { useState } from 'react'
+import { UserPlus } from 'lucide-react'
 import { BotaoSeguir } from '../BotaoSeguir'
+import { ChamarParaJogar } from '../ChamarParaJogar'
 import { Skeleton } from '../Skeleton'
 import type { PessoaDaRede } from '../../types/api'
-import { Erro, Lista, MiniAvatar, NomeDaPessoa, Pessoa, Vazio } from './styles'
+import { BotaoChamar, Erro, Lista, MiniAvatar, NomeDaPessoa, Pessoa, Vazio } from './styles'
 
 interface Props {
   pessoas: PessoaDaRede[]
@@ -28,8 +31,23 @@ const iniciais = (nome: string) => nome.trim().charAt(0).toUpperCase()
  *
  * O botão some sozinho na própria linha de quem está logado — ele não aparece
  * para si mesmo —, então a lista não precisa filtrar nada.
+ *
+ * ## E o botão de chamar para jogar (#380)
+ *
+ * A lista mostrava seis amigos e a única ação era **perder um**: "Seguindo",
+ * cujo toque desfaz o vínculo. Faltava o caminho para o que a pessoa foi ali
+ * fazer.
+ *
+ * **Ele aparece em todas as três abas**, e não só em Amigos. Era uma decisão
+ * em aberto na issue, e o argumento que decide é o dela mesma: *chamar alguém
+ * para jogar não devia exigir amizade*. Some só de quem já seguiu — o convite
+ * é um link, e link não pede reciprocidade para funcionar.
  */
 export function ListaDePessoas({ pessoas, carregando, erro, vazio }: Props) {
+  // Quem está sendo chamado. Um por vez: o modal é único, e guardar a pessoa
+  // (e não um booleano) é o que deixa o título dizer o nome dela.
+  const [chamando, setChamando] = useState<PessoaDaRede | null>(null)
+
   if (carregando) {
     return (
       <Lista aria-busy>
@@ -44,16 +62,33 @@ export function ListaDePessoas({ pessoas, carregando, erro, vazio }: Props) {
   if (pessoas.length === 0) return <Vazio>{vazio}</Vazio>
 
   return (
-    <Lista>
-      {pessoas.map((p) => (
+    // Fragmento, e não o modal dentro da `<ul>`: só `<li>` é filho válido de
+    // lista, e um `<div>` ali dentro é HTML inválido que o leitor de tela lê
+    // como item fantasma.
+    <>
+      <Lista>
+        {pessoas.map((p) => (
         <Pessoa key={p.id}>
           <MiniAvatar aria-hidden>
             {p.avatarUrl ? <img src={p.avatarUrl} alt="" /> : iniciais(p.name)}
           </MiniAvatar>
           <NomeDaPessoa to={`/jogador/${p.id}`}>{p.name}</NomeDaPessoa>
+          <BotaoChamar
+            type="button"
+            onClick={() => setChamando(p)}
+            aria-label={`Chamar ${p.name} para jogar`}
+          >
+            <UserPlus size={14} aria-hidden />
+            Chamar para jogar
+          </BotaoChamar>
           <BotaoSeguir userId={p.id} nome={p.name} />
         </Pessoa>
-      ))}
-    </Lista>
+        ))}
+      </Lista>
+
+      {chamando && (
+        <ChamarParaJogar nome={chamando.name} onFechar={() => setChamando(null)} />
+      )}
+    </>
   )
 }
