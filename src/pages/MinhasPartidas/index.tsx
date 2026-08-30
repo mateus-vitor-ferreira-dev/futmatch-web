@@ -26,9 +26,36 @@ import { MarcaDeVisibilidade } from '../../components/MarcaDeVisibilidade'
 import { teamsService } from '../../services/teams'
 import { SortearBtn } from '../../components/SorteioDeTimes/styles'
 import {
-  Container, PageHeader, CreateButton, Tabs, Tab, PixBox,
+  Container, PageHeader, CreateButton, Tabs, Tab, PixBox, EmptyState,
   ModalOverlay, ModalContent, Form, ButtonGroup,
 } from './styles'
+
+/**
+ * O que cada aba diz quando não há nada, e para onde ela manda (#379).
+ *
+ * **Os dois destinos são diferentes de propósito.** Quem não está em partida
+ * nenhuma quer **achar** uma; quem nunca criou quer **abrir** uma. Mandar os
+ * dois para o mesmo lugar desperdiçaria metade do estado vazio.
+ *
+ * O parágrafo do meio não é enfeite — é ele que separa um vazio que **convida**
+ * de um que só **informa**, e é o que o `/times` já faz.
+ */
+const VAZIO_POR_ABA = {
+  participating: {
+    titulo: 'Você não está em nenhuma partida',
+    texto: 'Partida é onde o Só+1 acontece. Procure uma perto de você, entre, e o seu histórico começa no primeiro jogo.',
+    botao: 'Quero Jogar',
+    destino: '/quero-jogar',
+  },
+  created: {
+    titulo: 'Você nunca criou nenhuma partida',
+    texto: 'Criar é escolher a quadra, o horário e quantas vagas — o resto é a galera preenchendo. Você fica com o controle de quem entra.',
+    botao: 'Criar Partida',
+    destino: '/criar-partida',
+  },
+} as const
+
+type AbaDePartidas = keyof typeof VAZIO_POR_ABA
 
 const STATUS_LABELS: Record<string, string> = {
   WAITING:   'Aguardando',
@@ -50,7 +77,9 @@ export default function MinhasPartidas() {
   const navigate = useNavigate()
   const queryClient = useQueryClient()
   const [searchParams, setSearchParams] = useSearchParams()
-  const [activeTab, setActiveTab] = useState('participating')
+  // Tipada pelas chaves do `VAZIO_POR_ABA`: as duas abas e o texto de vazio de
+  // cada uma passam a ser a mesma lista, e uma aba nova sem vazio não compila.
+  const [activeTab, setActiveTab] = useState<AbaDePartidas>('participating')
   // Modal criar partida — inicializa a partir da URL para evitar flash
   const [isModalOpen, setIsModalOpen] = useState(() => searchParams.get('action') === 'criar')
 
@@ -201,6 +230,8 @@ export default function MinhasPartidas() {
     }
   }
 
+  const vazioDaAba = VAZIO_POR_ABA[activeTab]
+
   return (
     <>
       <Container>
@@ -229,7 +260,44 @@ export default function MinhasPartidas() {
           </Tab>
         </Tabs>
 
-        {loading ? <SkeletonCard count={3} /> : (
+        {/*
+          Três estados, e não dois: carregando, vazio e lista.
+
+          O vazio só entra **depois que a resposta chegou** — enquanto carrega,
+          continua o esqueleto. Um vazio que aparecesse durante o carregamento
+          diria "você não está em nenhuma partida" para quem tem doze.
+
+          E é **por aba**: quem participa de partidas mas nunca criou nenhuma vê
+          a lista numa e o vazio na outra. Um estado só, no nível da página,
+          esconderia a lista que existe.
+        */}
+        {loading ? <SkeletonCard count={3} /> : events.length === 0 ? (
+          /*
+            Região com nome, e não uma `div` solta. São dois motivos, e o
+            segundo é o que obriga:
+
+            1. O leitor de tela anuncia o vazio como uma seção com título, em
+               vez de despejar dois parágrafos sem contexto.
+            2. O botão daqui e o do cabeçalho podem ter o **mesmo rótulo** —
+               "Criar Partida" nas duas pontas —, e sem a região quem navega por
+               botões ouve o mesmo nome duas vezes sem nada que os separe.
+          */
+          <EmptyState role="region" aria-labelledby="titulo-vazio-partidas">
+            <h2 id="titulo-vazio-partidas">{vazioDaAba.titulo}</h2>
+            <p>{vazioDaAba.texto}</p>
+            {/*
+              Outro caminho, e não um substituto do botão do cabeçalho: aquele
+              continua onde está, e este é o que faz sentido a partir do vazio
+              desta aba.
+            */}
+            <CreateButton
+              type="button"
+              onClick={() => navigate(vazioDaAba.destino)}
+            >
+              {vazioDaAba.botao}
+            </CreateButton>
+          </EmptyState>
+        ) : (
           <Grid>
             {events.map((event) => {
               const ev = ('match' in event && event.match ? event.match : event) as Partida
