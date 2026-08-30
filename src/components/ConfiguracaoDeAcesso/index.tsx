@@ -67,6 +67,17 @@ function paramsIniciais(tipo: PartidaRequirementType, times: TeamSummary[]) {
       return { badges: [] as UserBadge[] }
     case 'TEAM_MEMBER':
       return { teamId: times[0]?.id ?? '' }
+    /*
+     * Os dois de rede nascem sem nada dentro (api#387).
+     *
+     * `{}` e não `null`: o alvo é sempre quem organiza, então não há o que
+     * configurar, e o `null` do tipo significa outra coisa — requisito cujo
+     * `params` a api ainda não devolveu. Mandar `{}` é dizer "não tem campo",
+     * que é o que a api valida.
+     */
+    case 'FOLLOWS_ORGANIZER':
+    case 'MUTUAL_FOLLOW':
+      return {}
   }
 }
 

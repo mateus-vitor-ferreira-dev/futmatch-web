@@ -35,13 +35,15 @@ vi.mock('./paginas', () => {
     Tournaments: stub('Tournaments'), MinhasPartidas: stub('MinhasPartidas'),
     Historico: stub('Historico'), Avaliacoes: stub('Avaliacoes'),
     PartidaDetail: stub('PartidaDetail'), TournamentDetail: stub('TournamentDetail'),
-    Times: stub('Times'), TimeDetail: stub('TimeDetail'),
+    Times: stub('Times'), TimeDetail: stub('TimeDetail'), Jogador: stub('Jogador'),
+    Amigos: stub('Amigos'),
     AdminDashboard: stub('AdminDashboard'), AdminUsers: stub('AdminUsers'),
     AdminRequests: stub('AdminRequests'), AdminPlaces: stub('AdminPlaces'),
     OwnerDashboard: stub('OwnerDashboard'), OwnerPlans: stub('OwnerPlans'),
     OwnerPlaces: stub('OwnerPlaces'), OwnerInventory: stub('OwnerInventory'),
     OwnerEquipment: stub('OwnerEquipment'), OwnerRequests: stub('OwnerRequests'),
-    OwnerCourts: stub('OwnerCourts'),
+    OwnerCourts: stub('OwnerCourts'), OwnerProfessores: stub('OwnerProfessores'),
+    ConviteDeProfessor: stub('ConviteDeProfessor'),
   }
 })
 

@@ -10,6 +10,7 @@ import PhoneInput from '../../components/PhoneInput'
 import PasswordInput from '../../components/PasswordInput'
 import { PerfilEsportivo } from '../../components/PerfilEsportivo'
 import { EnderecoDoJogador } from '../../components/EnderecoDoJogador'
+import { VinculosDeProfessor } from '../../components/VinculosDeProfessor'
 import { useAuth } from '../../contexts/AuthContext'
 import * as usersService from '../../services/users'
 import { uploadImage } from '../../services/cloudinary'
@@ -348,6 +349,11 @@ export default function Profile() {
               pessoal como o telefone, e uma aba só para ele daria a entender
               que é uma etapa do cadastro — sendo que é opcional. */}
           <EnderecoDoJogador />
+
+          {/* Onde a pessoa dá aula (api#451). Some sozinho para quem não tem
+              vínculo — professor é papel de poucos, e um bloco vazio no perfil
+              de todo mundo anunciaria algo que ninguém alcança sozinho. */}
+          <VinculosDeProfessor />
           </>
         )}
 

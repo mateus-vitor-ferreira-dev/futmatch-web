@@ -12,9 +12,11 @@ import PlanGate from '../components/PlanGate'
 import {
   Register, ForgotPassword, ResetPassword, OwnerAccess,
   Home, Profile, QueroJogar, CriarPartida, Tournaments, MinhasPartidas,
-  Historico, Avaliacoes, PartidaDetail, TournamentDetail, Times, TimeDetail,
+  Historico, Avaliacoes, PartidaDetail, TournamentDetail, Times, TimeDetail, Jogador, Amigos,
+  ConviteDeProfessor,
   AdminDashboard, AdminUsers, AdminRequests, AdminPlaces,
   OwnerDashboard, OwnerPlans, OwnerPlaces, OwnerInventory, OwnerEquipment, OwnerRequests, OwnerCourts,
+  OwnerProfessores,
 } from './paginas'
 
 /**
@@ -42,6 +44,10 @@ export const arvoreDeRotas = (
     <Route path="/esqueci-senha"   element={<Suspense fallback={<FullPageLoader />}><PublicRoute><ForgotPassword /></PublicRoute></Suspense>} />
     <Route path="/redefinir-senha" element={<Suspense fallback={<FullPageLoader />}><PublicRoute><ResetPassword  /></PublicRoute></Suspense>} />
     <Route path="/seja-parceiro"   element={<Suspense fallback={<FullPageLoader />}><OwnerAccess /></Suspense>} />
+    {/* O convite de professor (api#451). Fora do bloco privado de propósito: o
+        `GET /place-invites/verify` é público, e quem ainda não tem conta precisa
+        ver de quem é o convite antes de decidir se vale se cadastrar. */}
+    <Route path="/convite-professor" element={<Suspense fallback={<FullPageLoader />}><ConviteDeProfessor /></Suspense>} />
 
     {/* Área do jogador — MainLayout monta uma vez e persiste entre estas rotas */}
     <Route element={<PrivateRoute><MainLayout /></PrivateRoute>}>
@@ -56,6 +62,12 @@ export const arvoreDeRotas = (
       <Route path="/avaliacoes"      element={<Avaliacoes />} />
       <Route path="/times"           element={<Times />} />
       <Route path="/times/:teamId"   element={<TimeDetail />} />
+      {/* Fica no menu, e não numa aba do perfil: perfil é onde se configura a
+          conta, e amigos é onde se usa o produto. Ver o comentário da página. */}
+      <Route path="/amigos"          element={<Amigos />} />
+      {/* A página de outra pessoa (web#375). Autenticada: seguir exige sessão,
+          e uma versão pública sem o botão seria a mesma tela sem o motivo dela. */}
+      <Route path="/jogador/:userId" element={<Jogador />} />
     </Route>
 
     {/* Painel Admin */}
@@ -81,6 +93,15 @@ export const arvoreDeRotas = (
       <Route path="plans"               element={<OwnerPlans />} />
       <Route path="places"              element={<OwnerPlaces />} />
       <Route path="places/:placeId/courts" element={<OwnerCourts />} />
+      {/* Convites de professor (api#451). Sem `PlanGate`: a api deixou esta rota
+          fora do `requireActiveSubscription` de propósito, e trancá-la aqui
+          deixaria um dono adimplente de ontem sem dar acesso a quem já dá aula
+          na quadra dele hoje.
+
+          Sem `:placeId` no caminho: a tela está no menu, e menu não carrega
+          parâmetro. O espaço vem do seletor, com `?placeId=` na URL — mesmo
+          desenho do Estoque e dos Equipamentos. */}
+      <Route path="professores"           element={<OwnerProfessores />} />
       {/* O portão fica na rota, e não só dentro da página: sem isso, chegar pela
           URL abriria a tela que o menu marca com cadeado. A API recusa de qualquer
           jeito, mas o dono veria a tela montar e as chamadas falharem uma a uma. */}

@@ -1,4 +1,5 @@
 import styled from 'styled-components'
+import { Link } from 'react-router-dom'
 
 export const Container = styled.div`
   max-width: 680px;
@@ -342,6 +343,26 @@ export const Avatar = styled.div`
     width: 100%;
     height: 100%;
     object-fit: cover;
+  }
+`
+
+/**
+ * O nome do participante como link para o perfil dele (web#375).
+ *
+ * Herda o `<span>` que estava aqui em vez de substituí-lo: o nome e o apelido
+ * continuam sendo dois elementos, e o link é o que os embrulha. Assim o alvo
+ * de toque cobre os dois — no mobile, um link só no nome deixaria o apelido
+ * como zona morta ao lado dele.
+ */
+export const ParticipantLink = styled(Link)`
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  min-width: 0;
+  text-decoration: none;
+
+  &:hover span:first-child {
+    color: ${({ theme }) => theme.colors.primaryHover};
   }
 `
 
