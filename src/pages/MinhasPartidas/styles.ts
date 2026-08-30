@@ -33,6 +33,34 @@ export const CreateButton = styled.button`
   }
 `
 
+/**
+ * O vazio de cada aba (#379).
+ *
+ * Mesmo desenho do `/times`, e de propósito: as duas telas dizem a mesma coisa
+ * ("não há nada aqui, e é daqui que se sai disso"), e um segundo visual para o
+ * mesmo estado só faria o produto parecer montado por duas pessoas que não se
+ * falaram.
+ */
+export const EmptyState = styled.div`
+  text-align: center;
+  background: ${({ theme }) => theme.colors.bgCard};
+  border: 1px dashed ${({ theme }) => theme.colors.border};
+  border-radius: ${({ theme }) => theme.radii.xl};
+  padding: ${({ theme }) => theme.spacing[8]};
+
+  h2 {
+    font-size: ${({ theme }) => theme.fontSizes.lg};
+    color: ${({ theme }) => theme.colors.textPrimary};
+    margin-bottom: ${({ theme }) => theme.spacing[2]};
+  }
+
+  p {
+    color: ${({ theme }) => theme.colors.textSecondary};
+    font-size: ${({ theme }) => theme.fontSizes.sm};
+    margin-bottom: ${({ theme }) => theme.spacing[5]};
+  }
+`
+
 export const Tabs = styled.div`
   display: flex;
   gap: ${({ theme }) => theme.spacing[6]};
