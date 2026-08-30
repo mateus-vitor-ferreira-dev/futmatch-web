@@ -11,7 +11,7 @@
  * mexe no formato de uma das rotas: a tela não dá erro, só não mostra nada.
  */
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { renderWithProviders, screen, waitFor } from '../../test/render'
+import { renderWithProviders, screen, waitFor, within } from '../../test/render'
 import { criaJogadorSorteado, criaPartida, criaSorteio, criaUsuario, envelope, erroDaApi } from '../../test/factories'
 import { marcarSessao } from '../../services/api'
 import type { Participation } from '../../types/api'
@@ -300,5 +300,112 @@ describe('MinhasPartidas — sorteio de times', () => {
     })
     // Continua no formulário do sorteio, para o organizador ajustar e tentar.
     expect(screen.getByRole('heading', { name: 'Sortear Times' })).toBeInTheDocument()
+  })
+})
+
+/**
+ * O estado vazio das duas abas (#379).
+ *
+ * Antes disto, `events` vazio produzia um `<Grid>` sem filho nenhum: só o
+ * cabeçalho, as duas abas e um vão. O usuário não tinha como distinguir "não
+ * tenho partida" de "a tela quebrou" de "ainda está carregando" — três coisas
+ * bem diferentes com a mesma aparência.
+ */
+describe('MinhasPartidas — o vazio de cada aba (#379)', () => {
+  /**
+   * O vazio é uma região com nome, e as buscas entram por ela.
+   *
+   * Não é preciosismo de teste: o botão do vazio e o do cabeçalho podem ter o
+   * mesmo rótulo ("Criar Partida"), e uma busca solta por esse nome acha os
+   * dois. Entrar pela região é o que separa "o botão que o vazio oferece" de
+   * "o botão que sempre esteve lá" — que é exatamente a distinção que a issue
+   * pede para preservar.
+   */
+  const vazio = async () => within(await screen.findByRole('region', { name: /Você/ }))
+
+  it('a aba Participando convida a achar uma partida', async () => {
+    renderWithProviders(<MinhasPartidas />)
+
+    expect(await screen.findByText('Você não está em nenhuma partida')).toBeInTheDocument()
+    expect((await vazio()).getByRole('button', { name: 'Quero Jogar' })).toBeInTheDocument()
+  })
+
+  it('a aba Criados por mim convida a abrir uma', async () => {
+    const { user } = renderWithProviders(<MinhasPartidas />)
+    await waitFor(() => expect(buscaParticipando).toHaveBeenCalled())
+
+    await user.click(screen.getByRole('button', { name: 'Criados por mim' }))
+
+    expect(await screen.findByText('Você nunca criou nenhuma partida')).toBeInTheDocument()
+    expect((await vazio()).getByRole('button', { name: 'Criar Partida' })).toBeInTheDocument()
+  })
+
+  /**
+   * Os dois destinos são diferentes de propósito: quem não está em partida
+   * nenhuma quer **achar** uma, quem nunca criou quer **abrir** uma. Este teste
+   * é o que impede alguém de "simplificar" mandando os dois para o mesmo lugar.
+   */
+  it('cada vazio leva para um lugar diferente', async () => {
+    const { user } = renderWithProviders(<MinhasPartidas />)
+
+    await user.click((await vazio()).getByRole('button', { name: 'Quero Jogar' }))
+    expect(navegar).toHaveBeenCalledWith('/quero-jogar')
+
+    await user.click(screen.getByRole('button', { name: 'Criados por mim' }))
+    await user.click((await vazio()).getByRole('button', { name: 'Criar Partida' }))
+    expect(navegar).toHaveBeenCalledWith('/criar-partida')
+  })
+
+  /**
+   * O caso misto, e o motivo de o estado ser por aba e não da página: um estado
+   * só, no nível da página, esconderia a lista que existe.
+   */
+  it('com partida numa aba e nada na outra, mostra lista numa e vazio na outra', async () => {
+    buscaParticipando.mockResolvedValue(envelope([participacao(criaPartida({ id: 'p-1' }))]))
+    buscaCriadas.mockResolvedValue(envelope([]))
+
+    const { user } = renderWithProviders(<MinhasPartidas />)
+
+    // Participando tem uma partida: nada de vazio aqui.
+    await waitFor(() => expect(buscaParticipando).toHaveBeenCalled())
+    expect(screen.queryByText('Você não está em nenhuma partida')).not.toBeInTheDocument()
+
+    await user.click(screen.getByRole('button', { name: 'Criados por mim' }))
+
+    expect(await screen.findByText('Você nunca criou nenhuma partida')).toBeInTheDocument()
+  })
+
+  /**
+   * Vazio não é carregando. Um vazio que aparecesse durante a busca diria "você
+   * não está em nenhuma partida" para quem tem doze — e apareceria a cada troca
+   * de aba, piscando.
+   */
+  it('enquanto carrega mostra o esqueleto, e não o vazio', async () => {
+    let liberar: (v: unknown) => void = () => {}
+    buscaParticipando.mockReturnValue(new Promise((resolve) => { liberar = resolve }) as never)
+
+    renderWithProviders(<MinhasPartidas />)
+
+    expect(screen.queryByText('Você não está em nenhuma partida')).not.toBeInTheDocument()
+
+    liberar(envelope([]))
+
+    // E aparece assim que a resposta chega — o vazio é o depois, não o durante.
+    expect(await screen.findByText('Você não está em nenhuma partida')).toBeInTheDocument()
+  })
+
+  /**
+   * O botão do cabeçalho é outro caminho, e não foi substituído: quem já sabe
+   * o que quer não devia precisar passar pelo vazio.
+   */
+  it('o botão Criar Partida do cabeçalho continua onde estava', async () => {
+    renderWithProviders(<MinhasPartidas />)
+    const regiao = await vazio()
+
+    // Na aba Participando o vazio oferece "Quero Jogar" — e o "Criar Partida"
+    // do cabeçalho continua na tela, fora da região do vazio. São dois caminhos
+    // que coexistem, e não um substituindo o outro.
+    expect(regiao.queryByRole('button', { name: 'Criar Partida' })).not.toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /Criar Partida/ })).toBeInTheDocument()
   })
 })
