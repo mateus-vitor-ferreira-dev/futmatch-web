@@ -11,6 +11,7 @@ import { chaves } from '../../lib/queryClient'
 import { mensagemDeErro } from '../../utils/apiError'
 import { SkeletonCard } from '../../components/Skeleton'
 import ConvitesDeTime from '../../components/ConvitesDeTime'
+import SportIcon from '../../components/SportIcon'
 import type { CourtType, TeamSummary } from '../../types/api'
 import {
   Container, PageHeader, CreateButton, Grid, TeamCard, CaptainTag,
@@ -143,7 +144,7 @@ export default function Times() {
                   )}
 
                   <div className="linha">
-                    <span aria-hidden="true">{modalidade.icon}</span>
+                    <span aria-hidden="true"><SportIcon icon={modalidade.icon} fallback={modalidade.iconFallback} /></span>
                     {modalidade.label}
                   </div>
                   <div className="linha">

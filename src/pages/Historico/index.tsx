@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { toast } from 'sonner'
 import { SkeletonList } from '../../components/Skeleton'
 import { getSportMeta } from '../../hooks/useSports'
+import SportIcon from '../../components/SportIcon'
 import { useAuth } from '../../contexts/AuthContext'
 import { BotaoSeguir } from '../../components/BotaoSeguir'
 import { playerService } from '../../services/playerService'
@@ -153,11 +154,11 @@ export default function Historico() {
             // opcional (o include varia por consulta) — daí a guarda.
             const ev = event.match
             if (!ev) return null
-            const sport = ev.court ? getSportMeta(ev.court.type) : { icon: '⚽', label: '—' }
+            const sport = ev.court ? getSportMeta(ev.court.type) : { icon: 'society', iconFallback: '⚽', label: '—' }
             return (
               <HistoryCard key={ev.id}>
                 <div className="info">
-                  <h4>{ev.court?.place?.name} — {sport.icon} {sport.label}</h4>
+                  <h4>{ev.court?.place?.name} — <SportIcon icon={sport.icon} fallback={sport.iconFallback} /> {sport.label}</h4>
                   <p>
                     {new Date(ev.date).toLocaleDateString('pt-BR')} às{' '}
                     {new Date(ev.date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}

@@ -7,6 +7,7 @@ import DivisionRegistration from '../../components/DivisionRegistration'
 import TournamentRegistrations from '../../components/TournamentRegistrations'
 import { getTournament, getTournamentDivisions } from '../../services/tournaments'
 import { getSportMeta } from '../../hooks/useSports'
+import SportGlyph from '../../components/SportIcon'
 import type { Tournament, TournamentDivision } from '../../types/api'
 import {
   Container, BackBtn, Header, SportIcon, HeaderInfo,
@@ -85,7 +86,7 @@ export default function TournamentDetail() {
         </BackBtn>
 
         <Header>
-          <SportIcon>{sport.icon}</SportIcon>
+          <SportIcon><SportGlyph icon={sport.icon} fallback={sport.iconFallback} /></SportIcon>
           <HeaderInfo>
             <TournamentName>{tournament.name}</TournamentName>
             <PlaceName>

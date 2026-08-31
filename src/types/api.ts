@@ -916,10 +916,12 @@ export interface Sport {
     id: CourtType;
     label: string;
     icon: string;
+    iconFallback: string | null;
     description: string;
     group: string;
     groupLabel: string;
     groupIcon: string;
+    groupIconFallback: string | null;
     groupOrder: number;
 }
 

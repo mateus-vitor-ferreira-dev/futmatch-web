@@ -4,6 +4,7 @@ import { toast } from 'sonner'
 import { Pencil, Plus, Trash2 } from 'lucide-react'
 import * as usersService from '../../services/users'
 import { useSports, getSportMeta } from '../../hooks/useSports'
+import SportIcon from '../SportIcon'
 import { chaves } from '../../lib/queryClient'
 import { mensagemDeErro } from '../../utils/apiError'
 import { NIVEIS, posicoesDe, rotuloDoNivel } from '../../constants/sportPositions'
@@ -152,7 +153,7 @@ export function PerfilEsportivo() {
             const meta = getSportMeta(perfil.sport)
             return (
               <Item key={perfil.sport}>
-                <span className="icone" aria-hidden="true">{meta.icon}</span>
+                <span className="icone" aria-hidden="true"><SportIcon icon={meta.icon} fallback={meta.iconFallback} /></span>
                 <span className="texto">
                   <span className="modalidade">{meta.label}</span>
                   <span className="detalhe">
@@ -205,7 +206,7 @@ export function PerfilEsportivo() {
               >
                 {disponiveis.map(s => (
                   <option key={s.id} value={s.id}>
-                    {s.icon} {s.label}
+                    <SportIcon icon={s.icon} fallback={s.iconFallback} /> {s.label}
                   </option>
                 ))}
               </select>

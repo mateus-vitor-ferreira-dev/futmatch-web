@@ -13,6 +13,7 @@ export interface SportTab {
   id: string
   label: string
   icon: string
+  iconFallback: string | null
   order: number
   types: CourtType[]
 }
@@ -23,23 +24,23 @@ export interface SportTab {
  * tabs aparecem trocados em relação ao comportamento normal.
  */
 const FALLBACK_SPORTS: SportOption[] = [
-  { id: 'SOCIETY',      label: 'Society',         icon: '⚽', group: 'FUTEBOL',      groupLabel: 'Futebol',      groupIcon: '⚽', groupOrder: 1 },
-  { id: 'CAMPO',        label: 'Futebol de Campo', icon: '🏟️', group: 'FUTEBOL',      groupLabel: 'Futebol',      groupIcon: '⚽', groupOrder: 1 },
-  { id: 'FUTSAL',       label: 'Futsal',           icon: '👟', group: 'FUTEBOL',      groupLabel: 'Futebol',      groupIcon: '⚽', groupOrder: 1 },
-  { id: 'AREIA',        label: 'Futevôlei',        icon: '🟡', group: 'FUTEVOLEI',    groupLabel: 'Futevôlei',    groupIcon: '🟡', groupOrder: 2 },
-  { id: 'VOLEI',        label: 'Vôlei',            icon: '🏐', group: 'VOLEI',        groupLabel: 'Vôlei',        groupIcon: '🏐', groupOrder: 3 },
-  { id: 'VOLEI_AREIA',  label: 'Vôlei de Areia',   icon: '🏖️', group: 'VOLEI',        groupLabel: 'Vôlei',        groupIcon: '🏐', groupOrder: 3 },
-  { id: 'HANDBALL',     label: 'Handebol',         icon: '🤾', group: 'HANDBALL',     groupLabel: 'Handebol',     groupIcon: '🤾', groupOrder: 4 },
-  { id: 'PETECA',       label: 'Peteca',           icon: '🏸', group: 'PETECA',       groupLabel: 'Peteca',       groupIcon: '🏸', groupOrder: 5 },
-  { id: 'BEACH_TENNIS', label: 'Beach Tennis',     icon: '🎾', group: 'BEACH_TENNIS', groupLabel: 'Beach Tennis', groupIcon: '🎾', groupOrder: 6 },
-  { id: 'BASQUETE',     label: 'Basquete',         icon: '🏀', group: 'BASQUETE',     groupLabel: 'Basquete',     groupIcon: '🏀', groupOrder: 7 },
-  { id: 'POKER',        label: 'Poker',            icon: '🃏', group: 'POKER',        groupLabel: 'Poker',        groupIcon: '🃏', groupOrder: 8 },
+  { id: 'SOCIETY',      label: 'Society',         icon: 'society',        iconFallback: '⚽', group: 'FUTEBOL',      groupLabel: 'Futebol',      groupIcon: 'futebol',      groupIconFallback: '⚽', groupOrder: 1 },
+  { id: 'CAMPO',        label: 'Futebol de Campo', icon: 'futebol-campo',  iconFallback: '🏟️', group: 'FUTEBOL',      groupLabel: 'Futebol',      groupIcon: 'futebol',      groupIconFallback: '⚽', groupOrder: 1 },
+  { id: 'FUTSAL',       label: 'Futsal',           icon: 'futsal',         iconFallback: '👟', group: 'FUTEBOL',      groupLabel: 'Futebol',      groupIcon: 'futebol',      groupIconFallback: '⚽', groupOrder: 1 },
+  { id: 'AREIA',        label: 'Futevôlei',        icon: 'futevolei',      iconFallback: null, group: 'FUTEVOLEI',    groupLabel: 'Futevôlei',    groupIcon: 'futevolei',    groupIconFallback: null, groupOrder: 2 },
+  { id: 'VOLEI',        label: 'Vôlei',            icon: 'volei',          iconFallback: '🏐', group: 'VOLEI',        groupLabel: 'Vôlei',        groupIcon: 'volei',        groupIconFallback: '🏐', groupOrder: 3 },
+  { id: 'VOLEI_AREIA',  label: 'Vôlei de Areia',   icon: 'volei-areia',    iconFallback: null, group: 'VOLEI',        groupLabel: 'Vôlei',        groupIcon: 'volei',        groupIconFallback: '🏐', groupOrder: 3 },
+  { id: 'HANDBALL',     label: 'Handebol',         icon: 'handebol',       iconFallback: '🤾', group: 'HANDBALL',     groupLabel: 'Handebol',     groupIcon: 'handebol',     groupIconFallback: '🤾', groupOrder: 4 },
+  { id: 'PETECA',       label: 'Peteca',           icon: 'peteca',         iconFallback: null, group: 'PETECA',       groupLabel: 'Peteca',       groupIcon: 'peteca',       groupIconFallback: null, groupOrder: 5 },
+  { id: 'BEACH_TENNIS', label: 'Beach Tennis',     icon: 'beach-tennis',   iconFallback: '🎾', group: 'BEACH_TENNIS', groupLabel: 'Beach Tennis', groupIcon: 'beach-tennis', groupIconFallback: '🎾', groupOrder: 6 },
+  { id: 'BASQUETE',     label: 'Basquete',         icon: 'basquete',       iconFallback: '🏀', group: 'BASQUETE',     groupLabel: 'Basquete',     groupIcon: 'basquete',     groupIconFallback: '🏀', groupOrder: 7 },
   // 🥎 no tênis, e não a raquete do Beach Tennis: o cartão de campeonato mostra
   // só o ícone, e com o mesmo emoji nos dois a modalidade deixava de ser legível.
   // Precisa continuar igual ao `src/constants/sports.ts` da API — este fallback
   // só entra quando o `GET /sports` não responde, e é aí que a divergência
   // apareceria como "o ícone mudou sozinho".
-  { id: 'TENIS',        label: 'Tênis',            icon: '🥎', group: 'TENIS',        groupLabel: 'Tênis',        groupIcon: '🥎', groupOrder: 9 },
+  { id: 'TENIS',        label: 'Tênis',            icon: 'tenis',          iconFallback: '🥎', group: 'TENIS',        groupLabel: 'Tênis',        groupIcon: 'tenis',        groupIconFallback: '🥎', groupOrder: 8 },
+  { id: 'POKER',        label: 'Poker',            icon: 'poker',          iconFallback: '🃏', group: 'POKER',        groupLabel: 'Poker',        groupIcon: 'poker',        groupIconFallback: '🃏', groupOrder: 9 },
 ]
 
 function deriveTabs(sports: SportOption[]): SportTab[] {
@@ -50,6 +51,7 @@ function deriveTabs(sports: SportOption[]): SportTab[] {
         id:    sport.group,
         label: sport.groupLabel,
         icon:  sport.groupIcon,
+        iconFallback: sport.groupIconFallback,
         order: sport.groupOrder ?? 99,
         types: [],
       })
@@ -64,8 +66,8 @@ const SPORT_MAP: Partial<Record<CourtType, SportOption>> = Object.fromEntries(
 )
 
 /** Retorna { label, icon } para um CourtType, sem precisar do hook. */
-export function getSportMeta(type: CourtType): { label: string; icon: string } {
-  return SPORT_MAP[type] ?? { label: type, icon: '⚽' }
+export function getSportMeta(type: CourtType): Pick<SportOption, 'label' | 'icon' | 'iconFallback'> {
+  return SPORT_MAP[type] ?? { label: type, icon: 'society', iconFallback: '⚽' }
 }
 
 /**

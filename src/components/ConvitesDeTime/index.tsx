@@ -6,6 +6,7 @@ import { teamsService } from '../../services/teams'
 import { chaves } from '../../lib/queryClient'
 import { mensagemDeErro } from '../../utils/apiError'
 import { getSportMeta } from '../../hooks/useSports'
+import SportIcon from '../SportIcon'
 import type { TeamInvite } from '../../types/api'
 import { Bloco, Lista, Convite, Acoes, Aceitar, Recusar, Vencido } from './styles'
 
@@ -90,7 +91,7 @@ export default function ConvitesDeTime() {
                   {convite.invitedBy.name} chamou você para o {convite.team.name}
                 </div>
                 <div className="detalhe">
-                  <span aria-hidden="true">{modalidade.icon}</span> {modalidade.label} · {convite.team.city}
+                  <span aria-hidden="true"><SportIcon icon={modalidade.icon} fallback={modalidade.iconFallback} /></span> {modalidade.label} · {convite.team.city}
                 </div>
               </div>
 

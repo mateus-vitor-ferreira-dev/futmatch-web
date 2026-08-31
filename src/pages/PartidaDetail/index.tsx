@@ -5,6 +5,7 @@ import { ArrowLeft, Calendar, Clock, MapPin, Users, DollarSign, Copy, CheckCircl
 import { useAuth } from '../../contexts/AuthContext'
 import { playerService, MAX_MOTIVO_SAIDA } from '../../services/playerService'
 import { getSportMeta } from '../../hooks/useSports'
+import SportGlyph from '../../components/SportIcon'
 import type { CourtType, EntryVerdict, Partida, PartidaStatus } from '../../types/api'
 import { mensagemDeErro, codigoDeErro } from '../../utils/apiError'
 import RequisitosDaPartida from '../../components/RequisitosDaPartida'
@@ -330,7 +331,7 @@ export default function PartidaDetail() {
 
         <Card>
           <CardHeader>
-            <SportIcon>{sport.icon}</SportIcon>
+            <SportIcon><SportGlyph icon={sport.icon} fallback={sport.iconFallback} /></SportIcon>
             <HeaderInfo>
               <CourtName>{event.court?.name || 'Quadra'}</CourtName>
               <PlaceName>{event.court?.place?.name}{event.court?.place?.city ? ` · ${event.court.place.city}` : ''}</PlaceName>
@@ -391,7 +392,7 @@ export default function PartidaDetail() {
             {/* Barra de progresso */}
             <ProgressSection>
               <ProgressLabel>
-                <ProgressText>{sport.icon} {sport.label}</ProgressText>
+                <ProgressText><SportGlyph icon={sport.icon} fallback={sport.iconFallback} /> {sport.label}</ProgressText>
                 <VagasText $isFull={isFull}>
                   {isFull ? 'Lotado' : `${vagas} vaga${vagas !== 1 ? 's' : ''}`}
                 </VagasText>

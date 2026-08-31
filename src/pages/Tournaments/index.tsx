@@ -8,6 +8,8 @@ import * as yup from 'yup'
 import { toast } from 'sonner'
 import { useAuth } from '../../contexts/AuthContext'
 import { useSports } from '../../hooks/useSports'
+import SportGlyph from '../../components/SportIcon'
+import { sportTextLabel } from '../../utils/sportText'
 import TournamentBracket from '../../components/TournamentBracket'
 import { useTournamentFormats } from '../../hooks/useTournamentFormats'
 import { listTournaments, createTournament, createDivision } from '../../services/tournaments'
@@ -292,11 +294,11 @@ export default function Tournaments() {
    * teria de fatiar a string de volta para separá-los.
    */
   const sportMeta = useMemo(
-    () => Object.fromEntries(sports.map(s => [s.id, { icon: s.icon, label: s.label }])),
+    () => Object.fromEntries(sports.map(s => [s.id, s])),
     [sports]
   )
   const sportOptions = useMemo(() =>
-    sports.map(s => ({ value: s.id, label: `${s.icon} ${s.label}` })),
+    sports.map(s => ({ value: s.id, label: sportTextLabel(s) })),
     [sports]
   )
 
@@ -476,13 +478,13 @@ export default function Tournaments() {
               // Modalidade que a API devolve e o catálogo não conhece cai no
               // próprio código, que é feio mas legível — melhor que um ícone
               // genérico dizendo a modalidade errada.
-              const modalidade = sportMeta[t.sportType] ?? { icon: '🏆', label: t.sportType }
+              const modalidade = sportMeta[t.sportType] ?? { icon: 'desconhecida', iconFallback: '🏆', label: t.sportType }
               return (
                 <TournamentCard key={t.id} onClick={() => navigate(`/torneios/${t.id}`)}>
                   <CardTop>
                     <TournamentName>
                       <SportIcon role="img" title={modalidade.label} aria-label={modalidade.label}>
-                        {modalidade.icon}
+                        <SportGlyph icon={modalidade.icon} fallback={modalidade.iconFallback} />
                       </SportIcon>
                       {t.name}
                     </TournamentName>
