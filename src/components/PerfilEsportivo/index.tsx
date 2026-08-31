@@ -7,6 +7,7 @@ import { useSports, getSportMeta } from '../../hooks/useSports'
 import SportIcon from '../SportIcon'
 import { chaves } from '../../lib/queryClient'
 import { mensagemDeErro } from '../../utils/apiError'
+import { sportTextLabel } from '../../utils/sportText'
 import { NIVEIS, posicoesDe, rotuloDoNivel } from '../../constants/sportPositions'
 import type { CompetitionLevel, CourtType, SportProfile } from '../../types/api'
 import {
@@ -206,7 +207,7 @@ export function PerfilEsportivo() {
               >
                 {disponiveis.map(s => (
                   <option key={s.id} value={s.id}>
-                    <SportIcon icon={s.icon} fallback={s.iconFallback} /> {s.label}
+                    {sportTextLabel(s)}
                   </option>
                 ))}
               </select>
