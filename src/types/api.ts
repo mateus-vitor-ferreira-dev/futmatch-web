@@ -1256,3 +1256,48 @@ export interface TurmaInput {
     professorId?: string | null;
     ativa?: boolean;
 }
+
+/**
+ * O aluno numa turma (api#474).
+ *
+ * ## Sem conta é o caso normal, não a exceção
+ *
+ * `userId` é opcional de propósito, e a decisão é o que torna o produto
+ * adotável: *"uma academia com trinta alunos não instala o app em trinta
+ * celulares no dia um"*. A tela trata quem não tem conta como qualquer outro —
+ * sem aviso, sem alerta, sem "cadastro pendente".
+ *
+ * ## O `nome` é o da matrícula, não o da conta
+ *
+ * Quando existe conta, `user.name` pode divergir: o dono escreveu "Joãozinho" e
+ * a conta diz "João Pedro Silva". Quem manda na lista e na chamada é o `nome`
+ * da matrícula — é por ele que o professor chama.
+ *
+ * ## `contato` é texto livre
+ *
+ * *"Telefone ou e-mail: é o que o dono já tem na agenda dele."* Não é validado
+ * como telefone nem normalizado para E.164 — aceita "mãe do João — 35 9…".
+ *
+ * ## `saiuEm` nulo é matrícula ativa
+ *
+ * Quem saiu não ocupa vaga e continua no histórico. Sair é carimbar a data, e
+ * nunca apagar a linha: a mensalidade aponta para a matrícula, e apagar levaria
+ * junto o registro de quem pagou março.
+ */
+export interface Matricula {
+    id: string;
+    turmaId: string;
+    nome: string;
+    contato: string;
+    userId: string | null;
+    entrouEm: IsoDate;
+    /** `null` = está na turma. Preenchido = saiu, e continua no histórico. */
+    saiuEm: IsoDate | null;
+    user: { id: string; name: string } | null;
+}
+
+/** O corpo de matricular e de corrigir. A tela nunca manda `userId`. */
+export interface MatriculaInput {
+    nome: string;
+    contato: string;
+}
