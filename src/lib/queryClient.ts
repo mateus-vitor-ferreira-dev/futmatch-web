@@ -72,6 +72,15 @@ export const chaves = {
    */
   convitesDeProfessor: (placeId: string) => ['espacos', placeId, 'convites-de-professor'] as const,
   /**
+   * As turmas de um espaço (api#472), e quem pode dar aula nelas (api#461).
+   *
+   * Por espaço, pelo mesmo motivo dos convites: o dono com dois
+   * estabelecimentos tem duas listas que não se misturam.
+   */
+  turmas: (placeId: string) => ['espacos', placeId, 'turmas'] as const,
+  membrosDoEspaco: (placeId: string) => ['espacos', placeId, 'membros'] as const,
+  quadrasDoEspaco: (placeId: string) => ['espacos', placeId, 'quadras'] as const,
+  /**
    * A agenda entra no cache por quadra **e por dia** (api#443).
    *
    * O dia faz parte da chave porque a resposta muda com ele: quem olhou terça e

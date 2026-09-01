@@ -1176,3 +1176,83 @@ export interface AgendaDaQuadra {
     ate: string;
     ocupacoes: OcupacaoDaQuadra[];
 }
+
+/**
+ * Um vínculo pessoa↔espaço (api#461).
+ *
+ * O `id` é o do **vínculo**, não o da pessoa — e é ele que a turma guarda em
+ * `professorId`. Mandar o `user.id` no lugar devolve 422
+ * `PROFESSOR_NOT_IN_PLACE`, e a mensagem não explica o engano.
+ *
+ * Sem e-mail, de propósito: a api o omite porque seria dado de contato de
+ * terceiro que o dono nunca informou.
+ */
+export interface MembroDoEspaco {
+    id: string;
+    papel: "PROFESSOR";
+    createdAt: IsoDate;
+    user: { id: string; name: string; avatarUrl: string | null };
+}
+
+/**
+ * A turma que o espaço vende (api#472).
+ *
+ * ## É a regra, não a aula
+ *
+ * `diaDaSemana` + `horario` descrevem **toda** terça às 19h, não uma terça
+ * específica. Quem ocupa a quadra é a `Aula`, cada ocorrência gerada dela.
+ *
+ * ## `diaDaSemana` é 0–6, com 0 = domingo
+ *
+ * Mesma convenção do expediente do espaço. Traduzir errado põe a turma no dia
+ * errado — erro que nenhum teste de CRUD pega e que todo dono vê.
+ *
+ * ## `valorMensalidade` vem como string
+ *
+ * É `Decimal` no banco, e o JSON o serializa como string para não perder
+ * precisão. Some com `Number()` antes de formatar.
+ */
+export interface Turma {
+    id: string;
+    courtId: string;
+    modalidade: CourtType;
+    /** 0–6, com **0 = domingo**. */
+    diaDaSemana: number;
+    /** `"HH:mm"` em 24h. */
+    horario: string;
+    duracaoMinutos: number;
+    /** O teto. Quanto dele está tomado é o `matriculasAtivas`. */
+    vagas: number;
+    valorMensalidade: string;
+    /** Id do **`PlaceMember`**, e não do `User`. Nulo é estado legítimo. */
+    professorId: string | null;
+    ativa: boolean;
+    court: { id: string; name: string };
+    professor: { id: string; user: { id: string; name: string } } | null;
+    /**
+     * Quantas vagas estão tomadas (api#489).
+     *
+     * Quem **saiu** da turma não conta: a matrícula fica no histórico e devolve
+     * a vaga. Vem sempre, e vale `0` em turma sem ninguém — nunca ausente.
+     */
+    matriculasAtivas: number;
+}
+
+/**
+ * O corpo de criar e editar turma.
+ *
+ * No `PATCH`, **`undefined` quer dizer "não mexa" e `null` quer dizer "tire"** —
+ * e isso vale só para `professorId`, que é como o dono tira o professor sem
+ * apagar a turma. Um `<select>` devolve `""`, não `null`: converter é da tela.
+ */
+export interface TurmaInput {
+    courtId: string;
+    modalidade: CourtType;
+    diaDaSemana: number;
+    horario: string;
+    duracaoMinutos: number;
+    vagas: number;
+    valorMensalidade: number;
+    professorId?: string | null;
+    ativa?: boolean;
+}
