@@ -5,6 +5,7 @@ import { Clock, MapPin, Navigation, Users } from 'lucide-react'
 import { recommendedEvents } from '../../services/events'
 import { chaves } from '../../lib/queryClient'
 import { getSportMeta } from '../../hooks/useSports'
+import SportIcon from '../SportIcon'
 import { useOrigemDeLocalizacao } from '../../hooks/useOrigemDeLocalizacao'
 import ConviteDeLocalizacao from '../ConviteDeLocalizacao'
 import type { CourtType } from '../../types/api'
@@ -123,7 +124,7 @@ export function PartidasPerto() {
               >
                 <TopoDoCartao>
                   <Local>
-                    {esporte.icon} {partida.court?.place?.name ?? 'Partida'}
+                    <SportIcon icon={esporte.icon} fallback={esporte.iconFallback} /> {partida.court?.place?.name ?? 'Partida'}
                   </Local>
                   <Distancia>
                     <Navigation size={11} aria-hidden />

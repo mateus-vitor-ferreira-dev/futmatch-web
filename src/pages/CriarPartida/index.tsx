@@ -5,6 +5,7 @@ import { useForm, useWatch } from 'react-hook-form'
 import { yupResolver } from '@hookform/resolvers/yup'
 import * as yup from 'yup'
 import { useSports } from '../../hooks/useSports'
+import SportIcon from '../../components/SportIcon'
 import { searchCourts } from '../../services/courts'
 import { createEvent } from '../../services/events'
 import { playerService } from '../../services/playerService'
@@ -312,7 +313,7 @@ export default function CriarPartida() {
             {filterSport && (
               <BreadcrumbBar>
                 <BreadcrumbTag onClick={() => { setFilterSport(''); setFilterPlace(null); setSelectedCourt(null) }}>
-                  {selectedSport?.icon} {selectedSport?.label}  ×
+                  {selectedSport && <SportIcon icon={selectedSport.icon} fallback={selectedSport.iconFallback} />} {selectedSport?.label}  ×
                 </BreadcrumbTag>
                 {filterPlace && (
                   <>
@@ -340,7 +341,7 @@ export default function CriarPartida() {
                     <SportChipsGrid>
                       {sportOptions.map(s => (
                         <SportChip key={s.id} onClick={() => setFilterSport(s.id)}>
-                          <span>{s.icon}</span>
+                          <span><SportIcon icon={s.icon} fallback={s.iconFallback} /></span>
                           {s.label}
                         </SportChip>
                       ))}

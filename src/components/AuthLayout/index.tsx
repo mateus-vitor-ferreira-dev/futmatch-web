@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo, useRef } from 'react'
 import type { ReactNode } from 'react'
 import type { CourtType } from '../../types/api'
 import { useSports } from '../../hooks/useSports'
+import SportIcon from '../SportIcon'
 import { useEstatisticas } from '../../hooks/useEstatisticas'
 import type { NumerosPublicos } from '../../services/stats'
 import {
@@ -292,7 +293,7 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
                   }}
                   onClick={() => !isActive && setActiveIdx(i)}
                 >
-                  <WheelIcon $active={isActive}>{sport.icon}</WheelIcon>
+                  <WheelIcon $active={isActive}><SportIcon icon={sport.icon} fallback={sport.iconFallback} /></WheelIcon>
                   <WheelText>
                     <WheelName $active={isActive}>{sport.label}</WheelName>
                     {/* renderizada sempre — é ela que iguala a altura dos

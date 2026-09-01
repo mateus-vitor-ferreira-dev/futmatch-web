@@ -10,6 +10,7 @@ import { ArrowLeft } from 'lucide-react'
 import { useSubscription } from '../../../hooks/useSubscription'
 import SubscriptionGate from '../../../components/SubscriptionGate'
 import { getSportMeta } from '../../../hooks/useSports'
+import SportIcon from '../../../components/SportIcon'
 import * as courtsService from '../../../services/courts'
 import * as placesService from '../../../services/places'
 import type { Court, CourtType, Place } from '../../../types/api'
@@ -196,7 +197,7 @@ export default function OwnerCourts() {
             return (
               <CourtCard key={court.id}>
                 <CourtCardHeader>
-                  <CourtIconBox>{sport.icon}</CourtIconBox>
+                  <CourtIconBox><SportIcon icon={sport.icon} fallback={sport.iconFallback} /></CourtIconBox>
                   <CourtInfo>
                     <CourtName>{court.name}</CourtName>
                     <CourtMeta>

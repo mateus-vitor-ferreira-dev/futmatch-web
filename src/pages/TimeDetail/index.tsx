@@ -9,6 +9,7 @@ import { teamsService } from '../../services/teams'
 import { chaves } from '../../lib/queryClient'
 import { mensagemDeErro, codigoDeErro } from '../../utils/apiError'
 import { Skeleton } from '../../components/Skeleton'
+import SportIcon from '../../components/SportIcon'
 import {
   SecondaryButton, CreateButton, ModalOverlay, ModalContent, Form, ButtonGroup,
 } from '../Times/styles'
@@ -194,7 +195,7 @@ export default function TimeDetail() {
       <Hero>
         <h1>{dados.name}</h1>
         <div className="meta">
-          <span><span aria-hidden="true">{modalidade.icon}</span> {modalidade.label}</span>
+          <span><span aria-hidden="true"><SportIcon icon={modalidade.icon} fallback={modalidade.iconFallback} /></span> {modalidade.label}</span>
           <span><MapPin size={14} aria-hidden="true" /> {dados.city}</span>
           <span><Crown size={14} aria-hidden="true" /> Capitão: {dados.captain.name}</span>
           <span>

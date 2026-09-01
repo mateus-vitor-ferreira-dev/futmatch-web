@@ -20,7 +20,7 @@ import { getSports } from '../services/sports'
 const buscaModalidades = vi.mocked(getSports)
 
 const MODALIDADES = [
-  { id: 'FUTSAL' as const, label: 'Futsal', icon: '👟', group: 'FUTEBOL', groupLabel: 'Futebol', groupIcon: '⚽', groupOrder: 1, description: '' },
+  { id: 'FUTSAL' as const, label: 'Futsal', icon: 'futsal', iconFallback: '👟', group: 'FUTEBOL', groupLabel: 'Futebol', groupIcon: 'futebol', groupIconFallback: '⚽', groupOrder: 1, description: '' },
 ]
 
 /**
