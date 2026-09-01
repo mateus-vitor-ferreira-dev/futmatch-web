@@ -323,6 +323,7 @@ npm run dev
 | `npm run test:watch` | Modo interativo: reexecuta só o que você mexeu. É o que você usa escrevendo teste |
 | `npm run test:coverage` | Suíte + relatório de cobertura no terminal e em `coverage/index.html` |
 | `npm run readme:check` | Confere contra a suíte os números que este README anuncia |
+| `npm run readme:fix` | Reescreve esses números — eles são gerados, não digitados |
 | `npm run primeira-tela:check` | Confere que a raiz sem sessão não carrega componente de rota autenticada |
 
 > O CI roda, nesta ordem, `lint` → `typecheck` → `test:ci` → `readme:check` → `primeira-tela:check` → `build`. Qualquer um vermelho barra o merge.

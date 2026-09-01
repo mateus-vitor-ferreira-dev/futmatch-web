@@ -41,8 +41,25 @@ jobs:
       #
       # Rotas e páginas sob demanda não passam por aqui: são conferidas dentro
       # da própria suíte, em `src/routes/numeros-do-readme.test.tsx`.
+      #
+      # Fatal só no release. Cobrar o total de testes em todo PR fazia dois PRs
+      # abertos juntos conflitarem na MESMA linha do README, e o conserto era
+      # recontar à mão. Agora o número é gerado (`npm run readme:fix`).
+      #
+      # Isto vale só para os números que saem do relatório do Vitest. Os de
+      # rotas e páginas continuam fatais em todo PR, porque moram num teste da
+      # própria suíte (`src/routes/numeros-do-readme.test.tsx`) — e teste não
+      # deve saber para qual branch o PR aponta.
       - name: Confere os números do README
-        run: npm run readme:check
+        run: |
+          if [ "${{ github.base_ref }}" = "main" ] || [ "${{ github.ref_name }}" = "main" ]; then
+            npm run readme:check
+          else
+            npm run readme:check || {
+              echo "::warning::Os números do README divergem. Rode 'npm run readme:fix' e commite — isto só reprova no release para a main."
+              exit 0
+            }
+          fi
 
       # Peso não quebra teste: um import a mais numa tela de login volta a
       # empacotar Leaflet e componente de rota autenticada no chunk da raiz, e
