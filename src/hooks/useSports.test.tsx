@@ -20,7 +20,7 @@ beforeEach(() => {
 describe('useSports', () => {
   it('usa o que a API devolveu', async () => {
     buscaModalidades.mockResolvedValue([
-      { id: 'FUTSAL', label: 'Futsal da API', icon: '👟', group: 'FUTEBOL', groupLabel: 'Futebol', groupIcon: '⚽', groupOrder: 1, description: '' },
+      { id: 'FUTSAL', label: 'Futsal da API', icon: 'futsal', iconFallback: '👟', group: 'FUTEBOL', groupLabel: 'Futebol', groupIcon: 'futebol', groupIconFallback: '⚽', groupOrder: 1, description: '' },
     ])
 
     const { result } = renderHook(() => useSports())
@@ -82,12 +82,20 @@ describe('getSportMeta', () => {
     // `toMatchObject`, e não `toEqual`: o tipo de retorno declara só
     // { label, icon }, mas em tempo de execução vem a modalidade inteira do
     // catálogo. O que importa aqui são os dois campos que a tela usa.
-    expect(getSportMeta('BEACH_TENNIS')).toMatchObject({ label: 'Beach Tennis', icon: '🎾' })
+    expect(getSportMeta('BEACH_TENNIS')).toMatchObject({
+      label: 'Beach Tennis',
+      icon: 'beach-tennis',
+      iconFallback: '🎾',
+    })
   })
 
   it('devolve o próprio código quando a modalidade é desconhecida', () => {
     // Modalidade nova na API antes de o front saber dela: mostrar o código
     // é feio, mas é melhor que renderizar `undefined` no card.
-    expect(getSportMeta('PADEL' as never)).toEqual({ label: 'PADEL', icon: '⚽' })
+    expect(getSportMeta('PADEL' as never)).toEqual({
+      label: 'PADEL',
+      icon: 'society',
+      iconFallback: '⚽',
+    })
   })
 })

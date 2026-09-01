@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { getSportMeta } from '../../hooks/useSports'
+import { sportTextLabel } from '../../utils/sportText'
 import { useForm } from 'react-hook-form'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { toast } from 'sonner'
@@ -390,7 +391,7 @@ export default function MinhasPartidas() {
                     <option value="">Selecione a quadra</option>
                     {courts.map((court: Court) => (
                       <option key={court.id} value={court.id}>
-                        {court.place?.name} - {court.name} ({getSportMeta(court.type).icon} {getSportMeta(court.type).label})
+                        {court.place?.name} - {court.name} ({sportTextLabel(getSportMeta(court.type))})
                       </option>
                     ))}
                   </select>

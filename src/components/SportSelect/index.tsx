@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from 'react'
 import type { MouseEvent } from 'react'
 import type { CourtType } from '../../types/api'
 import type { SportOption } from '../../hooks/useSports'
+import SportIcon from '../SportIcon'
 import {
   Wrapper, Trigger, Placeholder, Tag, TagRemove, ChevronIcon,
   Dropdown, Option, Checkbox, OptionIcon,
@@ -63,7 +64,7 @@ export default function SportSelect({
         ) : (
           selectedSports.map((s) => (
             <Tag key={s.id}>
-              {s.icon} {s.label}
+              <SportIcon icon={s.icon} fallback={s.iconFallback} /> {s.label}
               <TagRemove onClick={(e) => remove(e, s.id)}>×</TagRemove>
             </Tag>
           ))
@@ -80,7 +81,7 @@ export default function SportSelect({
             return (
               <Option key={s.id} $selected={checked} onClick={() => toggle(s.id)}>
                 <Checkbox $checked={checked}>{checked ? '✓' : ''}</Checkbox>
-                <OptionIcon>{s.icon}</OptionIcon>
+                <OptionIcon><SportIcon icon={s.icon} fallback={s.iconFallback} /></OptionIcon>
                 {s.label}
               </Option>
             )

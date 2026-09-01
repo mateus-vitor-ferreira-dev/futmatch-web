@@ -13,6 +13,8 @@ import { temDistancia } from '../../types/api'
 import { useSports, getSportMeta } from '../../hooks/useSports'
 import { SkeletonCard } from '../../components/Skeleton'
 import { EtiquetaDeRequisitos } from '../../components/RequisitosDaPartida'
+import SportIcon from '../../components/SportIcon'
+import { sportTextLabel } from '../../utils/sportText'
 import { mensagemDeErro } from '../../utils/apiError'
 import type { EventFilters } from '../../services/events'
 import type { CourtType, Partida } from '../../types/api'
@@ -267,7 +269,7 @@ export default function QueroJogar() {
             <SportSelectWrapper $active={selectedSport !== ''}>
               <span>
                 {selectedSport
-                  ? `${allSports.find(s => s.id === selectedSport)?.icon ?? ''} ${allSports.find(s => s.id === selectedSport)?.label ?? ''}`
+                  ? sportTextLabel(allSports.find(s => s.id === selectedSport) ?? { label: '' })
                   : '⚽ Selecionar modalidade'}
                 {' ▾'}
               </span>
@@ -277,7 +279,7 @@ export default function QueroJogar() {
               >
                 <option value="">Selecionar modalidade</option>
                 {allSports.map((sport: SportOption) => (
-                  <option key={sport.id} value={sport.id}>{sport.icon} {sport.label}</option>
+                  <option key={sport.id} value={sport.id}>{sportTextLabel(sport)}</option>
                 ))}
               </select>
             </SportSelectWrapper>
@@ -295,7 +297,7 @@ export default function QueroJogar() {
                   >
                     <option value="">Todas as modalidades</option>
                     {allSports.map((sport: SportOption) => (
-                      <option key={sport.id} value={sport.id}>{sport.icon} {sport.label}</option>
+                      <option key={sport.id} value={sport.id}>{sportTextLabel(sport)}</option>
                     ))}
                   </FilterSelect>
                 </FilterGroup>
@@ -467,6 +469,7 @@ export default function QueroJogar() {
             const isJoined = event.participations?.some(p => p.userId === user?.id)
             const pricePerPerson = (Number(event.totalValue) / maxPlayers).toFixed(2)
             const mapsUrl = buildGoogleMapsUrl(event)
+            const sportMeta = getSportMeta(event.court?.type as CourtType)
 
             return (
               <Card key={event.id} onClick={() => navigate(`/partida/${event.id}`)} style={{ cursor: 'pointer' }}>
@@ -487,7 +490,7 @@ export default function QueroJogar() {
                         <Navigation size={11} aria-hidden /> {event.distanceKm} km
                       </DistanciaBadge>
                     )}
-                    <span className="badge">{getSportMeta(event.court?.type as CourtType).icon} {getSportMeta(event.court?.type as CourtType).label}</span>
+                    <span className="badge"><SportIcon icon={sportMeta.icon} fallback={sportMeta.iconFallback} /> {sportMeta.label}</span>
                   </div>
                 </CardHeader>
 

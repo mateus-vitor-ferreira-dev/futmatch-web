@@ -6,6 +6,7 @@ import { useAuth } from '../../contexts/AuthContext'
 import { playerService } from '../../services/playerService'
 import { chaves } from '../../lib/queryClient'
 import { useSports, getSportMeta } from '../../hooks/useSports'
+import SportIcon from '../../components/SportIcon'
 import { PartidasPerto } from '../../components/PartidasPerto'
 import type { CourtType } from '../../types/api'
 import {
@@ -24,11 +25,12 @@ interface FiltroTab {
   id: string
   label: string
   icon: string
+  iconFallback: string | null
   /** null = sem restrição de modalidade. */
   types: CourtType[] | null
 }
 
-const ALL_TAB: FiltroTab = { id: 'ALL', label: 'Todos', icon: '🎯', types: null }
+const ALL_TAB: FiltroTab = { id: 'ALL', label: 'Todos', icon: 'todos', iconFallback: '🎯', types: null }
 
 function getGreeting() {
   const h = new Date().getHours()
@@ -213,7 +215,7 @@ export default function Home() {
                   aria-pressed={active}
                   onClick={() => setActiveSport(tab.id)}
                 >
-                  <span>{tab.icon}</span>
+                  <span><SportIcon icon={tab.icon} fallback={tab.iconFallback} /></span>
                   {tab.label}
                 </Tab>
               )
@@ -261,7 +263,7 @@ export default function Home() {
                 return (
                   <GameCardWrapper key={String(event.id)} onClick={() => navigate(`/partida/${String(event.id)}`)}>
                     <CardTop>
-                      <CardCourtIcon>{sport.icon}</CardCourtIcon>
+                      <CardCourtIcon><SportIcon icon={sport.icon} fallback={sport.iconFallback} /></CardCourtIcon>
                       <CardCourtInfo>
                         <CourtName>{courtName}</CourtName>
                         <SportBadge>{sportLabel}</SportBadge>
