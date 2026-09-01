@@ -14,6 +14,7 @@
     "test:coverage": "vitest run --coverage",
     "test:ci": "vitest run --coverage --reporter=default --reporter=json --outputFile.json=.vitest-report.json",
     "readme:check": "node scripts/verifica-numeros-do-readme.mjs",
+    "readme:fix": "node scripts/verifica-numeros-do-readme.mjs --fix",
     "primeira-tela:check": "node scripts/verifica-primeira-tela.mjs"
   },
   "dependencies": {

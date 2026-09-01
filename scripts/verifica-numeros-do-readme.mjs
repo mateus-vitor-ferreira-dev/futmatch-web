@@ -21,7 +21,7 @@
  *   npm run readme:check   # confere os números
  */
 
-import { readFileSync, existsSync } from 'node:fs'
+import { readFileSync, writeFileSync, existsSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { dirname, join } from 'node:path'
 
@@ -100,13 +100,69 @@ function conferir(readme, c) {
   return problemas
 }
 
-const readme = readFileSync(join(RAIZ, 'README.md'), 'utf8')
+/**
+ * Reescreve só os dígitos do grupo 1, em cada ocorrência, de trás para frente —
+ * trocar "765" por "1024" muda o comprimento, e reescrever da frente
+ * deslocaria os índices seguintes.
+ *
+ * Números com `folga` só são reescritos quando saem da tolerância. Reescrever
+ * dentro dela produziria um commit de "~62%" para "~63%" a cada PR, que é
+ * exatamente o atrito que a folga existe para evitar.
+ */
+function reescrever(readme, c) {
+  const folga = c.folga ?? 0
+
+  for (const padrao of c.padroes) {
+    const comIndices = new RegExp(padrao.source, padrao.flags.includes('d') ? padrao.flags : padrao.flags + 'd')
+
+    const faixas = []
+    for (const m of readme.matchAll(comIndices)) {
+      if (Math.abs(Number(m[1]) - c.esperado) <= folga) continue
+      if (m.indices?.[1]) faixas.push(m.indices[1])
+    }
+
+    for (const [inicio, fim] of faixas.reverse()) {
+      readme = readme.slice(0, inicio) + String(c.esperado) + readme.slice(fim)
+    }
+  }
+
+  return readme
+}
+
+const CORRIGIR = process.argv.includes('--fix')
+
+const caminho = join(RAIZ, 'README.md')
+const readme = readFileSync(caminho, 'utf8')
+
+if (CORRIGIR) {
+  let corrigido = readme
+  for (const c of conferencias) corrigido = reescrever(corrigido, c)
+
+  // Confere depois de reescrever: o que sobrar é menção que saiu do radar do
+  // padrão, e isso reescrever número não conserta.
+  const restantes = conferencias.flatMap((c) => conferir(corrigido, c))
+  if (restantes.length > 0) {
+    console.error(`\n✗ Reescrevi o que dava, mas ${restantes.length} ponto(s) continuam fora:\n`)
+    for (const p of restantes) console.error(`  ${p}`)
+    console.error('\n  Isso é menção que mudou no README, não número desatualizado.\n')
+    process.exit(1)
+  }
+
+  if (corrigido === readme) {
+    console.warn('\n✓ Os números do README já estavam certos — nada a reescrever.\n')
+  } else {
+    writeFileSync(caminho, corrigido)
+    console.warn(`\n✓ README reescrito: ${conferencias.map((c) => `${c.esperado} ${c.nome}`).join(' · ')}\n`)
+  }
+  process.exit(0)
+}
+
 const problemas = conferencias.flatMap((c) => conferir(readme, c))
 
 if (problemas.length > 0) {
   console.error(`\n✗ O README está desatualizado em ${problemas.length} ponto(s):\n`)
   for (const p of problemas) console.error(`  ${p}`)
-  console.error('\n  Corrija os números no README.md — são a primeira coisa que alguém de fora lê.\n')
+  console.error('\n  Rode `npm run readme:fix` — os números são gerados, não digitados.\n')
   process.exit(1)
 }
 
