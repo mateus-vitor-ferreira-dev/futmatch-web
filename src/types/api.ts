@@ -1257,6 +1257,19 @@ export interface TurmaInput {
     ativa?: boolean;
 }
 
+export interface MensalidadeDaTurma {
+    competencia: string;
+    valorAtualDaTurma: string;
+    alunos: Array<{
+        matriculaId: string;
+        nome: string;
+        valor: string;
+        pagoEm: string | null;
+        pago: boolean;
+        saiuNoMes: boolean;
+    }>;
+}
+
 /**
  * O aluno numa turma (api#474).
  *

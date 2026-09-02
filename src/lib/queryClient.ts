@@ -89,6 +89,8 @@ export const chaves = {
    */
   matriculas: (turmaId: string, comHistorico: boolean) =>
     ['turmas', turmaId, 'matriculas', comHistorico] as const,
+  mensalidades: (turmaId: string, competencia: string) =>
+    ['turmas', turmaId, 'mensalidades', competencia] as const,
   /**
    * A agenda entra no cache por quadra **e por dia** (api#443).
    *
