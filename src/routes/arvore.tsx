@@ -19,6 +19,7 @@ import {
   OwnerProfessores,
   OwnerTurmas,
   OwnerAlunos,
+  OwnerChamada,
 } from './paginas'
 
 /**
@@ -117,6 +118,7 @@ export const arvoreDeRotas = (
           regra de "menu não carrega parâmetro" não se aplica. O `placeId`
           continua na query, porque é dele que a api precisa na URL da rota. */}
       <Route path="turmas/:turmaId/alunos" element={<OwnerAlunos />} />
+      <Route path="turmas/:turmaId/chamada" element={<OwnerChamada />} />
       {/* O portão fica na rota, e não só dentro da página: sem isso, chegar pela
           URL abriria a tela que o menu marca com cadeado. A API recusa de qualquer
           jeito, mas o dono veria a tela montar e as chamadas falharem uma a uma. */}
@@ -135,4 +137,3 @@ export const arvoreDeRotas = (
     <Route path="*" element={<Navigate to="/login" replace />} />
   </>
 )
-
