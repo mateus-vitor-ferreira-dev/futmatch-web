@@ -124,23 +124,101 @@ precisa, num nível só. É o que as cinco de cima não fazem.
 
 ## Resposta à pergunta da issue
 
-**Não é a internet, e não é o banco.**
+**Não é a internet, não é o banco e não é o código.**
 
-São duas coisas somadas: cada requisição à api custa ~230 ms, quase tudo
-distância de rede — contra 28 ms até o front, da mesma máquina —, e cinco telas
-do painel multiplicam isso por dois níveis em série, com a requisição mais cara
-e mais lenta (`/places`, 600 ms) na frente e fora do cache.
+Três medições sustentam cada negativa:
+
+- **A internet está bem.** Da mesma máquina e no mesmo minuto, o front na Vercel
+  responde em 28 ms e a api em 230 ms.
+- **O banco não pesa.** O `/health`, que não o toca, e o `/stats`, que faz
+  consulta agregada, empatam.
+- **O código não pesa.** As mesmas rotas rodando local custam de 0,2 ms a
+  3,2 ms — três ordens de grandeza abaixo.
+
+O que sobra é **ambiente somado a arquitetura de tela**: ~230 ms por requisição
+que não vêm do nosso código, multiplicados por dois níveis em série em cinco
+telas do painel, com a requisição mais lenta (`/places`, 595 ms) na frente e
+fora do cache.
+
+## A api local, e o que ela prova
+
+Mesma máquina, mesmo código, banco local. `npm run dev` na `develop` em
+`bd1ba00`, medido do mesmo jeito.
+
+| Rota | Local | Produção | Razão |
+|---|---:|---:|---:|
+| `/health` | **0,5 ms** | 230 ms | 460× |
+| `/stats` | **0,4 ms** | 228 ms | 570× |
+| `/sports` | **0,2 ms** | 226 ms | 1.130× |
+| `/places` | **2,3 ms** | 595 ms | 259× |
+
+E as autenticadas, que só dá para medir com token:
+
+| Rota (local) | Mediana | p95 |
+|---|---:|---:|
+| `/places` — com **34 espaços** no banco | 1,6 ms | 1,8 ms |
+| `/places/:id/turmas` | 3,0 ms | 5,2 ms |
+| `/places/:id/members` | 3,2 ms | 4,2 ms |
+| `/places/:id/courts` | 1,9 ms | 2,5 ms |
+
+**O código não é o gargalo, e a diferença é de três ordens de grandeza.** O
+`/places` local, devolvendo 34 espaços com dono e contagem de quadras, custa
+2,3 ms. O mesmo `/places` em produção, devolvendo **zero**, custa 595 ms.
+
+Isso reposiciona a rota mais lenta: ela não é lenta por causa da consulta. A
+consulta é o que menos pesa nela.
+
+## O que sobra sem explicação
+
+**`/places` custa 2,6× o `/health` em produção, e não deveria.** Os dois
+devolvem praticamente nada — 26 bytes contra 84 —, os dois passam pelo mesmo
+proxy, e localmente a diferença entre eles é de 1,8 ms. Em produção é de 365 ms,
+reprodutível em duas rodadas separadas (600 ms e 595 ms de mediana).
+
+Não tenho a causa, e **inventar uma aqui seria pior que a lacuna** — fica
+registrada como pergunta aberta para quem tiver acesso ao painel do Railway e do
+Neon.
+
+**O que dá para descartar:** não é volume de dados (zero linhas), não é a
+consulta (2,3 ms local com 34 linhas) e não é instância fria, pela seção
+seguinte.
+
+## Cold start: não há sinal dele
+
+A primeira requisição de cada série custa entre 619 ms e 989 ms, e é tentador
+ler isso como instância dormindo. A decomposição não sustenta:
+
+| Etapa | Custo |
+|---|---:|
+| DNS | 139 ms |
+| Handshake TCP | +133 ms |
+| TLS | +147 ms |
+| Resposta | +257 ms |
+| **Total frio** | **676 ms** |
+
+Os 419 ms de handshake explicam a diferença para os 230 ms quentes por conta
+própria, e o tempo de resposta da primeira (257 ms) é o mesmo das seguintes.
+**Se a instância estivesse dormindo, essa última linha seria de segundos.**
 
 ## O que este documento ainda não tem
 
-Registrado como furo, e não omitido:
+- **As mesmas rotas autenticadas medidas em produção.** As da tabela acima são
+  locais; medir as de produção exige uma conta com espaço cadastrado, e hoje
+  produção tem zero.
+- **A causa dos 365 ms extras do `/places`**, registrada acima como pergunta
+  aberta.
 
-- **Rotas autenticadas medidas uma a uma.** As da tabela são públicas. As de
-  `/places/:id/turmas`, `/me/turmas` e afins exigem token, e a medição delas
-  precisa de uma conta.
-- **A coluna "api local".** É ela que separa "servidor lento" de "servidor
-  longe": se local responder em milissegundos, os ~100 ms de servidor são do
-  ambiente, não do código.
-- **Cold start isolado.** A primeira requisição custa de 619 ms a 2.141 ms, mas
-  isso é handshake somado a possível instância fria. Separar os dois exige
-  medir depois de ociosidade longa e controlada.
+## Nota sobre o ambiente local
+
+A medição local só rodou depois de descobrir que **o banco de desenvolvimento
+estava 12 migrations atrás**, desde 28/08 — sem `PlaceMember`, sem `Turma`, sem
+`Aula`, sem `Matricula`, sem `Mensalidade`, sem expediente.
+
+O sintoma não foi um erro de partida: a api **sobe normalmente** e só quebra em
+tempo de requisição, com `P2021 — The table public.PlaceMember does not exist`,
+devolvendo **500** em três das rotas medidas. Corrigido com
+`npx prisma migrate deploy`, que só aplica o pendente e não reseta nada.
+
+Fica registrado porque é o mesmo formato do incidente que o manual da equipe
+conta sobre o `OwnerInvite`: schema e banco divergem em silêncio, e a
+divergência só aparece quando alguém tropeça nela.
