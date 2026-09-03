@@ -99,6 +99,10 @@ export default function OwnerTurmas() {
   const navigate = useNavigate()
   const [espacos, setEspacos] = useState<Place[]>([])
   const [placeId, setPlaceId] = useState('')
+  /* Sem isto não dá para separar "ainda buscando os espaços" de "não tem
+     nenhum": nos dois casos o `placeId` é `''`, e um pisca o estado vazio na
+     cara de quem tem espaço, o outro carrega para sempre. */
+  const [carregandoEspacos, setCarregandoEspacos] = useState(true)
   const [abrindo, setAbrindo] = useState(false)
   const { sports } = useSports()
 
@@ -114,7 +118,7 @@ export default function OwnerTurmas() {
       setEspacos(meus)
       const pedido = searchParams.get('placeId')
       setPlaceId(meus.some((espaco) => espaco.id === pedido) ? pedido! : meus[0]?.id ?? '')
-    }).catch(() => setEspacos([]))
+    }).catch(() => setEspacos([])).finally(() => setCarregandoEspacos(false))
   }, [searchParams, user?.id, user?.role])
 
   const trocarEspaco = (id: string) => {
@@ -351,7 +355,25 @@ export default function OwnerTurmas() {
         <TituloDaCaixa>Turmas cadastradas</TituloDaCaixa>
         <Explicacao>Do domingo para o sábado, na ordem em que acontecem.</Explicacao>
 
-        {turmas.isPending ? (
+        {/* A guarda do `placeId` espelha o `enabled` da consulta, e precisa vir
+            ANTES de qualquer `isPending`. No TanStack Query v5 uma consulta
+            desabilitada nasce `pending` e fica assim para sempre, porque nunca
+            chega a buscar: quem tem zero espaço caía exatamente aí — esqueleto
+            infinito, sem erro e sem estado vazio.
+
+            O par `enabled`/guarda é o que mantém o `data` garantido depois: o
+            `isLoading` resolveria o carregamento e devolveria `data` como
+            `undefined` para o resto da árvore. */}
+        {!placeId ? (
+          carregandoEspacos ? (
+            <Lista aria-busy><Skeleton height="72px" /><Skeleton height="72px" /></Lista>
+          ) : (
+            <Vazio>
+              Nenhum espaço cadastrado ainda. Turma é o que um espaço vende, então
+              cadastre o seu em <strong>Meus Estabelecimentos</strong> antes.
+            </Vazio>
+          )
+        ) : turmas.isPending ? (
           <Lista aria-busy><Skeleton height="72px" /><Skeleton height="72px" /></Lista>
         ) : turmas.isError ? (
           <Erro role="alert">Não foi possível carregar as turmas.</Erro>
