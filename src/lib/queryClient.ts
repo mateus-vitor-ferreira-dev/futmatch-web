@@ -81,6 +81,15 @@ export const chaves = {
   membrosDoEspaco: (placeId: string) => ['espacos', placeId, 'membros'] as const,
   quadrasDoEspaco: (placeId: string) => ['espacos', placeId, 'quadras'] as const,
   /**
+   * Os alunos de uma turma (api#474).
+   *
+   * O histórico entra na chave: a resposta com quem saiu é outra lista, e
+   * reaproveitar o cache faria a tela mostrar só os ativos depois de o dono
+   * pedir o histórico — ou o contrário, que é pior.
+   */
+  matriculas: (turmaId: string, comHistorico: boolean) =>
+    ['turmas', turmaId, 'matriculas', comHistorico] as const,
+  /**
    * A agenda entra no cache por quadra **e por dia** (api#443).
    *
    * O dia faz parte da chave porque a resposta muda com ele: quem olhou terça e

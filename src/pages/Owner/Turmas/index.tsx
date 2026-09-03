@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { useSearchParams } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
 import { yupResolver } from '@hookform/resolvers/yup'
 import * as yup from 'yup'
@@ -96,6 +96,7 @@ export default function OwnerTurmas() {
   const { user } = useAuth()
   const queryClient = useQueryClient()
   const [searchParams, setSearchParams] = useSearchParams()
+  const navigate = useNavigate()
   const [espacos, setEspacos] = useState<Place[]>([])
   const [placeId, setPlaceId] = useState('')
   const [abrindo, setAbrindo] = useState(false)
@@ -390,6 +391,16 @@ export default function OwnerTurmas() {
                             </Ocupacao>
                             <Valor>{emReais(turma.valorMensalidade)}/mês</Valor>
                             <Acoes>
+                              {/* A porta para a #391. Vem primeiro porque é a
+                                  ação mais frequente do cartão: o dono mexe na
+                                  lista de alunos toda semana, e no cadastro da
+                                  turma quase nunca. */}
+                              <BotaoLeve
+                                type="button"
+                                onClick={() => navigate(`/owner/turmas/${turma.id}/alunos?placeId=${placeId}`)}
+                              >
+                                Alunos
+                              </BotaoLeve>
                               {turma.professor && (
                                 <BotaoLeve
                                   type="button"

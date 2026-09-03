@@ -18,6 +18,7 @@ import {
   OwnerDashboard, OwnerPlans, OwnerPlaces, OwnerInventory, OwnerEquipment, OwnerRequests, OwnerCourts,
   OwnerProfessores,
   OwnerTurmas,
+  OwnerAlunos,
 } from './paginas'
 
 /**
@@ -111,6 +112,11 @@ export const arvoreDeRotas = (
           Sem `:placeId` no caminho, também pelo mesmo motivo: a tela está no
           menu, e o espaço vem do seletor com `?placeId=` na URL. */}
       <Route path="turmas"                element={<OwnerTurmas />} />
+      {/* Os alunos de uma turma (api#474). Aqui o `:turmaId` **vai no caminho**:
+          diferente da lista de turmas, esta tela não está no menu, então a
+          regra de "menu não carrega parâmetro" não se aplica. O `placeId`
+          continua na query, porque é dele que a api precisa na URL da rota. */}
+      <Route path="turmas/:turmaId/alunos" element={<OwnerAlunos />} />
       {/* O portão fica na rota, e não só dentro da página: sem isso, chegar pela
           URL abriria a tela que o menu marca com cadeado. A API recusa de qualquer
           jeito, mas o dono veria a tela montar e as chamadas falharem uma a uma. */}
