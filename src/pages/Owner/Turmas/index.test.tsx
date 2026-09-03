@@ -278,6 +278,19 @@ describe('OwnerTurmas', () => {
     })
   })
 
+  it('sem espaço nenhum, diz o que fazer em vez de carregar para sempre', async () => {
+    /* O bug que isto trava: a consulta de turmas tem `enabled: Boolean(placeId)`,
+       e no TanStack Query v5 consulta desabilitada fica `isPending` para
+       sempre. Quem não tem espaço via dois esqueletos girando sem fim, sem erro
+       e sem estado vazio — foi assim que a tela subiu para produção. */
+    espacos.list.mockResolvedValue({ data: { success: true, data: [] as Place[] } } as AxiosResponse<ApiEnvelope<Place[]>>)
+    monta()
+
+    expect(await screen.findByText(/nenhum espaço cadastrado ainda/i)).toBeInTheDocument()
+    expect(screen.queryByLabelText('Estabelecimento')).toHaveValue('')
+    expect(servico.listar).not.toHaveBeenCalled()
+  })
+
   it('agrupa por dia, na ordem que a api mandou', async () => {
     servico.listar.mockResolvedValue([
       turma({ id: 'a', diaDaSemana: 2, horario: '19:00' }),

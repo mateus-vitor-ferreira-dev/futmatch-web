@@ -220,7 +220,15 @@ export default function OwnerAlunos() {
           </Alternador>
         </Topo>
 
-        {matriculas.isPending ? (
+        {/* Ver o comentário em `Owner/Turmas`: consulta desabilitada fica
+            `isPending` para sempre. Aqui o `placeId` vem da query string, e
+            quem abre a URL sem ele ficava olhando esqueleto. */}
+        {!placeId || !turmaId ? (
+          <Erro role="alert">
+            Falta o espaço no endereço. Volte para <strong>Turmas</strong> e abra
+            a turma por lá.
+          </Erro>
+        ) : matriculas.isPending ? (
           <Lista aria-busy><Skeleton height="56px" /><Skeleton height="56px" /></Lista>
         ) : matriculas.isError ? (
           <Erro role="alert">Não foi possível carregar os alunos.</Erro>
