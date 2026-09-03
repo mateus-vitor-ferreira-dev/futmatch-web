@@ -86,8 +86,15 @@ export function hora(iso: string): string {
   return new Date(iso).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
 }
 
-/** `das 19:00 às 20:00`, com a ressalva quando o fim é presumido. */
+/**
+ * `das 19:00 às 20:00`.
+ *
+ * **Sem ressalva, e a ausência dela é a mudança.** Até a api#453 o jogo de
+ * campeonato não guardava duração: a api presumia uma hora e marcava a
+ * ocupação com `fimPresumido`, para a tela não desenhar um bloco firme sobre um
+ * palpite. Agora todo fim é informado, o campo saiu da resposta, e escrever
+ * "(fim estimado)" seria ressalvar um dado que não é mais estimativa.
+ */
 export function faixaDeHorario(ocupacao: OcupacaoDaQuadra): string {
-  const faixa = `das ${hora(ocupacao.inicio)} às ${hora(ocupacao.fim)}`
-  return ocupacao.fimPresumido ? `${faixa} (fim estimado)` : faixa
+  return `das ${hora(ocupacao.inicio)} às ${hora(ocupacao.fim)}`
 }
