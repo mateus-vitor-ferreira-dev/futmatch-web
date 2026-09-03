@@ -63,6 +63,7 @@ const CARREGADORES = {
   '/owner/inventory':  () => import('../pages/Owner/Inventory'),
   '/owner/equipment':  () => import('../pages/Owner/Equipment'),
   '/owner/professores': () => import('../pages/Owner/Professores'),
+  '/owner/turmas':     () => import('../pages/Owner/Turmas'),
   '/owner/requests':   () => import('../pages/Owner/Requests'),
 } as const
 
@@ -151,4 +152,8 @@ export const TournamentDetail = lazyWithRetry(() => import('../pages/TournamentD
 export const Jogador          = lazyWithRetry(() => import('../pages/Jogador'))
 export const ConviteDeProfessor = lazyWithRetry(() => import('../pages/ConviteDeProfessor'))
 export const OwnerCourts      = lazyWithRetry(() => import('../pages/Owner/Courts'))
+export const OwnerAlunos      = lazyWithRetry(() => import('../pages/Owner/Alunos'))
+export const OwnerChamada = lazyWithRetry(() => import('../pages/Owner/Chamada'))
+export const OwnerMensalidades = lazyWithRetry(() => import('../pages/Owner/Mensalidades'))
 export const OwnerProfessores = lazyWithRetry(CARREGADORES['/owner/professores'])
+export const OwnerTurmas = lazyWithRetry(CARREGADORES['/owner/turmas'])

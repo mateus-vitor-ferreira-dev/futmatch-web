@@ -1146,7 +1146,13 @@ export interface AlcanceDosRequisitos {
  * jogo de campeonato entram na mesma lista, e é por isso que `tipo` existe.
  */
 export interface OcupacaoDaQuadra {
-    tipo: "PARTIDA" | "PARTIDA_DE_CAMPEONATO";
+    /**
+     * `AULA` entrou na api#473: a aula de uma turma ocupa a quadra como
+     * qualquer outra marcação, e vinha chegando aqui num tipo que não a
+     * previa. Ninguém no app decide nada por este campo hoje — ele descreve o
+     * que a api manda, e descrevê-lo errado é o defeito.
+     */
+    tipo: "PARTIDA" | "PARTIDA_DE_CAMPEONATO" | "AULA";
     /**
      * `null` quando a marcação **não é pública**.
      *
@@ -1160,13 +1166,6 @@ export interface OcupacaoDaQuadra {
     fim: string;
     /** `partida de Fulano`, `2ª rodada, jogo 3`, ou `horário reservado`. */
     descricao: string;
-    /**
-     * `true` quando a api **presumiu** o fim em uma hora.
-     *
-     * Só acontece com jogo de campeonato, que não guarda duração. A tela diz
-     * isso em vez de desenhar um bloco firme sobre um palpite.
-     */
-    fimPresumido: boolean;
 }
 
 export interface AgendaDaQuadra {
@@ -1175,4 +1174,155 @@ export interface AgendaDaQuadra {
     de: string;
     ate: string;
     ocupacoes: OcupacaoDaQuadra[];
+}
+
+/**
+ * Um vínculo pessoa↔espaço (api#461).
+ *
+ * O `id` é o do **vínculo**, não o da pessoa — e é ele que a turma guarda em
+ * `professorId`. Mandar o `user.id` no lugar devolve 422
+ * `PROFESSOR_NOT_IN_PLACE`, e a mensagem não explica o engano.
+ *
+ * Sem e-mail, de propósito: a api o omite porque seria dado de contato de
+ * terceiro que o dono nunca informou.
+ */
+export interface MembroDoEspaco {
+    id: string;
+    papel: "PROFESSOR";
+    createdAt: IsoDate;
+    user: { id: string; name: string; avatarUrl: string | null };
+}
+
+/**
+ * A turma que o espaço vende (api#472).
+ *
+ * ## É a regra, não a aula
+ *
+ * `diaDaSemana` + `horario` descrevem **toda** terça às 19h, não uma terça
+ * específica. Quem ocupa a quadra é a `Aula`, cada ocorrência gerada dela.
+ *
+ * ## `diaDaSemana` é 0–6, com 0 = domingo
+ *
+ * Mesma convenção do expediente do espaço. Traduzir errado põe a turma no dia
+ * errado — erro que nenhum teste de CRUD pega e que todo dono vê.
+ *
+ * ## `valorMensalidade` vem como string
+ *
+ * É `Decimal` no banco, e o JSON o serializa como string para não perder
+ * precisão. Some com `Number()` antes de formatar.
+ */
+export interface Turma {
+    id: string;
+    courtId: string;
+    modalidade: CourtType;
+    /** 0–6, com **0 = domingo**. */
+    diaDaSemana: number;
+    /** `"HH:mm"` em 24h. */
+    horario: string;
+    duracaoMinutos: number;
+    /** O teto. Quanto dele está tomado é o `matriculasAtivas`. */
+    vagas: number;
+    valorMensalidade: string;
+    /** Id do **`PlaceMember`**, e não do `User`. Nulo é estado legítimo. */
+    professorId: string | null;
+    ativa: boolean;
+    court: { id: string; name: string };
+    professor: { id: string; user: { id: string; name: string } } | null;
+    /**
+     * Quantas vagas estão tomadas (api#489).
+     *
+     * Quem **saiu** da turma não conta: a matrícula fica no histórico e devolve
+     * a vaga. Vem sempre, e vale `0` em turma sem ninguém — nunca ausente.
+     */
+    matriculasAtivas: number;
+}
+
+/**
+ * O corpo de criar e editar turma.
+ *
+ * No `PATCH`, **`undefined` quer dizer "não mexa" e `null` quer dizer "tire"** —
+ * e isso vale só para `professorId`, que é como o dono tira o professor sem
+ * apagar a turma. Um `<select>` devolve `""`, não `null`: converter é da tela.
+ */
+export interface TurmaInput {
+    courtId: string;
+    modalidade: CourtType;
+    diaDaSemana: number;
+    horario: string;
+    duracaoMinutos: number;
+    vagas: number;
+    valorMensalidade: number;
+    professorId?: string | null;
+    ativa?: boolean;
+}
+
+export type AulaStatus = 'AGENDADA' | 'CANCELADA' | 'DADA';
+export interface Aula {
+    id: string;
+    turmaId: string;
+    courtId: string;
+    inicio: string;
+    fim: string;
+    status: AulaStatus;
+}
+export interface ChamadaDaAula {
+    aula: Pick<Aula, 'id' | 'inicio' | 'fim' | 'status'>;
+    alunos: Array<{ matriculaId: string; nome: string; temConta: boolean; presente: boolean | null }>;
+}
+export interface MensalidadeDaTurma {
+    competencia: string;
+    valorAtualDaTurma: string;
+    alunos: Array<{
+        matriculaId: string;
+        nome: string;
+        valor: string;
+        pagoEm: string | null;
+        pago: boolean;
+        saiuNoMes: boolean;
+    }>;
+}
+
+/**
+ * O aluno numa turma (api#474).
+ *
+ * ## Sem conta é o caso normal, não a exceção
+ *
+ * `userId` é opcional de propósito, e a decisão é o que torna o produto
+ * adotável: *"uma academia com trinta alunos não instala o app em trinta
+ * celulares no dia um"*. A tela trata quem não tem conta como qualquer outro —
+ * sem aviso, sem alerta, sem "cadastro pendente".
+ *
+ * ## O `nome` é o da matrícula, não o da conta
+ *
+ * Quando existe conta, `user.name` pode divergir: o dono escreveu "Joãozinho" e
+ * a conta diz "João Pedro Silva". Quem manda na lista e na chamada é o `nome`
+ * da matrícula — é por ele que o professor chama.
+ *
+ * ## `contato` é texto livre
+ *
+ * *"Telefone ou e-mail: é o que o dono já tem na agenda dele."* Não é validado
+ * como telefone nem normalizado para E.164 — aceita "mãe do João — 35 9…".
+ *
+ * ## `saiuEm` nulo é matrícula ativa
+ *
+ * Quem saiu não ocupa vaga e continua no histórico. Sair é carimbar a data, e
+ * nunca apagar a linha: a mensalidade aponta para a matrícula, e apagar levaria
+ * junto o registro de quem pagou março.
+ */
+export interface Matricula {
+    id: string;
+    turmaId: string;
+    nome: string;
+    contato: string;
+    userId: string | null;
+    entrouEm: IsoDate;
+    /** `null` = está na turma. Preenchido = saiu, e continua no histórico. */
+    saiuEm: IsoDate | null;
+    user: { id: string; name: string } | null;
+}
+
+/** O corpo de matricular e de corrigir. A tela nunca manda `userId`. */
+export interface MatriculaInput {
+    nome: string;
+    contato: string;
 }
