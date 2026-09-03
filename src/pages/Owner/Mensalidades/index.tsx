@@ -48,7 +48,9 @@ export default function OwnerMensalidades() {
         <div><Titulo>Competência da turma</Titulo><Explicacao>Marque o que o espaço já recebeu. Isto é registro, não cobrança.</Explicacao></div>
         <CampoMes>Competência<Mes type="month" value={competencia} onChange={(e) => setCompetencia(e.target.value)} /></CampoMes>
       </Topo>
-      {consulta.isPending ? <Estado>Carregando mensalidades…</Estado> : consulta.isError ? <Estado role="alert">Não foi possível carregar as mensalidades.</Estado> : consulta.data.alunos.length === 0 ? <Estado>Nenhum aluno nesta competência.</Estado> : <Lista>
+      {/* Ver o comentário em `Owner/Turmas`: consulta desabilitada fica
+          `isPending` para sempre, e o `placeId` vem da query string. */}
+      {!placeId || !turmaId ? <Estado role="alert">Falta o espaço no endereço. Volte para Turmas e abra a turma por lá.</Estado> : consulta.isPending ? <Estado>Carregando mensalidades…</Estado> : consulta.isError ? <Estado role="alert">Não foi possível carregar as mensalidades.</Estado> : consulta.data.alunos.length === 0 ? <Estado>Nenhum aluno nesta competência.</Estado> : <Lista>
         {consulta.data.alunos.map((aluno) => {
           const diverge = Number(aluno.valor) !== Number(consulta.data.valorAtualDaTurma)
           return <Linha key={aluno.matriculaId}>
