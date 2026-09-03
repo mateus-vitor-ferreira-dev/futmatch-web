@@ -28,7 +28,6 @@ const ocupacao = (inicio: string, fim: string, resto: Partial<OcupacaoDaQuadra> 
   inicio,
   fim,
   descricao: 'partida de Ana',
-  fimPresumido: false,
   ...resto,
 })
 
@@ -166,17 +165,35 @@ describe('faixaDeHorario', () => {
   })
 
   /**
-   * `TournamentMatch` não guarda duração e a api presume uma hora. A tela diz
-   * isso em vez de desenhar um bloco firme sobre um palpite.
+   * O teste que este substitui afirmava o contrário: que o jogo de campeonato
+   * saía com "(fim estimado)". Ele passava fabricando `fimPresumido: true` na
+   * própria fixture, então nunca dependeu da api — e continuaria verde depois
+   * de a api#453 parar de mandar o campo, guardando um caminho morto.
+   *
+   * Este afirma o que passou a valer, e é o que impede o sufixo de voltar de
+   * carona num merge.
    */
-  it('avisa quando o fim é presumido', () => {
+  it('não ressalva o jogo de campeonato: o fim dele é informado', () => {
     const texto = faixaDeHorario(
       ocupacao(
         new Date(local('2026-09-01', '19:00')).toISOString(),
-        new Date(local('2026-09-01', '20:00')).toISOString(),
-        { tipo: 'PARTIDA_DE_CAMPEONATO', fimPresumido: true, descricao: '2ª rodada, jogo 3' },
+        new Date(local('2026-09-01', '21:00')).toISOString(),
+        { tipo: 'PARTIDA_DE_CAMPEONATO', descricao: '2ª rodada, jogo 3' },
       ),
     )
-    expect(texto).toBe('das 19:00 às 20:00 (fim estimado)')
+    expect(texto).toBe('das 19:00 às 21:00')
+    expect(texto).not.toContain('estimado')
+  })
+
+  /** A aula entrou na agenda na api#473, e sai pela mesma régua. */
+  it('escreve a faixa da aula sem ressalva', () => {
+    const texto = faixaDeHorario(
+      ocupacao(
+        new Date(local('2026-09-01', '19:00')).toISOString(),
+        new Date(local('2026-09-01', '20:30')).toISOString(),
+        { tipo: 'AULA', descricao: 'aula de Beach Tennis' },
+      ),
+    )
+    expect(texto).toBe('das 19:00 às 20:30')
   })
 })
