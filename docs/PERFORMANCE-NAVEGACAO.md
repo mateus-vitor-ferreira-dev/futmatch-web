@@ -152,14 +152,18 @@ Mesma máquina, mesmo código, banco local. `npm run dev` na `develop` em
 | `/sports` | **0,2 ms** | 226 ms | 1.130× |
 | `/places` | **2,3 ms** | 595 ms | 259× |
 
-E as autenticadas, que só dá para medir com token:
+E as autenticadas, que só dá para medir com token — com o banco **semeado**,
+não vazio: 34 espaços, 5 turmas, 31 matrículas, 279 presenças, 60 mensalidades.
 
 | Rota (local) | Mediana | p95 |
 |---|---:|---:|
-| `/places` — com **34 espaços** no banco | 1,6 ms | 1,8 ms |
-| `/places/:id/turmas` | 3,0 ms | 5,2 ms |
-| `/places/:id/members` | 3,2 ms | 4,2 ms |
-| `/places/:id/courts` | 1,9 ms | 2,5 ms |
+| `/places` — com **34 espaços** | 1,9 ms | 2,0 ms |
+| `/places/:id/turmas` — com turma e ocupação | 2,4 ms | 3,3 ms |
+| `/places/:id/members` | 2,1 ms | 3,0 ms |
+| `/places/:id/courts` | 1,0 ms | 1,5 ms |
+
+O `matriculasAtivas` da #489 é o `_count` com filtro que a listagem de turmas
+faz por turma, e ele não aparece na conta: 2,4 ms.
 
 **O código não é o gargalo, e a diferença é de três ordens de grandeza.** O
 `/places` local, devolvendo 34 espaços com dono e contagem de quadras, custa
