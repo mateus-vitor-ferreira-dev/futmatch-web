@@ -1256,6 +1256,19 @@ export interface TurmaInput {
     ativa?: boolean;
 }
 
+export type AulaStatus = 'AGENDADA' | 'CANCELADA' | 'DADA';
+export interface Aula {
+    id: string;
+    turmaId: string;
+    courtId: string;
+    inicio: string;
+    fim: string;
+    status: AulaStatus;
+}
+export interface ChamadaDaAula {
+    aula: Pick<Aula, 'id' | 'inicio' | 'fim' | 'status'>;
+    alunos: Array<{ matriculaId: string; nome: string; temConta: boolean; presente: boolean | null }>;
+}
 export interface MensalidadeDaTurma {
     competencia: string;
     valorAtualDaTurma: string;
