@@ -401,6 +401,12 @@ export default function OwnerTurmas() {
                               >
                                 Alunos
                               </BotaoLeve>
+                              <BotaoLeve
+                                type="button"
+                                onClick={() => navigate(`/owner/turmas/${turma.id}/mensalidades?placeId=${placeId}`)}
+                              >
+                                Mensalidades
+                              </BotaoLeve>
                               {turma.professor && (
                                 <BotaoLeve
                                   type="button"
