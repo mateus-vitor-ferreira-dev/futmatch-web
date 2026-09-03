@@ -1,6 +1,6 @@
 import {
   LayoutDashboard, Users, ClipboardList, Building2, Home, Store, ShieldCheck, CreditCard, Package, Dumbbell,
-  GraduationCap,
+  GraduationCap, CalendarClock,
 } from 'lucide-react'
 import type { NavItemDef } from '../components/DashboardLayout'
 import type { PlanFeature, UserRole } from '../types/api'
@@ -62,6 +62,12 @@ export function ownerNavItems(
      * ela — o dono veria a tela de planos para uma coisa que ele já pode fazer.
      */
     { to: '/owner/professores', label: 'Professores',        icon: GraduationCap   },
+    /*
+     * Turmas (api#472). Nunca bloqueado, pelo mesmo motivo dos Professores: a
+     * api deixou as rotas de turma fora do `requireActiveSubscription`, e um
+     * cadeado aqui contradiria ela.
+     */
+    { to: '/owner/turmas',    label: 'Turmas',                 icon: CalendarClock   },
     { to: '/owner/requests',  label: 'Solicitações',          icon: ClipboardList   },
     ...(role === 'ADMIN'
       ? [{ to: '/admin', label: 'Painel Admin', icon: ShieldCheck, divider: true }]

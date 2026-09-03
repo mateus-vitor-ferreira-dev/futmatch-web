@@ -17,6 +17,7 @@ import {
   AdminDashboard, AdminUsers, AdminRequests, AdminPlaces,
   OwnerDashboard, OwnerPlans, OwnerPlaces, OwnerInventory, OwnerEquipment, OwnerRequests, OwnerCourts,
   OwnerProfessores,
+  OwnerTurmas,
 } from './paginas'
 
 /**
@@ -102,6 +103,14 @@ export const arvoreDeRotas = (
           parâmetro. O espaço vem do seletor, com `?placeId=` na URL — mesmo
           desenho do Estoque e dos Equipamentos. */}
       <Route path="professores"           element={<OwnerProfessores />} />
+      {/* As turmas do espaço (api#472). Sem `PlanGate` pelo mesmo motivo dos
+          professores: a api deixou estas rotas fora do
+          `requireActiveSubscription` de propósito, e o cadeado aqui mandaria o
+          dono para a tela de planos por uma coisa que ele já pode fazer.
+
+          Sem `:placeId` no caminho, também pelo mesmo motivo: a tela está no
+          menu, e o espaço vem do seletor com `?placeId=` na URL. */}
+      <Route path="turmas"                element={<OwnerTurmas />} />
       {/* O portão fica na rota, e não só dentro da página: sem isso, chegar pela
           URL abriria a tela que o menu marca com cadeado. A API recusa de qualquer
           jeito, mas o dono veria a tela montar e as chamadas falharem uma a uma. */}
