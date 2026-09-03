@@ -20,6 +20,7 @@ import {
   OwnerTurmas,
   OwnerAlunos,
   OwnerChamada,
+  OwnerMensalidades,
 } from './paginas'
 
 /**
@@ -119,6 +120,7 @@ export const arvoreDeRotas = (
           continua na query, porque é dele que a api precisa na URL da rota. */}
       <Route path="turmas/:turmaId/alunos" element={<OwnerAlunos />} />
       <Route path="turmas/:turmaId/chamada" element={<OwnerChamada />} />
+      <Route path="turmas/:turmaId/mensalidades" element={<OwnerMensalidades />} />
       {/* O portão fica na rota, e não só dentro da página: sem isso, chegar pela
           URL abriria a tela que o menu marca com cadeado. A API recusa de qualquer
           jeito, mas o dono veria a tela montar e as chamadas falharem uma a uma. */}

@@ -1146,7 +1146,13 @@ export interface AlcanceDosRequisitos {
  * jogo de campeonato entram na mesma lista, e é por isso que `tipo` existe.
  */
 export interface OcupacaoDaQuadra {
-    tipo: "PARTIDA" | "PARTIDA_DE_CAMPEONATO";
+    /**
+     * `AULA` entrou na api#473: a aula de uma turma ocupa a quadra como
+     * qualquer outra marcação, e vinha chegando aqui num tipo que não a
+     * previa. Ninguém no app decide nada por este campo hoje — ele descreve o
+     * que a api manda, e descrevê-lo errado é o defeito.
+     */
+    tipo: "PARTIDA" | "PARTIDA_DE_CAMPEONATO" | "AULA";
     /**
      * `null` quando a marcação **não é pública**.
      *
@@ -1160,13 +1166,6 @@ export interface OcupacaoDaQuadra {
     fim: string;
     /** `partida de Fulano`, `2ª rodada, jogo 3`, ou `horário reservado`. */
     descricao: string;
-    /**
-     * `true` quando a api **presumiu** o fim em uma hora.
-     *
-     * Só acontece com jogo de campeonato, que não guarda duração. A tela diz
-     * isso em vez de desenhar um bloco firme sobre um palpite.
-     */
-    fimPresumido: boolean;
 }
 
 export interface AgendaDaQuadra {
@@ -1269,6 +1268,18 @@ export interface Aula {
 export interface ChamadaDaAula {
     aula: Pick<Aula, 'id' | 'inicio' | 'fim' | 'status'>;
     alunos: Array<{ matriculaId: string; nome: string; temConta: boolean; presente: boolean | null }>;
+}
+export interface MensalidadeDaTurma {
+    competencia: string;
+    valorAtualDaTurma: string;
+    alunos: Array<{
+        matriculaId: string;
+        nome: string;
+        valor: string;
+        pagoEm: string | null;
+        pago: boolean;
+        saiuNoMes: boolean;
+    }>;
 }
 
 /**

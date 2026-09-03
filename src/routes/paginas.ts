@@ -154,5 +154,6 @@ export const ConviteDeProfessor = lazyWithRetry(() => import('../pages/ConviteDe
 export const OwnerCourts      = lazyWithRetry(() => import('../pages/Owner/Courts'))
 export const OwnerAlunos      = lazyWithRetry(() => import('../pages/Owner/Alunos'))
 export const OwnerChamada = lazyWithRetry(() => import('../pages/Owner/Chamada'))
+export const OwnerMensalidades = lazyWithRetry(() => import('../pages/Owner/Mensalidades'))
 export const OwnerProfessores = lazyWithRetry(CARREGADORES['/owner/professores'])
 export const OwnerTurmas = lazyWithRetry(CARREGADORES['/owner/turmas'])

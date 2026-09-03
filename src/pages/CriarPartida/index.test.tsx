@@ -93,7 +93,6 @@ const ocupacaoDas = (
   inicio: new Date(`2027-06-10T${horaInicio}`).toISOString(),
   fim: new Date(`2027-06-10T${horaFim}`).toISOString(),
   descricao: 'partida de Ana',
-  fimPresumido: false,
   ...resto,
 })
 
@@ -435,20 +434,24 @@ describe('CriarPartida — a agenda da quadra', () => {
     expect(await screen.findByText(/nada marcado neste dia/i)).toBeInTheDocument()
   })
 
-  /** O jogo de campeonato não guarda duração, e a api presume uma hora. */
-  it('avisa quando o fim da marcação é estimado', async () => {
+  /**
+   * Desde a api#453 todo fim é informado, e a tela não ressalva mais nada. O
+   * teste anterior afirmava o oposto e passava fabricando o `fimPresumido` na
+   * fixture — verde para sempre, sobre um caminho que a api não produz.
+   */
+  it('mostra a faixa do jogo de campeonato sem ressalva de estimativa', async () => {
     agendaCom(
-      ocupacaoDas('19:00', '20:00', {
+      ocupacaoDas('19:00', '21:00', {
         tipo: 'PARTIDA_DE_CAMPEONATO',
         descricao: '2ª rodada, jogo 3',
-        fimPresumido: true,
       }),
     )
     const { container, user } = await vaiAteOFormulario()
 
     await comData(container, user, '2027-06-10T08:00')
 
-    expect(await screen.findByText('das 19:00 às 20:00 (fim estimado)')).toBeInTheDocument()
+    expect(await screen.findByText('das 19:00 às 21:00')).toBeInTheDocument()
+    expect(screen.queryByText(/estimado/i)).not.toBeInTheDocument()
   })
 
   /**

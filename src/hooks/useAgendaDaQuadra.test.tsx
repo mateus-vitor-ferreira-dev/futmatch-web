@@ -28,7 +28,6 @@ const OCUPACAO = {
   inicio: '2026-09-01T22:00:00.000Z',
   fim: '2026-09-01T23:00:00.000Z',
   descricao: 'partida de Ana',
-  fimPresumido: false,
 }
 
 /** Sem repetição: o teste de erro esperaria os backoffs do react-query. */
