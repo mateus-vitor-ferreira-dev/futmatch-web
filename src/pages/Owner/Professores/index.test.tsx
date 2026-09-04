@@ -22,9 +22,14 @@ import { ownerNavItems } from '../../../constants/navItems'
 import OwnerProfessores from './index'
 import type { AxiosResponse } from 'axios'
 import type { ApiEnvelope, ConviteDeProfessor, Place } from '../../../types/api'
+import { toast } from 'sonner'
 
 vi.mock('../../../services/professores')
 vi.mock('../../../services/places')
+
+// O aviso de cópia é toast, e é a única saída visível quando o navegador nega a
+// área de transferência — sem mockar, não há como afirmar que ele apareceu.
+vi.mock('sonner', () => ({ toast: { success: vi.fn(), error: vi.fn() }, Toaster: () => null }))
 
 const servico = vi.mocked(professoresService)
 const espacos = vi.mocked(placesService)
@@ -32,15 +37,32 @@ const espacos = vi.mocked(placesService)
 const DIA = 24 * 60 * 60 * 1000
 
 function convite(over: Partial<ConviteDeProfessor> = {}): ConviteDeProfessor {
-  return {
+  const base = {
     id: 'c1',
     email: 'professor@exemplo.com',
-    papel: 'PROFESSOR',
-    status: 'PENDING',
+    papel: 'PROFESSOR' as const,
+    status: 'PENDING' as ConviteDeProfessor['status'],
     expiresAt: new Date(Date.now() + 5 * DIA).toISOString(),
     respondedAt: null,
     createdAt: new Date(Date.now() - 2 * DIA).toISOString(),
     ...over,
+  }
+
+  /**
+   * O `inviteUrl` do fixture segue a MESMA regra da api (#509): nulo quando o
+   * convite não abre mais nada.
+   *
+   * Um valor fixo seria mais curto e faria os outros testes deste arquivo
+   * concordarem com uma tela que a api nunca produz — link de copiar embaixo de
+   * um convite aceito. Quem quiser o caso torto passa `inviteUrl` explícito.
+   */
+  const abreAPorta = base.status === 'PENDING' && new Date(base.expiresAt) > new Date()
+
+  return {
+    ...base,
+    inviteUrl: 'inviteUrl' in over
+      ? over.inviteUrl ?? null
+      : abreAPorta ? `https://app.exemplo/convite-professor?convite=tk-${base.id}` : null,
   }
 }
 
@@ -174,5 +196,88 @@ describe('OwnerProfessores', () => {
     )
     // "Nenhum convite ainda" seria mentira: pode haver muitos.
     expect(screen.queryByText(/Nenhum convite ainda/)).not.toBeInTheDocument()
+  })
+})
+
+/**
+ * O link do convite na lista (api#509).
+ *
+ * O `inviteUrl` chegava só na resposta do POST e se perdia na troca de tela.
+ * Como o envio do e-mail não bloqueia a criação do convite, *criado* e
+ * *entregue* são coisas diferentes — e quando a mensagem não chegava o dono não
+ * tinha como recuperar o endereço de um convite que ele mesmo criou.
+ */
+describe('OwnerProfessores — o link do convite', () => {
+  /**
+   * `navigator.clipboard` é um **getter** no jsdom, e `Object.assign` estoura
+   * nele. Mesmo helper do `CompartilharPartida`, pelo mesmo motivo.
+   */
+  function fingeClipboard(valor: unknown) {
+    Object.defineProperty(navigator, 'clipboard', { value: valor, configurable: true, writable: true })
+  }
+
+  beforeEach(() => {
+    fingeClipboard({ writeText: vi.fn().mockResolvedValue(undefined) })
+  })
+
+  it('mostra o link do convite pendente e copia', async () => {
+    servico.convites.mockResolvedValue([convite({ id: 'c9', email: 'nova@exemplo.com' })])
+
+    const { user } = monta()
+
+    const endereco = 'https://app.exemplo/convite-professor?convite=tk-c9'
+    expect(await screen.findByText(endereco)).toBeInTheDocument()
+
+    await user.click(screen.getByRole('button', { name: /copiar o link do convite de nova@exemplo.com/i }))
+
+    // Lido de volta da área de transferência, e não de um espião: o
+    // `userEvent.setup()` do `monta()` instala o próprio stub e substitui
+    // qualquer mock posto antes dele.
+    expect(await navigator.clipboard.readText()).toBe(endereco)
+    await waitFor(() => expect(toast.success).toHaveBeenCalledWith(expect.stringContaining('Link copiado')))
+  })
+
+  /**
+   * Os dois estados em que a api devolve `inviteUrl` nulo. Mostrar o link neles
+   * seria oferecer ao dono um endereço que só produz 404 em quem clicar.
+   */
+  it('não mostra link em convite já respondido', async () => {
+    servico.convites.mockResolvedValue([
+      convite({ status: 'ACCEPTED', respondedAt: new Date().toISOString() }),
+    ])
+
+    monta()
+
+    expect(await screen.findByText('Aceito')).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /copiar o link/i })).not.toBeInTheDocument()
+  })
+
+  it('não mostra link em convite vencido, que continua PENDING', async () => {
+    servico.convites.mockResolvedValue([
+      convite({ status: 'PENDING', expiresAt: new Date(Date.now() - 2 * DIA).toISOString() }),
+    ])
+
+    monta()
+
+    expect(await screen.findByText('Venceu sem resposta')).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /copiar o link/i })).not.toBeInTheDocument()
+  })
+
+  it('avisa, sem sumir com o link, quando o navegador nega a cópia', async () => {
+    servico.convites.mockResolvedValue([convite({ id: 'c9', email: 'nova@exemplo.com' })])
+
+    const { user } = monta()
+
+    const endereco = 'https://app.exemplo/convite-professor?convite=tk-c9'
+    await screen.findByText(endereco)
+    // Depois do `monta()`, que é quem chama o `userEvent.setup()` — antes dele
+    // o stub do user-event apagaria esta recusa.
+    fingeClipboard({ writeText: vi.fn().mockRejectedValue(new Error('negado')) })
+
+    await user.click(screen.getByRole('button', { name: /copiar o link/i }))
+
+    // O endereço continua na tela para selecionar à mão, e a mensagem diz isso.
+    await waitFor(() => expect(toast.error).toHaveBeenCalledWith(expect.stringContaining('selecionar')))
+    expect(screen.getByText(endereco)).toBeInTheDocument()
   })
 })

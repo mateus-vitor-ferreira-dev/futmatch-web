@@ -208,3 +208,62 @@ export const Ressalva = styled.p`
   color: ${({ theme }) => theme.colors.textMuted};
   line-height: 1.5;
 `
+
+/**
+ * O link do convite pendente, e por que ele fica numa linha própria (#509).
+ *
+ * O `Item` é um flex de duas pontas — e-mail à esquerda, selo à direita. O
+ * endereço não cabe entre eles sem espremer os dois, então ele usa o
+ * `flex-wrap` que já estava lá e ocupa a linha inteira embaixo.
+ *
+ * Só aparece em convite que ainda abre a porta: a api devolve `inviteUrl` nulo
+ * para o respondido e para o vencido, justamente para a tela não oferecer um
+ * link que só produz 404 em quem clicar.
+ */
+export const LinhaDoLink = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding-top: 10px;
+  border-top: 1px dashed ${({ theme }) => theme.colors.borderLight};
+`
+
+/**
+ * O endereço fica **visível**, e não escondido atrás do botão.
+ *
+ * É o que salva quem teve a área de transferência negada pelo navegador: o
+ * `copiar` avisa que falhou e manda selecionar à mão, e isso só é verdade se o
+ * texto estiver na tela. Mesmo desenho do `CompartilharPartida`.
+ */
+export const Endereco = styled.code`
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: ${({ theme }) => theme.fontSizes.xs};
+  color: ${({ theme }) => theme.colors.textSecondary};
+  user-select: all;
+`
+
+export const Copiar = styled.button`
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+  padding: 6px 12px;
+  border: 1px solid ${({ theme }) => theme.colors.border};
+  border-radius: ${({ theme }) => theme.radii.md};
+  background: ${({ theme }) => theme.colors.bgCard};
+  color: ${({ theme }) => theme.colors.textSecondary};
+  font-size: ${({ theme }) => theme.fontSizes.xs};
+  font-weight: ${({ theme }) => theme.fontWeights.medium};
+  cursor: pointer;
+  transition: border-color 0.15s, color 0.15s;
+
+  &:hover {
+    border-color: ${({ theme }) => theme.colors.primary};
+    color: ${({ theme }) => theme.colors.primary};
+  }
+`
