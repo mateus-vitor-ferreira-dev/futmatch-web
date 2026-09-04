@@ -510,6 +510,44 @@ export interface ConviteDeProfessor {
     inviteUrl: string | null;
 }
 
+/** Por que um link parou de valer. A api separa os três de propósito. */
+export type MotivoDoLinkInativo = "REVOKED" | "EXPIRED" | "EXHAUSTED";
+
+/**
+ * O link de convite do espaço — a credencial ao portador (api#509).
+ *
+ * **Não é o `ConviteDeProfessor` com um campo a menos.** Aquele é uma pergunta a
+ * alguém: tem e-mail, `status` e resposta, e só quem entra com aquele e-mail
+ * aceita. Este é um link: quem o tiver entra, e por isso ele não tem status —
+ * é gasto ou revogado.
+ */
+export interface LinkDeConviteDoEspaco {
+    id: string;
+    placeId: string;
+    papel: "PROFESSOR";
+    /** O endereço pronto para colar. O token não vem cru. */
+    url: string;
+    expiresAt: IsoDate;
+    /** Nulo é **sem limite**, e não zero. */
+    maxUses: number | null;
+    uses: number;
+    /** Nulo quando o link é ilimitado — a tela precisa dizer "sem limite", nunca `0`. */
+    usosRestantes: number | null;
+    revokedAt: IsoDate | null;
+    createdAt: IsoDate;
+    createdBy: { id: string; name: string };
+    /** `false` cobre os três motivos; o `motivo` diz qual. */
+    ativo: boolean;
+    motivo: MotivoDoLinkInativo | null;
+}
+
+/** O que a tela de quem recebeu o link vê antes de entrar. */
+export interface LinkVerificado {
+    place: { id: string; name: string };
+    papel: "PROFESSOR";
+    expiresAt: IsoDate;
+}
+
 /**
  * O que a tela do convidado vê **antes** de decidir — e antes de entrar.
  *

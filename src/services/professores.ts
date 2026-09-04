@@ -1,5 +1,7 @@
 import api from './api'
-import type { ApiEnvelope, ConviteDeProfessor, ConviteVerificado } from '../types/api'
+import type {
+  ApiEnvelope, ConviteDeProfessor, ConviteVerificado, LinkDeConviteDoEspaco, LinkVerificado,
+} from '../types/api'
 
 /**
  * Os convites de professor de um espaço (api#451).
@@ -67,4 +69,59 @@ export const professoresService = {
         { params: { token } },
       )
       .then(desembrulhar),
+
+  /*
+   * ─── O link ao portador (api#509) ──────────────────────────────────────────
+   *
+   * Outra família de rotas, e outro objeto. `/places/:id/invite-links` é do
+   * dono; `/place-invite-links/*` é de quem recebeu — e não leva `placeId`,
+   * pela mesma razão de `/place-invites/*`: exigi-lo obrigaria a tela a saber
+   * de qual espaço é o link antes de ler o link.
+   */
+
+  /**
+   * Gera com o padrão da api, e **sem corpo**.
+   *
+   * Um uso, sete dias. A tela não oferece validade nem limite de propósito
+   * (decisão 2 da web#410): um formulário com "sem limite" ao lado de "um uso"
+   * desfaria pela interface a proteção que a api monta por padrão.
+   */
+  gerarLink: (placeId: string) =>
+    api
+      .post<ApiEnvelope<LinkDeConviteDoEspaco>>(`/places/${placeId}/invite-links`)
+      .then(desembrulhar),
+
+  /** Todos, inclusive os inativos — cada um com `ativo` e o `motivo`. */
+  links: (placeId: string) =>
+    api
+      .get<ApiEnvelope<LinkDeConviteDoEspaco[]>>(`/places/${placeId}/invite-links`)
+      .then(desembrulhar),
+
+  /** Fecha a porta. Não apaga a linha e não tira quem já entrou. */
+  revogarLink: (placeId: string, linkId: string) =>
+    api.delete<void>(`/places/${placeId}/invite-links/${linkId}`).then(() => undefined),
+
+  /** Pública: responde sem sessão, para quem ainda não tem conta decidir. */
+  verificarLink: (token: string) =>
+    api
+      .get<ApiEnvelope<LinkVerificado>>('/place-invite-links/verify', { params: { token } })
+      .then(desembrulhar),
+
+  /**
+   * Entra pelo link. **201 quando o vínculo nasceu, 200 quando já existia** — e
+   * a tela precisa dos dois: dizer "pronto!" num refresh faria o dono ver o
+   * contador de usos não bater com a lista de pessoas.
+   *
+   * O corpo vai `undefined` pelo mesmo motivo do `aceitar` acima: o axios
+   * serializa `null` como a string `"null"` e o `body-parser` recusa isso, com
+   * o erro chegando como 500 sem nada na tela que ajude.
+   */
+  entrarPeloLink: (token: string) =>
+    api
+      .post<ApiEnvelope<{ id: string; papel: string; place: { id: string; name: string } }>>(
+        '/place-invite-links/accept',
+        undefined,
+        { params: { token } },
+      )
+      .then((r) => ({ member: r.data.data, novo: r.status === 201 })),
 }

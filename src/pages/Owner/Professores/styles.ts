@@ -267,3 +267,100 @@ export const Copiar = styled.button`
     color: ${({ theme }) => theme.colors.primary};
   }
 `
+/* ─── O link ao portador (api#509, web#410) ────────────────────────────────── */
+
+/**
+ * O botão de gerar. Um só, e sem formulário ao lado.
+ *
+ * A decisão 2 da #410: a tela oferece **só o padrão da api** — um uso, sete
+ * dias. Um formulário com "sem limite" ao lado de "um uso" ofereceria os dois
+ * com a mesma naturalidade e desfaria pela interface a proteção que a api monta
+ * por padrão. Quem precisa de link ilimitado pede pela api, de propósito.
+ */
+export const Gerar = styled.button`
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  border: 0;
+  border-radius: ${({ theme }) => theme.radii.md};
+  background: ${({ theme }) => theme.colors.primary};
+  color: #fff;
+  font-size: ${({ theme }) => theme.fontSizes.sm};
+  font-weight: ${({ theme }) => theme.fontWeights.semibold};
+  cursor: pointer;
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: progress;
+  }
+`
+
+/**
+ * O cartão de um link.
+ *
+ * Coluna, e não a linha de duas pontas do `Item` dos convites: aqui o endereço
+ * é o conteúdo principal e precisa da largura inteira, com o estado e o botão
+ * de revogar embaixo.
+ */
+export const CartaoDoLink = styled.li<{ $inativo: boolean }>`
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 14px 16px;
+  border: 1px solid ${({ theme }) => theme.colors.borderLight};
+  border-radius: ${({ theme }) => theme.radii.md};
+  background: ${({ theme }) => theme.colors.bgPage};
+  opacity: ${({ $inativo }) => ($inativo ? 0.6 : 1)};
+`
+
+export const RodapeDoLink = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+`
+
+export const Usos = styled.span`
+  font-size: ${({ theme }) => theme.fontSizes.xs};
+  color: ${({ theme }) => theme.colors.textMuted};
+`
+
+export const Revogar = styled.button`
+  padding: 4px 10px;
+  border: 1px solid ${({ theme }) => theme.colors.border};
+  border-radius: ${({ theme }) => theme.radii.md};
+  background: transparent;
+  color: ${({ theme }) => theme.colors.textSecondary};
+  font-size: ${({ theme }) => theme.fontSizes.xs};
+  cursor: pointer;
+
+  &:hover:not(:disabled) {
+    border-color: ${({ theme }) => theme.colors.error};
+    color: ${({ theme }) => theme.colors.error};
+  }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: progress;
+  }
+`
+
+/**
+ * O aviso de que o link é **ao portador**, e por que ele não é opcional.
+ *
+ * O botão sozinho convida ao mal-entendido: o dono acha que está mandando um
+ * convite como o de e-mail, que só a pessoa certa aceita. Este entra em quem
+ * tiver o link — e é o padrão de um uso que torna isso administrável.
+ */
+export const AvisoDoPortador = styled.p`
+  margin: 0 0 12px;
+  padding: 10px 12px;
+  border-left: 3px solid ${({ theme }) => theme.colors.warningText};
+  border-radius: ${({ theme }) => theme.radii.sm};
+  background: ${({ theme }) => theme.colors.warningLight};
+  color: ${({ theme }) => theme.colors.warningText};
+  font-size: ${({ theme }) => theme.fontSizes.xs};
+  line-height: 1.5;
+`
