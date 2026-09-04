@@ -500,6 +500,14 @@ export interface ConviteDeProfessor {
     /** Quando respondeu, se respondeu. Nulo em pendente e em vencido sem resposta. */
     respondedAt: IsoDate | null;
     createdAt: IsoDate;
+    /**
+     * O endereço que o convidado abre — **nulo quando o convite não abre mais
+     * nada**, ou seja, já respondido ou vencido (api#509).
+     *
+     * Nulo não é "não veio": é a api dizendo que este link só produziria 404 na
+     * mão de quem clicasse. A tela usa isso direto como condição de mostrar.
+     */
+    inviteUrl: string | null;
 }
 
 /**

@@ -5,7 +5,7 @@ import { useForm } from 'react-hook-form'
 import { yupResolver } from '@hookform/resolvers/yup'
 import * as yup from 'yup'
 import { toast } from 'sonner'
-import { Send } from 'lucide-react'
+import { Copy, Send } from 'lucide-react'
 import { usePageHeader } from '../../../components/DashboardLayout/pageHeader'
 import { useAuth } from '../../../contexts/AuthContext'
 import { professoresService } from '../../../services/professores'
@@ -16,9 +16,9 @@ import { Skeleton } from '../../../components/Skeleton'
 import type { ConviteDeProfessor } from '../../../types/api'
 import type { Place } from '../../../types/api'
 import {
-  Caixa, CampoEmail, Convidar, Email, Erro, ErroDoCampo, Explicacao,
-  Form, Input, Item, Lista, Quando, Ressalva, Selo, SeletorDeEspaco,
-  TituloDaCaixa, Vazio,
+  Caixa, CampoEmail, Convidar, Copiar, Email, Endereco, Erro, ErroDoCampo,
+  Explicacao, Form, Input, Item, LinhaDoLink, Lista, Quando, Ressalva, Selo,
+  SeletorDeEspaco, TituloDaCaixa, Vazio,
 } from './styles'
 
 const schema = yup.object({
@@ -127,6 +127,28 @@ export default function OwnerProfessores() {
 
   const nomeDoEspaco = espacos.find((espaco) => espaco.id === placeId)?.name
 
+  /**
+   * Copiar o link do convite (api#509).
+   *
+   * O `inviteUrl` chegava só na resposta do POST e se perdia na troca de tela.
+   * Como o envio do e-mail não bloqueia a criação do convite, *criado* e
+   * *entregue* são coisas diferentes — e quando a mensagem não chegava o dono
+   * não tinha como recuperar o endereço de um convite que ele mesmo criou.
+   *
+   * O `catch` não é decoração: navegador nega a área de transferência em
+   * contexto não seguro e quando a permissão foi recusada. Aí o endereço
+   * continua na tela para selecionar à mão, e é exatamente isso que a mensagem
+   * diz — mesmo desenho do `CompartilharPartida`.
+   */
+  async function copiarLink(url: string) {
+    try {
+      await navigator.clipboard.writeText(url)
+      toast.success('Link copiado! Mande para quem vai dar aula.')
+    } catch {
+      toast.error('Não foi possível copiar. O link está aí na lista para selecionar.')
+    }
+  }
+
   return (
     <div>
       <SeletorDeEspaco
@@ -148,6 +170,9 @@ export default function OwnerProfessores() {
           O convite vai por e-mail e vale 7 dias. Funciona para quem já joga no Só+1 e para
           quem ainda não tem conta — nesse caso a pessoa se cadastra com o mesmo e-mail e
           o convite continua esperando. O papel vale só dentro deste espaço.
+          {' '}Se o e-mail não chegar, o link de cada convite pendente fica na lista abaixo,
+          pronto para copiar — mas ele só funciona para quem entrar com <strong>esse</strong>{' '}
+          e-mail.
         </Explicacao>
 
         <Form onSubmit={handleSubmit((dados) => convidar.mutate(dados))} noValidate>
@@ -181,6 +206,8 @@ export default function OwnerProfessores() {
           <Lista>
             {convites.data.map((convite) => {
               const estado = estadoDoConvite(convite)
+              // Numa constante para o TypeScript estreitar o nulo sem `!`.
+              const link = convite.inviteUrl
               return (
                 <Item key={convite.id}>
                   <Email>
@@ -192,6 +219,23 @@ export default function OwnerProfessores() {
                     </Quando>
                   </Email>
                   <Selo $tom={estado.tom}>{estado.texto}</Selo>
+
+                  {/* A api devolve `inviteUrl` só enquanto o convite abre a
+                      porta. Testar o campo, e não o `estado`, mantém a regra num
+                      lugar só: se ela mudar lá, a tela acompanha sem edição. */}
+                  {link && (
+                    <LinhaDoLink>
+                      <Endereco>{link}</Endereco>
+                      <Copiar
+                        type="button"
+                        onClick={() => void copiarLink(link)}
+                        aria-label={`Copiar o link do convite de ${convite.email}`}
+                      >
+                        <Copy size={14} aria-hidden />
+                        Copiar link
+                      </Copiar>
+                    </LinhaDoLink>
+                  )}
                 </Item>
               )
             })}
