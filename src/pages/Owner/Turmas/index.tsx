@@ -18,8 +18,9 @@ import { Skeleton } from '../../../components/Skeleton'
 import type { Court, CourtType, Place, Turma } from '../../../types/api'
 import {
   Acoes, AcoesDoForm, Aviso, Botao, BotaoLeve, Caixa, Campo, Cartao, Dados, Detalhe, Erro,
-  ErroDoCampo, Explicacao, Form, GrupoDoDia, Horario, Input, Lado, Lista, Ocupacao, Rotulo,
-  Select, Selo, SemProfessor, SeletorDeEspaco, TituloDaCaixa, TituloDoDia, Topo, Valor, Vazio,
+  ErroDoCampo, EscolherProfessor, Explicacao, Form, GrupoDoDia, Horario, Input, Lado, Lista,
+  Ocupacao, Rotulo, Select, SelectDoCartao, Selo, SemProfessor, SeletorDeEspaco, TituloDaCaixa,
+  TituloDoDia, Topo, Valor, Vazio,
 } from './styles'
 
 /**
@@ -197,6 +198,29 @@ export default function OwnerTurmas() {
     mutationFn: (turma: Turma) => turmasService.atualizar(placeId, turma.id, { professorId: null }),
     onSuccess: () => {
       toast.success('Professor removido da turma. A turma continua como está.')
+      invalidar()
+    },
+    onError: (err) => toastErroDeApi(err),
+  })
+
+  /**
+   * O caminho de volta do `tirarProfessor` (#407).
+   *
+   * Sem ele, *Tirar professor* era porta de mão única: a turma ficava sem
+   * professor para sempre, e a única saída era apagá-la e refazer — perdendo
+   * matrículas, chamadas e mensalidades. A api sempre soube fazer isto, e tem
+   * teste; faltava a tela.
+   *
+   * `professorId` é o id do **vínculo** (`PlaceMember`), e não o do usuário.
+   * Mandar o `userId` devolve 422 `PROFESSOR_NOT_IN_PLACE`, e a mensagem não
+   * explica o engano — é a armadilha que a #390 documentou, e é por isso que o
+   * `<option>` carrega `membro.id`.
+   */
+  const porProfessor = useMutation({
+    mutationFn: ({ turma, professorId }: { turma: Turma; professorId: string }) =>
+      turmasService.atualizar(placeId, turma.id, { professorId }),
+    onSuccess: (turma) => {
+      toast.success(`Agora ${turma.professor?.user.name ?? 'o professor'} dá esta aula.`)
       invalidar()
     },
     onError: (err) => toastErroDeApi(err),
@@ -399,9 +423,34 @@ export default function OwnerTurmas() {
                               {rotuloDaModalidade(turma.modalidade)} · {turma.court.name}
                               {!turma.ativa && <> · <Selo>Inativa</Selo></>}
                             </Detalhe>
-                            {turma.professor
-                              ? <Detalhe>Prof. {turma.professor.user.name}</Detalhe>
-                              : <SemProfessor>Sem professor</SemProfessor>}
+                            {turma.professor ? (
+                              <Detalhe>Prof. {turma.professor.user.name}</Detalhe>
+                            ) : semProfessor ? (
+                              /* Espaço sem nenhum vínculo: o seletor não teria o
+                                 que oferecer, e aponta para onde se resolve —
+                                 mesmo estado vazio do formulário de cadastro. */
+                              <SemProfessor>
+                                Sem professor — ninguém tem vínculo aqui ainda, convide em Professores.
+                              </SemProfessor>
+                            ) : (
+                              <EscolherProfessor>
+                                <SemProfessor>Sem professor</SemProfessor>
+                                <SelectDoCartao
+                                  aria-label={`Escolher o professor da turma de ${DIAS[turma.diaDaSemana].toLowerCase()} às ${turma.horario}`}
+                                  value=""
+                                  disabled={porProfessor.isPending}
+                                  onChange={(evento) => {
+                                    const professorId = evento.target.value
+                                    if (professorId) porProfessor.mutate({ turma, professorId })
+                                  }}
+                                >
+                                  <option value="">Escolha o professor</option>
+                                  {(membros.data ?? []).map((membro) => (
+                                    <option key={membro.id} value={membro.id}>{membro.user.name}</option>
+                                  ))}
+                                </SelectDoCartao>
+                              </EscolherProfessor>
+                            )}
                           </Dados>
 
                           <Lado>

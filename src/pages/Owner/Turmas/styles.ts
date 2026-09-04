@@ -317,3 +317,45 @@ export const Erro = styled.p`
   color: ${({ theme }) => theme.colors.error};
   font-size: ${({ theme }) => theme.fontSizes.sm};
 `
+
+/**
+ * O seletor que põe professor numa turma que está sem (#407).
+ *
+ * ## Por que ele mora aqui, e não num formulário
+ *
+ * O cartão já tinha **Tirar professor**, e não tinha o contrário: uma vez
+ * tirado, a turma ficava sem professor para sempre e a única saída era apagá-la
+ * e refazer, perdendo matrículas, chamadas e mensalidades. A porta era de mão
+ * única.
+ *
+ * O caminho mais curto de volta é onde a falta aparece — no próprio cartão,
+ * embaixo do "Sem professor". Um formulário de edição resolveria isto e mais,
+ * e é a decisão 2 registrada na issue; não é o que o bug pedia.
+ */
+export const EscolherProfessor = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 2px;
+`
+
+/**
+ * Menor que o `Select` do formulário, porque divide a linha com o rótulo e vive
+ * dentro de um cartão de lista — o do formulário ocupa a largura do campo.
+ */
+export const SelectDoCartao = styled.select`
+  max-width: 220px;
+  padding: 4px 8px;
+  border: 1px solid ${({ theme }) => theme.colors.border};
+  border-radius: ${({ theme }) => theme.radii.sm};
+  background: ${({ theme }) => theme.colors.bgCard};
+  color: ${({ theme }) => theme.colors.textPrimary};
+  font-size: ${({ theme }) => theme.fontSizes.sm};
+  cursor: pointer;
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: progress;
+  }
+`

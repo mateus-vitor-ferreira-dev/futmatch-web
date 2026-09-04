@@ -151,6 +151,7 @@ export const TimeDetail       = lazyWithRetry(() => import('../pages/TimeDetail'
 export const TournamentDetail = lazyWithRetry(() => import('../pages/TournamentDetail'))
 export const Jogador          = lazyWithRetry(() => import('../pages/Jogador'))
 export const ConviteDeProfessor = lazyWithRetry(() => import('../pages/ConviteDeProfessor'))
+export const ConviteDeEspaco = lazyWithRetry(() => import('../pages/ConviteDeEspaco'))
 export const OwnerCourts      = lazyWithRetry(() => import('../pages/Owner/Courts'))
 export const OwnerAlunos      = lazyWithRetry(() => import('../pages/Owner/Alunos'))
 export const OwnerChamada = lazyWithRetry(() => import('../pages/Owner/Chamada'))
