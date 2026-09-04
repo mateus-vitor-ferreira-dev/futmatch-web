@@ -71,6 +71,7 @@ export const chaves = {
    * os convites da primeira até revalidar.
    */
   convitesDeProfessor: (placeId: string) => ['espacos', placeId, 'convites-de-professor'] as const,
+  linksDoEspaco: (placeId: string) => ['espacos', placeId, 'links-de-convite'] as const,
   /**
    * As turmas de um espaço (api#472), e quem pode dar aula nelas (api#461).
    *

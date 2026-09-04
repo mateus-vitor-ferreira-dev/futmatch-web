@@ -14,6 +14,7 @@ import {
   Home, Profile, QueroJogar, CriarPartida, Tournaments, MinhasPartidas,
   Historico, Avaliacoes, PartidaDetail, TournamentDetail, Times, TimeDetail, Jogador, Amigos,
   ConviteDeProfessor,
+  ConviteDeEspaco,
   AdminDashboard, AdminUsers, AdminRequests, AdminPlaces,
   OwnerDashboard, OwnerPlans, OwnerPlaces, OwnerInventory, OwnerEquipment, OwnerRequests, OwnerCourts,
   OwnerProfessores,
@@ -52,6 +53,11 @@ export const arvoreDeRotas = (
         `GET /place-invites/verify` é público, e quem ainda não tem conta precisa
         ver de quem é o convite antes de decidir se vale se cadastrar. */}
     <Route path="/convite-professor" element={<Suspense fallback={<FullPageLoader />}><ConviteDeProfessor /></Suspense>} />
+    {/* O link de convite do espaço (api#509). Fora do bloco privado pelo mesmo
+        motivo, e é outra tela: lá se aceita um convite endereçado, aqui se usa
+        uma credencial ao portador — quem tiver o link entra, e não há o que
+        recusar. */}
+    <Route path="/convite-espaco" element={<Suspense fallback={<FullPageLoader />}><ConviteDeEspaco /></Suspense>} />
 
     {/* Área do jogador — MainLayout monta uma vez e persiste entre estas rotas */}
     <Route element={<PrivateRoute><MainLayout /></PrivateRoute>}>
