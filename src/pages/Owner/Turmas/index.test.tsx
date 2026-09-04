@@ -17,7 +17,7 @@
  * mesmo defeito que obrigou a api a escrever o `horarioDeParede.ts`.
  */
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { screen, waitFor, within } from '@testing-library/react'
+import { fireEvent, screen, waitFor, within } from '@testing-library/react'
 import { renderWithProviders } from '../../../test/render'
 import { turmasService } from '../../../services/turmas'
 import * as placesService from '../../../services/places'
@@ -227,6 +227,93 @@ describe('OwnerTurmas', () => {
       await user.click(await screen.findByRole('button', { name: /nova turma/i }))
 
       expect(await screen.findByText(/convide em professores/i)).toBeInTheDocument()
+    })
+  })
+
+  /**
+   * O caminho de volta (#407).
+   *
+   * *Tirar professor* existia sozinho: a turma ficava sem professor para sempre
+   * e a única saída era apagá-la e refazer, perdendo matrículas, chamadas e
+   * mensalidades. A api sempre soube reatribuir — `turma.test.ts` tem o teste —
+   * e o critério estava escrito desde a #390. Faltava a tela.
+   */
+  describe('pôr professor numa turma que está sem', () => {
+    const COM_PROFESSOR = {
+      professorId: 'vinculo-1',
+      professor: { id: 'vinculo-1', user: { id: 'user-1', name: 'Rita Souza' } },
+    }
+
+    it('oferece o seletor, e escolher atribui mandando o id do VÍNCULO', async () => {
+      servico.listar.mockResolvedValue([turma({ professor: null })])
+      const { user } = monta()
+
+      await user.selectOptions(await screen.findByLabelText(/escolher o professor/i), 'vinculo-1')
+
+      // `vinculo-1`, e nunca `user-1` — a mesma armadilha do formulário de
+      // cadastro: mandar o userId dá 422 PROFESSOR_NOT_IN_PLACE.
+      await waitFor(() =>
+        expect(servico.atualizar).toHaveBeenCalledWith('ltc', 't1', { professorId: 'vinculo-1' }),
+      )
+    })
+
+    it('não manda nada quando a escolha volta para o vazio', async () => {
+      servico.listar.mockResolvedValue([turma({ professor: null })])
+      monta()
+
+      /*
+       * `fireEvent`, e não `user.selectOptions`.
+       *
+       * O seletor é controlado em `value=""`, então escolher a opção vazia pelo
+       * teclado não muda valor nenhum e o `onChange` nem dispara — o teste
+       * passaria sem tocar na guarda. Disparar o evento à mão é o que de fato a
+       * exercita: sem ela, isto mandaria `professorId: ''`, que a api recusa
+       * com 422 dizendo que o vínculo não existe.
+       */
+      fireEvent.change(await screen.findByLabelText(/escolher o professor/i), { target: { value: '' } })
+
+      expect(servico.atualizar).not.toHaveBeenCalled()
+    })
+
+    it('turma que já tem professor não mostra o seletor — mostra o de tirar', async () => {
+      servico.listar.mockResolvedValue([turma(COM_PROFESSOR)])
+      monta()
+
+      expect(await screen.findByText('Prof. Rita Souza')).toBeInTheDocument()
+      expect(screen.queryByLabelText(/escolher o professor/i)).not.toBeInTheDocument()
+      expect(screen.getByRole('button', { name: /tirar professor/i })).toBeInTheDocument()
+    })
+
+    it('espaço sem vínculo nenhum não oferece seletor, e aponta para Professores', async () => {
+      // Um seletor sem nenhuma opção seria uma porta que não abre. O cartão diz
+      // onde se resolve, como o formulário de cadastro já dizia.
+      servico.membros.mockResolvedValue([])
+      servico.listar.mockResolvedValue([turma({ professor: null })])
+      monta()
+
+      expect(await screen.findByText(/ninguém tem vínculo aqui ainda/i)).toBeInTheDocument()
+      expect(screen.queryByLabelText(/escolher o professor/i)).not.toBeInTheDocument()
+    })
+
+    it('tirar e pôr de volta devolve a turma ao estado inicial', async () => {
+      // O teste do bug inteiro, ida e volta: é a sequência que antes só tinha ida.
+      servico.listar
+        .mockResolvedValueOnce([turma(COM_PROFESSOR)])
+        .mockResolvedValue([turma({ professor: null })])
+      const { user } = monta()
+
+      await user.click(await screen.findByRole('button', { name: /tirar professor/i }))
+      await waitFor(() =>
+        expect(servico.atualizar).toHaveBeenCalledWith('ltc', 't1', { professorId: null }),
+      )
+
+      // A lista recarrega sem professor — e agora existe o caminho de volta.
+      servico.listar.mockResolvedValue([turma(COM_PROFESSOR)])
+      await user.selectOptions(await screen.findByLabelText(/escolher o professor/i), 'vinculo-1')
+
+      await waitFor(() =>
+        expect(servico.atualizar).toHaveBeenLastCalledWith('ltc', 't1', { professorId: 'vinculo-1' }),
+      )
     })
   })
 
